@@ -1,0 +1,979 @@
+/* ==========================================================================
+   SHANTI STUDIO DE YOGA - WhatsApp Luxe Theme
+   Design profissional, sofisticado e visualmente refinado
+   Harmonizado com o logo: Dourado, Verde Esmeralda e Areia Quente
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+
+:root {
+  /* Cores da Identidade Visual Shanti */
+  --shanti-primary: #0b382c;        /* Verde Floresta Sagrado Profundo */
+  --shanti-primary-light: #134e3f;  /* Esmeralda Suave */
+  --shanti-gold: #c5a059;           /* Ouro Champanhe */
+  --shanti-gold-light: #e5cf92;     /* Ouro Claro Iluminado */
+  --shanti-gold-glow: rgba(197, 160, 89, 0.25);
+  --shanti-sand: #f8f5f0;           /* Areia Quente Zen */
+  --shanti-sand-dark: #eee8de;      /* Bege Linho */
+  --shanti-whatsapp-green: #25d366; /* Verde Oficial WhatsApp */
+  --shanti-whatsapp-dark: #128c7e;
+  
+  /* Cores de Interface e Chat */
+  --wa-bubble-bot: #ffffff;
+  --wa-bubble-user: #e3f3ec;
+  --wa-text-primary: #192420;
+  --wa-text-secondary: #63736d;
+  --wa-text-light: #ffffff;
+  --wa-border: #e8e2d8;
+  --wa-border-gold: rgba(197, 160, 89, 0.3);
+  --wa-blue-tick: #0ea5e9;
+  --wa-danger: #dc2626;
+  --wa-warning: #d97706;
+  --wa-success: #059669;
+
+  /* Efeitos e Tipografia */
+  --font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-brand: 'Cinzel', serif;
+  --shadow-sm: 0 2px 6px rgba(11, 56, 44, 0.05);
+  --shadow-md: 0 4px 16px rgba(11, 56, 44, 0.08);
+  --shadow-lg: 0 8px 30px rgba(11, 56, 44, 0.14);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  font-family: var(--font-family);
+  background: radial-gradient(circle at top right, #eee6d8, #d8cebe);
+  color: var(--wa-text-primary);
+  height: 100vh;
+  height: 100dvh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+}
+
+/* Container do App com Visual Moderno */
+#app-container {
+  width: 100%;
+  max-width: 490px;
+  height: 100%;
+  max-height: 100dvh;
+  background-color: var(--shanti-sand);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+}
+
+@media (min-width: 491px) {
+  #app-container {
+    height: 94vh;
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    box-shadow: 0 20px 45px rgba(11, 56, 44, 0.22);
+  }
+}
+
+/* ==========================================================================
+   Header WhatsApp Luxe
+   ========================================================================== */
+.wa-header {
+  background: linear-gradient(135deg, var(--shanti-primary) 0%, #08281f 100%);
+  color: var(--wa-text-light);
+  padding: 12px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  z-index: 10;
+  border-bottom: 2px solid var(--shanti-gold);
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.15);
+}
+
+.wa-header-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+/* Avatar com a Foto Oficial do Logo Shanti */
+.wa-avatar-wrapper {
+  position: relative;
+  width: 46px;
+  height: 46px;
+}
+
+.wa-avatar-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  background-color: #f7f3eb;
+  border: 2px solid var(--shanti-gold-light);
+  box-shadow: 0 0 0 2px var(--shanti-gold-glow), 0 2px 6px rgba(0,0,0,0.25);
+  display: block;
+}
+
+.wa-header-title {
+  display: flex;
+  flex-direction: column;
+}
+
+.wa-header-title h1 {
+  font-family: var(--font-brand);
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: #ffffff;
+  line-height: 1.2;
+}
+
+.wa-header-title .wa-status-text {
+  font-size: 12px;
+  color: #e2ede8;
+  opacity: 0.9;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 1px;
+}
+
+.wa-status-dot {
+  width: 8px;
+  height: 8px;
+  background-color: #25d366;
+  border-radius: 50%;
+  box-shadow: 0 0 6px #25d366;
+}
+
+.wa-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.wa-icon-btn {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  transition: all 0.2s;
+}
+
+.wa-icon-btn:hover {
+  background: rgba(197, 160, 89, 0.3);
+  border-color: var(--shanti-gold);
+  color: var(--shanti-gold-light);
+  transform: translateY(-1px);
+}
+
+/* ==========================================================================
+   Abas de Navegação Estilo WhatsApp (Elegantes)
+   ========================================================================== */
+.wa-nav-tabs {
+  background: var(--shanti-primary-light);
+  display: flex;
+  flex-shrink: 0;
+  border-bottom: 1px solid rgba(197, 160, 89, 0.2);
+}
+
+.wa-tab-btn {
+  flex: 1;
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.65);
+  padding: 12px 4px 10px;
+  font-size: 12.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  cursor: pointer;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.2s;
+}
+
+.wa-tab-btn i {
+  font-size: 14px;
+}
+
+.wa-tab-btn.active {
+  color: #ffffff;
+}
+
+.wa-tab-btn.active::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 12%;
+  right: 12%;
+  height: 3px;
+  background: linear-gradient(90deg, var(--shanti-gold), var(--shanti-gold-light));
+  border-radius: 3px 3px 0 0;
+  box-shadow: 0 0 8px var(--shanti-gold);
+}
+
+.wa-tab-badge {
+  background: linear-gradient(135deg, var(--shanti-gold), #b8934b);
+  color: #0c3b2e;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+.wa-tab-badge.danger {
+  background: linear-gradient(135deg, #ef4444, #b91c1c);
+  color: #ffffff;
+}
+
+/* ==========================================================================
+   Área Principal de Telas / Abas
+   ========================================================================== */
+.wa-screen {
+  flex: 1;
+  display: none;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+  background-color: var(--shanti-sand);
+}
+
+.wa-screen.active {
+  display: flex;
+}
+
+/* ==========================================================================
+   Aba 1: Conversa com IA (Chat WhatsApp Sofisticado)
+   ========================================================================== */
+.wa-chat-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background-color: #f7f4ee;
+  background-image: 
+    radial-gradient(var(--shanti-sand-dark) 1px, transparent 1px),
+    radial-gradient(rgba(197, 160, 89, 0.08) 1.5px, transparent 1.5px);
+  background-size: 20px 20px, 40px 40px;
+  background-position: 0 0, 10px 10px;
+  overflow: hidden;
+}
+
+/* Barra de Atalhos Rápidos (Chips) */
+.wa-quick-chips {
+  display: flex;
+  gap: 8px;
+  padding: 10px 14px 6px;
+  overflow-x: auto;
+  flex-shrink: 0;
+  background: rgba(247, 244, 238, 0.85);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--wa-border);
+}
+
+.wa-quick-chip {
+  background: #ffffff;
+  border: 1px solid var(--wa-border);
+  border-radius: 20px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--shanti-primary);
+  white-space: nowrap;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  transition: all 0.2s;
+}
+
+.wa-quick-chip:hover, .wa-quick-chip:active {
+  background: var(--shanti-primary);
+  color: #ffffff;
+  border-color: var(--shanti-primary);
+  transform: translateY(-1px);
+}
+
+.wa-quick-chip i {
+  color: var(--shanti-gold);
+}
+
+.wa-quick-chip:hover i {
+  color: var(--shanti-gold-light);
+}
+
+.wa-messages-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  scroll-behavior: smooth;
+}
+
+/* Balões de Mensagem */
+.wa-message-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.wa-message-row.user {
+  justify-content: flex-end;
+}
+
+.wa-msg-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1.5px solid var(--shanti-gold);
+  flex-shrink: 0;
+  margin-bottom: 2px;
+}
+
+.wa-message {
+  max-width: 82%;
+  padding: 10px 14px 8px 14px;
+  font-size: 14.5px;
+  line-height: 1.45;
+  border-radius: 14px;
+  position: relative;
+  word-wrap: break-word;
+  box-shadow: var(--shadow-sm);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.wa-message.user {
+  background-color: var(--wa-bubble-user);
+  color: var(--wa-text-primary);
+  border-bottom-right-radius: 3px;
+  border: 1px solid rgba(11, 56, 44, 0.08);
+}
+
+.wa-message.bot {
+  background-color: var(--wa-bubble-bot);
+  color: var(--wa-text-primary);
+  border-bottom-left-radius: 3px;
+  border: 1px solid var(--wa-border);
+  box-shadow: 0 2px 8px rgba(11, 56, 44, 0.04);
+}
+
+.wa-message-content {
+  color: var(--wa-text-primary);
+  white-space: pre-line;
+}
+
+.wa-message-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  margin-top: 4px;
+  font-size: 11px;
+  color: var(--wa-text-secondary);
+}
+
+.wa-ticks {
+  color: var(--wa-blue-tick);
+  font-size: 13px;
+  font-weight: bold;
+}
+
+/* Cards de Cobrança / Ação dentro do Chat */
+.wa-action-card {
+  margin-top: 10px;
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--wa-border);
+  border-left: 4px solid var(--shanti-gold);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+}
+
+.wa-action-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.wa-action-card-name {
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--shanti-primary);
+}
+
+.wa-action-card-val {
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--wa-success);
+}
+
+.wa-action-card-sub {
+  font-size: 12px;
+  color: var(--wa-danger);
+  margin-bottom: 8px;
+}
+
+.wa-action-btn-whatsapp {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #25d366 0%, #1da851 100%);
+  color: #ffffff;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 8px 16px;
+  border-radius: 20px;
+  box-shadow: 0 3px 8px rgba(37, 211, 102, 0.3);
+  transition: all 0.2s;
+}
+
+.wa-action-btn-whatsapp:active {
+  transform: scale(0.97);
+  box-shadow: 0 1px 4px rgba(37, 211, 102, 0.4);
+}
+
+/* Barra de Entrada de Mensagem (Bottom Bar) */
+.wa-input-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background-color: #f0ebe2;
+  border-top: 1px solid var(--wa-border);
+  flex-shrink: 0;
+}
+
+.wa-input-pill {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  background-color: #ffffff;
+  border-radius: 28px;
+  padding: 8px 16px;
+  gap: 10px;
+  border: 1px solid var(--wa-border);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+}
+
+.wa-input-pill input {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 14.5px;
+  color: var(--wa-text-primary);
+  background: transparent;
+  font-family: inherit;
+}
+
+.wa-input-pill input::placeholder {
+  color: #8c9c94;
+}
+
+.wa-mic-btn, .wa-send-btn {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--shanti-primary-light), var(--shanti-primary));
+  color: var(--shanti-gold-light);
+  border: 1px solid var(--shanti-gold);
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 3px 10px rgba(11, 56, 44, 0.25);
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.wa-mic-btn:active, .wa-send-btn:active {
+  transform: scale(0.92);
+}
+
+/* Animação do Microfone Gravando */
+.wa-mic-btn.recording {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: #ffffff;
+  border-color: #ffffff;
+  animation: pulseMic 1.2s infinite;
+}
+
+@keyframes pulseMic {
+  0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.6); }
+  70% { transform: scale(1.1); box-shadow: 0 0 0 14px rgba(220, 38, 38, 0); }
+  100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); }
+}
+
+/* Banner de Gravação de Áudio */
+.wa-audio-recording-overlay {
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  flex: 1;
+  background-color: #ffffff;
+  border-radius: 28px;
+  padding: 10px 16px;
+  color: var(--wa-danger);
+  font-weight: 600;
+  font-size: 14px;
+  gap: 8px;
+  border: 1px solid #fee2e2;
+  box-shadow: 0 2px 6px rgba(220, 38, 38, 0.1);
+}
+
+.wa-recording-waves {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  height: 20px;
+}
+
+.wa-wave-bar {
+  width: 3px;
+  background-color: var(--wa-danger);
+  border-radius: 3px;
+  animation: wave 0.8s ease-in-out infinite;
+}
+
+.wa-wave-bar:nth-child(2) { animation-delay: 0.2s; height: 16px; }
+.wa-wave-bar:nth-child(3) { animation-delay: 0.4s; height: 20px; }
+.wa-wave-bar:nth-child(4) { animation-delay: 0.1s; height: 12px; }
+
+@keyframes wave {
+  0%, 100% { height: 6px; }
+  50% { height: 20px; }
+}
+
+/* ==========================================================================
+   Aba 2: Alunos (Lista no estilo Contatos do WhatsApp)
+   ========================================================================== */
+.wa-students-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background-color: #ffffff;
+  overflow: hidden;
+}
+
+.wa-search-bar {
+  padding: 10px 16px;
+  background-color: var(--shanti-sand);
+  border-bottom: 1px solid var(--wa-border);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.wa-search-input {
+  flex: 1;
+  background-color: #ffffff;
+  border: 1px solid var(--wa-border);
+  border-radius: 10px;
+  padding: 9px 14px;
+  font-size: 14px;
+  outline: none;
+  font-family: inherit;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.03);
+}
+
+.wa-search-input:focus {
+  border-color: var(--shanti-gold);
+}
+
+.wa-students-filter {
+  display: flex;
+  padding: 10px 14px;
+  gap: 8px;
+  overflow-x: auto;
+  border-bottom: 1px solid var(--wa-border);
+  background: #ffffff;
+  flex-shrink: 0;
+}
+
+.wa-filter-chip {
+  background-color: var(--shanti-sand);
+  border: 1px solid var(--wa-border);
+  border-radius: 20px;
+  padding: 6px 14px;
+  font-size: 12.5px;
+  cursor: pointer;
+  white-space: nowrap;
+  font-weight: 600;
+  color: var(--wa-text-secondary);
+  transition: all 0.2s;
+}
+
+.wa-filter-chip.active {
+  background: var(--shanti-primary);
+  color: #ffffff;
+  border-color: var(--shanti-primary);
+  box-shadow: 0 2px 6px rgba(11, 56, 44, 0.2);
+}
+
+.wa-students-list {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.wa-student-item {
+  display: flex;
+  align-items: center;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--wa-border);
+  gap: 14px;
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.wa-student-item:hover, .wa-student-item:active {
+  background-color: #f8f6f1;
+}
+
+.wa-student-avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--shanti-primary-light), var(--shanti-primary));
+  color: var(--shanti-gold-light);
+  border: 1.5px solid var(--shanti-gold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 19px;
+  flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+}
+
+.wa-student-avatar.inativo {
+  background: #9ca3af;
+  border-color: #d1d5db;
+  color: #ffffff;
+}
+
+.wa-student-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.wa-student-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.wa-student-name {
+  font-size: 15.5px;
+  font-weight: 700;
+  color: var(--wa-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.wa-student-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 12px;
+}
+
+.badge-em-dia { background-color: #d1fae5; color: #065f46; }
+.badge-atrasado { background-color: #fee2e2; color: #991b1b; }
+.badge-hoje { background-color: #fef3c7; color: #92400e; }
+.badge-inativo { background-color: #f3f4f6; color: #4b5563; }
+
+.wa-student-sub {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: var(--wa-text-secondary);
+}
+
+.wa-student-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.wa-btn-cobranca-item {
+  background: linear-gradient(135deg, #25d366, #16a34a);
+  color: #ffffff;
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  cursor: pointer;
+  text-decoration: none;
+  box-shadow: 0 3px 8px rgba(37, 211, 102, 0.35);
+  transition: transform 0.15s;
+}
+
+.wa-btn-cobranca-item:active {
+  transform: scale(0.92);
+}
+
+/* Botão Flutuante (FAB) para Novo Aluno */
+.wa-fab {
+  position: absolute;
+  bottom: 22px;
+  right: 22px;
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--shanti-primary-light), var(--shanti-primary));
+  color: var(--shanti-gold-light);
+  border: 1.5px solid var(--shanti-gold);
+  box-shadow: 0 6px 16px rgba(11, 56, 44, 0.35);
+  font-size: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  z-index: 5;
+}
+
+.wa-fab:active {
+  transform: scale(0.92);
+}
+
+/* ==========================================================================
+   Aba 3: Relatórios / Painel Financeiro
+   ========================================================================== */
+.wa-reports-container {
+  flex: 1;
+  overflow-y: auto;
+  padding: 18px;
+  background-color: var(--shanti-sand);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.wa-card {
+  background-color: #ffffff;
+  border-radius: 16px;
+  padding: 18px;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--wa-border);
+}
+
+.wa-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--wa-border);
+}
+
+.wa-card-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--shanti-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.wa-stat-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.wa-stat-box {
+  background: #fbf9f5;
+  border: 1px solid var(--wa-border);
+  border-radius: 12px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+}
+
+.wa-stat-value {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--shanti-primary);
+}
+
+.wa-stat-value.danger { color: var(--wa-danger); }
+.wa-stat-value.success { color: var(--wa-success); }
+
+.wa-stat-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--wa-text-secondary);
+  margin-top: 3px;
+}
+
+/* ==========================================================================
+   Aba 4: Ajustes (Configurações)
+   ========================================================================== */
+.wa-settings-container {
+  flex: 1;
+  overflow-y: auto;
+  padding: 18px;
+  background-color: var(--shanti-sand);
+}
+
+.wa-form-group {
+  margin-bottom: 14px;
+}
+
+.wa-form-group label {
+  display: block;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--shanti-primary);
+  margin-bottom: 6px;
+}
+
+.wa-form-control {
+  width: 100%;
+  padding: 11px 14px;
+  border: 1px solid var(--wa-border);
+  border-radius: 10px;
+  font-size: 14px;
+  font-family: inherit;
+  outline: none;
+  background: #ffffff;
+  transition: border-color 0.2s;
+}
+
+.wa-form-control:focus {
+  border-color: var(--shanti-gold);
+}
+
+.wa-btn-primary {
+  width: 100%;
+  background: linear-gradient(135deg, var(--shanti-primary-light), var(--shanti-primary));
+  color: #ffffff;
+  border: 1px solid var(--shanti-gold);
+  padding: 13px;
+  font-size: 15px;
+  font-weight: 700;
+  border-radius: 12px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(11, 56, 44, 0.2);
+  transition: all 0.2s;
+}
+
+.wa-btn-primary:active {
+  transform: scale(0.98);
+}
+
+/* ==========================================================================
+   Modais
+   ========================================================================== */
+.wa-modal-overlay {
+  display: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(11, 56, 44, 0.45);
+  backdrop-filter: blur(4px);
+  z-index: 100;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.wa-modal-overlay.active {
+  display: flex;
+}
+
+.wa-modal-sheet {
+  background-color: #ffffff;
+  width: 100%;
+  max-height: 88%;
+  border-top-left-radius: 24px;
+  border-top-right-radius: 24px;
+  padding: 22px;
+  overflow-y: auto;
+  box-shadow: 0 -8px 30px rgba(0,0,0,0.2);
+  animation: slideUp 0.25s ease-out;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+.wa-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--wa-border);
+  padding-bottom: 12px;
+}
+
+.wa-modal-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--shanti-primary);
+}
+
+.wa-modal-close {
+  background: none;
+  border: none;
+  font-size: 22px;
+  cursor: pointer;
+  color: var(--wa-text-secondary);
+}
+
+/* Toast */
+.wa-toast {
+  position: absolute;
+  top: 75px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(11, 56, 44, 0.95);
+  color: var(--shanti-gold-light);
+  border: 1px solid var(--shanti-gold);
+  padding: 9px 18px;
+  border-radius: 24px;
+  font-size: 13px;
+  font-weight: 600;
+  z-index: 200;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.25);
+  display: none;
+}

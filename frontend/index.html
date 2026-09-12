@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Shanti Studio de Yoga - Gestão Inteligente</title>
+
+  <!-- Favicon & PWA Meta Tags -->
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#0b382c">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Shanti Yoga">
+  <link rel="apple-touch-icon" href="/icons/icon-192.png">
+
+  <!-- Fontes Google & Ícones FontAwesome -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <!-- WhatsApp Luxe Theme Stylesheet -->
+  <link rel="stylesheet" href="/css/whatsapp-theme.css?v=3">
+</head>
+<body>
+
+<div id="app-container">
+  
+  <!-- Header WhatsApp com a Foto Oficial do Shanti Studio de Yoga -->
+  <header class="wa-header">
+    <div class="wa-header-left">
+      <div class="wa-avatar-wrapper">
+        <img src="/img/shanti_logo.png?v=3" alt="Shanti Studio de Yoga" class="wa-avatar-img">
+      </div>
+      <div class="wa-header-title">
+        <h1 id="header-studio-name">Shanti Studio de Yoga</h1>
+        <div class="wa-status-text">
+          <span class="wa-status-dot"></span>
+          <span>online • Assistente IA</span>
+        </div>
+      </div>
+    </div>
+    <div class="wa-header-actions">
+      <button class="wa-icon-btn" id="btn-header-action" title="Atualizar dados">
+        <i class="fa-solid fa-arrows-rotate"></i>
+      </button>
+      <button class="wa-icon-btn" id="btn-header-menu" title="Configurações">
+        <i class="fa-solid fa-gear"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- Abas de Navegação Estilo WhatsApp -->
+  <nav class="wa-nav-tabs">
+    <button class="wa-tab-btn active" data-tab="chat">
+      <i class="fa-solid fa-comment-dots"></i> Conversas
+    </button>
+    <button class="wa-tab-btn" data-tab="alunos">
+      <i class="fa-solid fa-users"></i> Alunos
+      <span class="wa-tab-badge danger" id="badge-atrasados" style="display:none;">0</span>
+    </button>
+    <button class="wa-tab-btn" data-tab="relatorios">
+      <i class="fa-solid fa-chart-pie"></i> Relatórios
+    </button>
+    <button class="wa-tab-btn" data-tab="ajustes">
+      <i class="fa-solid fa-sliders"></i> Ajustes
+    </button>
+  </nav>
+
+  <!-- ====================================================================
+       TELA 1: CHAT COM A IA (ÁUDIO E TEXTO)
+       ==================================================================== -->
+  <section class="wa-screen active" id="screen-chat">
+    <div class="wa-chat-container">
+      
+
+      <!-- Lista de Mensagens do Chat -->
+      <div class="wa-messages-list" id="chat-messages">
+        <!-- Mensagem de boas-vindas da IA com avatar Shanti -->
+        <div class="wa-message-row">
+          <img src="/img/shanti_logo.png?v=3" alt="Shanti" class="wa-msg-avatar">
+          <div class="wa-message bot">
+            <div class="wa-message-content">
+              🧘‍♀️ <b>Namastê! Seja muito bem-vindo(a) ao Shanti Studio de Yoga.</b>
+
+              Eu sou sua assistente inteligente integrada. Você pode me <b>mandar áudios</b> ou digitar comandos para gerenciar o studio!
+              
+              💡 <b>Toque nos botões rápidos acima ou me pergunte:</b>
+              • <i>"Quem está com a mensalidade atrasada?"</i>
+              • <i>"Me envie o relatório financeiro do mês"</i>
+              • <i>"Envie cobrança para os alunos atrasados"</i>
+              • <i>"Qual o quantitativo de alunos ativos?"</i>
+            </div>
+            <div class="wa-message-footer">
+              <span class="wa-msg-time" id="welcome-time">21:00</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Barra Inferior de Entrada (WhatsApp Input Bar) -->
+      <div class="wa-input-bar">
+        
+        <!-- Overlay durante a gravação de áudio -->
+        <div class="wa-audio-recording-overlay" id="recording-overlay">
+          <div class="wa-recording-waves">
+            <div class="wa-wave-bar"></div>
+            <div class="wa-wave-bar"></div>
+            <div class="wa-wave-bar"></div>
+            <div class="wa-wave-bar"></div>
+          </div>
+          <span id="recording-timer">0:00</span>
+          <span style="font-size: 12px; color: #63736d;">Gravando sua voz... solte para enviar</span>
+          <button id="btn-cancel-record" style="background:none; border:none; color:var(--wa-danger); font-size:16px; cursor:pointer;" title="Cancelar">
+            <i class="fa-solid fa-trash"></i>
+          </button>
+        </div>
+
+        <!-- Campo de Texto Normal -->
+        <div class="wa-input-pill" id="input-pill">
+          <i class="fa-regular fa-face-smile" style="color: #9ca3af; font-size: 18px;"></i>
+          <input type="text" id="chat-input" placeholder="Mensagem ou fale no microfone..." autocomplete="off">
+        </div>
+
+        <!-- Botão de Microfone ou Enviar -->
+        <button class="wa-mic-btn" id="btn-mic" title="Toque para falar por voz">
+          <i class="fa-solid fa-microphone" id="mic-icon"></i>
+        </button>
+        <button class="wa-send-btn" id="btn-send" style="display:none;" title="Enviar">
+          <i class="fa-solid fa-paper-plane"></i>
+        </button>
+
+        <!-- Captura de áudio nativa para celulares em redes locais -->
+        <input type="file" id="mobile-mic-input" accept="audio/*" capture="microphone" style="display:none;">
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ====================================================================
+       TELA 2: LISTA DE ALUNOS (ESTILO CONTATOS DO WHATSAPP)
+       ==================================================================== -->
+  <section class="wa-screen" id="screen-alunos">
+    <div class="wa-students-container">
+      
+      <!-- Busca de Aluno -->
+      <div class="wa-search-bar">
+        <i class="fa-solid fa-magnifying-glass" style="color: #63736d;"></i>
+        <input type="text" class="wa-search-input" id="search-students" placeholder="Pesquisar aluno por nome ou telefone...">
+      </div>
+
+      <!-- Filtros rápidos -->
+      <div class="wa-students-filter">
+        <button class="wa-filter-chip active" data-filter="todos">Todos (<span id="count-todos">0</span>)</button>
+        <button class="wa-filter-chip" data-filter="atrasados">Atrasados (<span id="count-atrasados">0</span>)</button>
+        <button class="wa-filter-chip" data-filter="em-dia">Em Dia (<span id="count-emdia">0</span>)</button>
+        <button class="wa-filter-chip" data-filter="inativo">Inativos (<span id="count-inativos">0</span>)</button>
+      </div>
+
+      <!-- Lista de Alunos -->
+      <div class="wa-students-list" id="students-list">
+        <!-- Renderizado dinamicamente -->
+      </div>
+
+      <!-- Botão Flutuante (FAB) para Adicionar Aluno -->
+      <button class="wa-fab" id="btn-open-add-student" title="Nova Matrícula">
+        <i class="fa-solid fa-user-plus"></i>
+      </button>
+
+    </div>
+  </section>
+
+  <!-- ====================================================================
+       TELA 3: RELATÓRIOS E QUANTITATIVO DO STUDIO
+       ==================================================================== -->
+  <section class="wa-screen" id="screen-relatorios">
+    <div class="wa-reports-container">
+      
+      <!-- Card: Quantitativo de Alunos -->
+      <div class="wa-card">
+        <div class="wa-card-header">
+          <div class="wa-card-title">
+            <i class="fa-solid fa-users" style="color: var(--shanti-primary);"></i>
+            <span>Quantitativo de Alunos</span>
+          </div>
+          <span style="font-size: 12px; font-weight:600; color: var(--shanti-gold);" id="rep-mes-atual">Setembro/2026</span>
+        </div>
+        <div class="wa-stat-grid">
+          <div class="wa-stat-box">
+            <span class="wa-stat-value success" id="stat-alunos-ativos">0</span>
+            <span class="wa-stat-label">Alunos Ativos</span>
+          </div>
+          <div class="wa-stat-box">
+            <span class="wa-stat-value danger" id="stat-alunos-inadimplentes">0</span>
+            <span class="wa-stat-label">Em Atraso</span>
+          </div>
+          <div class="wa-stat-box">
+            <span class="wa-stat-value" id="stat-novos-matriculados">0</span>
+            <span class="wa-stat-label">Novas Matrículas</span>
+          </div>
+          <div class="wa-stat-box">
+            <span class="wa-stat-value" style="color: #6b7280;" id="stat-alunos-inativos">0</span>
+            <span class="wa-stat-label">Inativos / Saídas</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card: Faturamento do Mês -->
+      <div class="wa-card">
+        <div class="wa-card-header">
+          <div class="wa-card-title">
+            <i class="fa-solid fa-wallet" style="color: var(--wa-success);"></i>
+            <span>Financeiro do Studio</span>
+          </div>
+        </div>
+        <div class="wa-stat-grid">
+          <div class="wa-stat-box">
+            <span class="wa-stat-value" id="stat-faturamento-previsto">R$ 0,00</span>
+            <span class="wa-stat-label">Faturamento Previsto</span>
+          </div>
+          <div class="wa-stat-box">
+            <span class="wa-stat-value success" id="stat-faturamento-realizado">R$ 0,00</span>
+            <span class="wa-stat-label">Já Recebido</span>
+          </div>
+          <div class="wa-stat-box">
+            <span class="wa-stat-value danger" id="stat-total-pendente">R$ 0,00</span>
+            <span class="wa-stat-label">Pendente / Atrasado</span>
+          </div>
+          <div class="wa-stat-box">
+            <span class="wa-stat-value" id="stat-qtd-pagamentos">0</span>
+            <span class="wa-stat-label">Mensalidades Quitadas</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Ação Rápida: Cobranças em Massa no WhatsApp -->
+      <div class="wa-card" style="text-align: center; border-left: 4px solid var(--shanti-whatsapp-green);">
+        <div class="wa-card-title" style="justify-content: center; margin-bottom: 8px;">
+          <i class="fa-brands fa-whatsapp" style="color: var(--shanti-whatsapp-green); font-size: 22px;"></i>
+          <span>Lembretes de Vencimento</span>
+        </div>
+        <p style="font-size: 13px; color: var(--wa-text-secondary); margin-bottom: 14px; line-height: 1.5;">
+          Dispare mensagens personalizadas com a chave PIX do Shanti Studio para os alunos atrasados com apenas 1 toque.
+        </p>
+        <button class="wa-action-btn-whatsapp" id="btn-gerar-cobrancas-relatorio" style="margin: 0 auto; width: 100%; max-width: 260px;">
+          <i class="fa-brands fa-whatsapp"></i> Ver Alunos para Cobrar
+        </button>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ====================================================================
+       TELA 4: AJUSTES E CONFIGURAÇÕES
+       ==================================================================== -->
+  <section class="wa-screen" id="screen-ajustes">
+    <div class="wa-settings-container">
+      
+      <div class="wa-card" style="text-align: center; margin-bottom: 16px;">
+        <img src="/img/shanti_logo.png" alt="Shanti Logo" style="width: 80px; height: 80px; border-radius: 50%; border: 3px solid var(--shanti-gold); margin: 0 auto 10px; display: block; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+        <h3 style="font-family: var(--font-brand); font-size: 18px; color: var(--shanti-primary);">Shanti Studio de Yoga</h3>
+        <p style="font-size: 12px; color: var(--wa-text-secondary);">Identidade Visual & Configurações</p>
+      </div>
+
+      <div class="wa-card">
+        <div class="wa-card-title" style="margin-bottom: 14px;">
+          <i class="fa-solid fa-store" style="color: var(--shanti-primary);"></i>
+          <span>Dados do Studio</span>
+        </div>
+
+        <div class="wa-form-group">
+          <label>Nome do Studio de Yoga</label>
+          <input type="text" class="wa-form-control" id="cfg-nome-studio" placeholder="Shanti Studio de Yoga">
+        </div>
+
+        <div class="wa-form-group">
+          <label>Tipo de Chave PIX</label>
+          <select class="wa-form-control" id="cfg-tipo-pix">
+            <option value="E-mail">E-mail</option>
+            <option value="CNPJ / CPF">CNPJ / CPF</option>
+            <option value="Celular">Celular</option>
+            <option value="Chave Aleatória">Chave Aleatória</option>
+          </select>
+        </div>
+
+        <div class="wa-form-group">
+          <label>Chave PIX (para receber mensalidades)</label>
+          <input type="text" class="wa-form-control" id="cfg-chave-pix" placeholder="Ex: financeiro@shantiyoga.com.br">
+        </div>
+      </div>
+
+      <div class="wa-card">
+        <div class="wa-card-title" style="margin-bottom: 14px;">
+          <i class="fa-solid fa-brain" style="color: var(--shanti-gold);"></i>
+          <span>Inteligência Artificial (Gemini)</span>
+        </div>
+
+        <div class="wa-form-group">
+          <label>Chave de API do Google Gemini (Opcional)</label>
+          <input type="password" class="wa-form-control" id="cfg-gemini-key" placeholder="Cole sua chave AIzaSy...">
+          <small style="font-size: 11.5px; color: var(--wa-text-secondary); display: block; margin-top: 5px; line-height: 1.4;">
+            O app já funciona perfeitamente com a IA local integrada. Se desejar usar o Gemini 2.5 avançado do Google, pegue sua chave gratuita no
+            <a href="https://aistudio.google.com/" target="_blank" style="color: var(--shanti-primary); font-weight: 600;">Google AI Studio</a>.
+          </small>
+        </div>
+
+        <button class="wa-btn-primary" id="btn-salvar-configuracoes">
+          <i class="fa-solid fa-floppy-disk"></i> Salvar Configurações
+        </button>
+      </div>
+
+    </div>
+  </section>
+
+</div>
+
+<!-- ======================================================================
+     MODAL: NOVA MATRÍCULA DE ALUNO
+     ====================================================================== -->
+<div class="wa-modal-overlay" id="modal-add-student">
+  <div class="wa-modal-sheet">
+    <div class="wa-modal-header">
+      <h3 class="wa-modal-title"><i class="fa-solid fa-user-plus" style="color:var(--shanti-gold);"></i> Nova Matrícula</h3>
+      <button class="wa-modal-close" data-close-modal="modal-add-student">&times;</button>
+    </div>
+
+    <form id="form-add-student">
+      <div class="wa-form-group">
+        <label>Nome Completo do Aluno *</label>
+        <input type="text" class="wa-form-control" id="cad-nome" required placeholder="Ex: Juliana Mendes">
+      </div>
+
+      <div class="wa-form-group">
+        <label>WhatsApp (com DDD) *</label>
+        <input type="tel" class="wa-form-control" id="cad-telefone" required placeholder="Ex: 11987654321">
+      </div>
+
+      <div class="wa-form-group">
+        <label>E-mail (opcional)</label>
+        <input type="email" class="wa-form-control" id="cad-email" placeholder="juliana@email.com">
+      </div>
+
+      <div class="wa-form-group">
+        <label>Modalidade / Turma</label>
+        <select class="wa-form-control" id="cad-plano">
+          <option value="Hatha Yoga (2x/sem)">Hatha Yoga (2x/sem)</option>
+          <option value="Vinyasa Flow (2x/sem)">Vinyasa Flow (2x/sem)</option>
+          <option value="Yin Yoga & Meditação">Yin Yoga & Meditação</option>
+          <option value="Yoga Livre (Ilimitado)">Yoga Livre (Ilimitado)</option>
+          <option value="Yoga Gestante">Yoga Gestante</option>
+        </select>
+      </div>
+
+      <div style="display: flex; gap: 12px;">
+        <div class="wa-form-group" style="flex: 1;">
+          <label>Dia Vencimento</label>
+          <input type="number" class="wa-form-control" id="cad-vencimento" min="1" max="31" value="10" required>
+        </div>
+        <div class="wa-form-group" style="flex: 1;">
+          <label>Valor Mensal (R$)</label>
+          <input type="number" step="0.01" class="wa-form-control" id="cad-valor" value="160.00" required>
+        </div>
+      </div>
+      
+      <div class="wa-form-group">
+        <label>Mês de Matrícula (Mês/Ano) *</label>
+        <input type="month" class="wa-form-control" id="cad-mes-matricula" required>
+      </div>
+
+      <div class="wa-form-group">
+        <label>Forma de Pagamento</label>
+        <select class="wa-form-control" id="cad-forma-pagamento">
+          <option value="PIX">PIX</option>
+          <option value="Cartão de Crédito">Cartão de Crédito</option>
+          <option value="Dinheiro">Dinheiro</option>
+          <option value="Boleto">Boleto</option>
+        </select>
+      </div>
+
+      <div class="wa-form-group">
+        <label>Observações / Restrições Físicas</label>
+        <input type="text" class="wa-form-control" id="cad-obs" placeholder="Ex: Dor lombar, iniciante...">
+      </div>
+
+      <button type="submit" class="wa-btn-primary" style="margin-top: 10px;">
+        <i class="fa-solid fa-check"></i> Concluir Matrícula
+      </button>
+    </form>
+  </div>
+</div>
+
+<!-- ======================================================================
+     MODAL: DETALHES DO ALUNO E HISTÓRICO
+     ====================================================================== -->
+<div class="wa-modal-overlay" id="modal-student-details">
+  <div class="wa-modal-sheet">
+    <div class="wa-modal-header">
+      <h3 class="wa-modal-title" id="det-nome">Nome do Aluno</h3>
+      <button class="wa-modal-close" data-close-modal="modal-student-details">&times;</button>
+    </div>
+
+    <div id="det-content">
+      <div style="background-color: var(--shanti-sand); border: 1px solid var(--wa-border); border-radius: 12px; padding: 14px; margin-bottom: 14px;">
+        <div style="font-size: 13.5px; line-height: 1.7;">
+          <div><b>WhatsApp:</b> <span id="det-telefone"></span></div>
+          <div><b>Plano:</b> <span id="det-plano"></span></div>
+          <div><b>Mensalidade:</b> R$ <span id="det-valor"></span> (Vencimento todo dia <span id="det-dia-venc"></span>)</div>
+          <div><b>Situação Atual:</b> <span id="det-status-badge"></span></div>
+          <div id="det-motivo-box" style="display:none; color: var(--wa-danger); margin-top: 4px;">
+            <b>Motivo Saída:</b> <span id="det-motivo-saida"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Ações Rápidas do Aluno -->
+      <div style="display: flex; gap: 10px; margin-bottom: 16px;">
+        <a id="det-btn-whatsapp" href="#" target="_blank" class="wa-action-btn-whatsapp" style="flex: 1;">
+          <i class="fa-brands fa-whatsapp"></i> Conversar / Cobrar
+        </a>
+        <button id="det-btn-dar-baixa" class="wa-btn-primary" style="flex: 1; padding: 8px 12px;">
+          <i class="fa-solid fa-receipt"></i> Baixar Pagamento
+        </button>
+      </div>
+
+      <!-- Histórico de Pagamentos -->
+      <h4 style="font-size: 14px; margin-bottom: 8px; color: var(--shanti-primary); font-weight: 700;">Histórico de Mensalidades:</h4>
+      <div id="det-historico-pagamentos" style="max-height: 150px; overflow-y: auto; border: 1px solid var(--wa-border); border-radius: 10px; padding: 10px; background: #ffffff;">
+        <!-- Lista de pagamentos do aluno -->
+      </div>
+
+      <!-- Botão de Inativar / Saída de Aluno -->
+      <div style="margin-top: 16px; border-top: 1px solid var(--wa-border); padding-top: 12px;">
+        <button id="det-btn-inativar" class="wa-btn-primary" style="background: #fef2f2; color: var(--wa-danger); border: 1px solid #fee2e2; box-shadow: none;">
+          <i class="fa-solid fa-user-xmark"></i> Registrar Saída / Desistência
+        </button>
+        <button id="det-btn-reativar" class="wa-btn-primary" style="background: #ecfdf5; color: var(--wa-success); border: 1px solid #a7f3d0; box-shadow: none; display:none;">
+          <i class="fa-solid fa-user-check"></i> Reativar Matrícula
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ======================================================================
+     MODAL: REGISTRAR PAGAMENTO (BAIXA)
+     ====================================================================== -->
+<div class="wa-modal-overlay" id="modal-pay">
+  <div class="wa-modal-sheet">
+    <div class="wa-modal-header">
+      <h3 class="wa-modal-title"><i class="fa-solid fa-receipt" style="color:var(--shanti-gold);"></i> Baixar Mensalidade</h3>
+      <button class="wa-modal-close" data-close-modal="modal-pay">&times;</button>
+    </div>
+
+    <form id="form-pay">
+      <input type="hidden" id="pay-aluno-id">
+      <div class="wa-form-group">
+        <label>Aluno(a)</label>
+        <input type="text" class="wa-form-control" id="pay-aluno-nome" readonly style="background-color: var(--shanti-sand);">
+      </div>
+
+      <div style="display: flex; gap: 10px;">
+        <div class="wa-form-group" style="flex: 1;">
+          <label>Mês de Referência</label>
+          <input type="month" class="wa-form-control" id="pay-mes-referencia" required>
+        </div>
+        <div class="wa-form-group" style="flex: 1;">
+          <label>Valor Pago (R$)</label>
+          <input type="number" step="0.01" class="wa-form-control" id="pay-valor" required>
+        </div>
+      </div>
+
+      <div class="wa-form-group">
+        <label>Forma de Pagamento</label>
+        <select class="wa-form-control" id="pay-forma">
+          <option value="PIX">PIX</option>
+          <option value="Cartão">Cartão</option>
+          <option value="Dinheiro">Dinheiro</option>
+          <option value="Boleto">Boleto</option>
+        </select>
+      </div>
+
+      <button type="submit" class="wa-btn-primary" style="margin-top: 10px; background: linear-gradient(135deg, #10b981, #059669);">
+        <i class="fa-solid fa-check"></i> Confirmar Pagamento
+      </button>
+    </form>
+  </div>
+</div>
+
+<!-- ======================================================================
+     MODAL: COMO ATIVAR O MICROFONE
+     ====================================================================== -->
+<div class="wa-modal-overlay" id="modal-mic-help">
+  <div class="wa-modal-sheet" style="text-align: center; max-height: 90%;">
+    <div class="wa-modal-header" style="justify-content: center; position: relative;">
+      <h3 class="wa-modal-title" style="font-size: 17px;">
+        <i class="fa-solid fa-microphone-lines" style="color: var(--shanti-gold);"></i> Ativar Microfone com a IA
+      </h3>
+      <button class="wa-modal-close" data-close-modal="modal-mic-help" style="position: absolute; right: 0;">&times;</button>
+    </div>
+
+    <div style="padding: 10px 0;">
+      <div style="width: 60px; height: 60px; border-radius: 50%; background: #fef2f2; color: var(--wa-danger); display: flex; align-items: center; justify-content: center; font-size: 26px; margin: 0 auto 12px;">
+        <i class="fa-solid fa-microphone-slash"></i>
+      </div>
+      
+      <p style="font-size: 14px; color: var(--wa-text-primary); font-weight: 600; margin-bottom: 8px;">
+        O navegador bloqueou o microfone no endereço de IP atual.
+      </p>
+      
+      <p style="font-size: 13px; color: var(--wa-text-secondary); line-height: 1.5; margin-bottom: 16px;">
+        Por segurança padrão do Chrome/Edge, o microfone só é liberado em <b>localhost</b> ou em conexão segura <b>HTTPS</b>.
+      </p>
+
+      <div style="background: #fbf9f5; border: 1px solid var(--wa-border); border-radius: 12px; padding: 14px; text-align: left; margin-bottom: 16px; font-size: 13px;">
+        <div style="font-weight: 700; color: var(--shanti-primary); margin-bottom: 4px;">
+          💻 Se você está no Computador:
+        </div>
+        <p style="color: var(--wa-text-secondary); margin-bottom: 10px;">
+          Acesse pelo endereço oficial local. O navegador libera o microfone na hora!
+        </p>
+        <a href="http://localhost:8000" id="btn-redirect-localhost" class="wa-btn-primary" style="text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 13.5px; padding: 10px;">
+          <i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir via http://localhost:8000
+        </a>
+      </div>
+
+      <div style="background: #fbf9f5; border: 1px solid var(--wa-border); border-radius: 12px; padding: 14px; text-align: left; font-size: 13px;">
+        <div style="font-weight: 700; color: var(--shanti-primary); margin-bottom: 4px;">
+          📱 Se você está no Celular:
+        </div>
+        <p style="color: var(--wa-text-secondary);">
+          Toque no ícone de <b>ajustes/permissões</b> na barra de endereço do navegador do celular e selecione <b>Microfone: Permitir</b>.
+        </p>
+      </div>
+
+      <button class="wa-btn-primary" data-close-modal="modal-mic-help" style="margin-top: 16px; background: #e5e7eb; color: #374151; border: none; box-shadow: none;">
+        Entendido
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="wa-toast" id="toast-msg">Notificação</div>
+
+<!-- JavaScript Principal -->
+<script src="/js/app.js?v=3"></script>
+
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/service-worker.js?v=3').then(reg => {
+        reg.update();
+      }).catch(err => {
+        console.log('SW reg:', err);
+      });
+    });
+  }
+</script>
+
+</body>
+</html>
