@@ -301,6 +301,8 @@ function setupNavigation() {
 
       tab.classList.add('active');
       state.lastActiveTab = tab.dataset.tab;
+      tab.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+
       const targetId = `screen-${tab.dataset.tab}`;
       const targetScreen = document.getElementById(targetId);
       if (targetScreen) targetScreen.classList.add('active');
@@ -976,7 +978,7 @@ function renderizarAlunos() {
           <span class="wa-student-badge ${badgeClass}">${situacao}</span>
         </div>
         <div class="wa-student-sub">
-          <span>${al.plano} • R$ ${al.valor_mensalidade.toFixed(2)}</span>
+          <span>${al.plano}${al.plano && al.plano.includes('1x') && al.dia_semana_1x ? ` (${al.dia_semana_1x})` : ''} • R$ ${al.valor_mensalidade.toFixed(2)}</span>
           <span>Venc. dia ${al.dia_vencimento}</span>
         </div>
       </div>
@@ -1019,6 +1021,45 @@ async function abrirDetalhesAluno(alunoId) {
     document.getElementById('det-nome').textContent = al.nome;
     document.getElementById('det-telefone').textContent = al.telefone;
     document.getElementById('det-plano').textContent = al.plano;
+
+    // Dia da semana para plano 1x
+    const boxDia1x = document.getElementById('det-box-dia-1x');
+    const lblDia1x = document.getElementById('det-dia-semana-1x');
+    const isPlano1x = al.plano && al.plano.includes('1x');
+    if (boxDia1x) {
+      boxDia1x.style.display = isPlano1x ? 'block' : 'none';
+      if (lblDia1x) lblDia1x.textContent = al.dia_semana_1x || 'Não definido ainda';
+    }
+
+    const btnAlterarDia1x = document.getElementById('det-btn-alterar-dia-1x');
+    if (btnAlterarDia1x) {
+      btnAlterarDia1x.onclick = async () => {
+        const opcoes = ['Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
+        const novoDia = prompt(
+          `Escolha o dia da semana para ${al.nome} (1x na semana):\n\nOpções: ${opcoes.join(', ')}`,
+          al.dia_semana_1x || 'Segunda-feira'
+        );
+        if (!novoDia || !novoDia.trim()) return;
+        try {
+          const r = await fetch(`/api/alunos/${al.id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ dia_semana_1x: novoDia.trim() })
+          });
+          if (r.ok) {
+            al.dia_semana_1x = novoDia.trim();
+            if (lblDia1x) lblDia1x.textContent = novoDia.trim();
+            showToast('Dia da semana atualizado com sucesso!');
+            await atualizarTudo();
+          } else {
+            alert('Erro ao atualizar dia da semana.');
+          }
+        } catch (e) {
+          alert('Erro de comunicação com o servidor.');
+        }
+      };
+    }
+
     document.getElementById('det-valor').textContent = al.valor_mensalidade.toFixed(2);
     document.getElementById('det-dia-venc').textContent = al.dia_vencimento;
     
@@ -1190,12 +1231,25 @@ function setupModals() {
   });
 
   const cadPlanoSelect = document.getElementById('cad-plano');
+  const groupDia1x = document.getElementById('group-cad-dia-semana-1x');
+  const cadDia1xSelect = document.getElementById('cad-dia-semana-1x');
+
+  const toggleDiaSemana1x = () => {
+    if (!cadPlanoSelect || !groupDia1x) return;
+    const is1x = cadPlanoSelect.value.includes('1x');
+    groupDia1x.style.display = is1x ? 'block' : 'none';
+    if (!is1x && cadDia1xSelect) {
+      cadDia1xSelect.value = '';
+    }
+  };
+
   if (cadPlanoSelect) {
     cadPlanoSelect.addEventListener('change', () => {
       const preco = cadPlanoSelect.value.includes('1x') 
         ? (state.configuracoes.valor_plano_1x || '120.00') 
         : (state.configuracoes.valor_plano_2x || '150.00');
       document.getElementById('cad-valor').value = parseFloat(preco).toFixed(2);
+      toggleDiaSemana1x();
     });
   }
 
@@ -1205,6 +1259,7 @@ function setupModals() {
     
     // Configurar plano e valor inicial padrão (2x na semana)
     if (cadPlanoSelect) cadPlanoSelect.value = '2x na semana';
+    toggleDiaSemana1x();
     const precoPadrao = state.configuracoes.valor_plano_2x || '150.00';
     document.getElementById('cad-valor').value = parseFloat(precoPadrao).toFixed(2);
 
@@ -1225,13 +1280,22 @@ function setupModals() {
     const turma_ids = Array.from(turmaChecks).map(c => parseInt(c.value));
     const radioImg = document.querySelector('input[name="cad-autoriza-imagem"]:checked');
     const autoriza_imagem = radioImg ? parseInt(radioImg.value) : 1;
+    const plano = document.getElementById('cad-plano').value;
+    const dia_semana_1x = plano.includes('1x') ? (document.getElementById('cad-dia-semana-1x')?.value || null) : null;
+
+    if (plano.includes('1x') && !dia_semana_1x) {
+      alert('Por favor, selecione qual dia da semana o aluno irá comparecer (plano 1x na semana).');
+      document.getElementById('cad-dia-semana-1x')?.focus();
+      return;
+    }
 
     const dados = {
       nome: document.getElementById('cad-nome').value.trim(),
       telefone: document.getElementById('cad-telefone').value.trim(),
       email: document.getElementById('cad-email').value.trim(),
       data_nascimento: document.getElementById('cad-nascimento').value || null,
-      plano: document.getElementById('cad-plano').value,
+      plano: plano,
+      dia_semana_1x: dia_semana_1x,
       dia_vencimento: parseInt(document.getElementById('cad-vencimento').value),
       valor_mensalidade: parseFloat(document.getElementById('cad-valor').value),
       tipo_pagamento: document.getElementById('cad-forma-pagamento').value,
@@ -1720,9 +1784,10 @@ async function carregarEstudio() {
 
               let badgePlano = '';
               if (al.plano && al.plano.includes('1x')) {
-                badgePlano = `<span style="font-size:10.5px; background:#e0f2fe; color:#0369a1; padding:2px 6px; border-radius:4px; font-weight:600; border:0.5px solid #bae6fd;">1x semana</span>`;
+                const diaEscolhido = al.dia_semana_1x ? al.dia_semana_1x : 'Dia a definir';
+                badgePlano = `<span style="font-size:11px; background:#f0fdf4; color:#15803d; padding:2px 7px; border-radius:5px; font-weight:700; border:0.5px solid #86efac; display:inline-flex; align-items:center; gap:4px;" title="Comparece 1x na semana"><i class="fa-regular fa-calendar-check" style="color:#16a34a;"></i> 1x na semana (${diaEscolhido})</span>`;
               } else {
-                badgePlano = `<span style="font-size:10.5px; background:#e8f0eb; color:var(--shanti-primary); padding:2px 6px; border-radius:4px; font-weight:600; border:0.5px solid #cbd5e1;">2x semana</span>`;
+                badgePlano = `<span style="font-size:10.5px; background:#e8f0eb; color:var(--shanti-primary); padding:2px 6px; border-radius:4px; font-weight:600; border:0.5px solid #cbd5e1;">2x na semana</span>`;
               }
 
               let statusAluno = '';

@@ -45,7 +45,9 @@ def init_db():
         data_nascimento TEXT, -- 'YYYY-MM-DD' ou 'MM-DD'
         data_saida TEXT,
         motivo_saida TEXT,
-        observacoes TEXT
+        observacoes TEXT,
+        autoriza_imagem INTEGER DEFAULT 1,
+        dia_semana_1x TEXT
     )
     """)
     
@@ -61,6 +63,11 @@ def init_db():
 
     try:
         cursor.execute("ALTER TABLE alunos ADD COLUMN autoriza_imagem INTEGER DEFAULT 1")
+    except sqlite3.OperationalError:
+        pass
+
+    try:
+        cursor.execute("ALTER TABLE alunos ADD COLUMN dia_semana_1x TEXT")
     except sqlite3.OperationalError:
         pass
 
@@ -418,9 +425,11 @@ def cadastrar_aluno(dados: Dict[str, Any]) -> int:
     if valor is None:
         valor = 120.0 if "1x" in plano else 150.0
 
+    dia_semana_1x = dados.get("dia_semana_1x") or ""
+
     cursor.execute("""
-    INSERT INTO alunos (nome, telefone, email, plano, dia_vencimento, valor_mensalidade, tipo_pagamento, status, data_matricula, mes_matricula, observacoes, data_nascimento, autoriza_imagem)
-    VALUES (?, ?, ?, ?, ?, ?, ?, 'ativo', ?, ?, ?, ?, ?)
+    INSERT INTO alunos (nome, telefone, email, plano, dia_vencimento, valor_mensalidade, tipo_pagamento, status, data_matricula, mes_matricula, observacoes, data_nascimento, autoriza_imagem, dia_semana_1x)
+    VALUES (?, ?, ?, ?, ?, ?, ?, 'ativo', ?, ?, ?, ?, ?, ?)
     """, (
         dados.get("nome"),
         dados.get("telefone", ""),
@@ -433,7 +442,8 @@ def cadastrar_aluno(dados: Dict[str, Any]) -> int:
         mes_matricula,
         dados.get("observacoes", ""),
         dados.get("data_nascimento") or None,
-        autoriza_img
+        autoriza_img,
+        dia_semana_1x
     ))
     aluno_id = cursor.lastrowid
 
@@ -1068,6 +1078,7 @@ def listar_turmas_com_alunos(ativas_somente: bool = True) -> List[Dict[str, Any]
                 "nome": a["nome"],
                 "telefone": a.get("telefone", ""),
                 "plano": a.get("plano", ""),
+                "dia_semana_1x": a.get("dia_semana_1x") or "",
                 "status": a.get("status", "ativo"),
                 "data_entrada_turma": a.get("data_entrada_turma", "")
             }

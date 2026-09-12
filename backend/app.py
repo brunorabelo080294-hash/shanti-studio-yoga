@@ -45,6 +45,7 @@ class AlunoCreate(BaseModel):
     telefone: str
     email: Optional[str] = ""
     plano: Optional[str] = "2x na semana"
+    dia_semana_1x: Optional[str] = None
     dia_vencimento: int = 10
     valor_mensalidade: float = 150.0
     tipo_pagamento: Optional[str] = "PIX"
@@ -59,6 +60,7 @@ class AlunoUpdate(BaseModel):
     telefone: Optional[str] = None
     email: Optional[str] = None
     plano: Optional[str] = None
+    dia_semana_1x: Optional[str] = None
     dia_vencimento: Optional[int] = None
     valor_mensalidade: Optional[float] = None
     tipo_pagamento: Optional[str] = None
@@ -144,6 +146,7 @@ def api_cadastrar_aluno(dados: AlunoCreate):
     resp = {
         "status": "ok",
         "id": aluno_id,
+        "aluno_id": aluno_id,
         "mensagem": f"Aluno {dados.nome} cadastrado com sucesso!"
     }
     if avisos:
