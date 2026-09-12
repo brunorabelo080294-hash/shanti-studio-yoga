@@ -225,7 +225,7 @@ async def processar_mensagem_ia(texto: str) -> Dict[str, Any]:
         """
 
         response = client.models.generate_content(
-            model="gemini-3.6-flash",
+            model="gemini-flash-latest",
             contents=texto,
             config=types.GenerateContentConfig(
                 system_instruction=system_instruction,
