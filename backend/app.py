@@ -87,6 +87,14 @@ class DespesaCreate(BaseModel):
 class ChatRequest(BaseModel):
     mensagem: str
 
+class LiveChatRequest(BaseModel):
+    mensagem: str
+    voz: Optional[str] = "Aoede"
+
+class TTSRequest(BaseModel):
+    texto: str
+    voz: Optional[str] = "Aoede"
+
 class ConfigUpdate(BaseModel):
     configs: Dict[str, str]
 
@@ -281,6 +289,25 @@ async def api_chat_audio(audio: UploadFile = File(...), texto_transcrito: Option
     resultado = await ai.processar_mensagem_ia(texto)
     resultado["transcricao"] = texto
     return resultado
+
+@app.post("/api/chat/live")
+async def api_chat_live(req: LiveChatRequest):
+    """
+    Processa mensagem no modo Gemini Live em tempo real.
+    Retorna a resposta transcrita, áudio WAV de alta fidelidade com a voz Aoede e botões de ação integrados.
+    """
+    if not req.mensagem.strip():
+        raise HTTPException(status_code=400, detail="Mensagem vazia")
+    resultado = await ai.processar_gemini_live(req.mensagem, voz=req.voz or "Aoede")
+    return resultado
+
+@app.post("/api/tts")
+async def api_tts(req: TTSRequest):
+    """Gera áudio WAV em Base64 para um texto utilizando a voz Aoede do Gemini."""
+    if not req.texto.strip():
+        raise HTTPException(status_code=400, detail="Texto vazio")
+    audio_b64 = await ai.gerar_audio_gemini(req.texto, voz=req.voz or "Aoede")
+    return {"status": "ok", "audio_base64": audio_b64}
 
 @app.get("/api/configuracoes")
 def api_obter_configuracoes():

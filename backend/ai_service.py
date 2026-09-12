@@ -4,7 +4,11 @@ Suporta Google Gemini API (google-genai) com Function Calling e fallback intelig
 """
 import os
 import re
+import io
+import wave
+import base64
 import json
+import asyncio
 import datetime
 from typing import Dict, Any, List, Optional
 import backend.database as db
@@ -377,3 +381,187 @@ async def processar_mensagem_ia(texto: str) -> Dict[str, Any]:
     except Exception as e:
         print(f"Erro na chamada Gemini: {e}. Usando motor local de fallback.")
         return processar_comando_local(texto)
+
+def pcm_to_wav_base64(pcm_data: bytes, sample_rate: int = 24000, channels: int = 1, sampwidth: int = 2) -> str:
+    """Converte bytes PCM brutos (24kHz 16-bit mono) em arquivo RIFF WAV codificado em Base64."""
+    if not pcm_data:
+        return ""
+    wav_io = io.BytesIO()
+    with wave.open(wav_io, "wb") as wf:
+        wf.setnchannels(channels)
+        wf.setsampwidth(sampwidth)
+        wf.setframerate(sample_rate)
+        wf.writeframes(pcm_data)
+    return base64.b64encode(wav_io.getvalue()).decode("utf-8")
+
+async def processar_gemini_live(texto: str, voz: str = "Aoede") -> Dict[str, Any]:
+    """
+    Processa a conversa em tempo real estilo Gemini Live, retornando:
+    - resposta em texto transcrita
+    - áudio sintetizado em alta resolução com voz feminina natural (Aoede)
+    - botões e cartões de ação integrados com o estúdio
+    """
+    texto_lower = texto.lower()
+    api_key = get_api_key()
+
+    # Identificar dados e botões de ação com base na intenção
+    dados_extras = []
+    tipo = "live_chat"
+    if any(p in texto_lower for p in ["atraso", "atrasada", "atrasados", "cobrança", "cobrar", "devedor", "lembrete"]):
+        dados_extras = db.gerar_mensagens_cobranca(tipo="atrasados")
+        tipo = "inadimplencia" if "quem" in texto_lower else "cobranca"
+    elif any(p in texto_lower for p in ["aniversariante", "aniversario", "aniversário"]):
+        dados_extras = db.obter_aniversariantes_mes()
+        tipo = "aniversariantes"
+    elif any(p in texto_lower for p in ["ausente", "ausentes", "sumido", "sumidos", "faltou", "faltas"]):
+        dados_extras = db.obter_alunos_ausentes()
+        tipo = "ausentes"
+    elif any(p in texto_lower for p in ["relatorio", "relatório", "faturamento", "lucro", "despesa"]):
+        dados_extras = db.obter_relatorio_mensal()
+        tipo = "relatorio"
+    elif any(p in texto_lower for p in ["quantitativo", "quantos alunos", "total de alunos"]):
+        dados_extras = db.obter_quantitativo()
+        tipo = "quantitativo"
+
+    # Se não houver API key, fallback para motor local sem áudio Gemini
+    if not api_key:
+        resp_local = processar_comando_local(texto)
+        return {
+            "resposta": resp_local.get("resposta", ""),
+            "tipo": resp_local.get("tipo", tipo),
+            "dados": resp_local.get("dados", dados_extras),
+            "audio_base64": None,
+            "voz": voz
+        }
+
+    try:
+        from google import genai
+        from google.genai import types
+
+        client = genai.Client(api_key=api_key)
+
+        # Contexto atualizado do banco de dados em tempo real
+        quantitativo = db.obter_quantitativo()
+        relatorio = db.obter_relatorio_mensal()
+        inadimplentes = db.obter_inadimplentes()
+        ausentes = db.obter_alunos_ausentes()
+        aniversariantes = db.obter_aniversariantes_mes()
+        configs = db.obter_configuracoes()
+
+        system_instruction = f"""
+        Você é Shanti, a assistente virtual e instrutora de Yoga do '{configs.get('nome_studio', 'Studio de Yoga')}'.
+        Você está conversando por voz em tempo real (Gemini Live) com o proprietário(a) do estúdio.
+        
+        Tom e Estilo de Voz:
+        - Fale com voz calma, acolhedora, serena, harmoniosa e com dicção perfeita em português do Brasil (no espírito Namastê).
+        - Responda de forma falada e concisa (máximo de 2 a 3 frases fluidas).
+        - Nunca leia listas longas de nomes ou números em voz alta. Em vez disso, resuma o total e diga que os botões prontos para WhatsApp ou detalhes já estão visíveis na tela.
+        
+        DADOS ATUAIS DO STUDIO:
+        - Alunos Ativos: {quantitativo['alunos_ativos']} (Total cadastrados: {quantitativo['total_alunos']})
+        - Inadimplentes Atuais ({len(inadimplentes)}): {[a['nome'] for a in inadimplentes]}
+        - Faturamento Recebido no Mês: R$ {relatorio['faturamento_realizado']:.2f}
+        - Total de Despesas do Mês: R$ {relatorio.get('total_despesas', 0):.2f}
+        - Lucro Líquido Real: R$ {relatorio.get('lucro_liquido_real', 0):.2f}
+        - Alunos Ausentes há mais de 10 dias ({len(ausentes)}): {[a['nome'] for a in ausentes]}
+        - Aniversariantes deste mês ({len(aniversariantes)}): {[a['nome'] for a in aniversariantes]}
+        - Chave PIX: {configs.get('chave_pix')} ({configs.get('tipo_chave_pix')})
+        """
+
+        config = types.LiveConnectConfig(
+            response_modalities=[types.Modality.AUDIO],
+            speech_config=types.SpeechConfig(
+                voice_config=types.VoiceConfig(
+                    prebuilt_voice_config=types.PrebuiltVoiceConfig(voice_name=voz)
+                )
+            ),
+            output_audio_transcription=types.AudioTranscriptionConfig(),
+            system_instruction=types.Content(
+                parts=[types.Part(text=system_instruction)]
+            )
+        )
+
+        pcm_chunks = bytearray()
+        text_chunks = []
+
+        # Conectar via WebSocket ao Gemini 3.1 Flash Live
+        async with client.aio.live.connect(model="gemini-3.1-flash-live-preview", config=config) as session:
+            await session.send_realtime_input(text=texto)
+            async for resp in session.receive():
+                sc = resp.server_content
+                if sc:
+                    if sc.model_turn:
+                        for part in sc.model_turn.parts:
+                            if part.inline_data and part.inline_data.data:
+                                pcm_chunks.extend(part.inline_data.data)
+                    if sc.output_transcription and sc.output_transcription.text:
+                        text_chunks.append(sc.output_transcription.text)
+                    if sc.turn_complete:
+                        break
+
+        resposta_texto = "".join(text_chunks).strip()
+        wav_b64 = pcm_to_wav_base64(bytes(pcm_chunks)) if pcm_chunks else None
+
+        if not resposta_texto:
+            resposta_texto = "Namastê! Como posso ajudar você e o estúdio de yoga agora?"
+
+        return {
+            "resposta": resposta_texto,
+            "tipo": tipo,
+            "dados": dados_extras,
+            "audio_base64": wav_b64,
+            "voz": voz
+        }
+
+    except Exception as e:
+        print(f"Erro no Gemini Live WebSocket: {e}. Executando fallback inteligente...")
+        resp_fallback = await processar_mensagem_ia(texto)
+        return {
+            "resposta": resp_fallback.get("resposta", ""),
+            "tipo": resp_fallback.get("tipo", tipo),
+            "dados": resp_fallback.get("dados", dados_extras),
+            "audio_base64": None,
+            "voz": voz
+        }
+
+async def gerar_audio_gemini(texto: str, voz: str = "Aoede") -> Optional[str]:
+    """Gera áudio WAV em Base64 sob demanda para qualquer texto com a voz oficial Aoede."""
+    api_key = get_api_key()
+    if not api_key or not texto.strip():
+        return None
+
+    try:
+        from google import genai
+        from google.genai import types
+
+        client = genai.Client(api_key=api_key)
+        config = types.LiveConnectConfig(
+            response_modalities=[types.Modality.AUDIO],
+            speech_config=types.SpeechConfig(
+                voice_config=types.VoiceConfig(
+                    prebuilt_voice_config=types.PrebuiltVoiceConfig(voice_name=voz)
+                )
+            ),
+            system_instruction=types.Content(
+                parts=[types.Part(text="Você é uma locutora e instrutora de Yoga. Fale o texto fornecido com naturalidade, clareza, serenidade e acolhimento em português.")]
+            )
+        )
+
+        pcm_chunks = bytearray()
+        async with client.aio.live.connect(model="gemini-3.1-flash-live-preview", config=config) as session:
+            await session.send_realtime_input(text=f"Fale com naturalidade o seguinte texto: {texto}")
+            async for resp in session.receive():
+                sc = resp.server_content
+                if sc:
+                    if sc.model_turn:
+                        for part in sc.model_turn.parts:
+                            if part.inline_data and part.inline_data.data:
+                                pcm_chunks.extend(part.inline_data.data)
+                    if sc.turn_complete:
+                        break
+
+        return pcm_to_wav_base64(bytes(pcm_chunks)) if pcm_chunks else None
+
+    except Exception as e:
+        print(f"Erro em gerar_audio_gemini: {e}")
+        return None

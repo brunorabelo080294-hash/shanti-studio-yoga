@@ -21,7 +21,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
   <!-- WhatsApp Luxe Theme Stylesheet -->
-  <link rel="stylesheet" href="/css/whatsapp-theme.css?v=6">
+  <link rel="stylesheet" href="/css/whatsapp-theme.css?v=7">
 </head>
 <body>
 
@@ -42,9 +42,10 @@
       </div>
     </div>
     <div class="wa-header-actions">
-      <button class="wa-icon-btn" id="btn-toggle-live-voice" title="Modo Conversa por Voz (Ao Vivo)" style="position: relative; color: var(--shanti-gold);">
-        <i class="fa-solid fa-headset"></i>
-        <span id="live-voice-indicator" style="position: absolute; top: 4px; right: 4px; width: 8px; height: 8px; border-radius: 50%; background: #94a3b8;"></span>
+      <button class="wa-live-pill-btn" id="btn-open-gemini-live" title="Abrir Modo Gemini Live (Conversa por Voz Humana)">
+        <span class="live-pulse-dot"></span>
+        <i class="fa-solid fa-sparkles"></i>
+        <span>Live</span>
       </button>
       <button class="wa-icon-btn" id="btn-header-action" title="Atualizar dados">
         <i class="fa-solid fa-arrows-rotate"></i>
@@ -641,18 +642,78 @@
       </button>
     </div>
   </div>
+<!-- ====================================================================
+     OVERLAY MODAL GEMINI LIVE OFICIAL (ESTILO GOOGLE GEMINI LIVE)
+     ==================================================================== -->
+<div id="gemini-live-modal" class="gemini-live-overlay" style="display: none;">
+  <!-- Ambient background lighting -->
+  <div class="gemini-live-backdrop">
+    <div class="gemini-live-ambient-glow"></div>
+  </div>
+
+  <!-- Header Live -->
+  <div class="gemini-live-header">
+    <div class="gemini-live-badge">
+      <span class="gemini-live-pulse-dot"></span>
+      <span class="gemini-live-title">Shanti Live</span>
+    </div>
+    <div class="gemini-live-voice-tag">
+      <i class="fa-solid fa-sparkles"></i>
+      <span>Aoede (Natural)</span>
+    </div>
+  </div>
+
+  <!-- Area Central: Transcrição e Diálogo em Tempo Real -->
+  <div class="gemini-live-body" id="gemini-live-body">
+    <!-- Status visual grande -->
+    <div class="gemini-live-status-hero" id="gemini-live-hero">
+      <div class="gemini-live-avatar-wrap">
+        <img src="/img/shanti_logo.png?v=3" alt="Shanti" class="gemini-live-avatar">
+        <div class="gemini-live-avatar-ring"></div>
+      </div>
+      <h3 class="gemini-live-status-text" id="gemini-live-status-text">Estou ouvindo...</h3>
+      <p class="gemini-live-status-sub" id="gemini-live-status-sub">Converse naturalmente em voz alta sem apertar botões</p>
+    </div>
+
+    <!-- Feed de Transcrição Contínua -->
+    <div class="gemini-live-transcript-feed" id="gemini-live-transcript-feed">
+      <!-- Exibe a fala em tempo real do usuário e a resposta da Shanti -->
+    </div>
+  </div>
+
+  <!-- Barra Inferior de Controles (Exata da Imagem media_1789219183063.png) -->
+  <div class="gemini-live-bottom-bar">
+    <!-- 1. Cápsula / Pílula de Luz Fluida Ondulada -->
+    <div class="gemini-live-aura-pill" id="live-aura-pill" title="Onda de Voz Gemini Live">
+      <div class="gemini-live-fluid-canvas-wrap">
+        <div class="gemini-live-fluid-wave wave-1"></div>
+        <div class="gemini-live-fluid-wave wave-2"></div>
+        <div class="gemini-live-fluid-wave wave-3"></div>
+      </div>
+    </div>
+
+    <!-- 2. Botão Circular de Microfone (Mudo / Ativo) -->
+    <button class="gemini-live-circle-btn" id="btn-live-mic-toggle" title="Mutar / Desmutar Microfone">
+      <i class="fa-solid fa-microphone" id="icon-live-mic"></i>
+    </button>
+
+    <!-- 3. Botão Circular de Fechar ("X") -->
+    <button class="gemini-live-circle-btn close-btn" id="btn-live-exit" title="Sair do Gemini Live">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+  </div>
 </div>
 
 <!-- Toast -->
 <div class="wa-toast" id="toast-msg">Notificação</div>
 
 <!-- JavaScript Principal -->
-<script src="/js/app.js?v=6"></script>
+<script src="/js/app.js?v=7"></script>
 
 <script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/service-worker.js?v=6').then(reg => {
+      navigator.serviceWorker.register('/service-worker.js?v=7').then(reg => {
         reg.update();
       }).catch(err => {
         console.log('SW reg:', err);

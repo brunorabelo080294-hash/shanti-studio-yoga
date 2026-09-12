@@ -698,48 +698,312 @@ function setupAudio() {
 }
 
 // =============================================================================
-// MODO VOZ AO VIVO (ASSISTENTE CONVERSACIONAL HANDS-FREE)
+// MODO GEMINI LIVE OFICIAL (ASSISTENTE DE VOZ EM TEMPO REAL HANDS-FREE)
 // =============================================================================
 function setupLiveVoice() {
-  const btnToggle = document.getElementById('btn-toggle-live-voice');
-  const btnStop = document.getElementById('btn-stop-live-voice');
-  const indicator = document.getElementById('live-voice-indicator');
-  const banner = document.getElementById('live-voice-banner');
+  const modalLive = document.getElementById('gemini-live-modal');
+  const btnOpenLive = document.getElementById('btn-open-gemini-live');
+  const btnExitLive = document.getElementById('btn-live-exit');
+  const btnMicToggle = document.getElementById('btn-live-mic-toggle');
+  const iconMic = document.getElementById('icon-live-mic');
+  const auraPill = document.getElementById('live-aura-pill');
+  const statusText = document.getElementById('gemini-live-status-text');
+  const statusSub = document.getElementById('gemini-live-status-sub');
+  const transcriptFeed = document.getElementById('gemini-live-transcript-feed');
 
-  function alternarModoAoVivo() {
-    state.liveVoiceMode = !state.liveVoiceMode;
-    if (state.liveVoiceMode) {
-      if (indicator) indicator.style.background = '#10b981';
-      if (banner) banner.style.display = 'flex';
-      showToast('Modo Voz Ao Vivo Ativado! 🧘‍♀️');
+  let liveRecognition = null;
+  let isShantiSpeaking = false;
+  let isMuted = false;
+  let silenceTimer = null;
+  let currentAudio = null;
+  let currentTranscript = '';
+  let interimBubble = null;
 
-      // Se estiver em outra tela, vai para tela do chat
-      const tabChat = document.querySelector('.wa-tab-btn[data-tab="chat"]');
-      if (tabChat && !tabChat.classList.contains('active')) tabChat.click();
+  // Inicializar Reconhecimento de Fala
+  const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (SpeechRec) {
+    liveRecognition = new SpeechRec();
+    liveRecognition.continuous = true;
+    liveRecognition.interimResults = true;
+    liveRecognition.lang = 'pt-BR';
 
-      // Fala saudação e inicia gravação automaticamente
-      falarTexto('Modo voz ao vivo ativado! Pode falar comigo, estou ouvindo.', () => {
-        if (state.liveVoiceMode && !state.isRecording) {
-          setTimeout(() => {
-            if (state.liveVoiceMode && !state.isRecording && window.iniciarGravacaoAoVivo) {
-              window.iniciarGravacaoAoVivo();
-            }
-          }, 400);
+    liveRecognition.onresult = (event) => {
+      if (isShantiSpeaking || isMuted) return;
+
+      let interim = '';
+      let final = '';
+
+      for (let i = event.resultIndex; i < event.results.length; ++i) {
+        if (event.results[i].isFinal) {
+          final += event.results[i][0].transcript;
+        } else {
+          interim += event.results[i][0].transcript;
         }
-      });
-    } else {
-      if (indicator) indicator.style.background = '#94a3b8';
-      if (banner) banner.style.display = 'none';
-      pararFala();
-      if (state.isRecording && window.pararGravacaoAoVivo) {
-        window.pararGravacaoAoVivo(false);
       }
-      showToast('Modo Voz Ao Vivo pausado');
+
+      const fullText = (final || interim).trim();
+      if (!fullText) return;
+
+      currentTranscript = fullText;
+
+      // Atualizar status e balão provisório na tela Live
+      if (statusText) statusText.textContent = 'Ouvindo você... 🎙️';
+      if (statusSub) statusSub.textContent = 'Pode falar, a Shanti responderá assim que você pausar.';
+
+      if (!interimBubble) {
+        interimBubble = document.createElement('div');
+        interimBubble.className = 'live-bubble-interim';
+        transcriptFeed.appendChild(interimBubble);
+      }
+      interimBubble.textContent = `"${fullText}..."`;
+      transcriptFeed.scrollTop = transcriptFeed.scrollHeight;
+
+      // Reiniciar temporizador de silêncio (1.2s após parar de falar)
+      if (silenceTimer) clearTimeout(silenceTimer);
+      silenceTimer = setTimeout(() => {
+        if (currentTranscript && currentTranscript.trim().length > 1) {
+          processarPerguntaLive(currentTranscript.trim());
+        }
+      }, 1200);
+    };
+
+    liveRecognition.onerror = (e) => {
+      console.warn('Live SpeechRecognition error:', e.error);
+      if (e.error === 'not-allowed') {
+        showToast('Permissão de microfone negada no navegador.');
+      }
+    };
+
+    liveRecognition.onend = () => {
+      // Se a sessão Live ainda estiver aberta e a Shanti não estiver falando, reativar escuta
+      if (state.liveVoiceMode && !isShantiSpeaking && !isMuted) {
+        try {
+          liveRecognition.start();
+        } catch (err) {}
+      }
+    };
+  }
+
+  async function processarPerguntaLive(pergunta) {
+    currentTranscript = '';
+    if (silenceTimer) clearTimeout(silenceTimer);
+
+    // Remover balão interino e adicionar balão final do usuário
+    if (interimBubble && interimBubble.parentNode) {
+      interimBubble.remove();
+      interimBubble = null;
+    }
+
+    const userBubble = document.createElement('div');
+    userBubble.className = 'live-bubble-user';
+    userBubble.textContent = pergunta;
+    transcriptFeed.appendChild(userBubble);
+    transcriptFeed.scrollTop = transcriptFeed.scrollHeight;
+
+    // Também adiciona na conversa normal do WhatsApp para manter histórico
+    adicionarMensagem(pergunta, 'user');
+
+    // Pausar reconhecimento enquanto a Shanti pensa e fala
+    isShantiSpeaking = true;
+    if (liveRecognition) {
+      try { liveRecognition.stop(); } catch (e) {}
+    }
+
+    if (statusText) statusText.textContent = 'Shanti pensando... 🧘‍♀️';
+    if (statusSub) statusSub.textContent = 'Consultando os dados do estúdio em tempo real';
+
+    try {
+      const res = await fetch('/api/chat/live', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mensagem: pergunta, voz: 'Aoede' })
+      });
+
+      const data = await res.json();
+      const resposta = data.resposta || 'Namastê! Como posso ajudar você agora?';
+
+      // Exibir resposta no feed Live
+      const botBubble = document.createElement('div');
+      botBubble.className = 'live-bubble-bot';
+
+      let innerBot = `<div>🧘‍♀️ ${resposta}</div>`;
+
+      // Renderizar botões rápidos de ação (WhatsApp de atrasados, aniversariantes, etc.)
+      if (data.dados && Array.isArray(data.dados) && data.dados.length > 0) {
+        innerBot += `<div style="margin-top: 10px; display: flex; flex-direction: column; gap: 8px;">`;
+        data.dados.slice(0, 3).forEach(item => {
+          if (item.link_whatsapp) {
+            innerBot += `
+              <a href="${item.link_whatsapp}" target="_blank" class="wa-btn-sm-whatsapp" style="align-self: flex-start; padding: 6px 14px; font-size: 12px;">
+                <i class="fa-brands fa-whatsapp"></i> ${item.nome || 'Enviar WhatsApp'} (${item.valor ? 'R$ ' + item.valor.toFixed(2) : (item.dia ? 'Dia ' + item.dia : 'Mensagem')})
+              </a>
+            `;
+          }
+        });
+        innerBot += `</div>`;
+      }
+
+      botBubble.innerHTML = innerBot;
+      transcriptFeed.appendChild(botBubble);
+      transcriptFeed.scrollTop = transcriptFeed.scrollHeight;
+
+      // Também sincroniza com o chat normal
+      adicionarMensagem(resposta, 'bot', data.dados);
+
+      if (data.tipo === 'pagamento_registrado' || data.tipo === 'despesa_registrada' || data.tipo === 'presenca_registrada') {
+        atualizarTudo();
+      }
+
+      // Tocar a voz natural Aoede do Gemini
+      if (data.audio_base64) {
+        tocarAudioGemini(data.audio_base64, resposta);
+      } else {
+        // Fallback de voz neural caso o servidor não tenha retornado áudio
+        tocarAudioFallback(resposta);
+      }
+
+    } catch (err) {
+      console.error('Erro no processamento Gemini Live:', err);
+      if (statusText) statusText.textContent = 'Não entendi bem... Pode repetir?';
+      tocarAudioFallback('Desculpe, tive uma oscilação na conexão. Pode repetir a sua pergunta?');
     }
   }
 
-  if (btnToggle) btnToggle.addEventListener('click', alternarModoAoVivo);
-  if (btnStop) btnStop.addEventListener('click', alternarModoAoVivo);
+  function tocarAudioGemini(base64Wav, textoTranscrito) {
+    pararAudiosAtuais();
+
+    if (statusText) statusText.textContent = 'Shanti falando... 🧘‍♀️';
+    if (statusSub) statusSub.textContent = 'Voz natural Aoede (Google Gemini Live)';
+    modalLive.classList.add('speaking');
+
+    try {
+      currentAudio = new Audio('data:audio/wav;base64,' + base64Wav);
+      currentAudio.play().then(() => {
+        // Áudio tocando com sucesso
+      }).catch(e => {
+        console.warn('Autoplay bloqueado ou erro no WAV, usando fallback de fala:', e);
+        tocarAudioFallback(textoTranscrito);
+      });
+
+      currentAudio.onended = () => {
+        finalizarFalaShanti();
+      };
+
+      currentAudio.onerror = (e) => {
+        console.warn('Erro na reprodução do áudio Gemini:', e);
+        tocarAudioFallback(textoTranscrito);
+      };
+    } catch (e) {
+      tocarAudioFallback(textoTranscrito);
+    }
+  }
+
+  function tocarAudioFallback(texto) {
+    if (statusText) statusText.textContent = 'Shanti falando... 🧘‍♀️';
+    modalLive.classList.add('speaking');
+    falarTexto(texto, () => {
+      finalizarFalaShanti();
+    });
+  }
+
+  function finalizarFalaShanti() {
+    isShantiSpeaking = false;
+    modalLive.classList.remove('speaking');
+
+    if (state.liveVoiceMode && !isMuted) {
+      if (statusText) statusText.textContent = 'Estou ouvindo... Fale com a Shanti';
+      if (statusSub) statusSub.textContent = 'Converse naturalmente sem tocar em nenhum botão';
+
+      // Reativar microfone automaticamente após Shanti terminar de falar
+      if (liveRecognition) {
+        try {
+          liveRecognition.start();
+        } catch (e) {}
+      }
+    }
+  }
+
+  function pararAudiosAtuais() {
+    if (currentAudio) {
+      try {
+        currentAudio.pause();
+        currentAudio.currentTime = 0;
+      } catch (e) {}
+      currentAudio = null;
+    }
+    pararFala();
+  }
+
+  function abrirGeminiLive() {
+    state.liveVoiceMode = true;
+    isShantiSpeaking = false;
+    isMuted = false;
+    modalLive.style.display = 'flex';
+
+    if (statusText) statusText.textContent = 'Estou ouvindo... Fale com a Shanti';
+    if (statusSub) statusSub.textContent = 'Converse naturalmente em voz alta sem apertar botões';
+
+    if (iconMic) {
+      iconMic.className = 'fa-solid fa-microphone';
+    }
+    if (btnMicToggle) {
+      btnMicToggle.classList.remove('muted');
+    }
+
+    // Iniciar reconhecimento de voz
+    if (liveRecognition) {
+      try {
+        liveRecognition.start();
+      } catch (err) {
+        console.log('Recognition start error:', err);
+      }
+    } else {
+      showToast('Reconhecimento de fala contínuo não suportado neste navegador. Use o botão de áudio normal.');
+    }
+  }
+
+  function fecharGeminiLive() {
+    state.liveVoiceMode = false;
+    isShantiSpeaking = false;
+    pararAudiosAtuais();
+
+    if (silenceTimer) clearTimeout(silenceTimer);
+    if (liveRecognition) {
+      try { liveRecognition.stop(); } catch (e) {}
+    }
+
+    modalLive.style.display = 'none';
+    modalLive.classList.remove('speaking');
+    showToast('Gemini Live finalizado');
+  }
+
+  function toggleMuteLive() {
+    isMuted = !isMuted;
+    if (isMuted) {
+      btnMicToggle.classList.add('muted');
+      iconMic.className = 'fa-solid fa-microphone-slash';
+      if (statusText) statusText.textContent = 'Microfone Mutado 🔇';
+      if (statusSub) statusSub.textContent = 'Toque no microfone para desmutar e voltar a falar';
+      if (liveRecognition) {
+        try { liveRecognition.stop(); } catch (e) {}
+      }
+    } else {
+      btnMicToggle.classList.remove('muted');
+      iconMic.className = 'fa-solid fa-microphone';
+      if (statusText) statusText.textContent = 'Estou ouvindo... Fale com a Shanti';
+      if (statusSub) statusSub.textContent = 'Converse naturalmente em voz alta';
+      if (liveRecognition && !isShantiSpeaking) {
+        try { liveRecognition.start(); } catch (e) {}
+      }
+    }
+  }
+
+  if (btnOpenLive) btnOpenLive.addEventListener('click', abrirGeminiLive);
+  if (btnExitLive) btnExitLive.addEventListener('click', fecharGeminiLive);
+  if (btnMicToggle) btnMicToggle.addEventListener('click', toggleMuteLive);
+  if (auraPill) auraPill.addEventListener('click', () => {
+    if (isMuted) toggleMuteLive();
+  });
 }
 
 // =============================================================================
