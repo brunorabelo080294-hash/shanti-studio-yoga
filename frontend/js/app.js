@@ -79,6 +79,7 @@ async function carregarTurmas() {
     const res = await fetch('/api/turmas');
     state.turmas = await res.json();
     renderizarSeletorTurmas();
+    renderizarTurmasOcupacao();
   } catch (err) {
     console.warn('Erro ao carregar turmas:', err);
   }
@@ -92,14 +93,106 @@ function renderizarSeletorTurmas() {
     return;
   }
   container.innerHTML = state.turmas.map(t => {
-    const vagasInfo = t.vagas_disponiveis > 0 
-      ? `<span style="color:var(--wa-success); font-weight:600;">(${t.vagas_disponiveis} vagas livres)</span>`
-      : `<span style="color:var(--wa-danger); font-weight:600;">(Lotada)</span>`;
+    const cap = t.capacidade_vagas || 16;
+    const total = t.total_matriculados || 0;
+    const isLotada = t.lotada || (total >= cap);
+    const isQuaseLotada = t.quase_lotada || (total === cap - 1);
+
+    let vagasBadge = '';
+    if (isLotada) {
+      vagasBadge = `<span style="background:#fee2e2; color:#b91c1c; font-weight:700; padding:2px 8px; border-radius:6px; font-size:11px; display:inline-block; margin-top:2px; border:0.5px solid #fca5a5;">⚠️ LOTADA (${total}/${cap} alunos)</span>`;
+    } else if (isQuaseLotada) {
+      vagasBadge = `<span style="background:#fef3c7; color:#b45309; font-weight:700; padding:2px 8px; border-radius:6px; font-size:11px; display:inline-block; margin-top:2px; border:0.5px solid #fde68a;">⚡ Resta 1 vaga (${total}/${cap})</span>`;
+    } else {
+      vagasBadge = `<span style="color:var(--wa-success); font-weight:600; font-size:11.5px;">(${t.vagas_disponiveis} vagas livres de ${cap})</span>`;
+    }
+
     return `
-      <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:12.5px; line-height:1.4; color:var(--wa-text-primary);">
-        <input type="checkbox" class="cad-turma-check" value="${t.id}" style="accent-color:var(--shanti-primary); cursor:pointer;">
-        <span><b>${t.nome}</b> — ${t.dias_semana} às ${t.horario} ${vagasInfo}</span>
+      <label style="display:flex; align-items:flex-start; gap:10px; cursor:pointer; font-size:12.5px; line-height:1.4; color:var(--wa-text-primary); padding:6px 4px; border-bottom:0.5px solid rgba(0,0,0,0.05);">
+        <input type="checkbox" class="cad-turma-check" value="${t.id}" data-lotada="${isLotada ? '1' : '0'}" data-nome="${t.nome}" style="accent-color:var(--shanti-primary); cursor:pointer; margin-top:3px;">
+        <div style="flex:1;">
+          <b>${t.nome}</b> — ${t.dias_semana} às ${t.horario}
+          <div>${vagasBadge}</div>
+        </div>
       </label>
+    `;
+  }).join('');
+
+  // Aviso caso o usuário marque uma turma que já atingiu os 16 alunos
+  container.querySelectorAll('.cad-turma-check').forEach(chk => {
+    chk.addEventListener('change', () => {
+      if (chk.checked && chk.dataset.lotada === '1') {
+        const confirmar = confirm(`⚠️ ATENÇÃO: A turma '${chk.dataset.nome}' já atingiu o limite máximo de 16 alunos (LOTADA)!\n\nDeseja realmente matricular este aluno nesta turma acima da capacidade permitida?`);
+        if (!confirmar) {
+          chk.checked = false;
+        }
+      }
+    });
+  });
+}
+
+function renderizarTurmasOcupacao() {
+  const container = document.getElementById('list-turmas-ocupacao');
+  const badgeTotal = document.getElementById('badge-turmas-total');
+  if (!container) return;
+
+  if (!state.turmas || state.turmas.length === 0) {
+    container.innerHTML = '<div style="font-size:12px; color:var(--wa-text-secondary); text-align:center; padding:8px;">Nenhuma turma cadastrada.</div>';
+    if (badgeTotal) badgeTotal.textContent = '0 Turmas';
+    return;
+  }
+
+  const lotadas = state.turmas.filter(t => (t.total_matriculados || 0) >= (t.capacidade_vagas || 16));
+  if (badgeTotal) {
+    if (lotadas.length > 0) {
+      badgeTotal.style.background = '#fee2e2';
+      badgeTotal.style.color = '#b91c1c';
+      badgeTotal.textContent = `⚠️ ${lotadas.length} Lotada${lotadas.length > 1 ? 's' : ''}`;
+    } else {
+      badgeTotal.style.background = '#e8f0eb';
+      badgeTotal.style.color = 'var(--shanti-primary)';
+      badgeTotal.textContent = `${state.turmas.length} Turmas`;
+    }
+  }
+
+  container.innerHTML = state.turmas.map(t => {
+    const cap = t.capacidade_vagas || 16;
+    const total = t.total_matriculados || 0;
+    const percent = Math.min(100, Math.round((total / cap) * 100));
+    const isLotada = total >= cap;
+    const isQuaseLotada = total === cap - 1;
+
+    let barColor = 'var(--shanti-primary)';
+    let statusBadge = `<span style="font-size:11px; font-weight:600; color:var(--wa-success);">${t.vagas_disponiveis} livres</span>`;
+
+    if (isLotada) {
+      barColor = '#dc2626'; // Vermelho de lotação máxima
+      statusBadge = `<span style="background:#fee2e2; color:#b91c1c; font-weight:700; font-size:10.5px; padding:2px 7px; border-radius:6px; border:0.5px solid #fca5a5;">⚠️ LOTADA (16/16)</span>`;
+    } else if (isQuaseLotada) {
+      barColor = '#f59e0b'; // Laranja de última vaga
+      statusBadge = `<span style="background:#fef3c7; color:#b45309; font-weight:700; font-size:10.5px; padding:2px 7px; border-radius:6px; border:0.5px solid #fde68a;">⚡ Resta 1 vaga</span>`;
+    }
+
+    return `
+      <div style="background:var(--shanti-sand); padding:10px 12px; border-radius:10px; border:0.5px solid var(--wa-border);">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px;">
+          <div>
+            <div style="font-weight:700; font-size:13px; color:var(--wa-text-primary);">${t.nome}</div>
+            <div style="font-size:11.5px; color:var(--wa-text-secondary);"><i class="fa-regular fa-clock"></i> ${t.dias_semana} às ${t.horario}</div>
+          </div>
+          <div>${statusBadge}</div>
+        </div>
+        
+        <!-- Barra de Progresso de Ocupação -->
+        <div style="background:#e2e8f0; border-radius:999px; height:8px; width:100%; overflow:hidden; margin:8px 0 4px 0;">
+          <div style="background:${barColor}; width:${percent}%; height:100%; border-radius:999px; transition:width 0.4s ease;"></div>
+        </div>
+        
+        <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--wa-text-secondary);">
+          <span><b>${total}</b> de <b>${cap}</b> alunos matriculados</span>
+          <span style="font-weight:600;">${percent}% ocupado</span>
+        </div>
+      </div>
     `;
   }).join('');
 }
@@ -1117,16 +1210,22 @@ function setupModals() {
     };
 
     try {
-      await fetch('/api/alunos', {
+      const res = await fetch('/api/alunos', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(dados)
       });
+      const dataResp = await res.json();
       fecharModal('modal-add-student');
       showToast(`Aluno(a) ${dados.nome} matriculado(a)!`);
       await atualizarTudo();
       
-      adicionarMensagem(`🎉 *Nova matrícula realizada:* ${dados.nome} no plano *${dados.plano}* (Vencimento dia ${dados.dia_vencimento}).`, 'bot');
+      let msgBot = `🎉 *Nova matrícula realizada:* ${dados.nome} no plano *${dados.plano}* (Vencimento dia ${dados.dia_vencimento}).`;
+      if (dataResp && dataResp.aviso_lotacao) {
+        msgBot += `\n\n${dataResp.aviso_lotacao}`;
+        alert(dataResp.aviso_lotacao);
+      }
+      adicionarMensagem(msgBot, 'bot');
     } catch (err) {
       alert('Erro ao cadastrar aluno.');
     }

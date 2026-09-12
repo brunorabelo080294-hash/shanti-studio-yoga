@@ -122,12 +122,20 @@ def processar_comando_local(texto: str) -> Dict[str, Any]:
                 "tipo": "turmas",
                 "dados": []
             }
-        resposta = "🕉️ *Turmas e Horários do Studio Shanti:*\n\n"
+        resposta = "🕉️ *Turmas e Ocupação do Studio Shanti (Máximo 16 alunos por turma):*\n\n"
         for t in turmas:
-            resposta += f"• *{t['nome']}*\n"
+            status_tag = ""
+            if t.get("lotada"):
+                status_tag = " ⚠️ *LOTADA (16/16 alunos!)*"
+            elif t.get("quase_lotada"):
+                status_tag = " ⚡ *ÚLTIMA VAGA! (15/16)*"
+            resposta += f"• *{t['nome']}*{status_tag}\n"
             resposta += f"   📅 {t['dias_semana']} às {t['horario']}\n"
             resposta += f"   🧘 Alunos matriculados: {t['total_matriculados']} de {t['capacidade_vagas']} vagas\n"
-            resposta += f"   ✨ Vagas disponíveis: {t['vagas_disponiveis']}\n\n"
+            if t.get("lotada"):
+                resposta += f"   🛑 *Aviso de Lotação:* Limite de 16 alunos atingido nesta turma!\n\n"
+            else:
+                resposta += f"   ✨ Vagas disponíveis: {t['vagas_disponiveis']}\n\n"
         return {
             "resposta": resposta.strip(),
             "tipo": "turmas",
@@ -354,6 +362,7 @@ async def processar_mensagem_ia(texto: str) -> Dict[str, Any]:
         3. Se o usuário pedir para cobrar atrasados, parabenizar aniversariantes ou acolher alunos ausentes, informe que os botões com links prontos do WhatsApp estão disponíveis na tela.
         4. Mantenha respostas concisas para facilitar a leitura no celular e para poder ser ouvida em voz alta com naturalidade.
         5. Se o usuário fizer perguntas gerais, históricas, curiosidades ou bater papo (ex: 'Quem foi Dom Pedro?', 'Qual a capital do Brasil?'), responda com clareza, riqueza de detalhes e sabedoria, mantendo sempre o tom acolhedor e atencioso.
+        6. Capacidade Máxima das Turmas: O estúdio adota rigorosamente o teto de 16 alunos por turma. Sempre que perguntado sobre turmas, informe a ocupação (X/16) e alerte com destaque caso alguma turma atinja 16 alunos (turma lotada) ou 15 alunos (última vaga).
         """
 
         candidate_models = [

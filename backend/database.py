@@ -71,7 +71,7 @@ def init_db():
         nome TEXT NOT NULL,
         dias_semana TEXT NOT NULL,
         horario TEXT NOT NULL,
-        capacidade_vagas INTEGER DEFAULT 12,
+        capacidade_vagas INTEGER DEFAULT 16,
         plano_associado TEXT DEFAULT '2x na semana',
         ativo INTEGER DEFAULT 1,
         criado_em TEXT DEFAULT CURRENT_TIMESTAMP
@@ -213,11 +213,11 @@ def init_db():
         # Juliana não vem há 12 dias (aluna ausente / sumida)
         cursor.execute("INSERT INTO frequencias (aluno_id, data, horario, modalidade) VALUES (2, ?, '09:00', 'Hatha Yoga')", (doze_dias_atras,))
 
-    # --- FASE 2: Turmas Oficiais do Studio Shanti ---
+    # --- FASE 2: Turmas Oficiais do Studio Shanti (Capacidade Máxima: 16 alunos) ---
     turmas_oficiais = [
-        ("Pequenos Yogis (Yoga para Crianças)", "Segunda e Quarta", "17:30", 12, "2x na semana"),
-        ("Essência (Hatha Yoga para Adultos)", "Segunda e Quarta", "18:30", 12, "2x na semana"),
-        ("Sunrise (Hatha Yoga para Adultos)", "Terça e Quinta", "06:00", 12, "2x na semana")
+        ("Pequenos Yogis (Yoga para Crianças)", "Segunda e Quarta", "17:30", 16, "2x na semana"),
+        ("Essência (Hatha Yoga para Adultos)", "Segunda e Quarta", "18:30", 16, "2x na semana"),
+        ("Sunrise (Hatha Yoga para Adultos)", "Terça e Quinta", "06:00", 16, "2x na semana")
     ]
 
     for nome_t, dias_t, hora_t, cap_t, plano_t in turmas_oficiais:
@@ -227,6 +227,9 @@ def init_db():
             INSERT INTO turmas (nome, dias_semana, horario, capacidade_vagas, plano_associado, ativo)
             VALUES (?, ?, ?, ?, ?, 1)
             """, (nome_t, dias_t, hora_t, cap_t, plano_t))
+
+    # Atualizar capacidade das turmas para 16 alunos
+    cursor.execute("UPDATE turmas SET capacidade_vagas = 16 WHERE capacidade_vagas != 16 OR capacidade_vagas IS NULL")
 
     # --- FASE 2: Migração de Planos e Valores Oficiais (1x R$120 / 2x R$150) ---
     cursor.execute("""
@@ -493,8 +496,7 @@ def listar_turmas(ativas_somente: bool = True) -> List[Dict[str, Any]]:
     cursor = conn.cursor()
     query = """
     SELECT t.*, 
-           COUNT(mt.aluno_id) as total_matriculados,
-           (t.capacidade_vagas - COUNT(mt.aluno_id)) as vagas_disponiveis
+           COUNT(mt.aluno_id) as total_matriculados
     FROM turmas t
     LEFT JOIN matriculas_turmas mt ON mt.turma_id = t.id
     """
@@ -504,15 +506,26 @@ def listar_turmas(ativas_somente: bool = True) -> List[Dict[str, Any]]:
     cursor.execute(query)
     rows = cursor.fetchall()
     conn.close()
-    return [dict(r) for r in rows]
+
+    resultado = []
+    for r in rows:
+        d = dict(r)
+        total = d.get("total_matriculados", 0)
+        capacidade = d.get("capacidade_vagas", 16) or 16
+        d["capacidade_vagas"] = capacidade
+        d["total_matriculados"] = total
+        d["vagas_disponiveis"] = max(0, capacidade - total)
+        d["lotada"] = total >= capacidade
+        d["quase_lotada"] = (total == capacidade - 1)
+        resultado.append(d)
+    return resultado
 
 def obter_turma(turma_id: int) -> Optional[Dict[str, Any]]:
     conn = get_connection()
     cursor = conn.cursor()
     cursor.execute("""
     SELECT t.*, 
-           COUNT(mt.aluno_id) as total_matriculados,
-           (t.capacidade_vagas - COUNT(mt.aluno_id)) as vagas_disponiveis
+           COUNT(mt.aluno_id) as total_matriculados
     FROM turmas t
     LEFT JOIN matriculas_turmas mt ON mt.turma_id = t.id
     WHERE t.id = ?
@@ -520,7 +533,17 @@ def obter_turma(turma_id: int) -> Optional[Dict[str, Any]]:
     """, (turma_id,))
     row = cursor.fetchone()
     conn.close()
-    return dict(row) if row else None
+    if not row:
+        return None
+    d = dict(row)
+    total = d.get("total_matriculados", 0)
+    capacidade = d.get("capacidade_vagas", 16) or 16
+    d["capacidade_vagas"] = capacidade
+    d["total_matriculados"] = total
+    d["vagas_disponiveis"] = max(0, capacidade - total)
+    d["lotada"] = total >= capacidade
+    d["quase_lotada"] = (total == capacidade - 1)
+    return d
 
 def listar_alunos_turma(turma_id: int) -> List[Dict[str, Any]]:
     conn = get_connection()

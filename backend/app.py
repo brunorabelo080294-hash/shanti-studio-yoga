@@ -116,7 +116,28 @@ def api_listar_alunos(status: Optional[str] = None):
 @app.post("/api/alunos")
 def api_cadastrar_aluno(dados: AlunoCreate):
     aluno_id = db.cadastrar_aluno(dados.dict())
-    return {"status": "ok", "id": aluno_id, "mensagem": f"Aluno {dados.nome} cadastrado com sucesso!"}
+    
+    avisos = []
+    if dados.turma_ids:
+        for tid in dados.turma_ids:
+            turma = db.obter_turma(tid)
+            if turma:
+                cap = turma.get("capacidade_vagas", 16) or 16
+                total = turma.get("total_matriculados", 0)
+                if total >= cap:
+                    avisos.append(f"⚠️ Atenção: A turma '{turma['nome']}' atingiu o limite máximo de {cap} alunos!")
+                elif total == cap - 1:
+                    avisos.append(f"⚡ Aviso: A turma '{turma['nome']}' tem apenas 1 vaga livre restante ({total}/{cap}).")
+
+    resp = {
+        "status": "ok",
+        "id": aluno_id,
+        "mensagem": f"Aluno {dados.nome} cadastrado com sucesso!"
+    }
+    if avisos:
+        resp["avisos"] = avisos
+        resp["aviso_lotacao"] = " | ".join(avisos)
+    return resp
 
 @app.get("/api/alunos/{aluno_id}")
 def api_obter_aluno(aluno_id: int):
@@ -130,7 +151,24 @@ def api_obter_aluno(aluno_id: int):
 def api_atualizar_aluno(aluno_id: int, dados: AlunoUpdate):
     dados_dict = {k: v for k, v in dados.dict().items() if v is not None}
     db.atualizar_aluno(aluno_id, dados_dict)
-    return {"status": "ok", "mensagem": "Aluno atualizado com sucesso!"}
+    
+    avisos = []
+    if dados.turma_ids:
+        for tid in dados.turma_ids:
+            turma = db.obter_turma(tid)
+            if turma:
+                cap = turma.get("capacidade_vagas", 16) or 16
+                total = turma.get("total_matriculados", 0)
+                if total >= cap:
+                    avisos.append(f"⚠️ Atenção: A turma '{turma['nome']}' atingiu o limite máximo de {cap} alunos!")
+                elif total == cap - 1:
+                    avisos.append(f"⚡ Aviso: A turma '{turma['nome']}' tem apenas 1 vaga livre restante ({total}/{cap}).")
+
+    resp = {"status": "ok", "mensagem": "Aluno atualizado com sucesso!"}
+    if avisos:
+        resp["avisos"] = avisos
+        resp["aviso_lotacao"] = " | ".join(avisos)
+    return resp
 
 @app.post("/api/alunos/{aluno_id}/inativar")
 def api_inativar_aluno(aluno_id: int, req: InativarAlunoRequest):
@@ -179,7 +217,21 @@ def api_matricular_aluno_turma(aluno_id: int, req: TurmaMatriculaRequest):
     sucesso = db.matricular_aluno_turma(aluno_id, req.turma_id)
     if not sucesso:
         raise HTTPException(status_code=400, detail="Não foi possível matricular o aluno nesta turma")
-    return {"status": "ok", "mensagem": "Aluno matriculado na turma com sucesso!"}
+    
+    turma = db.obter_turma(req.turma_id)
+    aviso = None
+    if turma:
+        cap = turma.get("capacidade_vagas", 16) or 16
+        total = turma.get("total_matriculados", 0)
+        if total >= cap:
+            aviso = f"⚠️ Atenção: A turma '{turma['nome']}' atingiu o limite máximo de {cap} alunos!"
+        elif total == cap - 1:
+            aviso = f"⚡ Aviso: A turma '{turma['nome']}' tem apenas 1 vaga livre restante ({total}/{cap})."
+
+    resp = {"status": "ok", "mensagem": "Aluno matriculado na turma com sucesso!", "turma": turma}
+    if aviso:
+        resp["aviso_lotacao"] = aviso
+    return resp
 
 @app.delete("/api/alunos/{aluno_id}/turmas/{turma_id}")
 def api_desmatricular_aluno_turma(aluno_id: int, turma_id: int):
