@@ -224,7 +224,7 @@ async def processar_mensagem_ia(texto: str) -> Dict[str, Any]:
         4. Mantenha respostas concisas para facilitar a leitura no celular.
         """
 
-        response = client.models.generate_content(
+        response = await client.aio.models.generate_content(
             model="gemini-flash-latest",
             contents=texto,
             config=types.GenerateContentConfig(

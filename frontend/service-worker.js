@@ -1,4 +1,4 @@
-const CACHE_NAME = 'shanti-studio-pwa-v4';
+const CACHE_NAME = 'shanti-studio-pwa-v5';
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();
@@ -19,6 +19,11 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
+  // Não interceptar chamadas de API nem requisições que não sejam GET (como envio de áudio e chat)
+  if (event.request.method !== 'GET' || event.request.url.includes('/api/')) {
+    return;
+  }
+
   // Sempre buscar da rede primeiro (Network-First) para refletir o design na hora
   event.respondWith(
     fetch(event.request)

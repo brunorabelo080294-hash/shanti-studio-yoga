@@ -5,6 +5,7 @@ Fornece rotas da API REST, serviços de IA, cobranças no WhatsApp e arquivos es
 import os
 import sys
 import datetime
+import re
 from typing import Optional, Dict, Any, List
 from fastapi import FastAPI, HTTPException, UploadFile, File, Form
 from fastapi.staticfiles import StaticFiles
@@ -173,7 +174,7 @@ async def api_chat_audio(audio: UploadFile = File(...), texto_transcrito: Option
                 else:
                     mime_type = "audio/webm"
 
-                response = client.models.generate_content(
+                response = await client.aio.models.generate_content(
                     model="gemini-flash-latest",
                     contents=[
                         types.Part.from_bytes(data=conteudo, mime_type=mime_type),
@@ -181,6 +182,9 @@ async def api_chat_audio(audio: UploadFile = File(...), texto_transcrito: Option
                     ]
                 )
                 texto = (response.text or "").strip()
+                texto = re.sub(r'^["\'\s]+|["\'\s]+$', '', texto)
+                if any(texto.lower().startswith(x) for x in ["silêncio", "silencio", "sem fala", "inaudível", "inaudivel", "ruído", "ruido", "nenhum som"]):
+                    texto = ""
             except Exception as e:
                 print(f"Erro ao transcrever áudio com Gemini: {e}")
                 texto = ""

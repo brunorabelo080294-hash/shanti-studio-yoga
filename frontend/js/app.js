@@ -115,10 +115,11 @@ function setupChat() {
   btnSend.addEventListener('click', enviarMensagemTexto);
 }
 
-function adicionarMensagem(texto, remetente = 'bot', dadosExtras = null) {
+function adicionarMensagem(texto, remetente = 'bot', dadosExtras = null, elementId = null) {
   const container = document.getElementById('chat-messages');
   const rowEl = document.createElement('div');
   rowEl.className = `wa-message-row ${remetente}`;
+  if (elementId) rowEl.id = elementId;
 
   const now = new Date();
   const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
@@ -172,6 +173,46 @@ function adicionarMensagem(texto, remetente = 'bot', dadosExtras = null) {
   rowEl.innerHTML = htmlInner;
   container.appendChild(rowEl);
   container.scrollTop = container.scrollHeight;
+  return rowEl;
+}
+
+function criarIndicadorDigitacao(msgInicial = 'Consultando o estúdio... 🧘‍♀️') {
+  const container = document.getElementById('chat-messages');
+  const typingRow = document.createElement('div');
+  typingRow.className = 'wa-message-row bot wa-typing-row';
+  typingRow.innerHTML = `
+    <img src="/img/shanti_logo.png?v=3" alt="Shanti" class="wa-msg-avatar">
+    <div class="wa-message bot">
+      <div class="wa-message-content" style="color:#63736d;"><i class="typing-text">${msgInicial}</i></div>
+    </div>
+  `;
+  container.appendChild(typingRow);
+  container.scrollTop = container.scrollHeight;
+
+  const textEl = typingRow.querySelector('.typing-text');
+  let seconds = 0;
+  const interval = setInterval(() => {
+    seconds += 3;
+    if (!typingRow.parentNode) {
+      clearInterval(interval);
+      return;
+    }
+    if (seconds >= 12) {
+      textEl.innerHTML = '⏳ O servidor está acordando no Render... Quase pronto... 🧘‍♀️';
+    } else if (seconds >= 6) {
+      textEl.innerHTML = '✨ Processando com a IA Gemini... 🧘‍♀️';
+    }
+  }, 3000);
+
+  return {
+    remover: () => {
+      clearInterval(interval);
+      if (typingRow.parentNode) typingRow.remove();
+    },
+    atualizarTexto: (novoTexto) => {
+      if (textEl) textEl.innerHTML = novoTexto;
+    }
+  };
 }
 
 async function enviarMensagemTexto() {
@@ -184,18 +225,7 @@ async function enviarMensagemTexto() {
   document.getElementById('btn-mic').style.display = 'flex';
   document.getElementById('btn-send').style.display = 'none';
 
-  // Typing indicator
-  const typingRow = document.createElement('div');
-  typingRow.className = 'wa-message-row bot';
-  typingRow.id = 'msg-typing';
-  typingRow.innerHTML = `
-    <img src="/img/shanti_logo.png?v=3" alt="Shanti" class="wa-msg-avatar">
-    <div class="wa-message bot">
-      <div class="wa-message-content" style="color:#63736d;"><i>Consultando o estúdio...</i> 🧘‍♀️</div>
-    </div>
-  `;
-  document.getElementById('chat-messages').appendChild(typingRow);
-  document.getElementById('chat-messages').scrollTop = document.getElementById('chat-messages').scrollHeight;
+  const indicador = criarIndicadorDigitacao('Consultando o estúdio... 🧘‍♀️');
 
   try {
     const res = await fetch('/api/chat', {
@@ -204,9 +234,7 @@ async function enviarMensagemTexto() {
       body: JSON.stringify({ mensagem: texto })
     });
     const data = await res.json();
-    
-    const t = document.getElementById('msg-typing');
-    if (t) t.remove();
+    indicador.remover();
 
     adicionarMensagem(data.resposta, 'bot', data.dados);
     
@@ -214,8 +242,7 @@ async function enviarMensagemTexto() {
       await atualizarTudo();
     }
   } catch (err) {
-    const t = document.getElementById('msg-typing');
-    if (t) t.remove();
+    indicador.remover();
     adicionarMensagem('Ocorreu um erro ao processar sua mensagem. Verifique a conexão.', 'bot');
   }
 }
@@ -257,19 +284,10 @@ function setupAudio() {
       const file = e.target.files && e.target.files[0];
       if (!file) return;
 
-      adicionarMensagem('🎙️ <i>Mensagem de voz enviada...</i>', 'user');
+      const userMsgId = 'voice-msg-' + Date.now();
+      adicionarMensagem('🎙️ <i>Mensagem de voz enviada...</i>', 'user', null, userMsgId);
 
-      const typingRow = document.createElement('div');
-      typingRow.className = 'wa-message-row bot';
-      typingRow.id = 'msg-typing';
-      typingRow.innerHTML = `
-        <img src="/img/shanti_logo.png?v=3" alt="Shanti" class="wa-msg-avatar">
-        <div class="wa-message bot">
-          <div class="wa-message-content" style="color:#63736d;"><i>Ouvindo o seu áudio...</i> 🧘‍♀️</div>
-        </div>
-      `;
-      document.getElementById('chat-messages').appendChild(typingRow);
-      document.getElementById('chat-messages').scrollTop = document.getElementById('chat-messages').scrollHeight;
+      const indicador = criarIndicadorDigitacao('Ouvindo o seu áudio com a IA Gemini... 🧘‍♀️');
 
       const formData = new FormData();
       formData.append('audio', file);
@@ -280,16 +298,24 @@ function setupAudio() {
           body: formData
         });
         const data = await res.json();
-        const t = document.getElementById('msg-typing');
-        if (t) t.remove();
+        indicador.remover();
+
+        if (data.transcricao && data.transcricao !== 'Voz não identificada') {
+          const userMsg = document.getElementById(userMsgId);
+          if (userMsg) {
+            const contentEl = userMsg.querySelector('.wa-message-content');
+            if (contentEl) {
+              contentEl.innerHTML = `🎙️ <b>"${data.transcricao}"</b><div style="font-size:10px; color:#5c786f; margin-top:3px;">✨ Transcrito pela IA Gemini</div>`;
+            }
+          }
+        }
 
         adicionarMensagem(data.resposta, 'bot', data.dados);
         if (data.tipo === 'pagamento_registrado' || data.tipo === 'aluno_inativado') {
           await atualizarTudo();
         }
       } catch (err) {
-        const t = document.getElementById('msg-typing');
-        if (t) t.remove();
+        indicador.remover();
         adicionarMensagem('Não foi possível processar o áudio gravado.', 'bot');
       }
       mobileMicInput.value = '';
@@ -381,20 +407,10 @@ function setupAudio() {
         }
 
         const textoPrevia = speechTranscript.trim();
-        adicionarMensagem(textoPrevia ? `🎙️ <i>"${textoPrevia}"</i>` : `🎙️ <i>Mensagem de voz enviada...</i>`, 'user');
+        const userMsgId = 'voice-msg-' + Date.now();
+        adicionarMensagem(textoPrevia ? `🎙️ <i>"${textoPrevia}"</i>` : `🎙️ <i>Mensagem de voz enviada...</i>`, 'user', null, userMsgId);
 
-        // Indicador de que a IA está ouvindo
-        const typingRow = document.createElement('div');
-        typingRow.className = 'wa-message-row bot';
-        typingRow.id = 'msg-typing';
-        typingRow.innerHTML = `
-          <img src="/img/shanti_logo.png?v=3" alt="Shanti" class="wa-msg-avatar">
-          <div class="wa-message bot">
-            <div class="wa-message-content" style="color:#63736d;"><i>Ouvindo o seu áudio com a IA Gemini...</i> 🧘‍♀️</div>
-          </div>
-        `;
-        document.getElementById('chat-messages').appendChild(typingRow);
-        document.getElementById('chat-messages').scrollTop = document.getElementById('chat-messages').scrollHeight;
+        const indicador = criarIndicadorDigitacao('Ouvindo o seu áudio com a IA Gemini... 🧘‍♀️');
 
         const formData = new FormData();
         formData.append('audio', audioBlob, 'audio.webm');
@@ -408,16 +424,25 @@ function setupAudio() {
             body: formData
           });
           const data = await res.json();
-          const t = document.getElementById('msg-typing');
-          if (t) t.remove();
+          indicador.remover();
+
+          // Atualizar o balão de voz com o que a IA realmente ouviu e transcreveu!
+          if (data.transcricao && data.transcricao !== 'Voz não identificada') {
+            const userMsg = document.getElementById(userMsgId);
+            if (userMsg) {
+              const contentEl = userMsg.querySelector('.wa-message-content');
+              if (contentEl) {
+                contentEl.innerHTML = `🎙️ <b>"${data.transcricao}"</b><div style="font-size:10px; color:#5c786f; margin-top:3px;">✨ Transcrito pela IA Gemini</div>`;
+              }
+            }
+          }
 
           adicionarMensagem(data.resposta, 'bot', data.dados);
           if (data.tipo === 'pagamento_registrado' || data.tipo === 'aluno_inativado') {
             await atualizarTudo();
           }
         } catch (e) {
-          const t = document.getElementById('msg-typing');
-          if (t) t.remove();
+          indicador.remover();
           adicionarMensagem('Não consegui processar seu áudio no momento. Tente falar novamente!', 'bot');
         }
       };
