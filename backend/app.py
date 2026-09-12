@@ -174,7 +174,7 @@ async def api_chat_audio(audio: UploadFile = File(...), texto_transcrito: Option
                     mime_type = "audio/webm"
 
                 response = client.models.generate_content(
-                    model="gemini-3.6-flash",
+                    model="gemini-flash-latest",
                     contents=[
                         types.Part.from_bytes(data=conteudo, mime_type=mime_type),
                         "Transcreva com máxima precisão o que foi falado neste áudio em português. Retorne EXCLUSIVAMENTE o texto transcrito, sem introduções, sem aspas e sem explicações adicionais."

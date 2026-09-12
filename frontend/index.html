@@ -111,7 +111,7 @@
             <div class="wa-wave-bar"></div>
           </div>
           <span id="recording-timer">0:00</span>
-          <span style="font-size: 12px; color: #63736d;">Gravando sua voz... solte para enviar</span>
+          <span id="recording-hint" style="font-size: 12px; color: #63736d;">Gravando sua voz... solte para enviar</span>
           <button id="btn-cancel-record" style="background:none; border:none; color:var(--wa-danger); font-size:16px; cursor:pointer;" title="Cancelar">
             <i class="fa-solid fa-trash"></i>
           </button>
@@ -544,12 +544,12 @@
 <div class="wa-toast" id="toast-msg">Notificação</div>
 
 <!-- JavaScript Principal -->
-<script src="/js/app.js?v=3"></script>
+<script src="/js/app.js?v=4"></script>
 
 <script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/service-worker.js?v=3').then(reg => {
+      navigator.serviceWorker.register('/service-worker.js?v=4').then(reg => {
         reg.update();
       }).catch(err => {
         console.log('SW reg:', err);

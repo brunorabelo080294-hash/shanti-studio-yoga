@@ -313,12 +313,17 @@ function setupAudio() {
       state.audioChunks = [];
       speechTranscript = '';
 
-      state.mediaRecorder = new MediaRecorder(stream);
+      const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
+        ? 'audio/webm;codecs=opus'
+        : (MediaRecorder.isTypeSupported('audio/mp4') ? 'audio/mp4' : 'audio/webm');
+
+      state.mediaRecorder = new MediaRecorder(stream, { mimeType });
       state.mediaRecorder.ondataavailable = (e) => {
-        if (e.data.size > 0) state.audioChunks.push(e.data);
+        if (e.data && e.data.size > 0) state.audioChunks.push(e.data);
       };
 
-      state.mediaRecorder.start();
+      // Gravar em fatias de 100ms para garantir que o buffer de áudio nunca fique vazio
+      state.mediaRecorder.start(100);
       if (recognition) {
         try { recognition.start(); } catch (err) {}
       }
@@ -329,6 +334,9 @@ function setupAudio() {
 
       state.recordSeconds = 0;
       recordingTimer.textContent = '0:00';
+      const hint = document.getElementById('recording-hint');
+      if (hint) hint.textContent = "Gravando sua voz... solte para enviar";
+
       state.recordInterval = setInterval(() => {
         state.recordSeconds++;
         const mins = Math.floor(state.recordSeconds / 60);
@@ -367,6 +375,11 @@ function setupAudio() {
         const mimeType = (state.mediaRecorder && state.mediaRecorder.mimeType) || 'audio/webm';
         const audioBlob = new Blob(state.audioChunks, { type: mimeType });
 
+        if (audioBlob.size < 500 && (!speechTranscript || !speechTranscript.trim())) {
+          showToast('Áudio muito curto. Fale um pouco mais.');
+          return;
+        }
+
         const textoPrevia = speechTranscript.trim();
         adicionarMensagem(textoPrevia ? `🎙️ <i>"${textoPrevia}"</i>` : `🎙️ <i>Mensagem de voz enviada...</i>`, 'user');
 
@@ -377,7 +390,7 @@ function setupAudio() {
         typingRow.innerHTML = `
           <img src="/img/shanti_logo.png?v=3" alt="Shanti" class="wa-msg-avatar">
           <div class="wa-message bot">
-            <div class="wa-message-content" style="color:#63736d;"><i>Ouvindo o seu áudio com a IA...</i> 🧘‍♀️</div>
+            <div class="wa-message-content" style="color:#63736d;"><i>Ouvindo o seu áudio com a IA Gemini...</i> 🧘‍♀️</div>
           </div>
         `;
         document.getElementById('chat-messages').appendChild(typingRow);
@@ -420,11 +433,40 @@ function setupAudio() {
     showToast('Gravação cancelada');
   });
 
-  btnMic.addEventListener('click', () => {
-    if (!state.isRecording) {
-      startRecording();
+  // Suporte duplo: Segurar para gravar (estilo WhatsApp) E toque para alternar
+  let recordStartTime = 0;
+  let isPointerDown = false;
+
+  btnMic.addEventListener('pointerdown', async (e) => {
+    // Se já estiver gravando por clique anterior, não reinicia
+    if (state.isRecording) return;
+    recordStartTime = Date.now();
+    isPointerDown = true;
+    await startRecording();
+  });
+
+  btnMic.addEventListener('pointerup', async (e) => {
+    if (!state.isRecording) return;
+    const duration = Date.now() - recordStartTime;
+    // Se segurou por mais de 450ms, finaliza e envia na hora (estilo WhatsApp)
+    if (duration >= 450) {
+      isPointerDown = false;
+      await stopRecording(true);
     } else {
-      stopRecording(true);
+      // Se foi toque rápido, mantém gravando e instrui o usuário a tocar para enviar
+      isPointerDown = false;
+      const hint = document.getElementById('recording-hint');
+      if (hint) hint.textContent = "Gravando... Toque no microfone para enviar";
+    }
+  });
+
+  btnMic.addEventListener('click', async (e) => {
+    e.preventDefault();
+    if (!state.isRecording) return;
+    const duration = Date.now() - recordStartTime;
+    // Se o usuário tocou pela segunda vez após um toque rápido, envia
+    if (duration >= 500) {
+      await stopRecording(true);
     }
   });
 }
