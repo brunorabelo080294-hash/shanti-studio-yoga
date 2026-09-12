@@ -251,10 +251,11 @@ async def api_chat_audio(audio: UploadFile = File(...), texto_transcrito: Option
                     mime_type = "audio/webm"
 
                 candidate_models = [
+                    "gemini-3.6-flash",
+                    "gemini-3.5-flash",
                     "gemini-flash-lite-latest",
                     "gemini-3.5-flash-lite",
-                    "gemini-3.5-flash",
-                    "gemini-3.6-flash"
+                    "gemini-flash-latest"
                 ]
                 for modelo in candidate_models:
                     try:
@@ -262,7 +263,7 @@ async def api_chat_audio(audio: UploadFile = File(...), texto_transcrito: Option
                             model=modelo,
                             contents=[
                                 types.Part.from_bytes(data=conteudo, mime_type=mime_type),
-                                "Transcreva com máxima precisão o que foi falado neste áudio em português. Retorne EXCLUSIVAMENTE o texto transcrito, sem introduções, sem aspas e sem explicações adicionais."
+                                "Você é um assistente do estúdio de yoga. Transcreva com fidelidade absoluta o que foi falado neste áudio em português do Brasil (pt-BR). Retorne APENAS o texto transcrito, sem aspas, sem pontuações extras e sem explicações. Se houver apenas silêncio ou ruído inaudível, responda SILENCIO."
                             ]
                         )
                         texto = (response.text or "").strip()
