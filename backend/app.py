@@ -8,7 +8,7 @@ import io
 import datetime
 import re
 from typing import Optional, Dict, Any, List
-from fastapi import FastAPI, HTTPException, UploadFile, File, Form
+from fastapi import FastAPI, HTTPException, UploadFile, File, Form, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -16,6 +16,7 @@ from PIL import Image
 
 import backend.database as db
 import backend.ai_service as ai
+import backend.pdf_service as pdf_service
 
 app = FastAPI(title="Yoga Studio - WhatsApp AI Assistant")
 
@@ -91,7 +92,18 @@ class DespesaCreate(BaseModel):
     valor: float
     categoria: Optional[str] = "Geral"
     data: Optional[str] = None
+    data_vencimento: Optional[str] = None
+    status: Optional[str] = "pago"
     observacao: Optional[str] = ""
+
+class DespesaUpdate(BaseModel):
+    descricao: Optional[str] = None
+    valor: Optional[float] = None
+    categoria: Optional[str] = None
+    data: Optional[str] = None
+    data_vencimento: Optional[str] = None
+    status: Optional[str] = None
+    observacao: Optional[str] = None
 
 class ChatRequest(BaseModel):
     mensagem: str
@@ -197,6 +209,10 @@ def api_excluir_aluno(aluno_id: int):
 def api_listar_turmas(ativas_somente: bool = True):
     return db.listar_turmas(ativas_somente=ativas_somente)
 
+@app.get("/api/turmas/completo")
+def api_listar_turmas_completo(ativas_somente: bool = True):
+    return db.listar_turmas_com_alunos(ativas_somente=ativas_somente)
+
 @app.get("/api/turmas/{turma_id}")
 def api_obter_turma(turma_id: int):
     turma = db.obter_turma(turma_id)
@@ -261,6 +277,20 @@ def api_obter_quantitativo():
 def api_obter_relatorio(mes_ano: Optional[str] = None):
     return db.obter_relatorio_mensal(mes_ano=mes_ano)
 
+@app.get("/api/relatorio/pdf")
+def api_baixar_relatorio_pdf(mes_ano: Optional[str] = None):
+    """Gera e retorna o PDF oficial do balanço financeiro mensal do Studio Shanti."""
+    buffer = pdf_service.gerar_pdf_relatorio_financeiro(mes_ano=mes_ano)
+    ref_mes = mes_ano or datetime.date.today().strftime("%Y-%m")
+    nome_arquivo = f"Relatorio_Financeiro_Shanti_{ref_mes}.pdf"
+    return Response(
+        content=buffer.getvalue(),
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": f"attachment; filename={nome_arquivo}"
+        }
+    )
+
 @app.get("/api/cobrancas")
 def api_obter_cobrancas(tipo: str = "atrasados"):
     """Retorna lista de lembretes e links 'wa.me' prontos para disparar no WhatsApp com 1 clique."""
@@ -296,6 +326,17 @@ def api_obter_alunos_ausentes(dias: int = 10):
 def api_listar_despesas(mes_ano: Optional[str] = None):
     return db.listar_despesas(mes_ano=mes_ano)
 
+@app.get("/api/despesas/alertas")
+def api_obter_alertas_despesas():
+    return db.obter_alertas_despesas()
+
+@app.get("/api/despesas/{despesa_id}")
+def api_obter_despesa(despesa_id: int):
+    desp = db.obter_despesa(despesa_id)
+    if not desp:
+        raise HTTPException(status_code=404, detail="Despesa não encontrada")
+    return desp
+
 @app.post("/api/despesas")
 def api_cadastrar_despesa(dados: DespesaCreate):
     did = db.registrar_despesa(
@@ -303,16 +344,27 @@ def api_cadastrar_despesa(dados: DespesaCreate):
         valor=dados.valor,
         categoria=dados.categoria or "Geral",
         data=dados.data,
+        data_vencimento=dados.data_vencimento,
+        status=dados.status or "pago",
         observacao=dados.observacao or ""
     )
     return {"status": "ok", "id": did, "mensagem": "Despesa registrada com sucesso!"}
+
+@app.put("/api/despesas/{despesa_id}")
+def api_atualizar_despesa(despesa_id: int, dados: DespesaUpdate):
+    dados_dict = {k: v for k, v in dados.dict().items() if v is not None}
+    sucesso = db.atualizar_despesa(despesa_id, dados_dict)
+    if not sucesso:
+        raise HTTPException(status_code=404, detail="Despesa não encontrada")
+    desp_atualizada = db.obter_despesa(despesa_id)
+    return {"status": "ok", "sucesso": True, "mensagem": "Despesa atualizada com sucesso!", "despesa": desp_atualizada, **(desp_atualizada or {})}
 
 @app.delete("/api/despesas/{despesa_id}")
 def api_excluir_despesa(despesa_id: int):
     sucesso = db.excluir_despesa(despesa_id)
     if not sucesso:
         raise HTTPException(status_code=404, detail="Despesa não encontrada")
-    return {"status": "ok", "mensagem": "Despesa excluída com sucesso!"}
+    return {"status": "ok", "sucesso": True, "mensagem": "Despesa excluída com sucesso!"}
 
 @app.get("/api/aniversariantes")
 def api_obter_aniversariantes(mes: Optional[int] = None):

@@ -126,6 +126,8 @@ def init_db():
         valor REAL NOT NULL,
         categoria TEXT DEFAULT 'Geral', -- 'Aluguel', 'Energia/Água', 'Materiais/Incensos', 'Marketing', 'Outros'
         data TEXT NOT NULL, -- 'YYYY-MM-DD'
+        data_vencimento TEXT, -- 'YYYY-MM-DD'
+        status TEXT DEFAULT 'pago', -- 'pago', 'pendente'
         observacao TEXT
     )
     """)
@@ -245,6 +247,18 @@ def init_db():
     """)
 
     cursor.execute("UPDATE alunos SET autoriza_imagem = 1 WHERE autoriza_imagem IS NULL")
+
+    # Migração segura para tabela despesas (data_vencimento e status)
+    try:
+        cursor.execute("ALTER TABLE despesas ADD COLUMN data_vencimento TEXT")
+    except Exception:
+        pass
+    try:
+        cursor.execute("ALTER TABLE despesas ADD COLUMN status TEXT DEFAULT 'pago'")
+    except Exception:
+        pass
+    cursor.execute("UPDATE despesas SET data_vencimento = data WHERE data_vencimento IS NULL OR data_vencimento = ''")
+    cursor.execute("UPDATE despesas SET status = 'pago' WHERE status IS NULL OR status = ''")
 
     # Matrículas iniciais nas turmas para demonstração do painel de vagas
     cursor.execute("SELECT COUNT(*) FROM matriculas_turmas")
@@ -893,31 +907,88 @@ def obter_alunos_ausentes(dias_sem_aula: int = 10, dias: Optional[int] = None) -
 
 # --- Gestão de Despesas do Estúdio ---
 
-def registrar_despesa(descricao: str, valor: float, categoria: str = "Geral", data: Optional[str] = None, observacao: str = "") -> int:
+def registrar_despesa(descricao: str, valor: float, categoria: str = "Geral", data: Optional[str] = None, observacao: str = "", data_vencimento: Optional[str] = None, status: str = "pago") -> int:
     conn = get_connection()
     cursor = conn.cursor()
+    hoje_str = datetime.date.today().strftime("%Y-%m-%d")
     if not data:
-        data = datetime.date.today().strftime("%Y-%m-%d")
+        data = hoje_str
+    if not data_vencimento:
+        data_vencimento = data
+    if not status:
+        status = "pago"
 
     cursor.execute("""
-    INSERT INTO despesas (descricao, valor, categoria, data, observacao)
-    VALUES (?, ?, ?, ?, ?)
-    """, (descricao.strip(), float(valor), categoria.strip(), data, observacao.strip()))
+    INSERT INTO despesas (descricao, valor, categoria, data, data_vencimento, status, observacao)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+    """, (descricao.strip(), float(valor), categoria.strip(), data, data_vencimento, status, observacao.strip()))
     desp_id = cursor.lastrowid
     conn.commit()
     conn.close()
     return desp_id
 
+def obter_despesa(despesa_id: int) -> Optional[Dict[str, Any]]:
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM despesas WHERE id = ?", (despesa_id,))
+    row = cursor.fetchone()
+    conn.close()
+    return dict(row) if row else None
+
+def atualizar_despesa(despesa_id: int, dados: Dict[str, Any]) -> bool:
+    conn = get_connection()
+    cursor = conn.cursor()
+    campos = []
+    valores = []
+    for k, v in dados.items():
+        if k in ("descricao", "valor", "categoria", "data", "data_vencimento", "status", "observacao"):
+            campos.append(f"{k} = ?")
+            valores.append(float(v) if k == "valor" else str(v).strip())
+    if not campos:
+        conn.close()
+        return False
+    valores.append(despesa_id)
+    query = f"UPDATE despesas SET {', '.join(campos)} WHERE id = ?"
+    cursor.execute(query, valores)
+    rows = cursor.rowcount
+    conn.commit()
+    conn.close()
+    return rows > 0
+
 def listar_despesas(mes_ano: Optional[str] = None) -> List[Dict[str, Any]]:
     conn = get_connection()
     cursor = conn.cursor()
     if mes_ano:
-        cursor.execute("SELECT * FROM despesas WHERE data LIKE ? ORDER BY data DESC, id DESC", (f"{mes_ano}%",))
+        cursor.execute("SELECT * FROM despesas WHERE (data LIKE ? OR data_vencimento LIKE ?) ORDER BY data_vencimento DESC, data DESC, id DESC", (f"{mes_ano}%", f"{mes_ano}%"))
     else:
-        cursor.execute("SELECT * FROM despesas ORDER BY data DESC, id DESC")
+        cursor.execute("SELECT * FROM despesas ORDER BY data_vencimento DESC, data DESC, id DESC")
     rows = cursor.fetchall()
     conn.close()
-    return [dict(r) for r in rows]
+
+    hoje = datetime.date.today()
+    resultado = []
+    for r in rows:
+        d = dict(r)
+        venc_str = d.get("data_vencimento") or d.get("data")
+        st = d.get("status") or "pago"
+        d["status"] = st
+        try:
+            dt_venc = datetime.datetime.strptime(venc_str, "%Y-%m-%d").date()
+            diff = (dt_venc - hoje).days
+            d["dias_para_vencer"] = diff
+            if st == "pago":
+                d["situacao_vencimento"] = "pago"
+            elif diff < 0:
+                d["situacao_vencimento"] = "vencida"
+            elif diff == 0:
+                d["situacao_vencimento"] = "vence_hoje"
+            else:
+                d["situacao_vencimento"] = "a_vencer"
+        except Exception:
+            d["dias_para_vencer"] = 0
+            d["situacao_vencimento"] = st
+        resultado.append(d)
+    return resultado
 
 def excluir_despesa(despesa_id: int) -> bool:
     conn = get_connection()
@@ -927,6 +998,82 @@ def excluir_despesa(despesa_id: int) -> bool:
     conn.commit()
     conn.close()
     return rows > 0
+
+def obter_alertas_despesas() -> Dict[str, Any]:
+    conn = get_connection()
+    cursor = conn.cursor()
+    hoje = datetime.date.today()
+
+    cursor.execute("SELECT * FROM despesas WHERE status = 'pendente' ORDER BY data_vencimento ASC")
+    rows = cursor.fetchall()
+    conn.close()
+
+    pendentes = []
+    vencidas = []
+    vence_hoje = []
+    a_vencer_breve = []
+
+    for r in rows:
+        d = dict(r)
+        venc_str = d.get("data_vencimento") or d.get("data")
+        try:
+            dt_venc = datetime.datetime.strptime(venc_str, "%Y-%m-%d").date()
+            diff = (dt_venc - hoje).days
+            d["dias_para_vencer"] = diff
+            if diff < 0:
+                d["situacao"] = "vencida"
+                vencidas.append(d)
+            elif diff == 0:
+                d["situacao"] = "vence_hoje"
+                vence_hoje.append(d)
+            elif diff <= 5:
+                d["situacao"] = "a_vencer"
+                a_vencer_breve.append(d)
+            else:
+                d["situacao"] = "no_prazo"
+        except Exception:
+            d["dias_para_vencer"] = 0
+            d["situacao"] = "pendente"
+        pendentes.append(d)
+
+    valor_vencidas = sum(d.get("valor", 0.0) for d in vencidas)
+    valor_hoje = sum(d.get("valor", 0.0) for d in vence_hoje)
+    valor_a_vencer = sum(d.get("valor", 0.0) for d in a_vencer_breve)
+
+    return {
+        "total_pendentes": len(pendentes),
+        "total_vencidas": len(vencidas),
+        "total_atrasadas": len(vencidas),
+        "total_vence_hoje": len(vence_hoje),
+        "total_vencendo_hoje": len(vence_hoje),
+        "total_a_vencer": len(a_vencer_breve),
+        "total_proximas": len(a_vencer_breve),
+        "valor_total_pendente": sum(d.get("valor", 0.0) for d in pendentes),
+        "valor_total_atrasadas": valor_vencidas,
+        "valor_total_hoje": valor_hoje,
+        "valor_total_proximas": valor_a_vencer,
+        "vencidas": vencidas,
+        "vence_hoje": vence_hoje,
+        "a_vencer_breve": a_vencer_breve,
+        "todas_pendentes": pendentes
+    }
+
+def listar_turmas_com_alunos(ativas_somente: bool = True) -> List[Dict[str, Any]]:
+    turmas = listar_turmas(ativas_somente=ativas_somente)
+    for t in turmas:
+        alunos_brutos = listar_alunos_turma(t["id"])
+        t["alunos"] = [
+            {
+                "id": a["id"],
+                "nome": a["nome"],
+                "telefone": a.get("telefone", ""),
+                "plano": a.get("plano", ""),
+                "status": a.get("status", "ativo"),
+                "data_entrada_turma": a.get("data_entrada_turma", "")
+            }
+            for a in alunos_brutos
+        ]
+    return turmas
 
 # --- Aniversariantes do Mês ---
 

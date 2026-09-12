@@ -71,7 +71,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 async function atualizarTudo() {
   await carregarTurmas();
   await carregarAlunos();
-  await carregarRelatorios();
+  await carregarFinanceiro();
+  await carregarEstudio();
 }
 
 async function carregarTurmas() {
@@ -299,12 +300,14 @@ function setupNavigation() {
       screens.forEach(s => s.classList.remove('active'));
 
       tab.classList.add('active');
+      state.lastActiveTab = tab.dataset.tab;
       const targetId = `screen-${tab.dataset.tab}`;
       const targetScreen = document.getElementById(targetId);
       if (targetScreen) targetScreen.classList.add('active');
 
       if (tab.dataset.tab === 'alunos') carregarAlunos();
-      if (tab.dataset.tab === 'relatorios') carregarRelatorios();
+      if (tab.dataset.tab === 'financeiro') carregarFinanceiro();
+      if (tab.dataset.tab === 'estudio') carregarEstudio();
     });
   });
 
@@ -318,13 +321,42 @@ function setupNavigation() {
     });
   }
 
-  // Botão de menu no header -> leva para ajustes
+  // Botão de menu / engrenagem no header -> abre tela exclusiva de ajustes
   const btnHeaderMenu = document.getElementById('btn-header-menu');
   if (btnHeaderMenu) {
     btnHeaderMenu.addEventListener('click', () => {
-      const tabAjustes = document.querySelector('.wa-tab-btn[data-tab="ajustes"]');
-      if (tabAjustes) tabAjustes.click();
+      abrirTelaAjustes();
     });
+  }
+
+  // Botão Voltar da tela de Ajustes -> retorna à aba anterior
+  const btnVoltarAjustes = document.getElementById('btn-voltar-ajustes');
+  if (btnVoltarAjustes) {
+    btnVoltarAjustes.addEventListener('click', () => {
+      voltarDaTelaAjustes();
+    });
+  }
+}
+
+function abrirTelaAjustes() {
+  const currentActiveTab = document.querySelector('.wa-tab-btn.active');
+  if (currentActiveTab) {
+    state.lastActiveTab = currentActiveTab.dataset.tab;
+  }
+  document.querySelectorAll('.wa-tab-btn').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.wa-screen').forEach(s => s.classList.remove('active'));
+  const screenAjustes = document.getElementById('screen-ajustes');
+  if (screenAjustes) screenAjustes.classList.add('active');
+}
+
+function voltarDaTelaAjustes() {
+  const targetTabName = state.lastActiveTab || 'chat';
+  const targetTab = document.querySelector(`.wa-tab-btn[data-tab="${targetTabName}"]`);
+  if (targetTab) {
+    targetTab.click();
+  } else {
+    const firstTab = document.querySelector('.wa-tab-btn');
+    if (firstTab) firstTab.click();
   }
 }
 
@@ -1091,7 +1123,7 @@ async function abrirDetalhesAluno(alunoId) {
           });
           showToast(`Presença de ${al.nome} registrada! 🧘‍♀️`);
           await carregarPresencasAluno(al.id);
-          await carregarRelatorios();
+          await carregarEstudio();
         } catch (e) {
           showToast('Erro ao registrar presença');
         }
@@ -1272,14 +1304,17 @@ function setupModals() {
     }
   });
 
-  // Modal de Despesas
+  // Modal de Despesas (Cadastro)
   const btnAbrirDespesa = document.getElementById('btn-abrir-modal-despesa');
   if (btnAbrirDespesa) {
     btnAbrirDespesa.addEventListener('click', () => {
-      document.getElementById('form-add-despesa').reset();
+      const form = document.getElementById('form-add-despesa');
+      if (form) form.reset();
       const today = new Date().toISOString().split('T')[0];
       const dataInput = document.getElementById('desp-data');
       if (dataInput) dataInput.value = today;
+      const vencInput = document.getElementById('desp-vencimento');
+      if (vencInput) vencInput.value = today;
       abrirModal('modal-add-despesa');
     });
   }
@@ -1292,7 +1327,9 @@ function setupModals() {
         descricao: document.getElementById('desp-desc').value.trim(),
         valor: parseFloat(document.getElementById('desp-valor').value),
         categoria: document.getElementById('desp-cat').value,
-        data_despesa: document.getElementById('desp-data').value || undefined
+        data_despesa: document.getElementById('desp-data').value || undefined,
+        data_vencimento: document.getElementById('desp-vencimento')?.value || undefined,
+        status: document.getElementById('desp-status')?.value || 'pago'
       };
 
       try {
@@ -1303,12 +1340,71 @@ function setupModals() {
         });
         fecharModal('modal-add-despesa');
         showToast('Despesa registrada com sucesso!');
-        await atualizarTudo();
+        await carregarFinanceiro();
 
-        adicionarMensagem(`💸 *Despesa registrada:* ${dados.descricao} no valor de *R$ ${dados.valor.toFixed(2)}* (${dados.categoria}).`, 'bot');
+        adicionarMensagem(`💸 *Despesa registrada:* ${dados.descricao} no valor de *R$ ${dados.valor.toFixed(2)}* (${dados.categoria}) - Vencimento: ${dados.data_vencimento ? formatarDataBR(dados.data_vencimento) : 'Hoje'}.`, 'bot');
       } catch (err) {
         alert('Erro ao registrar despesa.');
       }
+    });
+  }
+
+  // Modal de Edição de Despesa
+  const formEditDespesa = document.getElementById('form-edit-despesa');
+  if (formEditDespesa) {
+    formEditDespesa.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = document.getElementById('edit-desp-id').value;
+      const dados = {
+        descricao: document.getElementById('edit-desp-desc').value.trim(),
+        valor: parseFloat(document.getElementById('edit-desp-valor').value),
+        categoria: document.getElementById('edit-desp-cat').value,
+        data_despesa: document.getElementById('edit-desp-data').value || undefined,
+        data_vencimento: document.getElementById('edit-desp-vencimento').value || undefined,
+        status: document.getElementById('edit-desp-status').value || 'pago'
+      };
+
+      try {
+        const res = await fetch(`/api/despesas/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(dados)
+        });
+        if (res.ok) {
+          fecharModal('modal-edit-despesa');
+          showToast('Despesa atualizada com sucesso!');
+          await carregarFinanceiro();
+        } else {
+          alert('Erro ao atualizar despesa.');
+        }
+      } catch (err) {
+        alert('Erro ao atualizar despesa.');
+      }
+    });
+  }
+
+  // Botão de Download do Relatório Oficial em PDF (Fase 3)
+  const btnPdf = document.getElementById('btn-baixar-relatorio-pdf');
+  if (btnPdf) {
+    btnPdf.addEventListener('click', () => {
+      const filtroMes = document.getElementById('filtro-financeiro-mes')?.value;
+      let url = '/api/relatorio/pdf';
+      if (filtroMes) {
+        url += `?mes_ano=${filtroMes}`;
+      }
+      showToast('Gerando relatório financeiro oficial...');
+      window.open(url, '_blank');
+    });
+  }
+
+  // Filtro de Mês no Painel Financeiro
+  const filtroMesEl = document.getElementById('filtro-financeiro-mes');
+  if (filtroMesEl) {
+    const now = new Date();
+    const mesAtualStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    filtroMesEl.value = mesAtualStr;
+    filtroMesEl.addEventListener('change', () => {
+      carregarFinanceiro();
     });
   }
 
@@ -1361,53 +1457,337 @@ function fecharModal(id) {
 }
 
 // =============================================================================
-// RELATÓRIOS & MÉTRICAS DO STUDIO
+// PAINEL FINANCEIRO (EXCLUSIVAMENTE FINANCEIRO)
 // =============================================================================
-async function carregarRelatorios() {
+async function carregarFinanceiro() {
   try {
-    const [resQuant, resRel, resAniv, resAusentes] = await Promise.all([
-      fetch('/api/quantitativo'),
-      fetch('/api/relatorio'),
-      fetch('/api/aniversariantes'),
-      fetch('/api/frequencias/ausentes?dias=10')
+    const inputMes = document.getElementById('filtro-financeiro-mes');
+    let mesAno = inputMes ? inputMes.value : '';
+    if (!mesAno) {
+      const now = new Date();
+      mesAno = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+      if (inputMes) inputMes.value = mesAno;
+    }
+
+    const [ano, mes] = mesAno.split('-');
+    const mesesNomes = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+    const nomeMes = mesesNomes[parseInt(mes, 10) - 1] || mes;
+    const labelMes = document.getElementById('rep-mes-atual');
+    if (labelMes) labelMes.textContent = `${nomeMes} / ${ano}`;
+
+    const [resRel, resDesp, resAlertas] = await Promise.all([
+      fetch(`/api/relatorio?mes_ano=${mesAno}`),
+      fetch(`/api/despesas?mes_ano=${mesAno}`),
+      fetch('/api/despesas/alertas')
     ]);
 
-    const quant = await resQuant.json();
     const rel = await resRel.json();
-    const aniversariantes = await resAniv.json();
-    const ausentes = await resAusentes.json();
+    const despesas = await resDesp.json();
+    const alertas = await resAlertas.json();
 
-    const elAtivos = document.getElementById('stat-alunos-ativos');
-    if (elAtivos) elAtivos.textContent = quant.alunos_ativos;
-    const elInad = document.getElementById('stat-alunos-inadimplentes');
-    if (elInad) elInad.textContent = quant.inadimplentes_mes;
-    const elNovos = document.getElementById('stat-novos-matriculados');
-    if (elNovos) elNovos.textContent = quant.novos_matriculados_mes;
-    const elInativos = document.getElementById('stat-alunos-inativos');
-    if (elInativos) elInativos.textContent = quant.alunos_inativos;
-
+    // 1. Estatísticas do Balanço
     const elPrevisto = document.getElementById('stat-faturamento-previsto');
     if (elPrevisto) elPrevisto.textContent = `R$ ${rel.faturamento_previsto.toFixed(2)}`;
     const elRealizado = document.getElementById('stat-faturamento-realizado');
     if (elRealizado) elRealizado.textContent = `R$ ${rel.faturamento_realizado.toFixed(2)}`;
-    const elPendente = document.getElementById('stat-total-pendente');
-    if (elPendente) elPendente.textContent = `R$ ${rel.total_pendente_ou_atrasado.toFixed(2)}`;
-    const elQtdPag = document.getElementById('stat-qtd-pagamentos');
-    if (elQtdPag) elQtdPag.textContent = rel.qtd_pagamentos_recebidos;
-
-    // Despesas & Lucro Líquido Real
     const elDespesas = document.getElementById('stat-total-despesas');
-    if (elDespesas) {
-      elDespesas.textContent = `R$ ${(rel.total_despesas || 0).toFixed(2)}`;
-    }
+    if (elDespesas) elDespesas.textContent = `R$ ${(rel.total_despesas || 0).toFixed(2)}`;
     const elLucro = document.getElementById('stat-lucro-real');
     if (elLucro) {
-      const lucroVal = rel.lucro_liquido_real !== undefined ? rel.lucro_liquido_real : (rel.faturamento_realizado || 0);
+      const lucroVal = rel.lucro_liquido_real !== undefined ? rel.lucro_liquido_real : ((rel.faturamento_realizado || 0) - (rel.total_despesas || 0));
       elLucro.textContent = `R$ ${lucroVal.toFixed(2)}`;
       elLucro.style.color = lucroVal >= 0 ? 'var(--shanti-primary)' : 'var(--wa-danger)';
     }
 
-    // Aniversariantes do Mês
+    // 2. Banner de Alertas de Vencimento
+    const bannerAlerta = document.getElementById('alerta-despesas-vencimento');
+    if (bannerAlerta) {
+      if (alertas.total_atrasadas > 0) {
+        bannerAlerta.style.display = 'block';
+        bannerAlerta.style.background = '#fee2e2';
+        bannerAlerta.style.border = '1px solid #fca5a5';
+        bannerAlerta.style.color = '#991b1b';
+        bannerAlerta.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> <b>${alertas.total_atrasadas} despesa(s) vencida(s) em aberto!</b> Total pendente: <b>R$ ${alertas.valor_total_atrasadas.toFixed(2)}</b>. Verifique abaixo para regularizar.`;
+      } else if (alertas.total_vencendo_hoje > 0) {
+        bannerAlerta.style.display = 'block';
+        bannerAlerta.style.background = '#fef3c7';
+        bannerAlerta.style.border = '1px solid #fde68a';
+        bannerAlerta.style.color = '#92400e';
+        bannerAlerta.innerHTML = `<i class="fa-solid fa-clock"></i> <b>${alertas.total_vencendo_hoje} conta(s) vencendo HOJE!</b> Total: <b>R$ ${alertas.valor_total_hoje.toFixed(2)}</b>.`;
+      } else if (alertas.total_proximas > 0) {
+        bannerAlerta.style.display = 'block';
+        bannerAlerta.style.background = '#e0f2fe';
+        bannerAlerta.style.border = '1px solid #bae6fd';
+        bannerAlerta.style.color = '#075985';
+        bannerAlerta.innerHTML = `<i class="fa-solid fa-circle-info"></i> <b>${alertas.total_proximas} despesa(s) vencem nos próximos 5 dias.</b> Total: R$ ${alertas.valor_total_proximas.toFixed(2)}.`;
+      } else {
+        bannerAlerta.style.display = 'none';
+      }
+    }
+
+    // 3. Renderizar Lista Detalhada de Despesas
+    const containerDespesas = document.getElementById('lista-despesas-detalhada');
+    if (containerDespesas) {
+      if (!despesas || despesas.length === 0) {
+        containerDespesas.innerHTML = `
+          <div style="font-size: 12px; color: var(--wa-text-secondary); text-align: center; padding: 14px; background: var(--shanti-sand); border-radius: 8px;">
+            Nenhuma despesa registrada para ${nomeMes}/${ano}.<br>Clique em <b>+ Nova Despesa</b> para cadastrar.
+          </div>
+        `;
+      } else {
+        const hojeIso = new Date().toISOString().split('T')[0];
+        containerDespesas.innerHTML = despesas.map(d => {
+          const isPago = d.status === 'pago';
+          const dtVenc = d.data_vencimento || d.data_despesa || '';
+          const isAtrasado = !isPago && dtVenc && dtVenc < hojeIso;
+          const isHoje = !isPago && dtVenc && dtVenc === hojeIso;
+
+          let statusBadge = '';
+          if (isPago) {
+            statusBadge = `<span style="background:#e8f5e9; color:#2e7d32; font-weight:700; font-size:10.5px; padding:2px 7px; border-radius:6px; border:0.5px solid #a5d6a7;"><i class="fa-solid fa-check"></i> Paga</span>`;
+          } else if (isAtrasado) {
+            statusBadge = `<span style="background:#fee2e2; color:#b91c1c; font-weight:700; font-size:10.5px; padding:2px 7px; border-radius:6px; border:0.5px solid #fca5a5;"><i class="fa-solid fa-exclamation"></i> Vencida</span>`;
+          } else if (isHoje) {
+            statusBadge = `<span style="background:#fef3c7; color:#b45309; font-weight:700; font-size:10.5px; padding:2px 7px; border-radius:6px; border:0.5px solid #fde68a;"><i class="fa-solid fa-clock"></i> Vence Hoje</span>`;
+          } else {
+            statusBadge = `<span style="background:#f1f5f9; color:#475569; font-weight:600; font-size:10.5px; padding:2px 7px; border-radius:6px; border:0.5px solid #cbd5e1;">A Pagar</span>`;
+          }
+
+          return `
+            <div style="background:var(--shanti-sand); border:0.5px solid var(--wa-border); border-radius:8px; padding:10px 12px; display:flex; justify-content:space-between; align-items:center; gap:10px;">
+              <div style="flex:1; min-width:0;">
+                <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin-bottom:3px;">
+                  <span style="font-weight:700; font-size:13px; color:var(--wa-text-primary);">${d.descricao}</span>
+                  <span style="font-size:10.5px; background:rgba(43,76,60,0.08); color:var(--shanti-primary); padding:1px 6px; border-radius:4px; font-weight:600;">${d.categoria}</span>
+                  ${statusBadge}
+                </div>
+                <div style="font-size:11.5px; color:var(--wa-text-secondary);">
+                  <span>Vencimento: <b>${formatarDataBR(dtVenc)}</b></span>
+                  ${d.data_despesa && d.data_despesa !== dtVenc ? ` • <span style="font-size:11px;">Emissão: ${formatarDataBR(d.data_despesa)}</span>` : ''}
+                </div>
+              </div>
+
+              <div style="text-align:right; display:flex; flex-direction:column; align-items:flex-end; gap:6px;">
+                <span style="font-weight:800; font-size:13.5px; color:#b91c1c;">- R$ ${d.valor.toFixed(2)}</span>
+                <div style="display:flex; gap:6px;">
+                  <button class="btn-editar-despesa" data-id="${d.id}" title="Editar Despesa" style="background:#fff; border:0.5px solid var(--wa-border); border-radius:6px; padding:4px 8px; font-size:11px; color:var(--shanti-primary); cursor:pointer;">
+                    <i class="fa-solid fa-pen"></i>
+                  </button>
+                  <button class="btn-excluir-despesa" data-id="${d.id}" data-desc="${d.descricao}" title="Excluir Despesa" style="background:#fff; border:0.5px solid #fca5a5; border-radius:6px; padding:4px 8px; font-size:11px; color:#b91c1c; cursor:pointer;">
+                    <i class="fa-solid fa-trash"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        containerDespesas.querySelectorAll('.btn-editar-despesa').forEach(btn => {
+          btn.addEventListener('click', () => {
+            abrirModalEditarDespesa(parseInt(btn.dataset.id));
+          });
+        });
+
+        containerDespesas.querySelectorAll('.btn-excluir-despesa').forEach(btn => {
+          btn.addEventListener('click', () => {
+            excluirDespesa(parseInt(btn.dataset.id), btn.dataset.desc);
+          });
+        });
+      }
+    }
+
+    const btnCobrar = document.getElementById('btn-gerar-cobrancas-relatorio');
+    if (btnCobrar) {
+      btnCobrar.onclick = () => {
+        const tabAlunos = document.querySelector('.wa-tab-btn[data-tab="alunos"]');
+        if (tabAlunos) tabAlunos.click();
+        const chipAtrasados = document.querySelector('.wa-filter-chip[data-filter="atrasados"]');
+        if (chipAtrasados) chipAtrasados.click();
+      };
+    }
+
+  } catch (err) {
+    console.error('Erro ao carregar dados financeiros:', err);
+  }
+}
+
+async function abrirModalEditarDespesa(id) {
+  try {
+    const res = await fetch(`/api/despesas/${id}`);
+    if (!res.ok) {
+      alert('Despesa não encontrada.');
+      return;
+    }
+    const desp = await res.json();
+    document.getElementById('edit-desp-id').value = desp.id;
+    document.getElementById('edit-desp-desc').value = desp.descricao || '';
+    document.getElementById('edit-desp-valor').value = desp.valor !== undefined ? desp.valor : '';
+    document.getElementById('edit-desp-cat').value = desp.categoria || 'Geral';
+    document.getElementById('edit-desp-data').value = desp.data_despesa || '';
+    document.getElementById('edit-desp-vencimento').value = desp.data_vencimento || desp.data_despesa || '';
+    document.getElementById('edit-desp-status').value = desp.status || 'pago';
+    abrirModal('modal-edit-despesa');
+  } catch (err) {
+    console.error('Erro ao abrir edição de despesa:', err);
+  }
+}
+
+async function excluirDespesa(id, descricao) {
+  if (!confirm(`Tem certeza de que deseja apagar a despesa "${descricao}"?\n\nEsta ação removerá o registro do balanço financeiro.`)) {
+    return;
+  }
+  try {
+    const res = await fetch(`/api/despesas/${id}`, { method: 'DELETE' });
+    if (res.ok) {
+      showToast('Despesa apagada com sucesso!');
+      await carregarFinanceiro();
+    } else {
+      alert('Erro ao excluir despesa.');
+    }
+  } catch (err) {
+    console.error('Erro ao excluir despesa:', err);
+    alert('Erro ao comunicar com o servidor.');
+  }
+}
+
+// =============================================================================
+// TELA DO ESTÚDIO (TURMAS, ALUNOS MATRICULADOS, ANIVERSÁRIOS & MÉTRICAS)
+// =============================================================================
+async function carregarEstudio() {
+  try {
+    const [resTurmas, resAniv, resAusentes, resQuant] = await Promise.all([
+      fetch('/api/turmas/completo'),
+      fetch('/api/aniversariantes'),
+      fetch('/api/frequencias/ausentes?dias=10'),
+      fetch('/api/quantitativo')
+    ]);
+
+    const turmas = await resTurmas.json();
+    const aniversariantes = await resAniv.json();
+    const ausentes = await resAusentes.json();
+    const quant = await resQuant.json();
+
+    // 1. Relação de Turmas e Alunos Matriculados
+    const containerTurmas = document.getElementById('lista-turmas-alunos-estudio');
+    const badgeTurmas = document.getElementById('badge-estudio-turmas');
+    if (badgeTurmas) {
+      const lotadas = turmas.filter(t => (t.total_matriculados || 0) >= (t.capacidade_vagas || 16));
+      if (lotadas.length > 0) {
+        badgeTurmas.style.background = '#fee2e2';
+        badgeTurmas.style.color = '#b91c1c';
+        badgeTurmas.textContent = `⚠️ ${lotadas.length} Turma(s) Lotada(s)`;
+      } else {
+        badgeTurmas.style.background = '#e8f0eb';
+        badgeTurmas.style.color = 'var(--shanti-primary)';
+        badgeTurmas.textContent = `${turmas.length} Turmas Ativas`;
+      }
+    }
+
+    if (containerTurmas) {
+      if (!turmas || turmas.length === 0) {
+        containerTurmas.innerHTML = '<div style="font-size:12px; color:var(--wa-text-secondary); text-align:center; padding:12px;">Nenhuma turma cadastrada.</div>';
+      } else {
+        containerTurmas.innerHTML = turmas.map(t => {
+          const cap = t.capacidade_vagas || 16;
+          const total = t.total_matriculados || 0;
+          const isLotada = total >= cap;
+          const isQuaseLotada = total === cap - 1;
+          const percent = Math.min(100, Math.round((total / cap) * 100));
+
+          let barColor = 'var(--shanti-primary)';
+          let statusBadge = `<span style="font-size:11px; font-weight:700; color:var(--wa-success);">${t.vagas_disponiveis} vagas livres</span>`;
+
+          if (isLotada) {
+            barColor = '#dc2626';
+            statusBadge = `<span style="background:#fee2e2; color:#b91c1c; font-weight:700; font-size:10.5px; padding:2px 7px; border-radius:6px; border:0.5px solid #fca5a5;">⚠️ LOTADA (16/16)</span>`;
+          } else if (isQuaseLotada) {
+            barColor = '#f59e0b';
+            statusBadge = `<span style="background:#fef3c7; color:#b45309; font-weight:700; font-size:10.5px; padding:2px 7px; border-radius:6px; border:0.5px solid #fde68a;">⚡ Resta 1 vaga</span>`;
+          }
+
+          let alunosHtml = '';
+          if (!t.alunos || t.alunos.length === 0) {
+            alunosHtml = `
+              <div style="font-size:12px; color:var(--wa-text-secondary); font-style:italic; padding:6px 0;">
+                Nenhum aluno matriculado nesta turma ainda.
+              </div>
+            `;
+          } else {
+            alunosHtml = t.alunos.map(al => {
+              let tel = (al.telefone || '').replace(/\D/g, '');
+              if (!tel.startsWith('55') && tel) tel = '55' + tel;
+              const waLink = tel ? `https://wa.me/${tel}` : '#';
+
+              let badgePlano = '';
+              if (al.plano && al.plano.includes('1x')) {
+                badgePlano = `<span style="font-size:10.5px; background:#e0f2fe; color:#0369a1; padding:2px 6px; border-radius:4px; font-weight:600; border:0.5px solid #bae6fd;">1x semana</span>`;
+              } else {
+                badgePlano = `<span style="font-size:10.5px; background:#e8f0eb; color:var(--shanti-primary); padding:2px 6px; border-radius:4px; font-weight:600; border:0.5px solid #cbd5e1;">2x semana</span>`;
+              }
+
+              let statusAluno = '';
+              if (al.status === 'inativo') {
+                statusAluno = `<span style="font-size:10px; background:#f1f5f9; color:#64748b; padding:1px 5px; border-radius:4px;">Inativo</span>`;
+              } else if (al.inadimplente) {
+                statusAluno = `<span style="font-size:10px; background:#fee2e2; color:#b91c1c; padding:1px 5px; border-radius:4px; font-weight:700;">Mensalidade Pendente</span>`;
+              }
+
+              return `
+                <div style="display:flex; justify-content:space-between; align-items:center; padding:5px 0; border-bottom:0.5px dashed rgba(0,0,0,0.06); font-size:12.5px;">
+                  <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                    <i class="fa-regular fa-user" style="color:var(--shanti-primary); font-size:11px;"></i>
+                    <span style="font-weight:600; color:var(--wa-text-primary); cursor:pointer;" class="link-aluno-detalhes" data-aluno-id="${al.id}">${al.nome}</span>
+                    ${badgePlano}
+                    ${statusAluno}
+                  </div>
+                  ${tel ? `
+                    <a href="${waLink}" target="_blank" title="Conversar no WhatsApp" style="color:#25d366; font-size:14px; padding:2px 6px;">
+                      <i class="fa-brands fa-whatsapp"></i>
+                    </a>
+                  ` : ''}
+                </div>
+              `;
+            }).join('');
+          }
+
+          return `
+            <div style="background:var(--shanti-sand); padding:12px 14px; border-radius:10px; border:0.5px solid var(--wa-border);">
+              <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px;">
+                <div>
+                  <div style="font-weight:700; font-size:14px; color:var(--wa-text-primary);">${t.nome}</div>
+                  <div style="font-size:12px; color:var(--wa-text-secondary);"><i class="fa-regular fa-clock"></i> ${t.dias_semana} às ${t.horario}</div>
+                </div>
+                <div>${statusBadge}</div>
+              </div>
+
+              <div style="background:#e2e8f0; border-radius:999px; height:8px; width:100%; overflow:hidden; margin:8px 0 6px 0;">
+                <div style="background:${barColor}; width:${percent}%; height:100%; border-radius:999px; transition:width 0.4s ease;"></div>
+              </div>
+              <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--wa-text-secondary); margin-bottom:10px;">
+                <span><b>${total}</b> de <b>${cap}</b> alunos matriculados</span>
+                <span style="font-weight:600;">${percent}% ocupada</span>
+              </div>
+
+              <div style="margin-top:8px; padding-top:6px; border-top:1px solid rgba(0,0,0,0.06);">
+                <div style="font-size:11.5px; font-weight:700; color:var(--shanti-primary); margin-bottom:4px; display:flex; align-items:center; gap:5px;">
+                  <i class="fa-solid fa-users"></i> Alunos Matriculados (${total}):
+                </div>
+                <div>${alunosHtml}</div>
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        containerTurmas.querySelectorAll('.link-aluno-detalhes').forEach(link => {
+          link.addEventListener('click', () => {
+            const alunoId = parseInt(link.dataset.alunoId);
+            abrirDetalhesAluno(alunoId);
+          });
+        });
+      }
+    }
+
+    // 2. Aniversariantes do Mês
     const listAniv = document.getElementById('list-aniversariantes');
     const badgeAniv = document.getElementById('badge-aniversariantes');
     if (badgeAniv) badgeAniv.textContent = (aniversariantes && aniversariantes.length) || 0;
@@ -1437,7 +1817,7 @@ async function carregarRelatorios() {
       }
     }
 
-    // Alunos Ausentes (>10 dias sem aula)
+    // 3. Alunos Ausentes (>10 dias sem aula)
     const listAus = document.getElementById('list-ausentes');
     const badgeAus = document.getElementById('badge-ausentes');
     if (badgeAus) badgeAus.textContent = (ausentes && ausentes.length) || 0;
@@ -1466,15 +1846,18 @@ async function carregarRelatorios() {
       }
     }
 
-    document.getElementById('btn-gerar-cobrancas-relatorio').onclick = () => {
-      const tabAlunos = document.querySelector('.wa-tab-btn[data-tab="alunos"]');
-      if (tabAlunos) tabAlunos.click();
-      const chipAtrasados = document.querySelector('.wa-filter-chip[data-filter="atrasados"]');
-      if (chipAtrasados) chipAtrasados.click();
-    };
+    // 4. Quantitativo Geral de Alunos
+    const elAtivos = document.getElementById('stat-alunos-ativos');
+    if (elAtivos) elAtivos.textContent = quant.alunos_ativos;
+    const elInad = document.getElementById('stat-alunos-inadimplentes');
+    if (elInad) elInad.textContent = quant.inadimplentes_mes;
+    const elNovos = document.getElementById('stat-novos-matriculados');
+    if (elNovos) elNovos.textContent = quant.novos_matriculados_mes;
+    const elInativos = document.getElementById('stat-alunos-inativos');
+    if (elInativos) elInativos.textContent = quant.alunos_inativos;
 
   } catch (err) {
-    console.error('Erro ao carregar relatórios:', err);
+    console.error('Erro ao carregar dados do estúdio:', err);
   }
 }
 

@@ -95,6 +95,44 @@ def processar_comando_local(texto: str) -> Dict[str, Any]:
             "dados": relatorio
         }
 
+    # Consulta Detalhada de Despesas & Contas a Pagar (Fase 3)
+    if any(p in texto_lower for p in ["despesa", "despesas", "gastei", "quanto gastou", "contas a pagar", "contas a vencer", "vencimento de conta", "detalhe das contas", "contas pendentes"]):
+        hoje = datetime.date.today()
+        mes_atual = hoje.strftime("%Y-%m")
+        despesas = db.listar_despesas(mes_atual)
+        alertas = db.obter_alertas_despesas()
+
+        if not despesas:
+            return {
+                "resposta": "💸 Nenhuma despesa registrada para o mês atual.",
+                "tipo": "despesas",
+                "dados": []
+            }
+
+        total_desp = sum(d.get("valor", 0.0) for d in despesas)
+        resposta = f"💸 *Despesas Detalhadas do Mês ({mes_atual})*\n"
+        resposta += f"• Total de Lançamentos: {len(despesas)}\n"
+        resposta += f"• Valor Total das Despesas: R$ {total_desp:.2f}\n\n"
+
+        if alertas["total_vencidas"] > 0:
+            resposta += f"⚠️ *ATENÇÃO:* Há {alertas['total_vencidas']} conta(s) VENCIDA(S) pendente(s) de pagamento!\n"
+        if alertas["total_vence_hoje"] > 0:
+            resposta += f"⚡ *ALERTA:* Há {alertas['total_vence_hoje']} conta(s) VENCENDO HOJE!\n"
+
+        resposta += "\n*Relação de Despesas:*\n"
+        for idx, d in enumerate(despesas, 1):
+            st = "Paga" if d.get("status") == "pago" else "⚠️ PENDENTE"
+            dt_venc = d.get("data_vencimento") or d.get("data")
+            p = dt_venc.split("-")
+            dt_fmt = f"{p[2]}/{p[1]}/{p[0]}" if len(p) == 3 else dt_venc
+            resposta += f"{idx}. *{d['descricao']}* — R$ {d['valor']:.2f}\n   • Categoria: {d.get('categoria', 'Geral')} | Vencimento: {dt_fmt} | Status: {st}\n"
+
+        return {
+            "resposta": resposta.strip(),
+            "tipo": "despesas",
+            "dados": despesas
+        }
+
     # 4. Quantitativo de Alunos / Métricas
     if any(p in texto_lower for p in ["quantitativo", "quantos alunos", "total de alunos", "número de alunos", "alunos ativos", "evasão", "saídas"]):
         quant = db.obter_quantitativo()
@@ -334,6 +372,8 @@ async def processar_mensagem_ia(texto: str) -> Dict[str, Any]:
         aniversariantes = db.obter_aniversariantes_mes()
         turmas = db.listar_turmas(ativas_somente=True)
         configs = db.obter_configuracoes()
+        despesas_mes = db.listar_despesas(datetime.date.today().strftime("%Y-%m"))
+        alertas_despesas = db.obter_alertas_despesas()
 
         system_instruction = f"""
         Você é a Assistente Virtual e Gerente de IA do '{configs.get('nome_studio', 'Studio Shanti')}'.
@@ -351,6 +391,8 @@ async def processar_mensagem_ia(texto: str) -> Dict[str, Any]:
         - Faturamento Recebido: R$ {relatorio['faturamento_realizado']:.2f}
         - Total Pendente: R$ {relatorio['total_pendente_ou_atrasado']:.2f}
         - Total de Despesas do Mês: R$ {relatorio.get('total_despesas', 0):.2f}
+        - Despesas Lançadas ({len(despesas_mes)}): {[d['descricao'] + ' (R$ ' + str(d['valor']) + ', Venc: ' + str(d.get('data_vencimento', d.get('data'))) + ', ' + str(d.get('status', 'pago')) + ')' for d in despesas_mes]}
+        - Alertas de Vencimento de Despesas: {alertas_despesas['total_vencidas']} conta(s) vencida(s), {alertas_despesas['total_vence_hoje']} vencendo hoje
         - Lucro Líquido Real do Mês: R$ {relatorio.get('lucro_liquido_real', 0):.2f}
         - Alunos Ausentes / Sem Praticar há mais de 10 dias ({len(ausentes)}): {[a['nome'] + ' (' + str(a['dias_ausente']) + ' dias sem vir)' for a in ausentes]}
         - Aniversariantes do Mês ({len(aniversariantes)}): {[a['nome'] + ' (dia ' + str(a['dia']) + ')' for a in aniversariantes]}
@@ -363,6 +405,7 @@ async def processar_mensagem_ia(texto: str) -> Dict[str, Any]:
         4. Mantenha respostas concisas para facilitar a leitura no celular e para poder ser ouvida em voz alta com naturalidade.
         5. Se o usuário fizer perguntas gerais, históricas, curiosidades ou bater papo (ex: 'Quem foi Dom Pedro?', 'Qual a capital do Brasil?'), responda com clareza, riqueza de detalhes e sabedoria, mantendo sempre o tom acolhedor e atencioso.
         6. Capacidade Máxima das Turmas: O estúdio adota rigorosamente o teto de 16 alunos por turma. Sempre que perguntado sobre turmas, informe a ocupação (X/16) e alerte com destaque caso alguma turma atinja 16 alunos (turma lotada) ou 15 alunos (última vaga).
+        7. Despesas e Contas do Estúdio: Ao ser perguntado sobre despesas, contas a pagar ou vencimentos, informe os detalhes das contas lançadas e avise com urgência sobre contas vencidas ou vencendo hoje.
         """
 
         candidate_models = [

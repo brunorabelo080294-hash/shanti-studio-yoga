@@ -6,13 +6,13 @@
   <title>Studio Shanti - Painel de Gestão</title>
 
   <!-- Favicon & PWA Meta Tags -->
-  <link rel="icon" type="image/png" href="/favicon.png?v=13">
-  <link rel="manifest" href="/manifest.json?v=13">
+  <link rel="icon" type="image/png" href="/favicon.png?v=14">
+  <link rel="manifest" href="/manifest.json?v=14">
   <meta name="theme-color" content="#1C2B24">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Studio Shanti">
-  <link rel="apple-touch-icon" href="/icons/icon-192.png?v=13">
+  <link rel="apple-touch-icon" href="/icons/icon-192.png?v=14">
 
   <!-- Fontes Google & Ícones FontAwesome -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -21,7 +21,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
   <!-- WhatsApp Luxe Theme Stylesheet -->
-  <link rel="stylesheet" href="/css/whatsapp-theme.css?v=13">
+  <link rel="stylesheet" href="/css/whatsapp-theme.css?v=14">
 </head>
 <body>
 
@@ -84,11 +84,11 @@
       <i class="fa-solid fa-users"></i> Alunos
       <span class="wa-tab-badge danger" id="badge-atrasados" style="display:none;">0</span>
     </button>
-    <button class="wa-tab-btn" data-tab="relatorios">
-      <i class="fa-solid fa-chart-pie"></i> Relatórios
+    <button class="wa-tab-btn" data-tab="financeiro">
+      <i class="fa-solid fa-file-invoice-dollar"></i> Financeiro
     </button>
-    <button class="wa-tab-btn" data-tab="ajustes">
-      <i class="fa-solid fa-sliders"></i> Ajustes
+    <button class="wa-tab-btn" data-tab="estudio">
+      <i class="fa-solid fa-spa"></i> Estúdio
     </button>
   </nav>
 
@@ -195,50 +195,25 @@
   </section>
 
   <!-- ====================================================================
-       TELA 3: RELATÓRIOS E QUANTITATIVO DO STUDIO
+       TELA 3: FINANCEIRO EXCLUSIVO DO STUDIO (FASE 3)
        ==================================================================== -->
-  <section class="wa-screen" id="screen-relatorios">
+  <section class="wa-screen" id="screen-financeiro">
     <div class="wa-reports-container">
       
-      <!-- Card: Quantitativo de Alunos -->
-      <div class="wa-card">
-        <div class="wa-card-header">
-          <div class="wa-card-title">
-            <i class="fa-solid fa-users" style="color: var(--shanti-primary);"></i>
-            <span>Quantitativo de Alunos</span>
-          </div>
-          <span style="font-size: 12px; font-weight:600; color: var(--shanti-gold);" id="rep-mes-atual">Setembro/2026</span>
-        </div>
-        <div class="wa-stat-grid">
-          <div class="wa-stat-box">
-            <span class="wa-stat-value success" id="stat-alunos-ativos">0</span>
-            <span class="wa-stat-label">Alunos Ativos</span>
-          </div>
-          <div class="wa-stat-box">
-            <span class="wa-stat-value danger" id="stat-alunos-inadimplentes">0</span>
-            <span class="wa-stat-label">Em Atraso</span>
-          </div>
-          <div class="wa-stat-box">
-            <span class="wa-stat-value" id="stat-novos-matriculados">0</span>
-            <span class="wa-stat-label">Novas Matrículas</span>
-          </div>
-          <div class="wa-stat-box">
-            <span class="wa-stat-value" style="color: #6b7280;" id="stat-alunos-inativos">0</span>
-            <span class="wa-stat-label">Inativos / Saídas</span>
-          </div>
-        </div>
+      <!-- Barra Superior: Filtro de Mês/Competência -->
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; gap: 8px;">
+        <span style="font-size: 13px; font-weight: 700; color: var(--shanti-primary);"><i class="fa-solid fa-file-invoice-dollar"></i> Painel Financeiro</span>
+        <input type="month" id="filtro-financeiro-mes" class="wa-form-control" style="width: auto; padding: 5px 10px; font-size: 12px; font-weight: 600; cursor: pointer;">
       </div>
 
-      <!-- Card: Faturamento & Lucro do Mês -->
+      <!-- Card 1: Balanço & Lucro Real do Mês -->
       <div class="wa-card">
         <div class="wa-card-header">
           <div class="wa-card-title">
             <i class="fa-solid fa-wallet" style="color: var(--wa-success);"></i>
-            <span>Financeiro & Lucro Real</span>
+            <span>Balanço Financeiro Mensal</span>
           </div>
-          <button class="wa-btn-primary" id="btn-abrir-modal-despesa" style="padding: 6px 12px; font-size: 11.5px; width: auto; background: var(--shanti-primary); box-shadow:none;">
-            <i class="fa-solid fa-plus"></i> Despesa
-          </button>
+          <span style="font-size: 11.5px; font-weight: 600; color: var(--shanti-gold);" id="rep-mes-atual">Mês Atual</span>
         </div>
         <div class="wa-stat-grid">
           <div class="wa-stat-box">
@@ -260,7 +235,85 @@
         </div>
       </div>
 
-      <!-- Card: Aniversariantes do Mês -->
+      <!-- Card 2: Emissão Oficial de Relatório em PDF (Fase 3) -->
+      <div class="wa-card" style="background: linear-gradient(135deg, #1C2B24 0%, #293d33 100%); color: #fff; border: 1px solid var(--shanti-gold);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-file-pdf" style="color: var(--shanti-gold); font-size: 20px;"></i>
+            <span style="font-family: var(--font-brand); font-size: 15px; font-weight: 600; color: var(--shanti-gold);">Relatório Oficial em PDF</span>
+          </div>
+          <span style="font-size: 10px; background: rgba(197, 160, 89, 0.25); color: var(--shanti-gold); padding: 2px 8px; border-radius: 6px; border: 0.5px solid var(--shanti-gold); font-weight: 700;">PDF OFICIAL</span>
+        </div>
+        <p style="font-size: 12px; color: #e2e8f0; margin-bottom: 14px; line-height: 1.45;">
+          Baixe o balanço contábil completo com receitas, detalhamento de despesas, inadimplências e lucratividade líquida formatado para impressão ou arquivamento.
+        </p>
+        <button class="wa-btn-primary" id="btn-baixar-relatorio-pdf" style="background: var(--shanti-gold); color: #1C2B24; font-weight: 700; font-size: 13px; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.25); cursor: pointer;">
+          <i class="fa-solid fa-download"></i> Baixar Relatório Financeiro (PDF)
+        </button>
+      </div>
+
+      <!-- Card 3: Gestão Completa de Despesas & Contas a Pagar -->
+      <div class="wa-card" id="card-despesas-gestao">
+        <div class="wa-card-header">
+          <div class="wa-card-title">
+            <i class="fa-solid fa-money-bill-transfer" style="color: #ef4444;"></i>
+            <span>Despesas do Estúdio</span>
+          </div>
+          <button class="wa-btn-primary" id="btn-abrir-modal-despesa" style="padding: 6px 12px; font-size: 11.5px; width: auto; background: var(--shanti-primary); box-shadow:none; cursor:pointer;">
+            <i class="fa-solid fa-plus"></i> Nova Despesa
+          </button>
+        </div>
+
+        <!-- Banner Dinâmico de Alertas de Vencimento -->
+        <div id="alerta-despesas-vencimento" style="display:none; margin: 10px 0; padding: 10px 12px; border-radius: 8px; font-size: 12px; font-weight: 600;"></div>
+
+        <!-- Lista Detalhada de Despesas com Botões Editar & Excluir -->
+        <div id="lista-despesas-detalhada" style="display: flex; flex-direction: column; gap: 8px; margin-top: 10px;">
+          <!-- Preenchido dinamicamente via app.js -->
+        </div>
+      </div>
+
+      <!-- Card 4: Cobranças e Lembretes de Vencimento via WhatsApp -->
+      <div class="wa-card" style="text-align: center; border-left: 4px solid var(--shanti-whatsapp-green);">
+        <div class="wa-card-title" style="justify-content: center; margin-bottom: 8px;">
+          <i class="fa-brands fa-whatsapp" style="color: var(--shanti-whatsapp-green); font-size: 22px;"></i>
+          <span>Lembretes de Mensalidade</span>
+        </div>
+        <p style="font-size: 13px; color: var(--wa-text-secondary); margin-bottom: 14px; line-height: 1.5;">
+          Envie lembretes com a chave PIX do Shanti Studio para os alunos com mensalidades em atraso com apenas 1 toque.
+        </p>
+        <button class="wa-action-btn-whatsapp" id="btn-gerar-cobrancas-relatorio" style="margin: 0 auto; width: 100%; max-width: 260px;">
+          <i class="fa-brands fa-whatsapp"></i> Ver Alunos para Cobrar
+        </button>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ====================================================================
+       TELA 4: ESTÚDIO (TURMAS, ALUNOS MATRICULADOS & ROTINA)
+       ==================================================================== -->
+  <section class="wa-screen" id="screen-estudio">
+    <div class="wa-reports-container">
+      
+      <!-- Card 1: Turmas, Horários & Relação de Alunos Matriculados -->
+      <div class="wa-card" id="card-turmas-alunos-estudio">
+        <div class="wa-card-header">
+          <div class="wa-card-title">
+            <i class="fa-solid fa-spa" style="color: var(--shanti-primary);"></i>
+            <span>Turmas & Alunos Matriculados</span>
+          </div>
+          <span class="wa-tab-badge" id="badge-estudio-turmas" style="background: #e8f0eb; color: var(--shanti-primary); font-weight: 700;">3 Turmas</span>
+        </div>
+        <p style="font-size: 12px; color: var(--wa-text-secondary); margin-bottom: 12px; line-height: 1.4;">
+          Capacidade máxima: <b>16 alunos por turma</b>. Veja abaixo cada turma oficial e quais alunos estão matriculados nela.
+        </p>
+        <div id="lista-turmas-alunos-estudio" style="display: flex; flex-direction: column; gap: 12px;">
+          <!-- Preenchido dinamicamente via app.js com os nomes das turmas e seus alunos -->
+        </div>
+      </div>
+
+      <!-- Card 2: Aniversariantes do Mês -->
       <div class="wa-card" id="card-aniversariantes">
         <div class="wa-card-header">
           <div class="wa-card-title">
@@ -274,7 +327,7 @@
         </div>
       </div>
 
-      <!-- Card: Alunos Ausentes / Sem Praticar -->
+      <!-- Card 3: Alunos Ausentes / Sem Praticar -->
       <div class="wa-card" id="card-ausentes">
         <div class="wa-card-header">
           <div class="wa-card-title">
@@ -288,42 +341,49 @@
         </div>
       </div>
 
-      <!-- Card: Ocupação das Turmas (Máximo 16 alunos) - Fase 2 -->
-      <div class="wa-card" id="card-turmas-ocupacao">
+      <!-- Card 4: Quantitativo Geral de Alunos -->
+      <div class="wa-card">
         <div class="wa-card-header">
           <div class="wa-card-title">
-            <i class="fa-solid fa-users" style="color: var(--shanti-primary);"></i>
-            <span>Turmas & Ocupação (Máx. 16 alunos)</span>
+            <i class="fa-solid fa-chart-pie" style="color: var(--shanti-primary);"></i>
+            <span>Métricas & Quantitativo</span>
           </div>
-          <span class="wa-tab-badge" id="badge-turmas-total" style="background: #e8f0eb; color: var(--shanti-primary); font-weight: 700;">3 Turmas</span>
         </div>
-        <div id="list-turmas-ocupacao" style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">
-          <!-- Renderizado via app.js -->
+        <div class="wa-stat-grid">
+          <div class="wa-stat-box">
+            <span class="wa-stat-value success" id="stat-alunos-ativos">0</span>
+            <span class="wa-stat-label">Alunos Ativos</span>
+          </div>
+          <div class="wa-stat-box">
+            <span class="wa-stat-value danger" id="stat-alunos-inadimplentes">0</span>
+            <span class="wa-stat-label">Em Atraso</span>
+          </div>
+          <div class="wa-stat-box">
+            <span class="wa-stat-value" id="stat-novos-matriculados">0</span>
+            <span class="wa-stat-label">Novas Matrículas</span>
+          </div>
+          <div class="wa-stat-box">
+            <span class="wa-stat-value" style="color: #6b7280;" id="stat-alunos-inativos">0</span>
+            <span class="wa-stat-label">Inativos / Saídas</span>
+          </div>
         </div>
-      </div>
-
-      <!-- Ação Rápida: Cobranças em Massa no WhatsApp -->
-      <div class="wa-card" style="text-align: center; border-left: 4px solid var(--shanti-whatsapp-green);">
-        <div class="wa-card-title" style="justify-content: center; margin-bottom: 8px;">
-          <i class="fa-brands fa-whatsapp" style="color: var(--shanti-whatsapp-green); font-size: 22px;"></i>
-          <span>Lembretes de Vencimento</span>
-        </div>
-        <p style="font-size: 13px; color: var(--wa-text-secondary); margin-bottom: 14px; line-height: 1.5;">
-          Dispare mensagens personalizadas com a chave PIX do Shanti Studio para os alunos atrasados com apenas 1 toque.
-        </p>
-        <button class="wa-action-btn-whatsapp" id="btn-gerar-cobrancas-relatorio" style="margin: 0 auto; width: 100%; max-width: 260px;">
-          <i class="fa-brands fa-whatsapp"></i> Ver Alunos para Cobrar
-        </button>
       </div>
 
     </div>
   </section>
 
   <!-- ====================================================================
-       TELA 4: AJUSTES E CONFIGURAÇÕES
+       TELA 5: AJUSTES E CONFIGURAÇÕES (ACIONADA PELA ENGRENAGEM)
        ==================================================================== -->
   <section class="wa-screen" id="screen-ajustes">
     <div class="wa-settings-container">
+      
+      <!-- Botão Voltar ao Painel -->
+      <div style="margin-bottom: 14px;">
+        <button id="btn-voltar-ajustes" style="display: inline-flex; align-items: center; gap: 8px; background: var(--shanti-sand); border: 0.5px solid var(--wa-border); border-radius: 8px; padding: 8px 16px; font-size: 12.5px; font-weight: 600; color: var(--shanti-primary); cursor: pointer; transition: all 0.2s ease;">
+          <i class="fa-solid fa-arrow-left"></i> Voltar ao Painel
+        </button>
+      </div>
       
       <div class="wa-card" style="text-align: center; margin-bottom: 16px;">
         <img id="cfg-logo-preview" src="/icons/icon-192.png?v=9" alt="Studio Shanti" style="width: 80px; height: 80px; border-radius: 18px; border: 2px solid var(--shanti-gold); margin: 0 auto 10px; display: block; box-shadow: 0 6px 16px rgba(0,0,0,0.12); object-fit: contain; background: #1C2B24;">
@@ -497,13 +557,88 @@
         </select>
       </div>
 
+      <div style="display: flex; gap: 10px;">
+        <div class="wa-form-group" style="flex: 1;">
+          <label>Data de Emissão</label>
+          <input type="date" class="wa-form-control" id="desp-data">
+        </div>
+        <div class="wa-form-group" style="flex: 1;">
+          <label>Data de Vencimento *</label>
+          <input type="date" class="wa-form-control" id="desp-vencimento" required>
+        </div>
+      </div>
+
       <div class="wa-form-group">
-        <label>Data</label>
-        <input type="date" class="wa-form-control" id="desp-data">
+        <label>Status do Pagamento</label>
+        <select class="wa-form-control" id="desp-status">
+          <option value="pago" selected>Já Paga (Quitada)</option>
+          <option value="pendente">Pendente (A Pagar)</option>
+        </select>
       </div>
 
       <button type="submit" class="wa-btn-primary" style="margin-top: 10px;">
         <i class="fa-solid fa-check"></i> Salvar Despesa
+      </button>
+    </form>
+  </div>
+</div>
+
+<!-- ======================================================================
+     MODAL: EDITAR DESPESA DO ESTÚDIO (FASE 3)
+     ====================================================================== -->
+<div class="wa-modal-overlay" id="modal-edit-despesa">
+  <div class="wa-modal-sheet">
+    <div class="wa-modal-header">
+      <h3 class="wa-modal-title"><i class="fa-solid fa-pen-to-square" style="color:var(--shanti-gold);"></i> Editar Despesa</h3>
+      <button class="wa-modal-close" data-close-modal="modal-edit-despesa">&times;</button>
+    </div>
+
+    <form id="form-edit-despesa">
+      <input type="hidden" id="edit-desp-id">
+
+      <div class="wa-form-group">
+        <label>Descrição da Despesa *</label>
+        <input type="text" class="wa-form-control" id="edit-desp-desc" required>
+      </div>
+
+      <div class="wa-form-group">
+        <label>Valor (R$) *</label>
+        <input type="number" step="0.01" class="wa-form-control" id="edit-desp-valor" required>
+      </div>
+
+      <div class="wa-form-group">
+        <label>Categoria</label>
+        <select class="wa-form-control" id="edit-desp-cat">
+          <option value="Aluguel">Aluguel do Espaço</option>
+          <option value="Energia/Água">Energia, Água & Internet</option>
+          <option value="Materiais">Materiais, Óleos & Incensos</option>
+          <option value="Marketing">Marketing & Divulgação</option>
+          <option value="Manutenção">Limpeza & Manutenção</option>
+          <option value="Geral">Geral / Outros</option>
+        </select>
+      </div>
+
+      <div style="display: flex; gap: 10px;">
+        <div class="wa-form-group" style="flex: 1;">
+          <label>Data de Emissão</label>
+          <input type="date" class="wa-form-control" id="edit-desp-data">
+        </div>
+        <div class="wa-form-group" style="flex: 1;">
+          <label>Data de Vencimento *</label>
+          <input type="date" class="wa-form-control" id="edit-desp-vencimento" required>
+        </div>
+      </div>
+
+      <div class="wa-form-group">
+        <label>Status do Pagamento</label>
+        <select class="wa-form-control" id="edit-desp-status">
+          <option value="pago">Já Paga (Quitada)</option>
+          <option value="pendente">Pendente (A Pagar)</option>
+        </select>
+      </div>
+
+      <button type="submit" class="wa-btn-primary" style="margin-top: 10px; background: var(--shanti-primary);">
+        <i class="fa-solid fa-floppy-disk"></i> Salvar Alterações
       </button>
     </form>
   </div>
@@ -788,12 +923,12 @@
 <div class="wa-toast" id="toast-msg">Notificação</div>
 
 <!-- JavaScript Principal -->
-<script src="/js/app.js?v=13"></script>
+<script src="/js/app.js?v=14"></script>
 
 <script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/service-worker.js?v=13').then(reg => {
+      navigator.serviceWorker.register('/service-worker.js?v=14').then(reg => {
         reg.update();
       }).catch(err => {
         console.log('SW reg:', err);
