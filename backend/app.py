@@ -130,6 +130,11 @@ class ConfigUpdate(BaseModel):
 
 # --- Rotas da API ---
 
+@app.get("/api/health")
+def api_health_check():
+    """Endpoint leve para monitoramento e keep-alive 24/7 sem hibernação."""
+    return {"status": "online", "service": "Studio Shanti API", "timestamp": datetime.datetime.now().isoformat()}
+
 @app.get("/api/alunos")
 def api_listar_alunos(status: Optional[str] = None):
     return db.listar_alunos(status=status)
