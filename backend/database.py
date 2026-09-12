@@ -59,6 +59,38 @@ def init_db():
     except sqlite3.OperationalError:
         pass
 
+    try:
+        cursor.execute("ALTER TABLE alunos ADD COLUMN autoriza_imagem INTEGER DEFAULT 1")
+    except sqlite3.OperationalError:
+        pass
+
+    # Tabela de Turmas do Studio Shanti
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS turmas (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        nome TEXT NOT NULL,
+        dias_semana TEXT NOT NULL,
+        horario TEXT NOT NULL,
+        capacidade_vagas INTEGER DEFAULT 12,
+        plano_associado TEXT DEFAULT '2x na semana',
+        ativo INTEGER DEFAULT 1,
+        criado_em TEXT DEFAULT CURRENT_TIMESTAMP
+    )
+    """)
+
+    # Tabela de Relação Matrículas - Turmas
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS matriculas_turmas (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        aluno_id INTEGER NOT NULL,
+        turma_id INTEGER NOT NULL,
+        data_matricula TEXT DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (aluno_id) REFERENCES alunos (id) ON DELETE CASCADE,
+        FOREIGN KEY (turma_id) REFERENCES turmas (id) ON DELETE CASCADE,
+        UNIQUE(aluno_id, turma_id)
+    )
+    """)
+
     # Tabela de Pagamentos
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS pagamentos (
@@ -104,6 +136,8 @@ def init_db():
         ("chave_pix", "contato@shantiyoga.com.br"),
         ("tipo_chave_pix", "E-mail"),
         ("gemini_api_key", ""),
+        ("valor_plano_1x", "120.00"),
+        ("valor_plano_2x", "150.00"),
         ("mensagem_cobranca_padrao", 
          "Olá, {nome}! 🧘‍♀️ Passando para lembrar com carinho que sua mensalidade do {studio} venceu no dia {dia_vencimento}/{mes_atual} no valor de R$ {valor:.2f}.\n\nPara facilitar, segue nossa chave PIX ({tipo_chave}): {chave_pix}\n\nQualquer dúvida estamos à disposição! Namastê. 🙏")
     ]
@@ -179,6 +213,54 @@ def init_db():
         # Juliana não vem há 12 dias (aluna ausente / sumida)
         cursor.execute("INSERT INTO frequencias (aluno_id, data, horario, modalidade) VALUES (2, ?, '09:00', 'Hatha Yoga')", (doze_dias_atras,))
 
+    # --- FASE 2: Turmas Oficiais do Studio Shanti ---
+    turmas_oficiais = [
+        ("Pequenos Yogis (Yoga para Crianças)", "Segunda e Quarta", "17:30", 12, "2x na semana"),
+        ("Essência (Hatha Yoga para Adultos)", "Segunda e Quarta", "18:30", 12, "2x na semana"),
+        ("Sunrise (Hatha Yoga para Adultos)", "Terça e Quinta", "06:00", 12, "2x na semana")
+    ]
+
+    for nome_t, dias_t, hora_t, cap_t, plano_t in turmas_oficiais:
+        cursor.execute("SELECT id FROM turmas WHERE nome = ?", (nome_t,))
+        if not cursor.fetchone():
+            cursor.execute("""
+            INSERT INTO turmas (nome, dias_semana, horario, capacidade_vagas, plano_associado, ativo)
+            VALUES (?, ?, ?, ?, ?, 1)
+            """, (nome_t, dias_t, hora_t, cap_t, plano_t))
+
+    # --- FASE 2: Migração de Planos e Valores Oficiais (1x R$120 / 2x R$150) ---
+    cursor.execute("""
+    UPDATE alunos 
+    SET plano = '1x na semana', valor_mensalidade = 120.00 
+    WHERE plano IN ('Yoga Gestante', 'Hatha Yoga', '1x na semana', '1x/sem')
+    """)
+
+    cursor.execute("""
+    UPDATE alunos 
+    SET plano = '2x na semana', valor_mensalidade = 150.00 
+    WHERE plano NOT IN ('1x na semana')
+    """)
+
+    cursor.execute("UPDATE alunos SET autoriza_imagem = 1 WHERE autoriza_imagem IS NULL")
+
+    # Matrículas iniciais nas turmas para demonstração do painel de vagas
+    cursor.execute("SELECT COUNT(*) FROM matriculas_turmas")
+    if cursor.fetchone()[0] == 0:
+        cursor.execute("SELECT id, nome FROM turmas")
+        t_map = {row["nome"]: row["id"] for row in cursor.fetchall()}
+        
+        # Essência: Camila (1), Juliana (2), Rodrigo (5)
+        if "Essência (Hatha Yoga para Adultos)" in t_map:
+            t_essencia = t_map["Essência (Hatha Yoga para Adultos)"]
+            for aid in [1, 2, 5]:
+                cursor.execute("INSERT OR IGNORE INTO matriculas_turmas (aluno_id, turma_id) VALUES (?, ?)", (aid, t_essencia))
+
+        # Sunrise: Beatriz (4), Sofia (7), Bruno (9), Natalia (10)
+        if "Sunrise (Hatha Yoga para Adultos)" in t_map:
+            t_sunrise = t_map["Sunrise (Hatha Yoga para Adultos)"]
+            for aid in [4, 7, 9, 10]:
+                cursor.execute("INSERT OR IGNORE INTO matriculas_turmas (aluno_id, turma_id) VALUES (?, ?)", (aid, t_sunrise))
+
     conn.commit()
     conn.close()
 
@@ -199,7 +281,7 @@ def salvar_configuracao(chave: str, valor: str):
     conn.commit()
     conn.close()
 
-# --- Funções de Alunos ---
+# --- Funções de Alunos e Turmas ---
 
 def listar_alunos(status: Optional[str] = None) -> List[Dict[str, Any]]:
     conn = get_connection()
@@ -209,14 +291,32 @@ def listar_alunos(status: Optional[str] = None) -> List[Dict[str, Any]]:
     else:
         cursor.execute("SELECT * FROM alunos ORDER BY status ASC, nome ASC")
     rows = cursor.fetchall()
+
+    # Mapear turmas de todos os alunos
+    cursor.execute("""
+    SELECT mt.aluno_id, t.id as turma_id, t.nome, t.horario, t.dias_semana
+    FROM matriculas_turmas mt
+    JOIN turmas t ON t.id = mt.turma_id
+    """)
+    aluno_turmas_map = {}
+    for r in cursor.fetchall():
+        aid = r["aluno_id"]
+        if aid not in aluno_turmas_map:
+            aluno_turmas_map[aid] = []
+        aluno_turmas_map[aid].append(dict(r))
+
     conn.close()
 
     alunos = [dict(row) for row in rows]
-    # Enriquecer com status financeiro do mês atual
+    # Enriquecer com status financeiro do mês atual e turmas
     hoje = datetime.date.today()
     mes_atual = hoje.strftime("%Y-%m")
 
     for al in alunos:
+        al["turmas"] = aluno_turmas_map.get(al["id"], [])
+        if "autoriza_imagem" not in al or al["autoriza_imagem"] is None:
+            al["autoriza_imagem"] = 1
+
         if al["status"] == "inativo":
             al["situacao_financeira"] = "Inativo"
             al["dias_atraso"] = 0
@@ -263,8 +363,21 @@ def obter_aluno(aluno_id: int) -> Optional[Dict[str, Any]]:
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM alunos WHERE id = ?", (aluno_id,))
     row = cursor.fetchone()
+    if not row:
+        conn.close()
+        return None
+    aluno = dict(row)
+    if "autoriza_imagem" not in aluno or aluno["autoriza_imagem"] is None:
+        aluno["autoriza_imagem"] = 1
+
+    cursor.execute("""
+    SELECT t.* FROM turmas t
+    JOIN matriculas_turmas mt ON mt.turma_id = t.id
+    WHERE mt.aluno_id = ?
+    """, (aluno_id,))
+    aluno["turmas"] = [dict(r) for r in cursor.fetchall()]
     conn.close()
-    return dict(row) if row else None
+    return aluno
 
 def cadastrar_aluno(dados: Dict[str, Any]) -> int:
     conn = get_connection()
@@ -276,23 +389,42 @@ def cadastrar_aluno(dados: Dict[str, Any]) -> int:
     if not mes_matricula:
         mes_matricula = hoje.strftime("%Y-%m")
 
+    autoriza_img = dados.get("autoriza_imagem")
+    if autoriza_img is None:
+        autoriza_img = 1
+    else:
+        autoriza_img = int(autoriza_img)
+
+    plano = dados.get("plano") or "2x na semana"
+    # Se valor não informado, puxar padrão das configs
+    valor = dados.get("valor_mensalidade")
+    if valor is None:
+        valor = 120.0 if "1x" in plano else 150.0
+
     cursor.execute("""
-    INSERT INTO alunos (nome, telefone, email, plano, dia_vencimento, valor_mensalidade, tipo_pagamento, status, data_matricula, mes_matricula, observacoes, data_nascimento)
-    VALUES (?, ?, ?, ?, ?, ?, ?, 'ativo', ?, ?, ?, ?)
+    INSERT INTO alunos (nome, telefone, email, plano, dia_vencimento, valor_mensalidade, tipo_pagamento, status, data_matricula, mes_matricula, observacoes, data_nascimento, autoriza_imagem)
+    VALUES (?, ?, ?, ?, ?, ?, ?, 'ativo', ?, ?, ?, ?, ?)
     """, (
         dados.get("nome"),
         dados.get("telefone", ""),
         dados.get("email", ""),
-        dados.get("plano", "Yoga Regular"),
+        plano,
         int(dados.get("dia_vencimento", 10)),
-        float(dados.get("valor_mensalidade", 150.0)),
+        float(valor),
         dados.get("tipo_pagamento", "PIX"),
         dados.get("data_matricula", hoje_str),
         mes_matricula,
         dados.get("observacoes", ""),
-        dados.get("data_nascimento") or None
+        dados.get("data_nascimento") or None,
+        autoriza_img
     ))
     aluno_id = cursor.lastrowid
+
+    turma_ids = dados.get("turma_ids")
+    if turma_ids:
+        for tid in turma_ids:
+            cursor.execute("INSERT OR IGNORE INTO matriculas_turmas (aluno_id, turma_id) VALUES (?, ?)", (aluno_id, int(tid)))
+
     conn.commit()
     conn.close()
     return aluno_id
@@ -300,16 +432,24 @@ def cadastrar_aluno(dados: Dict[str, Any]) -> int:
 def atualizar_aluno(aluno_id: int, dados: Dict[str, Any]):
     conn = get_connection()
     cursor = conn.cursor()
+    turma_ids = dados.pop("turma_ids", None)
+
     campos = []
     valores = []
     for k, v in dados.items():
         if k not in ("id",):
             campos.append(f"{k} = ?")
             valores.append(v)
-    valores.append(aluno_id)
+    if campos:
+        valores.append(aluno_id)
+        query = f"UPDATE alunos SET {', '.join(campos)} WHERE id = ?"
+        cursor.execute(query, valores)
 
-    query = f"UPDATE alunos SET {', '.join(campos)} WHERE id = ?"
-    cursor.execute(query, valores)
+    if turma_ids is not None:
+        cursor.execute("DELETE FROM matriculas_turmas WHERE aluno_id = ?", (aluno_id,))
+        for tid in turma_ids:
+            cursor.execute("INSERT OR IGNORE INTO matriculas_turmas (aluno_id, turma_id) VALUES (?, ?)", (aluno_id, int(tid)))
+
     conn.commit()
     conn.close()
 
@@ -337,6 +477,7 @@ def reativar_aluno(aluno_id: int) -> bool:
 def excluir_aluno(aluno_id: int) -> bool:
     conn = get_connection()
     cursor = conn.cursor()
+    cursor.execute("DELETE FROM matriculas_turmas WHERE aluno_id = ?", (aluno_id,))
     cursor.execute("DELETE FROM frequencias WHERE aluno_id = ?", (aluno_id,))
     cursor.execute("DELETE FROM pagamentos WHERE aluno_id = ?", (aluno_id,))
     cursor.execute("DELETE FROM alunos WHERE id = ?", (aluno_id,))
@@ -344,6 +485,78 @@ def excluir_aluno(aluno_id: int) -> bool:
     conn.commit()
     conn.close()
     return rows_affected > 0
+
+# --- Funções de Turmas ---
+
+def listar_turmas(ativas_somente: bool = True) -> List[Dict[str, Any]]:
+    conn = get_connection()
+    cursor = conn.cursor()
+    query = """
+    SELECT t.*, 
+           COUNT(mt.aluno_id) as total_matriculados,
+           (t.capacidade_vagas - COUNT(mt.aluno_id)) as vagas_disponiveis
+    FROM turmas t
+    LEFT JOIN matriculas_turmas mt ON mt.turma_id = t.id
+    """
+    if ativas_somente:
+        query += " WHERE t.ativo = 1"
+    query += " GROUP BY t.id ORDER BY t.horario ASC, t.nome ASC"
+    cursor.execute(query)
+    rows = cursor.fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+def obter_turma(turma_id: int) -> Optional[Dict[str, Any]]:
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+    SELECT t.*, 
+           COUNT(mt.aluno_id) as total_matriculados,
+           (t.capacidade_vagas - COUNT(mt.aluno_id)) as vagas_disponiveis
+    FROM turmas t
+    LEFT JOIN matriculas_turmas mt ON mt.turma_id = t.id
+    WHERE t.id = ?
+    GROUP BY t.id
+    """, (turma_id,))
+    row = cursor.fetchone()
+    conn.close()
+    return dict(row) if row else None
+
+def listar_alunos_turma(turma_id: int) -> List[Dict[str, Any]]:
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+    SELECT a.*, mt.data_matricula as data_entrada_turma
+    FROM alunos a
+    JOIN matriculas_turmas mt ON mt.aluno_id = a.id
+    WHERE mt.turma_id = ?
+    ORDER BY a.nome ASC
+    """, (turma_id,))
+    rows = cursor.fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+def matricular_aluno_turma(aluno_id: int, turma_id: int) -> bool:
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("INSERT OR IGNORE INTO matriculas_turmas (aluno_id, turma_id) VALUES (?, ?)", (aluno_id, turma_id))
+        conn.commit()
+        ok = cursor.rowcount > 0
+    except:
+        ok = False
+    finally:
+        conn.close()
+    return ok
+
+def desmatricular_aluno_turma(aluno_id: int, turma_id: int) -> bool:
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM matriculas_turmas WHERE aluno_id = ? AND turma_id = ?", (aluno_id, turma_id))
+    rows = cursor.rowcount
+    conn.commit()
+    conn.close()
+    return rows > 0
 
 # --- Funções de Pagamento ---
 
