@@ -151,34 +151,47 @@ async def api_chat(req: ChatRequest):
 @app.post("/api/chat/audio")
 async def api_chat_audio(audio: UploadFile = File(...), texto_transcrito: Optional[str] = Form(None)):
     """
-    Recebe arquivo de áudio gravado no app e opcionalmente o texto transcrito
-    pelo navegador (Web Speech API) ou processa com Gemini.
+    Recebe arquivo de áudio gravado no app e transcreve com a IA Gemini multimodal.
     """
-    texto = texto_transcrito or ""
+    texto = (texto_transcrito or "").strip()
     if not texto:
-        # Se não vier transcrito pelo frontend, tenta ler o conteúdo do arquivo
         conteudo = await audio.read()
         api_key = ai.get_api_key()
-        if api_key:
+        if api_key and len(conteudo) > 500:
             try:
                 from google import genai
                 from google.genai import types
                 client = genai.Client(api_key=api_key)
-                
-                # Enviar áudio multimodal para o Gemini
+
+                raw_mime = (audio.content_type or "audio/webm").lower()
+                if "mp4" in raw_mime or "m4a" in raw_mime or "aac" in raw_mime:
+                    mime_type = "audio/mp4"
+                elif "ogg" in raw_mime:
+                    mime_type = "audio/ogg"
+                elif "wav" in raw_mime:
+                    mime_type = "audio/wav"
+                else:
+                    mime_type = "audio/webm"
+
                 response = client.models.generate_content(
                     model="gemini-3.6-flash",
                     contents=[
-                        types.Part.from_bytes(data=conteudo, mime_type=audio.content_type or "audio/webm"),
-                        "Transcreva o que foi dito neste áudio e execute o comando relacionado ao Studio de Yoga."
+                        types.Part.from_bytes(data=conteudo, mime_type=mime_type),
+                        "Transcreva com máxima precisão o que foi falado neste áudio em português. Retorne EXCLUSIVAMENTE o texto transcrito, sem introduções, sem aspas e sem explicações adicionais."
                     ]
                 )
-                texto = response.text or ""
+                texto = (response.text or "").strip()
             except Exception as e:
-                print(f"Erro ao transcrever com Gemini: {e}")
-                texto = "Quem está com atraso na mensalidade?"
-        else:
-            texto = "Quem está com mensalidade atrasada?"
+                print(f"Erro ao transcrever áudio com Gemini: {e}")
+                texto = ""
+
+    if not texto:
+        return {
+            "resposta": "🧘 Não consegui compreender o seu áudio com clareza. Por favor, aproxime-se um pouco mais do microfone ou tente falar novamente!",
+            "tipo": "audio_incompreensivel",
+            "transcricao": "Voz não identificada",
+            "dados": []
+        }
 
     resultado = await ai.processar_mensagem_ia(texto)
     resultado["transcricao"] = texto

@@ -363,28 +363,50 @@ function setupAudio() {
       state.mediaRecorder.onstop = async () => {
         if (!enviar) return;
 
-        setTimeout(async () => {
-          let texto = speechTranscript.trim();
-          if (!texto) {
-            texto = "Quem está com atraso na mensalidade?";
-          }
-          adicionarMensagem(`🎙️ <i>Áudio: "${texto}"</i>`, 'user');
+        // Criar o arquivo de áudio real gravado
+        const mimeType = (state.mediaRecorder && state.mediaRecorder.mimeType) || 'audio/webm';
+        const audioBlob = new Blob(state.audioChunks, { type: mimeType });
 
-          try {
-            const res = await fetch('/api/chat', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ mensagem: texto })
-            });
-            const data = await res.json();
-            adicionarMensagem(data.resposta, 'bot', data.dados);
-            if (data.tipo === 'pagamento_registrado' || data.tipo === 'aluno_inativado') {
-              await atualizarTudo();
-            }
-          } catch (e) {
-            adicionarMensagem('Não consegui processar seu áudio no momento.', 'bot');
+        const textoPrevia = speechTranscript.trim();
+        adicionarMensagem(textoPrevia ? `🎙️ <i>"${textoPrevia}"</i>` : `🎙️ <i>Mensagem de voz enviada...</i>`, 'user');
+
+        // Indicador de que a IA está ouvindo
+        const typingRow = document.createElement('div');
+        typingRow.className = 'wa-message-row bot';
+        typingRow.id = 'msg-typing';
+        typingRow.innerHTML = `
+          <img src="/img/shanti_logo.png?v=3" alt="Shanti" class="wa-msg-avatar">
+          <div class="wa-message bot">
+            <div class="wa-message-content" style="color:#63736d;"><i>Ouvindo o seu áudio com a IA...</i> 🧘‍♀️</div>
+          </div>
+        `;
+        document.getElementById('chat-messages').appendChild(typingRow);
+        document.getElementById('chat-messages').scrollTop = document.getElementById('chat-messages').scrollHeight;
+
+        const formData = new FormData();
+        formData.append('audio', audioBlob, 'audio.webm');
+        if (textoPrevia) {
+          formData.append('texto_transcrito', textoPrevia);
+        }
+
+        try {
+          const res = await fetch('/api/chat/audio', {
+            method: 'POST',
+            body: formData
+          });
+          const data = await res.json();
+          const t = document.getElementById('msg-typing');
+          if (t) t.remove();
+
+          adicionarMensagem(data.resposta, 'bot', data.dados);
+          if (data.tipo === 'pagamento_registrado' || data.tipo === 'aluno_inativado') {
+            await atualizarTudo();
           }
-        }, 300);
+        } catch (e) {
+          const t = document.getElementById('msg-typing');
+          if (t) t.remove();
+          adicionarMensagem('Não consegui processar seu áudio no momento. Tente falar novamente!', 'bot');
+        }
       };
 
       state.mediaRecorder.stop();
