@@ -113,7 +113,28 @@ def processar_comando_local(texto: str) -> Dict[str, Any]:
             "dados": quant
         }
 
-    # 5. Registrar Pagamento via Chat
+    # 5. Turmas, Horários e Vagas (Fase 2)
+    if any(p in texto_lower for p in ["turma", "turmas", "horário", "horario", "horários", "horarios", "vaga", "vagas", "aula", "aulas"]):
+        turmas = db.listar_turmas(ativas_somente=True)
+        if not turmas:
+            return {
+                "resposta": "🧘 Nenhuma turma cadastrada no momento.",
+                "tipo": "turmas",
+                "dados": []
+            }
+        resposta = "🕉️ *Turmas e Horários do Studio Shanti:*\n\n"
+        for t in turmas:
+            resposta += f"• *{t['nome']}*\n"
+            resposta += f"   📅 {t['dias_semana']} às {t['horario']}\n"
+            resposta += f"   🧘 Alunos matriculados: {t['total_matriculados']} de {t['capacidade_vagas']} vagas\n"
+            resposta += f"   ✨ Vagas disponíveis: {t['vagas_disponiveis']}\n\n"
+        return {
+            "resposta": resposta.strip(),
+            "tipo": "turmas",
+            "dados": turmas
+        }
+
+    # 6. Registrar Pagamento via Chat
     if any(p in texto_lower for p in ["pagou", "recebi", "pagamento de", "baixar mensalidade"]):
         alunos = db.listar_alunos(status="ativo")
         aluno_encontrado = None

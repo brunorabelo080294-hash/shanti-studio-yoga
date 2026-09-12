@@ -43,13 +43,15 @@ class AlunoCreate(BaseModel):
     nome: str
     telefone: str
     email: Optional[str] = ""
-    plano: Optional[str] = "Yoga Regular"
+    plano: Optional[str] = "2x na semana"
     dia_vencimento: int = 10
     valor_mensalidade: float = 150.0
     tipo_pagamento: Optional[str] = "PIX"
     observacoes: Optional[str] = ""
     mes_matricula: Optional[str] = None
     data_nascimento: Optional[str] = ""
+    autoriza_imagem: Optional[int] = 1
+    turma_ids: Optional[List[int]] = None
 
 class AlunoUpdate(BaseModel):
     nome: Optional[str] = None
@@ -61,6 +63,11 @@ class AlunoUpdate(BaseModel):
     tipo_pagamento: Optional[str] = None
     data_nascimento: Optional[str] = None
     observacoes: Optional[str] = None
+    autoriza_imagem: Optional[int] = None
+    turma_ids: Optional[List[int]] = None
+
+class TurmaMatriculaRequest(BaseModel):
+    turma_id: int
 
 class InativarAlunoRequest(BaseModel):
     motivo: str = "Desistência"
@@ -145,6 +152,39 @@ def api_excluir_aluno(aluno_id: int):
     if not sucesso:
         raise HTTPException(status_code=404, detail="Aluno não encontrado")
     return {"status": "ok", "mensagem": "Aluno excluído com sucesso!"}
+
+# --- Rotas de Turmas (Fase 2) ---
+
+@app.get("/api/turmas")
+def api_listar_turmas(ativas_somente: bool = True):
+    return db.listar_turmas(ativas_somente=ativas_somente)
+
+@app.get("/api/turmas/{turma_id}")
+def api_obter_turma(turma_id: int):
+    turma = db.obter_turma(turma_id)
+    if not turma:
+        raise HTTPException(status_code=404, detail="Turma não encontrada")
+    return turma
+
+@app.get("/api/turmas/{turma_id}/alunos")
+def api_listar_alunos_turma(turma_id: int):
+    turma = db.obter_turma(turma_id)
+    if not turma:
+        raise HTTPException(status_code=404, detail="Turma não encontrada")
+    alunos = db.listar_alunos_turma(turma_id)
+    return {"turma": turma, "alunos": alunos}
+
+@app.post("/api/alunos/{aluno_id}/turmas")
+def api_matricular_aluno_turma(aluno_id: int, req: TurmaMatriculaRequest):
+    sucesso = db.matricular_aluno_turma(aluno_id, req.turma_id)
+    if not sucesso:
+        raise HTTPException(status_code=400, detail="Não foi possível matricular o aluno nesta turma")
+    return {"status": "ok", "mensagem": "Aluno matriculado na turma com sucesso!"}
+
+@app.delete("/api/alunos/{aluno_id}/turmas/{turma_id}")
+def api_desmatricular_aluno_turma(aluno_id: int, turma_id: int):
+    sucesso = db.desmatricular_aluno_turma(aluno_id, turma_id)
+    return {"status": "ok", "mensagem": "Aluno removido da turma com sucesso!"}
 
 @app.post("/api/pagamentos")
 def api_registrar_pagamento(dados: PagamentoCreate):
