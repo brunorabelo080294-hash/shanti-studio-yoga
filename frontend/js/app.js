@@ -23,48 +23,48 @@ const state = {
 // INICIALIZAÇÃO
 // =============================================================================
 document.addEventListener('DOMContentLoaded', async () => {
-  setupNavigation();
-  setupChat();
-  setupAudio();
-  setupModals();
-  setupSettings();
-  
-  // Pré-carregar vozes para síntese de fala
-  if ('speechSynthesis' in window) {
-    window.speechSynthesis.onvoiceschanged = () => {
-      window.speechSynthesis.getVoices();
-    };
-  }
-
-  // Horário da mensagem de boas-vindas
-  const now = new Date();
-  const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-  const welcomeTime = document.getElementById('welcome-time');
-  if (welcomeTime) welcomeTime.textContent = timeStr;
-
-  // Carregar dados
-  await carregarConfiguracoes();
-  await atualizarTudo();
-
-  // Esconder Splash Screen suavemente (Fase 1)
-  const splashScreen = document.getElementById('pwa-splash-screen');
-  if (splashScreen) {
-    setTimeout(() => {
-      splashScreen.classList.add('hidden');
-      setTimeout(() => {
-        splashScreen.style.display = 'none';
-      }, 450);
-    }, 450);
-  }
-
-  // Fallback de segurança para garantir que a tela não trave
-  setTimeout(() => {
+  const dismissSplash = () => {
     const splash = document.getElementById('pwa-splash-screen');
     if (splash && !splash.classList.contains('hidden')) {
       splash.classList.add('hidden');
-      setTimeout(() => { splash.style.display = 'none'; }, 450);
+      setTimeout(() => { splash.style.display = 'none'; }, 400);
     }
-  }, 2500);
+  };
+
+  const splashEl = document.getElementById('pwa-splash-screen');
+  if (splashEl) splashEl.addEventListener('click', dismissSplash);
+
+  // Fallback garantido independente de qualquer atraso ou erro
+  setTimeout(dismissSplash, 1200);
+
+  try {
+    setupNavigation();
+    setupChat();
+    setupAudio();
+    setupModals();
+    setupSettings();
+    
+    // Pré-carregar vozes para síntese de fala
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.onvoiceschanged = () => {
+        window.speechSynthesis.getVoices();
+      };
+    }
+
+    // Horário da mensagem de boas-vindas
+    const now = new Date();
+    const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+    const welcomeTime = document.getElementById('welcome-time');
+    if (welcomeTime) welcomeTime.textContent = timeStr;
+
+    // Carregar dados
+    await carregarConfiguracoes();
+    await atualizarTudo();
+  } catch (err) {
+    console.error('Erro na inicialização do app:', err);
+  } finally {
+    setTimeout(dismissSplash, 300);
+  }
 });
 
 async function atualizarTudo() {
@@ -184,16 +184,23 @@ function setupNavigation() {
   });
 
   // Botão de atualizar no header
-  document.getElementById('btn-header-action').addEventListener('click', async () => {
-    showToast('Atualizando dados...');
-    await atualizarTudo();
-    showToast('Dados sincronizados!');
-  });
+  const btnHeaderAction = document.getElementById('btn-header-action') || document.getElementById('btn-header-notif');
+  if (btnHeaderAction) {
+    btnHeaderAction.addEventListener('click', async () => {
+      showToast('Atualizando dados...');
+      await atualizarTudo();
+      showToast('Dados sincronizados!');
+    });
+  }
 
   // Botão de menu no header -> leva para ajustes
-  document.getElementById('btn-header-menu').addEventListener('click', () => {
-    document.querySelector('.wa-tab-btn[data-tab="ajustes"]').click();
-  });
+  const btnHeaderMenu = document.getElementById('btn-header-menu');
+  if (btnHeaderMenu) {
+    btnHeaderMenu.addEventListener('click', () => {
+      const tabAjustes = document.querySelector('.wa-tab-btn[data-tab="ajustes"]');
+      if (tabAjustes) tabAjustes.click();
+    });
+  }
 }
 
 // =============================================================================
@@ -1174,15 +1181,23 @@ async function carregarRelatorios() {
     const aniversariantes = await resAniv.json();
     const ausentes = await resAusentes.json();
 
-    document.getElementById('stat-alunos-ativos').textContent = quant.alunos_ativos;
-    document.getElementById('stat-alunos-inadimplentes').textContent = quant.inadimplentes_mes;
-    document.getElementById('stat-novos-matriculados').textContent = quant.novos_matriculados_mes;
-    document.getElementById('stat-alunos-inativos').textContent = quant.alunos_inativos;
+    const elAtivos = document.getElementById('stat-alunos-ativos');
+    if (elAtivos) elAtivos.textContent = quant.alunos_ativos;
+    const elInad = document.getElementById('stat-alunos-inadimplentes');
+    if (elInad) elInad.textContent = quant.inadimplentes_mes;
+    const elNovos = document.getElementById('stat-novos-matriculados');
+    if (elNovos) elNovos.textContent = quant.novos_matriculados_mes;
+    const elInativos = document.getElementById('stat-alunos-inativos');
+    if (elInativos) elInativos.textContent = quant.alunos_inativos;
 
-    document.getElementById('stat-faturamento-previsto').textContent = `R$ ${rel.faturamento_previsto.toFixed(2)}`;
-    document.getElementById('stat-faturamento-realizado').textContent = `R$ ${rel.faturamento_realizado.toFixed(2)}`;
-    document.getElementById('stat-total-pendente').textContent = `R$ ${rel.total_pendente_ou_atrasado.toFixed(2)}`;
-    document.getElementById('stat-qtd-pagamentos').textContent = rel.qtd_pagamentos_recebidos;
+    const elPrevisto = document.getElementById('stat-faturamento-previsto');
+    if (elPrevisto) elPrevisto.textContent = `R$ ${rel.faturamento_previsto.toFixed(2)}`;
+    const elRealizado = document.getElementById('stat-faturamento-realizado');
+    if (elRealizado) elRealizado.textContent = `R$ ${rel.faturamento_realizado.toFixed(2)}`;
+    const elPendente = document.getElementById('stat-total-pendente');
+    if (elPendente) elPendente.textContent = `R$ ${rel.total_pendente_ou_atrasado.toFixed(2)}`;
+    const elQtdPag = document.getElementById('stat-qtd-pagamentos');
+    if (elQtdPag) elQtdPag.textContent = rel.qtd_pagamentos_recebidos;
 
     // Despesas & Lucro Líquido Real
     const elDespesas = document.getElementById('stat-total-despesas');

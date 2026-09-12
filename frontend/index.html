@@ -26,13 +26,29 @@
 <body>
 
 <!-- Splash Screen Centralizada - Fase 1 -->
-<div id="pwa-splash-screen" class="pwa-splash-screen">
+<div id="pwa-splash-screen" class="pwa-splash-screen" title="Toque para entrar">
   <div class="pwa-splash-content">
     <img src="/icons/icon-512.png?v=9" alt="Studio Shanti" class="pwa-splash-logo">
     <h1 class="pwa-splash-title">Studio Shanti</h1>
     <p class="pwa-splash-subtitle">Painel de Gestão</p>
   </div>
 </div>
+
+<script>
+  (function() {
+    function fecharSplashImediato() {
+      var s = document.getElementById('pwa-splash-screen');
+      if (s && !s.classList.contains('hidden')) {
+        s.classList.add('hidden');
+        setTimeout(function() { s.style.display = 'none'; }, 400);
+      }
+    }
+    var splashEl = document.getElementById('pwa-splash-screen');
+    if (splashEl) splashEl.addEventListener('click', fecharSplashImediato);
+    window.addEventListener('load', function() { setTimeout(fecharSplashImediato, 400); });
+    setTimeout(fecharSplashImediato, 1800);
+  })();
+</script>
 
 <div id="app-container">
   
@@ -50,8 +66,8 @@
       </div>
     </div>
     <div class="wa-header-actions">
-      <button class="wa-icon-btn" id="btn-header-notif" title="Notificações">
-        <i class="fa-regular fa-bell"></i>
+      <button class="wa-icon-btn" id="btn-header-action" title="Atualizar dados">
+        <i class="fa-solid fa-arrows-rotate"></i>
       </button>
       <button class="wa-icon-btn" id="btn-header-menu" title="Configurações">
         <i class="fa-solid fa-gear"></i>
