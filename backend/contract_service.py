@@ -188,7 +188,7 @@ def gerar_pdf_contrato(aluno_id: int) -> io.BytesIO:
     qualificacao_data = [
         [
             Paragraph(
-                '<b>CONTRATADA:</b> Studio Shanti — Natália Garufe<br/>'
+                '<b>CONTRATADA:</b> Studio Shanti — Natália de Carvalho Garufe<br/>'
                 '<b>Endereço:</b> Rua Capitão Godoy, nº 150, Porto Novo, Além Paraíba/MG.<br/>'
                 '<b>CPF:</b> 117.624.777-85',
                 style_corpo
@@ -330,7 +330,7 @@ def gerar_pdf_contrato(aluno_id: int) -> io.BytesIO:
             Paragraph(
                 '____________________________________________<br/>'
                 '<b>CONTRATADA — STUDIO SHANTI</b><br/>'
-                '<b>NATÁLIA GARUFE</b><br/>'
+                '<b>NATÁLIA DE CARVALHO GARUFE</b><br/>'
                 'CPF: 117.624.777-85',
                 style_corpo
             )
