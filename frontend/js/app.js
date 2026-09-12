@@ -45,6 +45,26 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Carregar dados
   await carregarConfiguracoes();
   await atualizarTudo();
+
+  // Esconder Splash Screen suavemente (Fase 1)
+  const splashScreen = document.getElementById('pwa-splash-screen');
+  if (splashScreen) {
+    setTimeout(() => {
+      splashScreen.classList.add('hidden');
+      setTimeout(() => {
+        splashScreen.style.display = 'none';
+      }, 450);
+    }, 450);
+  }
+
+  // Fallback de segurança para garantir que a tela não trave
+  setTimeout(() => {
+    const splash = document.getElementById('pwa-splash-screen');
+    if (splash && !splash.classList.contains('hidden')) {
+      splash.classList.add('hidden');
+      setTimeout(() => { splash.style.display = 'none'; }, 450);
+    }
+  }, 2500);
 });
 
 async function atualizarTudo() {
@@ -215,13 +235,13 @@ function adicionarMensagem(texto, remetente = 'bot', dadosExtras = null, element
 
   let formattedText = texto
     .replace(/\*(.*?)\*/g, '<b>$1</b>')
-    .replace(/_(.*?)_/g, '<i>$1</i>');
+    .replace(/_(.*?)_/g, '<span>$1</span>');
 
   let htmlInner = '';
   
-  // Se for mensagem da IA, exibir o logo Shanti como avatar ao lado
+  // Se for mensagem da IA, exibir o avatar quadrado com borda dourada do Studio Shanti
   if (remetente === 'bot') {
-    htmlInner += `<img src="/img/shanti_logo.png?v=3" alt="Shanti" class="wa-msg-avatar">`;
+    htmlInner += `<img src="/icons/icon-192.png?v=9" alt="Studio Shanti" class="wa-msg-avatar" style="border-radius: 8px; border: 1px solid var(--shanti-gold); background: #1C2B24;">`;
   }
 
   htmlInner += `
@@ -362,9 +382,9 @@ function criarIndicadorDigitacao(msgInicial = 'Consultando o estúdio... 🧘‍
   const typingRow = document.createElement('div');
   typingRow.className = 'wa-message-row bot wa-typing-row';
   typingRow.innerHTML = `
-    <img src="/img/shanti_logo.png?v=3" alt="Shanti" class="wa-msg-avatar">
+    <img src="/icons/icon-192.png?v=9" alt="Studio Shanti" class="wa-msg-avatar" style="border-radius: 8px; border: 1px solid var(--shanti-gold); background: #1C2B24;">
     <div class="wa-message bot">
-      <div class="wa-message-content" style="color:#63736d;"><i class="typing-text">${msgInicial}</i></div>
+      <div class="wa-message-content" style="color:#63736d;"><span class="typing-text">${msgInicial}</span></div>
     </div>
   `;
   container.appendChild(typingRow);
@@ -775,7 +795,7 @@ function renderizarAlunos() {
     let waLink = '';
     if (situacao.includes('Atrasado') || situacao.includes('Vence hoje')) {
       const msg = encodeURIComponent(
-        `Olá, ${al.nome}! 🧘‍♀️ Passando para lembrar com carinho que sua mensalidade do Shanti Studio de Yoga venceu dia ${String(al.dia_vencimento).padStart(2, '0')} no valor de R$ ${al.valor_mensalidade.toFixed(2)}.\n\nChave PIX: ${state.configuracoes.chave_pix || 'contato@shantiyoga.com.br'}.\n\nGratidão e ótimas práticas! Namastê. 🙏`
+        `Olá, ${al.nome}! 🧘‍♀️ Passando para lembrar com carinho que sua mensalidade do Studio Shanti venceu dia ${String(al.dia_vencimento).padStart(2, '0')} no valor de R$ ${al.valor_mensalidade.toFixed(2)}.\n\nChave PIX: ${state.configuracoes.chave_pix || 'contato@shantiyoga.com.br'}.\n\nGratidão e ótimas práticas! Namastê. 🙏`
       );
       let tel = al.telefone.replace(/\D/g, '');
       if (!tel.startsWith('55')) tel = '55' + tel;
@@ -849,20 +869,45 @@ async function abrirDetalhesAluno(alunoId) {
     badgeEl.className = `wa-student-badge ${al.status === 'ativo' ? 'badge-em-dia' : 'badge-inativo'}`;
 
     const motivoBox = document.getElementById('det-motivo-box');
-    if (al.status === 'inativo' && al.motivo_saida) {
-      motivoBox.style.display = 'block';
-      document.getElementById('det-motivo-saida').textContent = `${al.motivo_saida} (${al.data_saida || ''})`;
+    const btnExcluir = document.getElementById('det-btn-excluir');
+    if (al.status === 'inativo') {
+      if (al.motivo_saida) {
+        motivoBox.style.display = 'block';
+        document.getElementById('det-motivo-saida').textContent = `${al.motivo_saida} (${al.data_saida || ''})`;
+      } else {
+        motivoBox.style.display = 'none';
+      }
       document.getElementById('det-btn-inativar').style.display = 'none';
       document.getElementById('det-btn-reativar').style.display = 'block';
+      if (btnExcluir) {
+        btnExcluir.style.display = 'block';
+        btnExcluir.onclick = async () => {
+          if (confirm(`Tem certeza que deseja excluir permanentemente o cadastro de "${al.nome}"? Esta ação removerá o histórico e não poderá ser desfeita.`)) {
+            try {
+              const res = await fetch(`/api/alunos/${al.id}`, { method: 'DELETE' });
+              if (res.ok) {
+                showToast(`Aluno(a) ${al.nome} excluído(a) com sucesso.`);
+                fecharModal('modal-student-details');
+                await atualizarTudo();
+              } else {
+                showToast('Erro ao excluir aluno.');
+              }
+            } catch (err) {
+              showToast('Falha na comunicação com o servidor.');
+            }
+          }
+        };
+      }
     } else {
       motivoBox.style.display = 'none';
       document.getElementById('det-btn-inativar').style.display = 'block';
       document.getElementById('det-btn-reativar').style.display = 'none';
+      if (btnExcluir) btnExcluir.style.display = 'none';
     }
 
     let tel = al.telefone.replace(/\D/g, '');
     if (!tel.startsWith('55')) tel = '55' + tel;
-    const msg = encodeURIComponent(`Olá, ${al.nome}! Tudo bem? Shanti Studio de Yoga passando para falar com você. Namastê 🙏`);
+    const msg = encodeURIComponent(`Olá, ${al.nome}! Tudo bem? Studio Shanti passando para falar com você. Namastê 🙏`);
     document.getElementById('det-btn-whatsapp').href = `https://wa.me/${tel}?text=${msg}`;
 
     // Configurar botão de Marcar Presença
@@ -1160,16 +1205,17 @@ async function carregarRelatorios() {
         listAniv.innerHTML = '<div style="font-size: 12px; color: var(--wa-text-secondary); text-align: center; padding: 8px;">Nenhum aniversariante neste mês 🎂</div>';
       } else {
         listAniv.innerHTML = aniversariantes.map(a => {
-          let tel = a.telefone.replace(/\D/g, '');
-          if (!tel.startsWith('55')) tel = '55' + tel;
-          const msgParabens = encodeURIComponent(`Olá, ${a.nome}! 🎉🎂 Passando para te desejar um Feliz Aniversário repleto de paz, luz e harmonia! Muita gratidão por fazer parte da família Shanti Studio de Yoga. Namastê! 🙏✨`);
-          const waLink = `https://wa.me/${tel}?text=${msgParabens}`;
+          let tel = (a.telefone || '').replace(/\D/g, '');
+          if (!tel.startsWith('55') && tel) tel = '55' + tel;
+          const msgParabens = encodeURIComponent(`Olá, ${a.nome}! 🎉🎂 Passando para te desejar um Feliz Aniversário repleto de paz, luz e harmonia! Muita gratidão por fazer parte da família Studio Shanti. Namastê! 🙏✨`);
+          const waLink = a.link_whatsapp || `https://wa.me/${tel}?text=${msgParabens}`;
+          const ehHojeBadge = a.e_hoje ? `<span style="background:#fdf2f8; color:#db2777; border:1px solid #f472b6; font-size:10.5px; font-weight:800; padding:2px 7px; border-radius:10px; margin-left:6px;">🎉 É HOJE!</span>` : '';
 
           return `
-            <div class="wa-report-item">
+            <div class="wa-report-item" style="${a.e_hoje ? 'background:#fff1f2; border:1px solid #fda4af;' : ''}">
               <div class="wa-report-item-info">
-                <span class="wa-report-item-title">🎂 ${a.nome}</span>
-                <span class="wa-report-item-sub">Dia ${a.dia} (${a.data_nascimento ? formatarDataBR(a.data_nascimento) : ''}) • ${a.plano}</span>
+                <span class="wa-report-item-title">🎂 ${a.nome} ${ehHojeBadge}</span>
+                <span class="wa-report-item-sub">Dia ${a.dia} (${a.data_nascimento ? formatarDataBR(a.data_nascimento) : ''}) • ${a.plano || 'Yoga Regular'}</span>
               </div>
               <a href="${waLink}" target="_blank" class="wa-btn-sm-whatsapp" style="background: linear-gradient(135deg, #ec4899, #db2777);">
                 <i class="fa-brands fa-whatsapp"></i> Parabéns
@@ -1191,7 +1237,7 @@ async function carregarRelatorios() {
         listAus.innerHTML = ausentes.map(au => {
           let tel = au.telefone.replace(/\D/g, '');
           if (!tel.startsWith('55')) tel = '55' + tel;
-          const msgVolta = encodeURIComponent(`Olá, ${au.nome}! 🧘‍♀️ Sentimos sua falta nas aulas do Shanti Studio de Yoga! Está tudo bem com você? Esperamos te ver no tapetinho em breve. Namastê! 🙏`);
+          const msgVolta = encodeURIComponent(`Olá, ${au.nome}! 🧘‍♀️ Sentimos sua falta nas aulas do Studio Shanti! Está tudo bem com você? Esperamos te ver no tapetinho em breve. Namastê! 🙏`);
           const waLink = `https://wa.me/${tel}?text=${msgVolta}`;
 
           return `
@@ -1242,15 +1288,31 @@ async function carregarConfiguracoes() {
     if (state.configuracoes.gemini_api_key) {
       document.getElementById('cfg-gemini-key').value = state.configuracoes.gemini_api_key;
     }
+
+    // Inicializar escala do ícone salva
+    if (state.configuracoes.icone_escala) {
+      const pct = Math.round(parseFloat(state.configuracoes.icone_escala) * 100);
+      const iconScaleInput = document.getElementById('cfg-icon-scale');
+      const iconScaleVal = document.getElementById('cfg-icon-scale-val');
+      if (iconScaleInput) iconScaleInput.value = pct;
+      if (iconScaleVal) iconScaleVal.textContent = `${pct}%`;
+      const pSq = document.getElementById('img-preview-square');
+      const pRd = document.getElementById('img-preview-round');
+      const pSp = document.getElementById('img-preview-splash');
+      if (pSq) pSq.style.width = `${pct}%`;
+      if (pRd) pRd.style.width = `${pct}%`;
+      if (pSp) pSp.style.width = `${Math.round(pct * 0.85)}%`;
+    }
   } catch (err) {
     console.error('Erro ao carregar configurações:', err);
   }
 }
 
 function setupSettings() {
+  // 1. Salvar Configurações Gerais
   document.getElementById('btn-salvar-configuracoes').addEventListener('click', async () => {
     const configs = {
-      nome_studio: document.getElementById('cfg-nome-studio').value.trim() || 'Shanti Studio de Yoga',
+      nome_studio: document.getElementById('cfg-nome-studio').value.trim() || 'Studio Shanti',
       chave_pix: document.getElementById('cfg-chave-pix').value.trim(),
       tipo_chave_pix: document.getElementById('cfg-tipo-pix').value,
       gemini_api_key: document.getElementById('cfg-gemini-key').value.trim()
@@ -1269,4 +1331,92 @@ function setupSettings() {
       alert('Erro ao salvar configurações.');
     }
   });
+
+  // 2. Controles de Ícone e Splash Screen (Fase 1)
+  const iconScaleInput = document.getElementById('cfg-icon-scale');
+  const iconScaleVal = document.getElementById('cfg-icon-scale-val');
+  const previewSquareImg = document.getElementById('img-preview-square');
+  const previewRoundImg = document.getElementById('img-preview-round');
+  const previewSplashImg = document.getElementById('img-preview-splash');
+  const iconFileInput = document.getElementById('cfg-icon-file');
+  const btnSalvarIcone = document.getElementById('btn-salvar-icone');
+
+  const aplicarEscalaPreviews = (val) => {
+    if (iconScaleVal) iconScaleVal.textContent = `${val}%`;
+    if (previewSquareImg) previewSquareImg.style.width = `${val}%`;
+    if (previewRoundImg) previewRoundImg.style.width = `${val}%`;
+    if (previewSplashImg) previewSplashImg.style.width = `${Math.round(val * 0.85)}%`;
+  };
+
+  if (iconScaleInput) {
+    iconScaleInput.addEventListener('input', (e) => {
+      aplicarEscalaPreviews(e.target.value);
+    });
+  }
+
+  if (iconFileInput) {
+    iconFileInput.addEventListener('change', (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (file) {
+        const objectUrl = URL.createObjectURL(file);
+        if (previewSquareImg) previewSquareImg.src = objectUrl;
+        if (previewRoundImg) previewRoundImg.src = objectUrl;
+        if (previewSplashImg) previewSplashImg.src = objectUrl;
+      }
+    });
+  }
+
+  if (btnSalvarIcone) {
+    btnSalvarIcone.addEventListener('click', async () => {
+      const scaleVal = iconScaleInput ? parseFloat(iconScaleInput.value) / 100 : 0.75;
+      const file = iconFileInput && iconFileInput.files && iconFileInput.files[0];
+
+      const formData = new FormData();
+      formData.append('escala', scaleVal.toFixed(2));
+      if (file) {
+        formData.append('imagem', file);
+      }
+
+      btnSalvarIcone.disabled = true;
+      const originalHtml = btnSalvarIcone.innerHTML;
+      btnSalvarIcone.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processando Ícones...';
+
+      try {
+        const res = await fetch('/api/configuracoes/icone', {
+          method: 'POST',
+          body: formData
+        });
+        const data = await res.json();
+        if (res.ok) {
+          showToast(data.mensagem || 'Ícones e Splash Screen atualizados com sucesso!');
+          const v = data.versao || Date.now();
+
+          // Atualizar imagens em tempo real no app
+          const targets = [
+            '#img-preview-square', '#img-preview-round', '#img-preview-splash',
+            '#cfg-logo-preview', '.wa-avatar-img', '.pwa-splash-logo'
+          ];
+          targets.forEach(sel => {
+            document.querySelectorAll(sel).forEach(el => {
+              el.src = `/icons/icon-192.png?v=${v}`;
+            });
+          });
+
+          // Atualizar favicon e apple-touch-icon
+          const favicon = document.querySelector('link[rel="icon"]');
+          if (favicon) favicon.href = `/favicon.png?v=${v}`;
+          const appleIcon = document.querySelector('link[rel="apple-touch-icon"]');
+          if (appleIcon) appleIcon.href = `/icons/icon-192.png?v=${v}`;
+        } else {
+          alert(data.detail || 'Erro ao processar ícone.');
+        }
+      } catch (err) {
+        console.error('Erro ao salvar ícone:', err);
+        alert('Erro ao comunicar com o servidor.');
+      } finally {
+        btnSalvarIcone.disabled = false;
+        btnSalvarIcone.innerHTML = originalHtml;
+      }
+    });
+  }
 }

@@ -77,7 +77,7 @@ def processar_comando_local(texto: str) -> Dict[str, Any]:
     if any(p in texto_lower for p in ["relatorio", "relatório", "faturamento", "receita", "financeiro", "balanço", "quanto recebi"]):
         relatorio = db.obter_relatorio_mensal()
         resposta = (
-            f"📊 *Relatório Financeiro do Mês ({relatorio['mes_referencia']})*\n\n"
+            f"*Relatório Financeiro do Mês ({relatorio['mes_referencia']})*\n\n"
             f"• *Faturamento Previsto:* R$ {relatorio['faturamento_previsto']:.2f}\n"
             f"• *Faturamento Realizado:* R$ {relatorio['faturamento_realizado']:.2f}\n"
             f"• *Total Pendente/Atrasado:* R$ {relatorio['total_pendente_ou_atrasado']:.2f}\n"
@@ -223,7 +223,12 @@ def processar_comando_local(texto: str) -> Dict[str, Any]:
             }
         resposta = f"🎉 *Aniversariantes do Mês!*\n\n"
         for al in niver:
-            status_dia = "Já comemorou" if al["ja_fez"] else "Está chegando"
+            if al.get("e_hoje"):
+                status_dia = "🎂 É HOJE! 🎉"
+            elif al["ja_fez"]:
+                status_dia = "Já comemorou"
+            else:
+                status_dia = "Está chegando"
             resposta += f"• *{al['nome']}* — Dia {al['dia']:02d} ({status_dia})\n"
         resposta += "\nToque abaixo para parabenizar no WhatsApp com 1 clique:"
         return {
@@ -320,8 +325,8 @@ async def processar_mensagem_ia(texto: str) -> Dict[str, Any]:
         - Chave PIX: {configs.get('chave_pix')} ({configs.get('tipo_chave_pix')})
 
         Regras:
-        1. Formate suas mensagens como se fossem no WhatsApp (use *negrito*, listas limpas e emojis de yoga 🧘‍♀️ 🙏 🕉️).
-        2. Seja clara e precisa com valores em reais (R$), lucro líquido e métricas.
+        1. Formate suas mensagens em texto limpo e direto (use *negrito* para destaque, NUNCA use itálico). Use no máximo 1 emoji por mensagem, e NUNCA use emojis em mensagens contendo dados numéricos, relatórios ou valores financeiros.
+        2. Seja clara e precisa com valores em reais (R$), lucro líquido e métricas financeiras.
         3. Se o usuário pedir para cobrar atrasados, parabenizar aniversariantes ou acolher alunos ausentes, informe que os botões com links prontos do WhatsApp estão disponíveis na tela.
         4. Mantenha respostas concisas para facilitar a leitura no celular e para poder ser ouvida em voz alta com naturalidade.
         5. Se o usuário fizer perguntas gerais, históricas, curiosidades ou bater papo (ex: 'Quem foi Dom Pedro?', 'Qual a capital do Brasil?'), responda com clareza, riqueza de detalhes e sabedoria, mantendo sempre o tom acolhedor e atencioso.

@@ -3,16 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Shanti Studio de Yoga - Gestão Inteligente</title>
+  <title>Studio Shanti - Painel de Gestão</title>
 
   <!-- Favicon & PWA Meta Tags -->
-  <link rel="icon" type="image/png" href="/favicon.png">
-  <link rel="manifest" href="/manifest.json">
-  <meta name="theme-color" content="#0b382c">
+  <link rel="icon" type="image/png" href="/favicon.png?v=9">
+  <link rel="manifest" href="/manifest.json?v=9">
+  <meta name="theme-color" content="#1C2B24">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Shanti Yoga">
-  <link rel="apple-touch-icon" href="/icons/icon-192.png">
+  <meta name="apple-mobile-web-app-title" content="Studio Shanti">
+  <link rel="apple-touch-icon" href="/icons/icon-192.png?v=9">
 
   <!-- Fontes Google & Ícones FontAwesome -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -21,29 +21,37 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
   <!-- WhatsApp Luxe Theme Stylesheet -->
-  <link rel="stylesheet" href="/css/whatsapp-theme.css?v=8">
+  <link rel="stylesheet" href="/css/whatsapp-theme.css?v=9">
 </head>
 <body>
 
+<!-- Splash Screen Centralizada - Fase 1 -->
+<div id="pwa-splash-screen" class="pwa-splash-screen">
+  <div class="pwa-splash-content">
+    <img src="/icons/icon-512.png?v=9" alt="Studio Shanti" class="pwa-splash-logo">
+    <h1 class="pwa-splash-title">Studio Shanti</h1>
+    <p class="pwa-splash-subtitle">Painel de Gestão</p>
+  </div>
+</div>
+
 <div id="app-container">
   
-  <!-- Header WhatsApp com a Foto Oficial do Shanti Studio de Yoga -->
+  <!-- Header Studio Shanti (Fase 1) -->
   <header class="wa-header">
     <div class="wa-header-left">
       <div class="wa-avatar-wrapper">
-        <img src="/img/shanti_logo.png?v=3" alt="Shanti Studio de Yoga" class="wa-avatar-img">
+        <img src="/icons/icon-192.png?v=9" alt="Studio Shanti" class="wa-avatar-img">
       </div>
       <div class="wa-header-title">
-        <h1 id="header-studio-name">Shanti Studio de Yoga</h1>
+        <h1 id="header-studio-name">Studio Shanti</h1>
         <div class="wa-status-text">
-          <span class="wa-status-dot"></span>
-          <span>online • Assistente IA</span>
+          <span>Painel de gestão</span>
         </div>
       </div>
     </div>
     <div class="wa-header-actions">
-      <button class="wa-icon-btn" id="btn-header-action" title="Atualizar dados">
-        <i class="fa-solid fa-arrows-rotate"></i>
+      <button class="wa-icon-btn" id="btn-header-notif" title="Notificações">
+        <i class="fa-regular fa-bell"></i>
       </button>
       <button class="wa-icon-btn" id="btn-header-menu" title="Configurações">
         <i class="fa-solid fa-gear"></i>
@@ -51,7 +59,7 @@
     </div>
   </header>
 
-  <!-- Abas de Navegação Estilo WhatsApp -->
+  <!-- Abas de Navegação -->
   <nav class="wa-nav-tabs">
     <button class="wa-tab-btn active" data-tab="chat">
       <i class="fa-solid fa-comment-dots"></i> Conversas
@@ -78,21 +86,21 @@
       <div class="wa-messages-list" id="chat-messages">
         <!-- Mensagem de boas-vindas da IA com avatar Shanti -->
         <div class="wa-message-row">
-          <img src="/img/shanti_logo.png?v=3" alt="Shanti" class="wa-msg-avatar">
+          <img src="/icons/icon-192.png?v=9" alt="Shanti" class="wa-msg-avatar" style="border-radius: 8px;">
           <div class="wa-message bot">
             <div class="wa-message-content">
-              🧘‍♀️ <b>Namastê! Seja muito bem-vindo(a) ao Shanti Studio de Yoga.</b>
+              🧘‍♀️ <b>Namastê! Seja bem-vindo(a) ao Studio Shanti.</b>
 
-              Eu sou sua assistente inteligente integrada. Você pode me <b>mandar áudios</b> ou digitar comandos para gerenciar o studio!
+              Eu sou sua assistente de gestão integrada. Você pode me <b>mandar áudios</b> ou digitar comandos para gerenciar o estúdio!
               
-              💡 <b>Toque nos botões rápidos acima ou me pergunte:</b>
-              • <i>"Quem está com a mensalidade atrasada?"</i>
-              • <i>"Me envie o relatório financeiro do mês"</i>
-              • <i>"Envie cobrança para os alunos atrasados"</i>
-              • <i>"Qual o quantitativo de alunos ativos?"</i>
+              💡 <b>Consultas e comandos frequentes:</b>
+              • "Quem está com a mensalidade atrasada?"
+              • "Me envie o relatório financeiro do mês"
+              • "Envie cobrança para os alunos atrasados"
+              • "Qual o quantitativo de alunos ativos?"
             </div>
             <div class="wa-message-footer">
-              <span class="wa-msg-time" id="welcome-time">21:00</span>
+              <span class="wa-msg-time" id="welcome-time">12:00</span>
             </div>
           </div>
         </div>
@@ -288,9 +296,69 @@
     <div class="wa-settings-container">
       
       <div class="wa-card" style="text-align: center; margin-bottom: 16px;">
-        <img src="/img/shanti_logo.png" alt="Shanti Logo" style="width: 80px; height: 80px; border-radius: 50%; border: 3px solid var(--shanti-gold); margin: 0 auto 10px; display: block; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
-        <h3 style="font-family: var(--font-brand); font-size: 18px; color: var(--shanti-primary);">Shanti Studio de Yoga</h3>
+        <img id="cfg-logo-preview" src="/icons/icon-192.png?v=9" alt="Studio Shanti" style="width: 80px; height: 80px; border-radius: 18px; border: 2px solid var(--shanti-gold); margin: 0 auto 10px; display: block; box-shadow: 0 6px 16px rgba(0,0,0,0.12); object-fit: contain; background: #1C2B24;">
+        <h3 style="font-family: var(--font-brand); font-size: 19px; font-weight: 600; color: var(--shanti-primary); letter-spacing: 0.5px;">Studio Shanti</h3>
         <p style="font-size: 12px; color: var(--wa-text-secondary);">Identidade Visual & Configurações</p>
+      </div>
+
+      <!-- Card: Ícone e Splash Screen do PWA (Fase 1) -->
+      <div class="wa-card">
+        <div class="wa-card-title" style="margin-bottom: 12px;">
+          <i class="fa-solid fa-wand-magic-sparkles" style="color: var(--shanti-gold);"></i>
+          <span>Ícone e Splash Screen do App</span>
+        </div>
+        <p style="font-size: 12.5px; color: var(--wa-text-secondary); margin-bottom: 14px; line-height: 1.4;">
+          Ajuste a imagem, margens e centralização da logo para o ícone instalado no celular (PWA) e para a tela de abertura.
+        </p>
+
+        <!-- Previews em tempo real -->
+        <div style="display: flex; gap: 14px; justify-content: center; align-items: center; margin-bottom: 16px; background: var(--shanti-sand); padding: 14px; border-radius: 10px; border: 0.5px solid var(--wa-border);">
+          <!-- Quadrado (Ícone Padrão) -->
+          <div style="text-align: center;">
+            <div id="preview-icon-square" style="width: 68px; height: 68px; background: #1C2B24; border-radius: 15px; border: 1.5px solid var(--shanti-gold); overflow: hidden; display: flex; align-items: center; justify-content: center; margin: 0 auto 6px; box-shadow: 0 4px 10px rgba(0,0,0,0.18);">
+              <img id="img-preview-square" src="/icons/icon-192.png?v=9" alt="Preview Padrão" style="width: 75%; height: 75%; object-fit: contain; transition: all 0.15s ease;">
+            </div>
+            <span style="font-size: 11px; color: var(--wa-text-secondary); font-weight: 500;">Padrão</span>
+          </div>
+
+          <!-- Circular (Máscara Android/iOS) -->
+          <div style="text-align: center;">
+            <div id="preview-icon-round" style="width: 68px; height: 68px; background: #1C2B24; border-radius: 50%; border: 1.5px solid var(--shanti-gold); overflow: hidden; display: flex; align-items: center; justify-content: center; margin: 0 auto 6px; box-shadow: 0 4px 10px rgba(0,0,0,0.18);">
+              <img id="img-preview-round" src="/icons/icon-192.png?v=9" alt="Preview Circular" style="width: 75%; height: 75%; object-fit: contain; transition: all 0.15s ease;">
+            </div>
+            <span style="font-size: 11px; color: var(--wa-text-secondary); font-weight: 500;">Máscara</span>
+          </div>
+
+          <!-- Splash Screen Mini -->
+          <div style="text-align: center;">
+            <div id="preview-icon-splash" style="width: 52px; height: 68px; background: #1C2B24; border-radius: 8px; border: 1px solid var(--shanti-gold); overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; margin: 0 auto 6px; box-shadow: 0 4px 10px rgba(0,0,0,0.18);">
+              <img id="img-preview-splash" src="/icons/icon-192.png?v=9" alt="Preview Splash" style="width: 65%; height: auto; object-fit: contain; transition: all 0.15s ease;">
+              <span style="font-size: 6px; color: var(--shanti-gold); font-family: var(--font-brand); margin-top: 2px;">SHANTI</span>
+            </div>
+            <span style="font-size: 11px; color: var(--wa-text-secondary); font-weight: 500;">Splash</span>
+          </div>
+        </div>
+
+        <!-- Controles Interativos -->
+        <div class="wa-form-group">
+          <label>Trocar Imagem da Logo</label>
+          <input type="file" id="cfg-icon-file" accept="image/png, image/jpeg, image/webp" class="wa-form-control" style="font-size: 12px;">
+        </div>
+
+        <div class="wa-form-group">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+            <label style="margin-bottom: 0;">Escala da Logo no Ícone</label>
+            <span id="cfg-icon-scale-val" style="font-size: 12px; font-weight: 600; color: var(--shanti-gold);">75%</span>
+          </div>
+          <input type="range" id="cfg-icon-scale" min="45" max="95" value="75" class="wa-form-control" style="cursor: pointer; accent-color: var(--shanti-gold);">
+          <small style="font-size: 11px; color: var(--wa-text-secondary); display: block; margin-top: 4px;">
+            Dica: valores entre 65% e 75% garantem margens seguras e perfeitas em qualquer celular sem cortar a logo.
+          </small>
+        </div>
+
+        <button type="button" class="wa-btn-primary" id="btn-salvar-icone" style="margin-top: 6px; background: var(--shanti-secondary); border: 1px solid var(--shanti-gold); color: var(--shanti-gold);">
+          <i class="fa-solid fa-arrows-rotate"></i> Aplicar e Gerar Ícones do PWA
+        </button>
       </div>
 
       <div class="wa-card">
@@ -300,8 +368,8 @@
         </div>
 
         <div class="wa-form-group">
-          <label>Nome do Studio de Yoga</label>
-          <input type="text" class="wa-form-control" id="cfg-nome-studio" placeholder="Shanti Studio de Yoga">
+          <label>Nome do Studio</label>
+          <input type="text" class="wa-form-control" id="cfg-nome-studio" placeholder="Studio Shanti">
         </div>
 
         <div class="wa-form-group">
@@ -519,13 +587,16 @@
         <!-- Lista de presenças do aluno -->
       </div>
 
-      <!-- Botão de Inativar / Saída de Aluno -->
-      <div style="margin-top: 16px; border-top: 1px solid var(--wa-border); padding-top: 12px;">
+      <!-- Botão de Inativar / Saída de Aluno / Exclusão -->
+      <div style="margin-top: 16px; border-top: 1px solid var(--wa-border); padding-top: 12px; display: flex; flex-direction: column; gap: 8px;">
         <button id="det-btn-inativar" class="wa-btn-primary" style="background: #fef2f2; color: var(--wa-danger); border: 1px solid #fee2e2; box-shadow: none;">
           <i class="fa-solid fa-user-xmark"></i> Registrar Saída / Desistência
         </button>
         <button id="det-btn-reativar" class="wa-btn-primary" style="background: #ecfdf5; color: var(--wa-success); border: 1px solid #a7f3d0; box-shadow: none; display:none;">
           <i class="fa-solid fa-user-check"></i> Reativar Matrícula
+        </button>
+        <button id="det-btn-excluir" class="wa-btn-primary" style="background: #fee2e2; color: #991b1b; border: 1px solid #f87171; box-shadow: none; display:none;">
+          <i class="fa-solid fa-trash-can"></i> Excluir Aluno Inativo Definitivamente
         </button>
       </div>
     </div>

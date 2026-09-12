@@ -100,7 +100,7 @@ def init_db():
 
     # Configurações padrão
     configs_padrao = [
-        ("nome_studio", "Shanti Studio de Yoga"),
+        ("nome_studio", "Studio Shanti"),
         ("chave_pix", "contato@shantiyoga.com.br"),
         ("tipo_chave_pix", "E-mail"),
         ("gemini_api_key", ""),
@@ -277,8 +277,8 @@ def cadastrar_aluno(dados: Dict[str, Any]) -> int:
         mes_matricula = hoje.strftime("%Y-%m")
 
     cursor.execute("""
-    INSERT INTO alunos (nome, telefone, email, plano, dia_vencimento, valor_mensalidade, tipo_pagamento, status, data_matricula, mes_matricula, observacoes)
-    VALUES (?, ?, ?, ?, ?, ?, ?, 'ativo', ?, ?, ?)
+    INSERT INTO alunos (nome, telefone, email, plano, dia_vencimento, valor_mensalidade, tipo_pagamento, status, data_matricula, mes_matricula, observacoes, data_nascimento)
+    VALUES (?, ?, ?, ?, ?, ?, ?, 'ativo', ?, ?, ?, ?)
     """, (
         dados.get("nome"),
         dados.get("telefone", ""),
@@ -289,7 +289,8 @@ def cadastrar_aluno(dados: Dict[str, Any]) -> int:
         dados.get("tipo_pagamento", "PIX"),
         dados.get("data_matricula", hoje_str),
         mes_matricula,
-        dados.get("observacoes", "")
+        dados.get("observacoes", ""),
+        dados.get("data_nascimento") or None
     ))
     aluno_id = cursor.lastrowid
     conn.commit()
@@ -328,6 +329,17 @@ def reativar_aluno(aluno_id: int) -> bool:
     conn = get_connection()
     cursor = conn.cursor()
     cursor.execute("UPDATE alunos SET status = 'ativo', data_saida = NULL, motivo_saida = NULL WHERE id = ?", (aluno_id,))
+    rows_affected = cursor.rowcount
+    conn.commit()
+    conn.close()
+    return rows_affected > 0
+
+def excluir_aluno(aluno_id: int) -> bool:
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM frequencias WHERE aluno_id = ?", (aluno_id,))
+    cursor.execute("DELETE FROM pagamentos WHERE aluno_id = ?", (aluno_id,))
+    cursor.execute("DELETE FROM alunos WHERE id = ?", (aluno_id,))
     rows_affected = cursor.rowcount
     conn.commit()
     conn.close()
@@ -697,24 +709,35 @@ def obter_aniversariantes_mes(mes: Optional[int] = None) -> List[Dict[str, Any]]
         if not nasc or len(nasc) < 5:
             continue
         try:
-            partes = nasc.split("-")
+            nasc_limpo = str(nasc).strip().replace('/', '-')
+            partes = nasc_limpo.split("-")
+            m = None
+            d = None
             if len(partes) == 3:
-                m = int(partes[1])
-                d = int(partes[2])
+                # Se YYYY-MM-DD:
+                if len(partes[0]) == 4:
+                    m = int(partes[1])
+                    d = int(partes[2])
+                else:
+                    # Se DD-MM-YYYY:
+                    d = int(partes[0])
+                    m = int(partes[1])
             elif len(partes) == 2:
-                m = int(partes[0])
-                d = int(partes[1])
+                # Se DD-MM:
+                d = int(partes[0])
+                m = int(partes[1])
             else:
                 continue
 
             if m == mes:
+                e_hoje = (d == hoje.day and m == hoje.month)
                 msg = (
                     f"Feliz Aniversário, {al['nome']}! 🎂🎉✨\n\n"
                     f"Toda a equipe e comunidade do {studio_nome} deseja a você um novo ciclo repleto de saúde, "
                     f"paz profunda, harmonia e muita luz no seu caminho!\n\n"
                     f"Que sua prática continue nutrindo seu corpo e mente. Parabéns pelo seu dia! Namastê. 🙏🌸"
                 )
-                tel_limpo = "".join(filter(str.isdigit, al.get("telefone", "")))
+                tel_limpo = "".join(filter(str.isdigit, str(al.get("telefone", ""))))
                 if tel_limpo and not tel_limpo.startswith("55"):
                     tel_limpo = "55" + tel_limpo
                 link_wa = f"https://wa.me/{tel_limpo}?text={urllib.parse.quote(msg)}"
@@ -723,17 +746,19 @@ def obter_aniversariantes_mes(mes: Optional[int] = None) -> List[Dict[str, Any]]
                     "aluno_id": al["id"],
                     "nome": al["nome"],
                     "telefone": al["telefone"],
+                    "plano": al.get("plano", "Yoga Regular"),
                     "dia": d,
                     "mes": m,
                     "data_nascimento": nasc,
+                    "e_hoje": e_hoje,
                     "ja_fez": d < hoje.day if m == hoje.month else (m < hoje.month),
                     "mensagem": msg,
                     "link_whatsapp": link_wa
                 })
-        except:
+        except Exception as err:
             continue
 
-    return sorted(aniversariantes, key=lambda x: x["dia"])
+    return sorted(aniversariantes, key=lambda x: (not x.get("e_hoje", False), x["dia"]))
 
 # --- Comprovante / Recibo de Pagamento no WhatsApp ---
 

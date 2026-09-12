@@ -4,6 +4,7 @@ Fornece rotas da API REST, serviços de IA, cobranças no WhatsApp e arquivos es
 """
 import os
 import sys
+import io
 import datetime
 import re
 from typing import Optional, Dict, Any, List
@@ -11,6 +12,7 @@ from fastapi import FastAPI, HTTPException, UploadFile, File, Form
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+from PIL import Image
 
 import backend.database as db
 import backend.ai_service as ai
@@ -136,6 +138,13 @@ def api_reativar_aluno(aluno_id: int):
     if not sucesso:
         raise HTTPException(status_code=404, detail="Aluno não encontrado")
     return {"status": "ok", "mensagem": "Aluno reativado com sucesso!"}
+
+@app.delete("/api/alunos/{aluno_id}")
+def api_excluir_aluno(aluno_id: int):
+    sucesso = db.excluir_aluno(aluno_id)
+    if not sucesso:
+        raise HTTPException(status_code=404, detail="Aluno não encontrado")
+    return {"status": "ok", "mensagem": "Aluno excluído com sucesso!"}
 
 @app.post("/api/pagamentos")
 def api_registrar_pagamento(dados: PagamentoCreate):
@@ -319,6 +328,72 @@ def api_salvar_configuracoes(dados: ConfigUpdate):
     for k, v in dados.configs.items():
         db.salvar_configuracao(k, v)
     return {"status": "ok", "mensagem": "Configurações salvas com sucesso!"}
+
+@app.post("/api/configuracoes/icone")
+async def api_salvar_icone(
+    imagem: Optional[UploadFile] = File(None),
+    escala: float = Form(0.75),
+    offset_y: float = Form(0.0)
+):
+    """
+    Atualiza o ícone do PWA e a splash screen.
+    Permite enviar nova logo ou reposicionar a logo existente com margens seguras (sem corte no celular).
+    """
+    try:
+        frontend_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "frontend")
+        logo_path = os.path.join(frontend_dir, "img", "shanti_logo.png")
+        
+        if imagem and imagem.filename:
+            content = await imagem.read()
+            img = Image.open(io.BytesIO(content)).convert("RGBA")
+            os.makedirs(os.path.dirname(logo_path), exist_ok=True)
+            img.save(logo_path, "PNG")
+        elif os.path.exists(logo_path):
+            img = Image.open(logo_path).convert("RGBA")
+        else:
+            raise HTTPException(status_code=400, detail="Nenhuma imagem de logo encontrada no servidor.")
+
+        # Garantir limites seguros para escala e offset
+        escala_val = max(0.40, min(float(escala), 1.0))
+        offset_val = max(-0.25, min(float(offset_y), 0.25))
+
+        # Canvas 512x512 no verde escuro da marca (#1C2B24)
+        bg_color = (28, 43, 36, 255)
+        canvas = Image.new("RGBA", (512, 512), bg_color)
+
+        w, h = img.size
+        target_w = int(512 * escala_val)
+        target_h = int(512 * escala_val)
+        ratio = min(target_w / w, target_h / h)
+        new_w = max(1, int(w * ratio))
+        new_h = max(1, int(h * ratio))
+
+        resized = img.resize((new_w, new_h), Image.Resampling.LANCZOS)
+        pos_x = (512 - new_w) // 2
+        pos_y = (512 - new_h) // 2 + int(512 * offset_val)
+
+        canvas.paste(resized, (pos_x, pos_y), resized)
+
+        icons_dir = os.path.join(frontend_dir, "icons")
+        os.makedirs(icons_dir, exist_ok=True)
+
+        # Salvar tamanhos padrão do PWA com safe margins
+        canvas.save(os.path.join(icons_dir, "icon-512.png"), "PNG")
+        canvas.resize((192, 192), Image.Resampling.LANCZOS).save(os.path.join(icons_dir, "icon-192.png"), "PNG")
+        canvas.resize((96, 96), Image.Resampling.LANCZOS).save(os.path.join(icons_dir, "icon-96.png"), "PNG")
+        canvas.resize((64, 64), Image.Resampling.LANCZOS).save(os.path.join(frontend_dir, "favicon.png"), "PNG")
+
+        db.salvar_configuracao("icone_escala", str(escala_val))
+        db.salvar_configuracao("icone_offset_y", str(offset_val))
+
+        timestamp = int(datetime.datetime.now().timestamp())
+        return {
+            "status": "ok",
+            "mensagem": "Ícones do PWA e Splash Screen atualizados com sucesso!",
+            "versao": timestamp
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erro ao processar ícone: {str(e)}")
 
 # --- Montar Arquivos Estáticos do Frontend (PWA) ---
 

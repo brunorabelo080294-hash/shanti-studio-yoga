@@ -1,12 +1,12 @@
 {
-  "name": "Yoga Studio - WhatsApp AI",
-  "short_name": "Yoga Studio",
-  "description": "Aplicativo de Gestão para Studio de Yoga com IA e visual do WhatsApp",
+  "name": "Studio Shanti",
+  "short_name": "Studio Shanti",
+  "description": "Aplicativo de Gestão para o Studio Shanti Yoga",
   "start_url": "/",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#efeae2",
-  "theme_color": "#008069",
+  "background_color": "#1C2B24",
+  "theme_color": "#1C2B24",
   "icons": [
     {
       "src": "/icons/icon-96.png",
