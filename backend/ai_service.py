@@ -222,18 +222,39 @@ async def processar_mensagem_ia(texto: str) -> Dict[str, Any]:
         2. Seja clara e precisa com valores em reais (R$).
         3. Se o usuário pedir para cobrar atrasados ou enviar mensagens, informe quem deve receber e que os links diretos do WhatsApp estão disponíveis.
         4. Mantenha respostas concisas para facilitar a leitura no celular.
+        5. Se o usuário fizer perguntas gerais, históricas, curiosidades ou bater papo (ex: 'Quem foi Dom Pedro?', 'Qual a capital do Brasil?'), responda com clareza, riqueza de detalhes e sabedoria, mantendo sempre o tom acolhedor e atencioso.
         """
 
-        response = await client.aio.models.generate_content(
-            model="gemini-flash-latest",
-            contents=texto,
-            config=types.GenerateContentConfig(
-                system_instruction=system_instruction,
-                temperature=0.3
-            )
-        )
+        candidate_models = [
+            "gemini-flash-lite-latest",
+            "gemini-3.5-flash-lite",
+            "gemini-3.5-flash",
+            "gemini-3.6-flash"
+        ]
 
-        resposta_texto = response.text or ""
+        resposta_texto = ""
+        ultimo_erro = None
+
+        for modelo in candidate_models:
+            try:
+                response = await client.aio.models.generate_content(
+                    model=modelo,
+                    contents=texto,
+                    config=types.GenerateContentConfig(
+                        system_instruction=system_instruction,
+                        temperature=0.3
+                    )
+                )
+                resposta_texto = (response.text or "").strip()
+                if resposta_texto:
+                    break
+            except Exception as ex:
+                ultimo_erro = ex
+                print(f"Modelo {modelo} falhou: {ex}. Tentando próximo modelo...")
+                continue
+
+        if not resposta_texto and ultimo_erro:
+            raise ultimo_erro
         
         # Verificar se deve anexar dados adicionais (como links de cobrança)
         texto_lower = texto.lower()

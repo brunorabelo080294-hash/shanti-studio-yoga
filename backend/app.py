@@ -174,17 +174,30 @@ async def api_chat_audio(audio: UploadFile = File(...), texto_transcrito: Option
                 else:
                     mime_type = "audio/webm"
 
-                response = await client.aio.models.generate_content(
-                    model="gemini-flash-latest",
-                    contents=[
-                        types.Part.from_bytes(data=conteudo, mime_type=mime_type),
-                        "Transcreva com máxima precisão o que foi falado neste áudio em português. Retorne EXCLUSIVAMENTE o texto transcrito, sem introduções, sem aspas e sem explicações adicionais."
-                    ]
-                )
-                texto = (response.text or "").strip()
-                texto = re.sub(r'^["\'\s]+|["\'\s]+$', '', texto)
-                if any(texto.lower().startswith(x) for x in ["silêncio", "silencio", "sem fala", "inaudível", "inaudivel", "ruído", "ruido", "nenhum som"]):
-                    texto = ""
+                candidate_models = [
+                    "gemini-flash-lite-latest",
+                    "gemini-3.5-flash-lite",
+                    "gemini-3.5-flash",
+                    "gemini-3.6-flash"
+                ]
+                for modelo in candidate_models:
+                    try:
+                        response = await client.aio.models.generate_content(
+                            model=modelo,
+                            contents=[
+                                types.Part.from_bytes(data=conteudo, mime_type=mime_type),
+                                "Transcreva com máxima precisão o que foi falado neste áudio em português. Retorne EXCLUSIVAMENTE o texto transcrito, sem introduções, sem aspas e sem explicações adicionais."
+                            ]
+                        )
+                        texto = (response.text or "").strip()
+                        texto = re.sub(r'^["\'\s]+|["\'\s]+$', '', texto)
+                        if any(texto.lower().startswith(x) for x in ["silêncio", "silencio", "sem fala", "inaudível", "inaudivel", "ruído", "ruido", "nenhum som"]):
+                            texto = ""
+                        if texto:
+                            break
+                    except Exception as err_m:
+                        print(f"Modelo áudio {modelo} falhou: {err_m}. Tentando próximo...")
+                        continue
             except Exception as e:
                 print(f"Erro ao transcrever áudio com Gemini: {e}")
                 texto = ""
