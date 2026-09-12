@@ -61,6 +61,7 @@ def gerar_pdf_relatorio_financeiro(mes_ano: Optional[str] = None) -> io.BytesIO:
     nome_studio = configs.get("nome_studio", "Studio Shanti")
     despesas = db.listar_despesas(mes_ano)
     inadimplentes = db.obter_inadimplentes()
+    pagamentos = db.listar_pagamentos_mes(mes_ano)
 
     # Formatar mês/ano por extenso
     meses_pt = {
@@ -189,39 +190,92 @@ def gerar_pdf_relatorio_financeiro(mes_ano: Optional[str] = None) -> io.BytesIO:
     elements.append(t_cards)
     elements.append(Spacer(1, 14))
 
-    # 3. RECEITAS POR FORMA DE PAGAMENTO
-    elements.append(Paragraph("<b>1. Recebimentos por Forma de Pagamento</b>", style_secao))
-    por_forma = relatorio.get("por_forma_pagamento", [])
-    if not por_forma:
-        t_receitas_data = [["Forma de Pagamento", "Quantidade", "Total Recebido"]]
-        t_receitas_data.append(["Nenhum recebimento registrado neste mês.", "0", "R$ 0,00"])
+    # 3. DETALHAMENTO COMPLETO DE RECEBIMENTOS (QUEM PAGOU, DATAS E FORMAS)
+    elements.append(Paragraph(f"<b>1. Recebimentos Confirmados no Mês ({len(pagamentos)} pagamentos)</b>", style_secao))
+    
+    t_pag_data = [["Nome do Aluno", "Plano / Frequência", "Data Pagto", "Forma", "Valor (R$)", "Status"]]
+    if not pagamentos:
+        t_pag_data.append([
+            Paragraph("Nenhum pagamento registrado ou confirmado para este mês até o momento.", style_cell),
+            Paragraph("-", style_cell_center),
+            Paragraph("-", style_cell_center),
+            Paragraph("-", style_cell_center),
+            Paragraph("R$ 0,00", style_cell_center),
+            Paragraph("-", style_cell_center)
+        ])
     else:
-        t_receitas_data = [["Forma de Pagamento", "Quantidade de Pagamentos", "Total Recebido (R$)"]]
-        for f in por_forma:
-            v_format = "R$ {:,.2f}".format(f["total"]).replace(',', 'X').replace('.', ',').replace('X', '.')
-            t_receitas_data.append([
-                f["forma_pagamento"],
-                str(f["qtd"]),
-                v_format
-            ])
-        v_total_rec = "R$ {:,.2f}".format(fatur_real).replace(',', 'X').replace('.', ',').replace('X', '.')
-        t_receitas_data.append(["Total Geral de Recebimentos", str(relatorio.get("qtd_pagamentos_recebidos", 0)), v_total_rec])
+        for p in pagamentos:
+            v_format = "R$ {:,.2f}".format(p.get("valor", 0.0)).replace(',', 'X').replace('.', ',').replace('X', '.')
+            dt_pag = p.get("data_pagamento", "")
+            
+            def fmt_br_pag(ds):
+                if not ds: return "-"
+                pt = ds.split("-")
+                return f"{pt[2]}/{pt[1]}/{pt[0]}" if len(pt) == 3 else ds
+            
+            plano_aluno = p.get("aluno_plano") or "Plano Padrão"
+            if "1x" in plano_aluno.lower() and p.get("dia_semana_1x"):
+                plano_aluno = f"{plano_aluno} ({p.get('dia_semana_1x')})"
 
-    t_receitas = Table(t_receitas_data, colWidths=[234, 140, 140])
-    t_receitas.setStyle(TableStyle([
+            t_pag_data.append([
+                Paragraph(f"<b>{p.get('aluno_nome', '')}</b>", style_cell),
+                Paragraph(plano_aluno, style_cell),
+                Paragraph(fmt_br_pag(dt_pag), style_cell_center),
+                Paragraph(p.get("forma_pagamento", "PIX"), style_cell_center),
+                Paragraph(f"<b>{v_format}</b>", ParagraphStyle('ValPagR', parent=styles['Normal'], alignment=2, fontName='Helvetica-Bold', fontSize=8.5, textColor=cor_verde)),
+                Paragraph("<font color='#15803d'><b>Pago</b></font>", style_cell_center)
+            ])
+
+        v_total_rec = "R$ {:,.2f}".format(fatur_real).replace(',', 'X').replace('.', ',').replace('X', '.')
+        t_pag_data.append([
+            Paragraph("<b>Total Geral de Recebimentos</b>", style_cell_bold),
+            "", "", "",
+            Paragraph(f"<b>{v_total_rec}</b>", ParagraphStyle('TotPagR', parent=styles['Normal'], alignment=2, fontName='Helvetica-Bold', fontSize=8.5, textColor=cor_verde)),
+            ""
+        ])
+
+    t_pagamentos = Table(t_pag_data, colWidths=[164, 115, 65, 55, 65, 50], repeatRows=1)
+    t_pagamentos.setStyle(TableStyle([
         ('BACKGROUND', (0, 0), (-1, 0), cor_primaria),
         ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
         ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
         ('FONTSIZE', (0, 0), (-1, 0), 8.5),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
-        ('TOPPADDING', (0, 0), (-1, -1), 5),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
+        ('TOPPADDING', (0, 0), (-1, -1), 4),
         ('GRID', (0, 0), (-1, -1), 0.5, cor_borda),
         ('ROWBACKGROUNDS', (0, 1), (-1, -2), [colors.white, cor_fundo_card]),
         ('BACKGROUND', (0, -1), (-1, -1), cor_fundo_card),
-        ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
-        ('ALIGN', (1, 0), (-1, -1), 'CENTER'),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('SPAN', (0, -1), (3, -1)),
     ]))
-    elements.append(t_receitas)
+    elements.append(t_pagamentos)
+    elements.append(Spacer(1, 8))
+
+    # Subtotais por Forma de Pagamento (Tabela compacta auxiliar)
+    por_forma = relatorio.get("por_forma_pagamento", [])
+    if por_forma:
+        elements.append(Paragraph("<font size=8.5 color='#1C2B24'><b>Subtotais por Meio de Pagamento:</b></font>", ParagraphStyle('SubtotTit', parent=styles['Normal'], spaceBefore=2, spaceAfter=3)))
+        t_resumo_forma_data = [["Forma de Pagamento", "Quantidade de Alunos", "Subtotal Recebido"]]
+        for f in por_forma:
+            v_format_f = "R$ {:,.2f}".format(f["total"]).replace(',', 'X').replace('.', ',').replace('X', '.')
+            t_resumo_forma_data.append([
+                Paragraph(f["forma_pagamento"], style_cell),
+                Paragraph(str(f["qtd"]), style_cell_center),
+                Paragraph(v_format_f, ParagraphStyle('FormaR', parent=styles['Normal'], alignment=2, fontName='Helvetica', fontSize=8))
+            ])
+        t_resumo_forma = Table(t_resumo_forma_data, colWidths=[214, 150, 150])
+        t_resumo_forma.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#2C3E35")),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 8),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 3),
+            ('TOPPADDING', (0, 0), (-1, -1), 3),
+            ('GRID', (0, 0), (-1, -1), 0.5, cor_borda),
+            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, cor_fundo_card]),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ]))
+        elements.append(t_resumo_forma)
     elements.append(Spacer(1, 14))
 
     # 4. DETALHAMENTO COMPLETO DE DESPESAS

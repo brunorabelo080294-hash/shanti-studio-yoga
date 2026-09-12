@@ -644,6 +644,29 @@ def listar_pagamentos_aluno(aluno_id: int) -> List[Dict[str, Any]]:
     conn.close()
     return [dict(r) for r in rows]
 
+def listar_pagamentos_mes(mes_ano: Optional[str] = None) -> List[Dict[str, Any]]:
+    """
+    Retorna a lista detalhada de todos os pagamentos confirmados de um mês/ano,
+    incluindo o nome do aluno, telefone, plano, dia de aula (para plano 1x) e forma de pagamento.
+    """
+    hoje = datetime.date.today()
+    if not mes_ano:
+        mes_ano = hoje.strftime("%Y-%m")
+
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+    SELECT p.id, p.aluno_id, p.mes_referencia, p.valor, p.data_pagamento, p.forma_pagamento, p.status,
+           a.nome as aluno_nome, a.telefone as aluno_telefone, a.plano as aluno_plano, a.dia_semana_1x
+    FROM pagamentos p
+    JOIN alunos a ON a.id = p.aluno_id
+    WHERE (p.mes_referencia = ? OR p.data_pagamento LIKE ?) AND p.status = 'pago'
+    ORDER BY p.data_pagamento ASC, a.nome ASC
+    """, (mes_ano, f"{mes_ano}%"))
+    rows = cursor.fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
 # --- Consultas Estratégicas para IA e Relatórios ---
 
 def obter_inadimplentes() -> List[Dict[str, Any]]:
@@ -743,6 +766,7 @@ def obter_relatorio_mensal(mes_ano: Optional[str] = None) -> Dict[str, Any]:
     inadimplentes = obter_inadimplentes()
     total_inadimplente = sum(a["valor_mensalidade"] for a in inadimplentes)
     lucro_liquido = total_recebido - total_despesas
+    pagamentos_detalhados = listar_pagamentos_mes(mes_ano)
 
     return {
         "mes_referencia": mes_ano,
@@ -755,7 +779,8 @@ def obter_relatorio_mensal(mes_ano: Optional[str] = None) -> Dict[str, Any]:
         "qtd_despesas": qtd_despesas,
         "por_forma_pagamento": por_forma,
         "despesas_por_categoria": despesas_por_categoria,
-        "total_alunos_atrasados": len(inadimplentes)
+        "total_alunos_atrasados": len(inadimplentes),
+        "pagamentos_detalhados": pagamentos_detalhados
     }
 
 def gerar_mensagens_cobranca(tipo: str = "atrasados") -> List[Dict[str, Any]]:

@@ -1589,7 +1589,74 @@ async function carregarFinanceiro() {
       }
     }
 
-    // 3. Renderizar Lista Detalhada de Despesas
+    // 3. Renderizar Lista Detalhada de Pagamentos Recebidos (Quem Pagou)
+    const containerPagamentos = document.getElementById('lista-pagamentos-detalhada');
+    const badgePagantes = document.getElementById('badge-total-pagantes');
+    const pagamentos = rel.pagamentos_detalhados || [];
+
+    if (badgePagantes) {
+      badgePagantes.textContent = `${pagamentos.length} confirmado${pagamentos.length === 1 ? '' : 's'}`;
+    }
+
+    if (containerPagamentos) {
+      if (!pagamentos || pagamentos.length === 0) {
+        containerPagamentos.innerHTML = `
+          <div style="font-size: 12px; color: var(--wa-text-secondary); text-align: center; padding: 14px; background: var(--shanti-sand); border-radius: 8px;">
+            Nenhum pagamento registrado ou confirmado para ${nomeMes}/${ano} até o momento.
+          </div>
+        `;
+      } else {
+        containerPagamentos.innerHTML = pagamentos.map(p => {
+          let planoFormatado = p.aluno_plano || 'Mensalidade Regular';
+          if (planoFormatado.includes('1x') && p.dia_semana_1x) {
+            planoFormatado += ` (${p.dia_semana_1x})`;
+          }
+          return `
+            <div style="background:var(--shanti-sand); border:0.5px solid var(--wa-border); border-radius:8px; padding:10px 12px; display:flex; justify-content:space-between; align-items:center; gap:10px;">
+              <div style="flex:1; min-width:0;">
+                <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin-bottom:3px;">
+                  <span style="font-weight:700; font-size:13px; color:var(--wa-text-primary);">${p.aluno_nome}</span>
+                  <span style="font-size:10.5px; background:rgba(43,76,60,0.08); color:var(--shanti-primary); padding:1px 6px; border-radius:4px; font-weight:600;">${planoFormatado}</span>
+                  <span style="background:#e8f5e9; color:#2e7d32; font-weight:700; font-size:10.5px; padding:2px 7px; border-radius:6px; border:0.5px solid #a5d6a7;"><i class="fa-solid fa-check"></i> Pago</span>
+                </div>
+                <div style="font-size:11.5px; color:var(--wa-text-secondary);">
+                  <span>Data: <b>${formatarDataBR(p.data_pagamento)}</b></span> • <span>Forma: <b>${p.forma_pagamento || 'PIX'}</b></span>
+                </div>
+              </div>
+              <div style="text-align:right; display:flex; flex-direction:column; align-items:flex-end; gap:6px;">
+                <span style="font-weight:800; font-size:13.5px; color:#15803d;">+ R$ ${p.valor.toFixed(2)}</span>
+                <button class="btn-recibo-pagamento-financeiro" data-id="${p.id}" title="Ver Comprovante" style="background:#fff; border:0.5px solid var(--wa-border); border-radius:6px; padding:3px 8px; font-size:11px; color:var(--shanti-primary); cursor:pointer;">
+                  <i class="fa-solid fa-receipt"></i> Recibo
+                </button>
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        containerPagamentos.querySelectorAll('.btn-recibo-pagamento-financeiro').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            const pagId = btn.dataset.id;
+            try {
+              const res = await fetch(`/api/pagamentos/${pagId}/recibo`);
+              if (res.ok) {
+                const dados = await res.json();
+                if (dados.whatsapp_url) {
+                  window.open(dados.whatsapp_url, '_blank');
+                } else {
+                  alert(dados.mensagem || 'Recibo gerado.');
+                }
+              } else {
+                alert('Erro ao carregar recibo de pagamento.');
+              }
+            } catch (err) {
+              console.error('Erro ao abrir recibo:', err);
+            }
+          });
+        });
+      }
+    }
+
+    // 4. Renderizar Lista Detalhada de Despesas
     const containerDespesas = document.getElementById('lista-despesas-detalhada');
     if (containerDespesas) {
       if (!despesas || despesas.length === 0) {

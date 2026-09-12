@@ -280,6 +280,11 @@ def api_obter_quantitativo():
 def api_obter_relatorio(mes_ano: Optional[str] = None):
     return db.obter_relatorio_mensal(mes_ano=mes_ano)
 
+@app.get("/api/pagamentos")
+def api_listar_pagamentos(mes_ano: Optional[str] = None):
+    """Retorna lista detalhada de pagamentos recebidos no mês com nomes dos alunos e datas."""
+    return db.listar_pagamentos_mes(mes_ano=mes_ano)
+
 @app.get("/api/relatorio/pdf")
 def api_baixar_relatorio_pdf(mes_ano: Optional[str] = None):
     """Gera e retorna o PDF oficial do balanço financeiro mensal do Studio Shanti."""
