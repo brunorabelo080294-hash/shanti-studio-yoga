@@ -6,13 +6,13 @@
   <title>Studio Shanti - Painel de Gestão</title>
 
   <!-- Favicon & PWA Meta Tags -->
-  <link rel="icon" type="image/png" href="/favicon.png?v=9">
-  <link rel="manifest" href="/manifest.json?v=9">
+  <link rel="icon" type="image/png" href="/favicon.png?v=11">
+  <link rel="manifest" href="/manifest.json?v=11">
   <meta name="theme-color" content="#1C2B24">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Studio Shanti">
-  <link rel="apple-touch-icon" href="/icons/icon-192.png?v=9">
+  <link rel="apple-touch-icon" href="/icons/icon-192.png?v=11">
 
   <!-- Fontes Google & Ícones FontAwesome -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -21,7 +21,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
   <!-- WhatsApp Luxe Theme Stylesheet -->
-  <link rel="stylesheet" href="/css/whatsapp-theme.css?v=9">
+  <link rel="stylesheet" href="/css/whatsapp-theme.css?v=11">
 </head>
 <body>
 
@@ -721,12 +721,12 @@
 <div class="wa-toast" id="toast-msg">Notificação</div>
 
 <!-- JavaScript Principal -->
-<script src="/js/app.js?v=9"></script>
+<script src="/js/app.js?v=11"></script>
 
 <script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/service-worker.js?v=9').then(reg => {
+      navigator.serviceWorker.register('/service-worker.js?v=11').then(reg => {
         reg.update();
       }).catch(err => {
         console.log('SW reg:', err);
