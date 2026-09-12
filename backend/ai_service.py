@@ -133,6 +133,40 @@ def processar_comando_local(texto: str) -> Dict[str, Any]:
             "dados": despesas
         }
 
+    # Gestão de Contratos Digitais (Fase 4)
+    if any(p in texto_lower for p in ["contrato", "contratos", "vigência", "vigencia", "30 dias", "assinatura de contrato", "pendente de assinatura", "contratos a vencer"]):
+        alertas = db.obter_alertas_contratos()
+        contratos = db.listar_contratos()
+        
+        resposta = "📜 *Gestão de Contratos Digitais - Studio Shanti*\n\n"
+        resposta += f"• *Total de Alunos:* {alertas['total_geral']}\n"
+        resposta += f"• *Contratos em Dia:* {alertas['total_em_dia']}\n"
+        resposta += f"• *Pendentes de Assinatura:* {alertas['total_pendentes']}\n"
+        resposta += f"• *A Vencer nos próximos 30 dias:* {alertas['total_a_vencer']}\n"
+        resposta += f"• *Vencidos:* {alertas['total_vencidos']}\n\n"
+
+        if alertas["total_a_vencer"] > 0:
+            resposta += "⚠️ *CONTRATOS A VENCER (FALTAM MENOS DE 30 DIAS):*\n"
+            for c in alertas["alunos_a_vencer"]:
+                resposta += f"• *{c['nome']}* — Vence em {c['dias_restantes']} dias ({c['data_vigencia']})\n"
+            resposta += "\n"
+
+        if alertas["total_pendentes"] > 0:
+            resposta += "📝 *CONTRATOS PENDENTES DE ASSINATURA:*\n"
+            for c in alertas["alunos_pendentes"][:5]:
+                resposta += f"• *{c['nome']}* ({c['plano']}) - Aguardando documento assinado\n"
+            if len(alertas["alunos_pendentes"]) > 5:
+                resposta += f"  _...e mais {len(alertas['alunos_pendentes']) - 5} aluno(s)._\n"
+            resposta += "\n"
+
+        resposta += "💡 *Dica:* Na nova aba **Contratos**, você pode baixar o PDF para assinar, enviar direto no WhatsApp do aluno ou anexar a via com as duas assinaturas!"
+
+        return {
+            "resposta": resposta.strip(),
+            "tipo": "contratos",
+            "dados": alertas
+        }
+
     # 4. Quantitativo de Alunos / Métricas
     if any(p in texto_lower for p in ["quantitativo", "quantos alunos", "total de alunos", "número de alunos", "alunos ativos", "evasão", "saídas"]):
         quant = db.obter_quantitativo()
@@ -374,6 +408,7 @@ async def processar_mensagem_ia(texto: str) -> Dict[str, Any]:
         configs = db.obter_configuracoes()
         despesas_mes = db.listar_despesas(datetime.date.today().strftime("%Y-%m"))
         alertas_despesas = db.obter_alertas_despesas()
+        alertas_contratos = db.obter_alertas_contratos()
 
         system_instruction = f"""
         Você é a Assistente Virtual e Gerente de IA do '{configs.get('nome_studio', 'Studio Shanti')}'.
@@ -394,6 +429,7 @@ async def processar_mensagem_ia(texto: str) -> Dict[str, Any]:
         - Despesas Lançadas ({len(despesas_mes)}): {[d['descricao'] + ' (R$ ' + str(d['valor']) + ', Venc: ' + str(d.get('data_vencimento', d.get('data'))) + ', ' + str(d.get('status', 'pago')) + ')' for d in despesas_mes]}
         - Alertas de Vencimento de Despesas: {alertas_despesas['total_vencidas']} conta(s) vencida(s), {alertas_despesas['total_vence_hoje']} vencendo hoje
         - Lucro Líquido Real do Mês: R$ {relatorio.get('lucro_liquido_real', 0):.2f}
+        - Contratos Digitais: {alertas_contratos['total_em_dia']} em dia, {alertas_contratos['total_a_vencer']} a vencer nos próximos 30 dias ({[c['nome'] + ' (vence em ' + str(c['dias_restantes']) + ' dias)' for c in alertas_contratos['alunos_a_vencer']]}), {alertas_contratos['total_pendentes']} pendentes de assinatura
         - Alunos Ausentes / Sem Praticar há mais de 10 dias ({len(ausentes)}): {[a['nome'] + ' (' + str(a['dias_ausente']) + ' dias sem vir)' for a in ausentes]}
         - Aniversariantes do Mês ({len(aniversariantes)}): {[a['nome'] + ' (dia ' + str(a['dia']) + ')' for a in aniversariantes]}
         - Chave PIX: {configs.get('chave_pix')} ({configs.get('tipo_chave_pix')})
@@ -406,6 +442,7 @@ async def processar_mensagem_ia(texto: str) -> Dict[str, Any]:
         5. Se o usuário fizer perguntas gerais, históricas, curiosidades ou bater papo (ex: 'Quem foi Dom Pedro?', 'Qual a capital do Brasil?'), responda com clareza, riqueza de detalhes e sabedoria, mantendo sempre o tom acolhedor e atencioso.
         6. Capacidade Máxima das Turmas: O estúdio adota rigorosamente o teto de 16 alunos por turma. Sempre que perguntado sobre turmas, informe a ocupação (X/16) e alerte com destaque caso alguma turma atinja 16 alunos (turma lotada) ou 15 alunos (última vaga).
         7. Despesas e Contas do Estúdio: Ao ser perguntado sobre despesas, contas a pagar ou vencimentos, informe os detalhes das contas lançadas e avise com urgência sobre contas vencidas ou vencendo hoje.
+        8. Contratos Digitais: Ao ser perguntada sobre contratos, informe a situação dos contratos vigentes, alerte expressamente caso haja contratos a vencer em até 30 dias ou pendentes de assinatura e indique que a Natália pode gerenciar tudo na aba Contratos.
         """
 
         candidate_models = [

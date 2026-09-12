@@ -259,6 +259,41 @@ body {
   color: #ffffff;
 }
 
+.wa-tab-badge.warning {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: #ffffff;
+}
+
+.badge-contrato-em-dia {
+  background: #ecfdf5;
+  color: #059669;
+  border: 1px solid #a7f3d0;
+}
+
+.badge-contrato-a-vencer {
+  background: #fffbeb;
+  color: #d97706;
+  border: 1px solid #fcd34d;
+  animation: pulse-border 2s infinite;
+}
+
+.badge-contrato-pendente {
+  background: #eff6ff;
+  color: #2563eb;
+  border: 1px solid #bfdbfe;
+}
+
+.badge-contrato-vencido {
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+}
+
+@keyframes pulse-border {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4); }
+  50% { box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.15); }
+}
+
 /* ==========================================================================
    Área Principal de Telas / Abas
    ========================================================================== */

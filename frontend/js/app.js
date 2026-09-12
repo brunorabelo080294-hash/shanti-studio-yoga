@@ -7,6 +7,7 @@
 const state = {
   alunos: [],
   turmas: [],
+  contratos: [],
   alunoSelecionado: null,
   isRecording: false,
   mediaRecorder: null,
@@ -15,6 +16,7 @@ const state = {
   recordSeconds: 0,
   speechRecognition: null,
   currentFilter: 'todos',
+  currentContractFilter: 'todos',
   configuracoes: {},
   liveVoiceMode: false,
   isSpeaking: false
@@ -73,6 +75,7 @@ async function atualizarTudo() {
   await carregarAlunos();
   await carregarFinanceiro();
   await carregarEstudio();
+  await carregarContratos();
 }
 
 async function carregarTurmas() {
@@ -310,6 +313,7 @@ function setupNavigation() {
       if (tab.dataset.tab === 'alunos') carregarAlunos();
       if (tab.dataset.tab === 'financeiro') carregarFinanceiro();
       if (tab.dataset.tab === 'estudio') carregarEstudio();
+      if (tab.dataset.tab === 'contratos') carregarContratos();
     });
   });
 
@@ -950,6 +954,12 @@ function renderizarAlunos() {
     const item = document.createElement('div');
     item.className = 'wa-student-item';
 
+    const isPendentePagamento = al.aprovacao_pagamento === 'pendente';
+    if (isPendentePagamento) {
+      item.style.borderColor = '#f59e0b';
+      item.style.background = '#fffdf5';
+    }
+
     let badgeClass = 'badge-em-dia';
     let situacao = al.situacao_financeira || 'Em dia';
     if (situacao.includes('Atrasado')) badgeClass = 'badge-atrasado';
@@ -975,14 +985,25 @@ function renderizarAlunos() {
       <div class="wa-student-info">
         <div class="wa-student-top">
           <span class="wa-student-name">${al.nome}</span>
-          <span class="wa-student-badge ${badgeClass}">${situacao}</span>
+          ${isPendentePagamento ? `
+            <span class="wa-student-badge" style="background: #fffbeb; color: #b45309; border: 1px solid #fcd34d;">
+              <i class="fa-solid fa-clock"></i> Matrícula Pendente
+            </span>
+          ` : `
+            <span class="wa-student-badge ${badgeClass}">${situacao}</span>
+          `}
         </div>
         <div class="wa-student-sub">
           <span>${al.plano}${al.plano && al.plano.includes('1x') && al.dia_semana_1x ? ` (${al.dia_semana_1x})` : ''} • R$ ${al.valor_mensalidade.toFixed(2)}</span>
           <span>Venc. dia ${al.dia_vencimento}</span>
         </div>
       </div>
-      <div class="wa-student-actions">
+      <div class="wa-student-actions" style="display:flex; gap:6px; align-items:center;">
+        ${isPendentePagamento ? `
+          <button class="wa-btn-primary" style="padding: 5px 9px; font-size: 11px; background: #16a34a; border: none; box-shadow: none; white-space: nowrap;" onclick="event.stopPropagation(); aprovarPagamentoMatricula(${al.id}, '${al.nome.replace(/'/g, "\\'")}');" title="Confirmar pagamento da 1ª mensalidade e ativar aluno (Entrou, Pagou)">
+            <i class="fa-solid fa-check"></i> Aprovar (Entrou, Pagou)
+          </button>
+        ` : ''}
         ${waLink ? `
           <a href="${waLink}" target="_blank" class="wa-btn-cobranca-item" title="Cobrar no WhatsApp" onclick="event.stopPropagation();">
             <i class="fa-brands fa-whatsapp"></i>
@@ -1020,7 +1041,24 @@ async function abrirDetalhesAluno(alunoId) {
 
     document.getElementById('det-nome').textContent = al.nome;
     document.getElementById('det-telefone').textContent = al.telefone;
+    const detCpf = document.getElementById('det-cpf');
+    if (detCpf) detCpf.textContent = al.cpf || 'Não informado';
     document.getElementById('det-plano').textContent = al.plano;
+
+    // Aprovação de pagamento pendente (Entrou, Pagou)
+    const boxAprov = document.getElementById('det-box-aprovacao-pendente');
+    const btnAprov = document.getElementById('det-btn-aprovar-pagamento');
+    if (boxAprov && btnAprov) {
+      if (al.aprovacao_pagamento === 'pendente') {
+        boxAprov.style.display = 'block';
+        btnAprov.onclick = async () => {
+          await aprovarPagamentoMatricula(al.id, al.nome);
+          await abrirDetalhesAluno(al.id);
+        };
+      } else {
+        boxAprov.style.display = 'none';
+      }
+    }
 
     // Dia da semana para plano 1x
     const boxDia1x = document.getElementById('det-box-dia-1x');
@@ -1152,6 +1190,72 @@ async function abrirDetalhesAluno(alunoId) {
     const msg = encodeURIComponent(`Olá, ${al.nome}! Tudo bem? Studio Shanti passando para falar com você. Namastê 🙏`);
     document.getElementById('det-btn-whatsapp').href = `https://wa.me/${tel}?text=${msg}`;
 
+    // Bloco de Contrato Digital no Modal de Detalhes
+    const detBadgeContrato = document.getElementById('det-contrato-status-badge');
+    const detVigencia = document.getElementById('det-contrato-vigencia');
+    const detArquivoStatus = document.getElementById('det-contrato-arquivo-status');
+    const detBtnPdf = document.getElementById('det-btn-contrato-pdf');
+    const detBtnWa = document.getElementById('det-btn-contrato-wa');
+    const detBtnUpload = document.getElementById('det-btn-contrato-upload');
+    const detBtnVer = document.getElementById('det-btn-contrato-ver');
+
+    const stContrato = al.status_contrato || 'pendente';
+    if (detBadgeContrato) {
+      if (stContrato === 'em_dia') {
+        detBadgeContrato.textContent = 'Em Dia';
+        detBadgeContrato.className = 'wa-student-badge badge-contrato-em-dia';
+      } else if (stContrato === 'a_vencer') {
+        detBadgeContrato.textContent = 'A Vencer';
+        detBadgeContrato.className = 'wa-student-badge badge-contrato-a-vencer';
+      } else if (stContrato === 'vencido') {
+        detBadgeContrato.textContent = 'Vencido';
+        detBadgeContrato.className = 'wa-student-badge badge-contrato-vencido';
+      } else {
+        detBadgeContrato.textContent = 'Pendente de Assinatura';
+        detBadgeContrato.className = 'wa-student-badge badge-contrato-pendente';
+      }
+    }
+
+    if (detVigencia) {
+      detVigencia.textContent = al.data_vigencia_contrato 
+        ? `${formatarDataBR(al.data_vigencia_contrato)} (${al.dias_restantes_contrato != null ? al.dias_restantes_contrato + ' dias restantes' : '1 ano'})`
+        : 'Pendente de assinatura e envio';
+    }
+
+    if (detArquivoStatus) {
+      detArquivoStatus.innerHTML = al.contrato_assinado_arquivo 
+        ? '<span style="color:#15803d; font-weight:600;"><i class="fa-solid fa-check-circle"></i> Anexado (mútuo)</span>' 
+        : '<span style="color:#b45309;">Nenhum arquivo enviado</span>';
+    }
+
+    if (detBtnPdf) {
+      detBtnPdf.href = `/api/alunos/${al.id}/contrato/pdf`;
+    }
+
+    if (detBtnWa) {
+      const msgContrato = encodeURIComponent(
+        `Olá, ${al.nome}! 🧘‍♀️ Segue a minuta do seu Contrato de Prestação de Serviços de Yoga no Studio Shanti.\n\n` +
+        `Link para visualizar: ${window.location.origin}/api/alunos/${al.id}/contrato/pdf\n\n` +
+        `Assim que finalizarmos a assinatura mútua, guardamos a via oficial arquivada no estúdio. Namastê! 🙏`
+      );
+      detBtnWa.href = `https://wa.me/${tel}?text=${msgContrato}`;
+    }
+
+    if (detBtnUpload) {
+      detBtnUpload.onclick = () => {
+        abrirModalUploadContrato(al.id, al.nome, al.plano);
+      };
+    }
+
+    if (detBtnVer) {
+      if (al.contrato_assinado_arquivo) {
+        detBtnVer.style.display = 'inline-flex';
+        detBtnVer.href = `/api/alunos/${al.id}/contrato/arquivo`;
+      } else {
+        detBtnVer.style.display = 'none';
+      }
+    }
+
     // Configurar botão de Marcar Presença
     const btnPresenca = document.getElementById('det-btn-presenca');
     if (btnPresenca) {
@@ -1267,6 +1371,10 @@ function setupModals() {
     const radioSim = document.querySelector('input[name="cad-autoriza-imagem"][value="1"]');
     if (radioSim) radioSim.checked = true;
 
+    // Resetar campo de CPF
+    const cpfEl = document.getElementById('cad-cpf');
+    if (cpfEl) cpfEl.value = '';
+
     const now = new Date();
     const mesAtual = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
     const el = document.getElementById('cad-mes-matricula');
@@ -1291,6 +1399,7 @@ function setupModals() {
 
     const dados = {
       nome: document.getElementById('cad-nome').value.trim(),
+      cpf: (document.getElementById('cad-cpf')?.value || '').trim() || null,
       telefone: document.getElementById('cad-telefone').value.trim(),
       email: document.getElementById('cad-email').value.trim(),
       data_nascimento: document.getElementById('cad-nascimento').value || null,
@@ -1443,6 +1552,54 @@ function setupModals() {
         }
       } catch (err) {
         alert('Erro ao atualizar despesa.');
+      }
+    });
+  }
+
+  // Modal de Upload de Contrato Assinado (Fase 4)
+  const formUploadContrato = document.getElementById('form-upload-contrato');
+  if (formUploadContrato) {
+    formUploadContrato.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const alunoId = document.getElementById('upload-contrato-aluno-id').value;
+      const fileInput = document.getElementById('upload-contrato-arquivo');
+      if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+        alert('Por favor, selecione o arquivo do contrato assinado.');
+        return;
+      }
+      const formData = new FormData();
+      formData.append('file', fileInput.files[0]);
+
+      const btnSubmit = document.getElementById('btn-submit-upload-contrato');
+      const origHtml = btnSubmit ? btnSubmit.innerHTML : '';
+      if (btnSubmit) {
+        btnSubmit.disabled = true;
+        btnSubmit.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Enviando...';
+      }
+
+      try {
+        const res = await fetch(`/api/alunos/${alunoId}/contrato/upload`, {
+          method: 'POST',
+          body: formData
+        });
+        const result = await res.json();
+        if (res.ok) {
+          showToast('Contrato assinado anexado com sucesso! Vigência de 1 ano ativada.');
+          fecharModal('modal-upload-contrato');
+          await atualizarTudo();
+          if (state.alunoSelecionado && state.alunoSelecionado.id === parseInt(alunoId)) {
+            await abrirDetalhesAluno(alunoId);
+          }
+        } else {
+          alert(result.detail || 'Erro ao enviar contrato assinado.');
+        }
+      } catch (err) {
+        alert('Falha na comunicação com o servidor ao enviar contrato.');
+      } finally {
+        if (btnSubmit) {
+          btnSubmit.disabled = false;
+          btnSubmit.innerHTML = origHtml;
+        }
       }
     });
   }
@@ -2154,5 +2311,252 @@ function setupSettings() {
         btnSalvarIcone.innerHTML = originalHtml;
       }
     });
+  }
+}
+
+// =============================================================================
+// ABA CONTRATOS: GESTÃO DE CONTRATOS DIGITAIS, UPLOADS & RENOVAÇÕES (FASE 4)
+// =============================================================================
+
+async function carregarContratos() {
+  try {
+    const res = await fetch('/api/contratos');
+    state.contratos = await res.json();
+
+    const resAlertas = await fetch('/api/contratos/alertas');
+    const alertas = await resAlertas.json();
+
+    // Atualizar Contadores
+    const statEmDia = document.getElementById('stat-contratos-em-dia');
+    const statAVencer = document.getElementById('stat-contratos-a-vencer');
+    const statPendentes = document.getElementById('stat-contratos-pendentes');
+    const statVencidos = document.getElementById('stat-contratos-vencidos');
+
+    if (statEmDia) statEmDia.textContent = alertas.em_dia || 0;
+    if (statAVencer) statAVencer.textContent = alertas.a_vencer || 0;
+    if (statPendentes) statPendentes.textContent = alertas.pendentes || 0;
+    if (statVencidos) statVencidos.textContent = alertas.vencidos || 0;
+
+    // Badge na Aba Contratos
+    const badgeAba = document.getElementById('badge-contratos-alert');
+    if (badgeAba) {
+      if (alertas.a_vencer > 0) {
+        badgeAba.textContent = alertas.a_vencer;
+        badgeAba.style.display = 'inline-block';
+      } else {
+        badgeAba.style.display = 'none';
+      }
+    }
+
+    // Banner de Alerta (30 dias)
+    const banner = document.getElementById('banner-alerta-contratos');
+    const bannerTitulo = document.getElementById('banner-alerta-titulo');
+    const bannerDesc = document.getElementById('banner-alerta-desc');
+    if (banner) {
+      if (alertas.a_vencer > 0) {
+        banner.style.display = 'block';
+        if (bannerTitulo) bannerTitulo.textContent = `Atenção: ${alertas.a_vencer} contrato(s) com menos de 30 dias para vencer!`;
+        if (bannerDesc) {
+          const nomes = alertas.alunos_a_vencer.map(a => a.nome).join(', ');
+          bannerDesc.textContent = `Aluno(s) em período de renovação anual: ${nomes}. Entre em contato para renovar o contrato.`;
+        }
+      } else if (alertas.vencidos > 0) {
+        banner.style.display = 'block';
+        if (bannerTitulo) bannerTitulo.textContent = `Atenção: ${alertas.vencidos} contrato(s) vencido(s)!`;
+        if (bannerDesc) bannerDesc.textContent = 'Existem contratos cuja vigência anual encerrou. É necessário emitir e assinar um novo termo de renovação.';
+      } else {
+        banner.style.display = 'none';
+      }
+    }
+
+    renderizarContratos();
+  } catch (err) {
+    console.error('Erro ao carregar contratos:', err);
+  }
+}
+
+function filtrarContratos(tipo) {
+  state.currentContractFilter = tipo;
+  document.querySelectorAll('#screen-contratos .wa-filter-chip').forEach(chip => {
+    chip.classList.remove('active');
+  });
+  const activeChip = document.getElementById(`chip-contrato-${tipo}`);
+  if (activeChip) activeChip.classList.add('active');
+  renderizarContratos();
+}
+
+function filtrarContratosTexto(query) {
+  renderizarContratos();
+}
+
+function renderizarContratos() {
+  const container = document.getElementById('lista-contratos-container');
+  if (!container) return;
+
+  const busca = (document.getElementById('input-busca-contrato')?.value || '').toLowerCase();
+  const filtro = state.currentContractFilter || 'todos';
+
+  let lista = (state.contratos || []).filter(c => {
+    const matchBusca = (c.nome || '').toLowerCase().includes(busca) || (c.cpf || '').includes(busca) || (c.telefone || '').includes(busca);
+    if (!matchBusca) return false;
+
+    if (filtro === 'em_dia') return c.status_contrato === 'em_dia';
+    if (filtro === 'a_vencer') return c.status_contrato === 'a_vencer';
+    if (filtro === 'pendente') return c.status_contrato === 'pendente';
+    if (filtro === 'vencido') return c.status_contrato === 'vencido';
+    return true;
+  });
+
+  if (lista.length === 0) {
+    container.innerHTML = `
+      <div style="padding: 40px 20px; text-align: center; color: #8c9c94; background: #ffffff; border-radius: 12px; border: 1px dashed var(--wa-border);">
+        <i class="fa-solid fa-file-circle-question" style="font-size: 36px; color: var(--shanti-gold); margin-bottom: 10px; display:block;"></i>
+        <p style="font-size: 14px; font-weight: 600; margin-bottom: 4px;">Nenhum contrato encontrado</p>
+        <p style="font-size: 12.5px; margin: 0;">Altere o filtro selecionado ou faça uma nova busca por nome ou CPF.</p>
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = lista.map(c => {
+    let badgeClass = 'badge-contrato-pendente';
+    let badgeTexto = 'Pendente de Assinatura';
+    let badgeIcon = 'fa-solid fa-hourglass-half';
+
+    if (c.status_contrato === 'em_dia') {
+      badgeClass = 'badge-contrato-em-dia';
+      badgeTexto = 'Em Dia';
+      badgeIcon = 'fa-solid fa-circle-check';
+    } else if (c.status_contrato === 'a_vencer') {
+      badgeClass = 'badge-contrato-a-vencer';
+      badgeTexto = `Vence em ${c.dias_restantes} dias`;
+      badgeIcon = 'fa-solid fa-triangle-exclamation';
+    } else if (c.status_contrato === 'vencido') {
+      badgeClass = 'badge-contrato-vencido';
+      badgeTexto = 'Contrato Vencido';
+      badgeIcon = 'fa-solid fa-circle-exclamation';
+    }
+
+    let vigenciaTexto = 'Aguardando documento assinado por ambas as partes';
+    if (c.data_vigencia_contrato) {
+      const diasRest = c.dias_restantes != null ? `(${c.dias_restantes} dias restantes)` : '';
+      vigenciaTexto = `Vigência até ${formatarDataBR(c.data_vigencia_contrato)} ${diasRest}`;
+    }
+
+    let tel = (c.telefone || '').replace(/\D/g, '');
+    if (tel && !tel.startsWith('55')) tel = '55' + tel;
+
+    const msgWa = encodeURIComponent(
+      `Olá, ${c.nome}! 🧘‍♀️ Aqui é do Studio Shanti de Yoga.\n\n` +
+      `Estamos enviando a minuta do seu Contrato de Prestação de Serviços de Yoga (${c.plano}).\n\n` +
+      `Você pode conferir a minuta no link:\n` +
+      `${window.location.origin}/api/alunos/${c.id}/contrato/pdf\n\n` +
+      `Assim que estiver assinado por você e pela professora Natália, arquivamos a via mútua no estúdio.\n\nNamastê! 🙏`
+    );
+    const linkWa = `https://wa.me/${tel}?text=${msgWa}`;
+
+    const temArquivo = Boolean(c.contrato_assinado_arquivo);
+
+    return `
+      <div class="wa-card" style="margin-bottom: 0; border: 1px solid var(--wa-border);">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 8px;">
+          <div>
+            <div style="font-size: 15px; font-weight: 700; color: var(--shanti-primary); display: flex; align-items: center; gap: 6px;">
+              ${c.nome}
+              ${c.aprovacao_pagamento === 'pendente' ? `
+                <span class="wa-student-badge" style="background:#fef3c7; color:#b45309; font-size:10.5px;">Matrícula Pendente</span>
+              ` : ''}
+            </div>
+            <div style="font-size: 12px; color: var(--wa-text-secondary); margin-top: 2px;">
+              CPF: <b>${c.cpf || 'Não informado'}</b> • WhatsApp: <b>${c.telefone}</b>
+            </div>
+          </div>
+          <span class="wa-student-badge ${badgeClass}" style="font-size: 11px; white-space: nowrap;">
+            <i class="${badgeIcon}"></i> ${badgeTexto}
+          </span>
+        </div>
+
+        <div style="background: var(--shanti-sand); border-radius: 8px; padding: 8px 12px; font-size: 12px; color: var(--wa-text-secondary); margin-bottom: 12px; line-height: 1.5;">
+          <div><b>Plano:</b> ${c.plano} • <b>Turma:</b> ${c.turmas && c.turmas.length ? c.turmas.map(t => t.nome).join(', ') : 'Nenhuma turma'}</div>
+          <div><b>Status Vigência:</b> <span style="color: var(--shanti-primary); font-weight: 600;">${vigenciaTexto}</span></div>
+          <div><b>Arquivo Assinado:</b> ${temArquivo ? '<span style="color:#15803d; font-weight:600;"><i class="fa-solid fa-check-circle"></i> Anexado (mútuo)</span>' : '<span style="color:#b45309;">Nenhum arquivo enviado</span>'}</div>
+        </div>
+
+        <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+          <a href="/api/alunos/${c.id}/contrato/pdf" target="_blank" class="wa-btn-primary" style="flex: 1; min-width: 115px; padding: 7px 10px; font-size: 12px; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 5px;">
+            <i class="fa-solid fa-file-pdf"></i> Minuta PDF
+          </a>
+          <a href="${linkWa}" target="_blank" class="wa-btn-primary" style="flex: 1; min-width: 115px; padding: 7px 10px; font-size: 12px; background: #25D366; color: #fff; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 5px; border-color: #22c55e;">
+            <i class="fa-brands fa-whatsapp"></i> WhatsApp
+          </a>
+          <button type="button" class="wa-btn-primary" style="flex: 1; min-width: 115px; padding: 7px 10px; font-size: 12px; background: var(--shanti-gold); color: #0c3b2e; border: none;" onclick="abrirModalUploadContrato(${c.id}, '${c.nome.replace(/'/g, "\\'")}', '${(c.plano || '').replace(/'/g, "\\'")}')">
+            <i class="fa-solid fa-cloud-arrow-up"></i> ${temArquivo ? 'Substituir' : 'Upload Assinado'}
+          </button>
+          ${temArquivo ? `
+            <a href="/api/alunos/${c.id}/contrato/arquivo" target="_blank" class="wa-btn-primary" style="padding: 7px 10px; font-size: 12px; background: #3b82f6; color: #fff; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 5px; border-color: #2563eb;" title="Visualizar documento assinado">
+              <i class="fa-solid fa-eye"></i> Ver
+            </a>
+            <button type="button" class="wa-btn-primary" style="padding: 7px 10px; font-size: 12px; background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5;" onclick="removerContratoAssinado(${c.id}, '${c.nome.replace(/'/g, "\\'")}')" title="Excluir arquivo de contrato">
+              <i class="fa-solid fa-trash-can"></i>
+            </button>
+          ` : ''}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function abrirModalUploadContrato(alunoId, alunoNome, alunoPlano) {
+  document.getElementById('upload-contrato-aluno-id').value = alunoId;
+  document.getElementById('upload-contrato-aluno-nome').textContent = alunoNome;
+  document.getElementById('upload-contrato-aluno-info').textContent = alunoPlano || 'Plano de Yoga';
+  const fileInput = document.getElementById('upload-contrato-arquivo');
+  if (fileInput) fileInput.value = '';
+  abrirModal('modal-upload-contrato');
+}
+
+async function removerContratoAssinado(alunoId, alunoNome) {
+  if (!confirm(`Deseja remover o arquivo de contrato assinado de "${alunoNome}"? O status voltará a ser "Pendente".`)) {
+    return;
+  }
+  try {
+    const res = await fetch(`/api/alunos/${alunoId}/contrato/arquivo`, { method: 'DELETE' });
+    if (res.ok) {
+      showToast('Arquivo de contrato removido.');
+      await atualizarTudo();
+      if (state.alunoSelecionado && state.alunoSelecionado.id === parseInt(alunoId)) {
+        await abrirDetalhesAluno(alunoId);
+      }
+    } else {
+      showToast('Erro ao remover contrato.');
+    }
+  } catch (err) {
+    showToast('Falha na comunicação com o servidor.');
+  }
+}
+
+async function aprovarPagamentoMatricula(alunoId, alunoNome) {
+  if (!confirm(`Confirmar o recebimento da 1ª mensalidade de "${alunoNome}"?\n\nIsto irá ativar a matrícula e lançar automaticamente a mensalidade como PAGA no sistema financeiro ("Entrou, Pagou").`)) {
+    return;
+  }
+
+  try {
+    const res = await fetch(`/api/alunos/${alunoId}/aprovar-pagamento`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ forma_pagamento: 'PIX' })
+    });
+    const data = await res.json();
+    if (res.ok) {
+      showToast(data.mensagem || 'Matrícula aprovada e mensalidade lançada com sucesso!');
+      await atualizarTudo();
+      if (state.alunoSelecionado && state.alunoSelecionado.id === parseInt(alunoId)) {
+        await abrirDetalhesAluno(alunoId);
+      }
+    } else {
+      alert(data.detail || 'Erro ao aprovar pagamento.');
+    }
+  } catch (err) {
+    alert('Erro ao comunicar com o servidor.');
   }
 }

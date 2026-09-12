@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Matrícula Online • Studio Shanti</title>
+  
+  <link rel="icon" type="image/png" href="/icons/icon-192.png?v=17">
+  <link rel="apple-touch-icon" href="/icons/icon-192.png?v=17">
+
+  <!-- Google Fonts: Cinzel & Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <style>
+    :root {
+      --shanti-primary: #1C2B24;
+      --shanti-secondary: #233930;
+      --shanti-gold: #C5A059;
+      --shanti-gold-light: #f7edd7;
+      --shanti-sand: #F9F7F2;
+      --shanti-bg: #F3EFE4;
+      --shanti-border: #E2DCD5;
+      --shanti-text: #1e293b;
+      --shanti-muted: #64748b;
+      --shanti-green: #15803d;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--shanti-bg);
+      color: var(--shanti-text);
+      line-height: 1.5;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 16px;
+    }
+
+    .matricula-card {
+      width: 100%;
+      max-width: 540px;
+      background: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 10px 25px rgba(28, 43, 36, 0.08);
+      border: 1px solid var(--shanti-border);
+      overflow: hidden;
+      margin-bottom: 24px;
+    }
+
+    .matricula-header {
+      background: linear-gradient(135deg, var(--shanti-primary) 0%, var(--shanti-secondary) 100%);
+      color: #ffffff;
+      padding: 24px 20px;
+      text-align: center;
+      position: relative;
+    }
+
+    .matricula-header::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, var(--shanti-gold), transparent);
+    }
+
+    .studio-logo {
+      width: 68px;
+      height: 68px;
+      border-radius: 12px;
+      border: 2px solid var(--shanti-gold);
+      margin: 0 auto 12px;
+      display: block;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+    }
+
+    .studio-title {
+      font-family: 'Cinzel', serif;
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      color: var(--shanti-gold);
+      margin-bottom: 4px;
+    }
+
+    .studio-sub {
+      font-size: 13px;
+      color: #e2e8f0;
+      font-weight: 400;
+    }
+
+    .matricula-body {
+      padding: 24px 20px;
+    }
+
+    .form-group {
+      margin-bottom: 18px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 12.5px;
+      font-weight: 700;
+      color: var(--shanti-primary);
+      margin-bottom: 6px;
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1.5px solid var(--shanti-border);
+      border-radius: 10px;
+      font-size: 14px;
+      font-family: inherit;
+      color: var(--shanti-text);
+      background-color: #ffffff;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .form-control:focus {
+      outline: none;
+      border-color: var(--shanti-gold);
+      box-shadow: 0 0 0 3px rgba(197, 160, 89, 0.2);
+    }
+
+    /* Cards de Seleção de Plano */
+    .planos-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 4px;
+    }
+
+    .plano-option {
+      border: 1.5px solid var(--shanti-border);
+      border-radius: 12px;
+      padding: 14px 12px;
+      text-align: center;
+      cursor: pointer;
+      background: var(--shanti-sand);
+      transition: all 0.2s;
+      position: relative;
+    }
+
+    .plano-option.active {
+      border-color: var(--shanti-primary);
+      background: #ffffff;
+      box-shadow: 0 4px 12px rgba(28, 43, 36, 0.1);
+    }
+
+    .plano-option.active::after {
+      content: '✓';
+      position: absolute;
+      top: 6px;
+      right: 8px;
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--shanti-primary);
+    }
+
+    .plano-nome {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--shanti-primary);
+      margin-bottom: 4px;
+    }
+
+    .plano-preco {
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--shanti-green);
+    }
+
+    /* Box de Pagamento PIX */
+    .pix-box {
+      background: #fdfbf7;
+      border: 1px solid var(--shanti-gold);
+      border-radius: 12px;
+      padding: 16px;
+      margin-top: 20px;
+      margin-bottom: 20px;
+    }
+
+    .pix-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .pix-title {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--shanti-primary);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .pix-key-wrapper {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .pix-key-input {
+      flex: 1;
+      padding: 8px 12px;
+      font-size: 13px;
+      font-family: monospace;
+      background: #ffffff;
+      border: 1px solid var(--shanti-border);
+      border-radius: 8px;
+      color: var(--shanti-primary);
+      font-weight: 600;
+    }
+
+    .btn-copiar {
+      background: var(--shanti-primary);
+      color: #ffffff;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn-copiar:hover {
+      background: var(--shanti-secondary);
+    }
+
+    /* Botão Principal */
+    .btn-submit {
+      width: 100%;
+      background: linear-gradient(135deg, var(--shanti-primary) 0%, var(--shanti-secondary) 100%);
+      color: var(--shanti-gold);
+      border: none;
+      padding: 15px;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 700;
+      font-family: 'Cinzel', serif;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(28, 43, 36, 0.25);
+      transition: transform 0.1s, box-shadow 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn-submit:active {
+      transform: scale(0.99);
+    }
+
+    .btn-submit:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
+
+    /* Tela de Sucesso */
+    #tela-sucesso {
+      display: none;
+      text-align: center;
+      padding: 30px 10px;
+    }
+
+    .sucesso-icon {
+      font-size: 52px;
+      color: var(--shanti-green);
+      margin-bottom: 16px;
+    }
+
+    .sucesso-titulo {
+      font-family: 'Cinzel', serif;
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--shanti-primary);
+      margin-bottom: 8px;
+    }
+
+    .sucesso-desc {
+      font-size: 13.5px;
+      color: var(--shanti-muted);
+      line-height: 1.55;
+      margin-bottom: 24px;
+    }
+
+    .btn-whatsapp-sucesso {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      background: #25D366;
+      color: #ffffff;
+      text-decoration: none;
+      padding: 13px 20px;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 14px;
+      box-shadow: 0 4px 12px rgba(37, 211, 102, 0.25);
+    }
+  </style>
+</head>
+<body>
+
+<div class="matricula-card">
+  
+  <!-- Header -->
+  <div class="matricula-header">
+    <img src="/icons/icon-192.png?v=17" alt="Studio Shanti" class="studio-logo">
+    <h1 class="studio-title">Studio Shanti</h1>
+    <p class="studio-sub">Matrícula Online • Prática & Filosofia do Yoga</p>
+  </div>
+
+  <!-- Formulário de Inscrição -->
+  <div class="matricula-body" id="tela-formulario">
+    <form id="form-matricula">
+      
+      <!-- Nome -->
+      <div class="form-group">
+        <label class="form-label" for="cad-nome">Nome Completo *</label>
+        <input type="text" id="cad-nome" class="form-control" placeholder="Seu nome completo" required autocomplete="name">
+      </div>
+
+      <!-- Telefone / WhatsApp -->
+      <div class="form-group">
+        <label class="form-label" for="cad-tel">WhatsApp / Celular *</label>
+        <input type="tel" id="cad-tel" class="form-control" placeholder="(00) 00000-0000" required autocomplete="tel">
+      </div>
+
+      <!-- CPF -->
+      <div class="form-group">
+        <label class="form-label" for="cad-cpf">CPF *</label>
+        <input type="text" id="cad-cpf" class="form-control" placeholder="000.000.000-00" required maxlength="14">
+      </div>
+
+      <!-- Data de Nascimento -->
+      <div class="form-group">
+        <label class="form-label" for="cad-nasc">Data de Nascimento *</label>
+        <input type="date" id="cad-nasc" class="form-control" required>
+      </div>
+
+      <!-- Escolha do Plano -->
+      <div class="form-group">
+        <label class="form-label">Escolha seu Plano *</label>
+        <div class="planos-grid">
+          <div class="plano-option active" data-plano="2x na semana" data-valor="150.00">
+            <div class="plano-nome">2x na semana</div>
+            <div class="plano-preco">R$ 150,00</div>
+            <div style="font-size: 10.5px; color: var(--shanti-muted); margin-top:2px;">por mês</div>
+          </div>
+          <div class="plano-option" data-plano="1x na semana" data-valor="120.00">
+            <div class="plano-nome">1x na semana</div>
+            <div class="plano-preco">R$ 120,00</div>
+            <div style="font-size: 10.5px; color: var(--shanti-muted); margin-top:2px;">por mês</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dia da Semana (se plano 1x) -->
+      <div class="form-group" id="group-dia-1x" style="display:none; background:#f0fdf4; padding:12px; border-radius:10px; border:1px solid #86efac;">
+        <label class="form-label" for="cad-dia-1x" style="color:#15803d;">Dia da Semana Escolhido (Plano 1x) *</label>
+        <select id="cad-dia-1x" class="form-control" style="border-color:#86efac;">
+          <option value="">Selecione o dia da semana...</option>
+          <option value="Segunda-feira">Segunda-feira</option>
+          <option value="Terça-feira">Terça-feira</option>
+          <option value="Quarta-feira">Quarta-feira</option>
+          <option value="Quinta-feira">Quinta-feira</option>
+          <option value="Sexta-feira">Sexta-feira</option>
+          <option value="Sábado">Sábado</option>
+        </select>
+      </div>
+
+      <!-- Turma / Horário -->
+      <div class="form-group">
+        <label class="form-label" for="cad-turma">Turma & Horário Pretendido *</label>
+        <select id="cad-turma" class="form-control" required>
+          <option value="1">Pequenos Yogis (Crianças) — Seg e Qua às 17:30</option>
+          <option value="2">Essência (Hatha Yoga Adultos) — Seg e Qua às 18:30</option>
+          <option value="3" selected>Sunrise (Hatha Yoga Adultos) — Ter e Qui às 06:00</option>
+        </select>
+        <span style="font-size: 11px; color: var(--shanti-muted); margin-top: 4px; display: block;">Capacidade máxima de 16 alunos por turma para atendimento personalizado.</span>
+      </div>
+
+      <!-- Autorização de Imagem (Cláusula 11) -->
+      <div class="form-group" style="background:var(--shanti-sand); padding:12px; border-radius:10px; border:1px solid var(--shanti-border);">
+        <label class="form-label" style="margin-bottom:8px;">Autoriza o uso da imagem para divulgação do Shanti? *</label>
+        <div style="display:flex; gap:16px;">
+          <label style="font-size:13.5px; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:6px;">
+            <input type="radio" name="autoriza_imagem" value="1" checked> <b>SIM</b> (Autorizo)
+          </label>
+          <label style="font-size:13.5px; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:6px;">
+            <input type="radio" name="autoriza_imagem" value="0"> <b>NÃO</b>
+          </label>
+        </div>
+      </div>
+
+      <!-- Observações de Saúde -->
+      <div class="form-group">
+        <label class="form-label" for="cad-obs">Condições de Saúde ou Observações (Opcional)</label>
+        <textarea id="cad-obs" class="form-control" rows="2" placeholder="Dores na lombar, cirurgias, gestação, etc."></textarea>
+      </div>
+
+      <!-- Box de Pagamento PIX -->
+      <div class="pix-box">
+        <div class="pix-header">
+          <span class="pix-title"><i class="fa-brands fa-pix" style="color:#00bdae;"></i> Pagamento da Matrícula</span>
+          <span style="font-size:13px; font-weight:800; color:var(--shanti-green);" id="label-valor-pix">R$ 150,00</span>
+        </div>
+        <p style="font-size:11.5px; color:var(--shanti-muted);">
+          A primeira mensalidade é paga no ato da matrícula ("Entrou, Pagou"). Chave PIX oficial da professora Natália:
+        </p>
+        <div class="pix-key-wrapper">
+          <input type="text" id="pix-key" class="pix-key-input" value="contato@shantiyoga.com.br" readonly>
+          <button type="button" class="btn-copiar" id="btn-copiar-pix"><i class="fa-solid fa-copy"></i> Copiar</button>
+        </div>
+      </div>
+
+      <!-- Botão Submit -->
+      <button type="submit" class="btn-submit" id="btn-submit-matricula">
+        <i class="fa-solid fa-check"></i> Concluir Matrícula
+      </button>
+
+    </form>
+  </div>
+
+  <!-- Tela de Sucesso -->
+  <div class="matricula-body" id="tela-sucesso">
+    <div class="sucesso-icon"><i class="fa-solid fa-circle-check"></i></div>
+    <h2 class="sucesso-titulo">Namastê! Matrícula Enviada</h2>
+    <p class="sucesso-desc">
+      Recebemos os seus dados com muita alegria!<br>
+      Assim que seu PIX for confirmado pela professora Natália, sua vaga estará 100% garantida e o seu Contrato de Adesão oficial ficará pronto.
+    </p>
+    <a href="#" class="btn-whatsapp-sucesso" id="link-whatsapp-sucesso" target="_blank">
+      <i class="fa-brands fa-whatsapp"></i> Avisar Natália no WhatsApp
+    </a>
+  </div>
+
+</div>
+
+<script>
+  // Controle de Seleção de Plano
+  let planoSelecionado = '2x na semana';
+  let valorSelecionado = 150.0;
+
+  const planoOptions = document.querySelectorAll('.plano-option');
+  const groupDia1x = document.getElementById('group-dia-1x');
+  const selectDia1x = document.getElementById('cad-dia-1x');
+  const labelValorPix = document.getElementById('label-valor-pix');
+
+  planoOptions.forEach(opt => {
+    opt.addEventListener('click', () => {
+      planoOptions.forEach(p => p.classList.remove('active'));
+      opt.classList.add('active');
+      planoSelecionado = opt.dataset.plano;
+      valorSelecionado = parseFloat(opt.dataset.valor);
+      labelValorPix.textContent = `R$ ${valorSelecionado.toFixed(2).replace('.', ',')}`;
+
+      if (planoSelecionado.includes('1x')) {
+        groupDia1x.style.display = 'block';
+        selectDia1x.setAttribute('required', 'required');
+      } else {
+        groupDia1x.style.display = 'none';
+        selectDia1x.removeAttribute('required');
+        selectDia1x.value = '';
+      }
+    });
+  });
+
+  // Copiar Chave PIX
+  document.getElementById('btn-copiar-pix').addEventListener('click', () => {
+    const key = document.getElementById('pix-key').value;
+    navigator.clipboard.writeText(key).then(() => {
+      const btn = document.getElementById('btn-copiar-pix');
+      btn.innerHTML = '<i class="fa-solid fa-check"></i> Copiado!';
+      setTimeout(() => { btn.innerHTML = '<i class="fa-solid fa-copy"></i> Copiar'; }, 2000);
+    });
+  });
+
+  // Máscaras de CPF e Telefone
+  const inputTel = document.getElementById('cad-tel');
+  inputTel.addEventListener('input', (e) => {
+    let v = e.target.value.replace(/\D/g, '');
+    if (v.length > 11) v = v.slice(0, 11);
+    if (v.length > 6) {
+      e.target.value = `(${v.slice(0, 2)}) ${v.slice(2, 7)}-${v.slice(7)}`;
+    } else if (v.length > 2) {
+      e.target.value = `(${v.slice(0, 2)}) ${v.slice(2)}`;
+    } else {
+      e.target.value = v;
+    }
+  });
+
+  const inputCpf = document.getElementById('cad-cpf');
+  inputCpf.addEventListener('input', (e) => {
+    let v = e.target.value.replace(/\D/g, '');
+    if (v.length > 11) v = v.slice(0, 11);
+    if (v.length > 9) {
+      e.target.value = `${v.slice(0, 3)}.${v.slice(3, 6)}.${v.slice(6, 9)}-${v.slice(9)}`;
+    } else if (v.length > 6) {
+      e.target.value = `${v.slice(0, 3)}.${v.slice(3, 6)}.${v.slice(6)}`;
+    } else if (v.length > 3) {
+      e.target.value = `${v.slice(0, 3)}.${v.slice(3)}`;
+    } else {
+      e.target.value = v;
+    }
+  });
+
+  // Carregar Turmas Atualizadas do Backend
+  async function carregarTurmas() {
+    try {
+      const res = await fetch('/api/turmas/completo');
+      if (res.ok) {
+        const turmas = await res.json();
+        const selectTurma = document.getElementById('cad-turma');
+        if (turmas && turmas.length > 0) {
+          selectTurma.innerHTML = turmas.map(t => {
+            const vagas = t.vagas_disponiveis;
+            const vagaTxt = vagas > 0 ? `(${vagas} vagas livres)` : '(TURMA LOTADA)';
+            return `<option value="${t.id}">${t.nome} — ${t.dias_semana} às ${t.horario} ${vagaTxt}</option>`;
+          }).join('');
+        }
+      }
+    } catch (err) {
+      console.log('Usando turmas padrão');
+    }
+  }
+  carregarTurmas();
+
+  // Envio do Formulário
+  document.getElementById('form-matricula').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btnSubmit = document.getElementById('btn-submit-matricula');
+    btnSubmit.disabled = true;
+    btnSubmit.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Enviando...';
+
+    const nome = document.getElementById('cad-nome').value.trim();
+    const telefone = document.getElementById('cad-tel').value.trim();
+    const cpf = document.getElementById('cad-cpf').value.trim();
+    const data_nascimento = document.getElementById('cad-nasc').value;
+    const dia_semana_1x = selectDia1x.value;
+    const turma_id = parseInt(document.getElementById('cad-turma').value);
+    const autoriza_imagem = parseInt(document.querySelector('input[name="autoriza_imagem"]:checked').value);
+    const observacoes = document.getElementById('cad-obs').value.trim();
+
+    const payload = {
+      nome: nome,
+      telefone: telefone,
+      cpf: cpf,
+      email: '',
+      plano: planoSelecionado,
+      dia_semana_1x: planoSelecionado.includes('1x') ? dia_semana_1x : null,
+      dia_vencimento: 10,
+      valor_mensalidade: valorSelecionado,
+      tipo_pagamento: 'PIX',
+      observacoes: observacoes,
+      data_nascimento: data_nascimento,
+      autoriza_imagem: autoriza_imagem,
+      turma_ids: [turma_id],
+      aprovacao_pagamento: 'pendente'
+    };
+
+    try {
+      const res = await fetch('/api/matricula/publica', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        alert('Erro ao enviar matrícula: ' + (err.detail || 'Verifique seus dados.'));
+        btnSubmit.disabled = false;
+        btnSubmit.innerHTML = '<i class="fa-solid fa-check"></i> Concluir Matrícula';
+        return;
+      }
+
+      // Sucesso!
+      document.getElementById('tela-formulario').style.display = 'none';
+      const telaSucesso = document.getElementById('tela-sucesso');
+      telaSucesso.style.display = 'block';
+
+      // Link WhatsApp Natália
+      const msgWa = encodeURIComponent(`Olá, Natália! 🧘‍♀️ Acabei de preencher minha matrícula online no Studio Shanti (Nome: ${nome}, Plano: ${planoSelecionado}). Segue o meu comprovante do PIX! 🙏`);
+      document.getElementById('link-whatsapp-sucesso').href = `https://wa.me/5522988423287?text=${msgWa}`;
+
+    } catch (err) {
+      console.error(err);
+      alert('Erro de conexão ao enviar matrícula. Tente novamente.');
+      btnSubmit.disabled = false;
+      btnSubmit.innerHTML = '<i class="fa-solid fa-check"></i> Concluir Matrícula';
+    }
+  });
+</script>
+
+</body>
+</html>

@@ -6,13 +6,13 @@
   <title>Studio Shanti - Painel de Gestão</title>
 
   <!-- Favicon & PWA Meta Tags -->
-  <link rel="icon" type="image/png" href="/favicon.png?v=15">
-  <link rel="manifest" href="/manifest.json?v=15">
+  <link rel="icon" type="image/png" href="/favicon.png?v=17">
+  <link rel="manifest" href="/manifest.json?v=17">
   <meta name="theme-color" content="#1C2B24">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Studio Shanti">
-  <link rel="apple-touch-icon" href="/icons/icon-192.png?v=16">
+  <link rel="apple-touch-icon" href="/icons/icon-192.png?v=17">
 
   <!-- Fontes Google & Ícones FontAwesome -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -21,7 +21,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
   <!-- WhatsApp Luxe Theme Stylesheet -->
-  <link rel="stylesheet" href="/css/whatsapp-theme.css?v=16">
+  <link rel="stylesheet" href="/css/whatsapp-theme.css?v=17">
 </head>
 <body>
 
@@ -89,6 +89,10 @@
     </button>
     <button class="wa-tab-btn" data-tab="estudio">
       <i class="fa-solid fa-spa"></i> Estúdio
+    </button>
+    <button class="wa-tab-btn" data-tab="contratos">
+      <i class="fa-solid fa-file-signature"></i> Contratos
+      <span class="wa-tab-badge warning" id="badge-contratos-alert" style="display:none;">0</span>
     </button>
   </nav>
 
@@ -390,6 +394,83 @@
   </section>
 
   <!-- ====================================================================
+       TELA CONTRATOS: GESTÃO DE CONTRATOS DIGITAIS & RENOVAÇÕES
+       ==================================================================== -->
+  <section class="wa-screen" id="screen-contratos">
+    <div class="wa-reports-container">
+      
+      <!-- Banner de Alerta de Contratos Vencendo (30 dias) -->
+      <div id="banner-alerta-contratos" style="display: none; background: #fffbeb; border: 1.5px solid #f59e0b; border-radius: 12px; padding: 14px 16px; margin-bottom: 14px; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.12);">
+        <div style="display: flex; align-items: flex-start; gap: 12px;">
+          <i class="fa-solid fa-bell" style="color: #d97706; font-size: 20px; margin-top: 2px;"></i>
+          <div style="flex: 1;">
+            <strong style="color: #92400e; font-size: 14px; display: block; margin-bottom: 2px;" id="banner-alerta-titulo">Contratos Próximos do Vencimento!</strong>
+            <p style="color: #b45309; font-size: 12.5px; margin: 0; line-height: 1.4;" id="banner-alerta-desc">Existem contratos que expiram em menos de 30 dias. Entre em contato com os alunos para a renovação anual.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card de Estatísticas de Contratos -->
+      <div class="wa-card">
+        <div class="wa-card-header">
+          <div class="wa-card-title">
+            <i class="fa-solid fa-file-contract" style="color: var(--shanti-gold);"></i>
+            <span>Painel de Contratos Digitais</span>
+          </div>
+          <a href="/matricula" target="_blank" class="wa-btn-primary" style="padding: 6px 12px; font-size: 11.5px; display: inline-flex; align-items: center; gap: 6px; text-decoration: none;">
+            <i class="fa-solid fa-user-plus"></i> Link de Matrícula
+          </a>
+        </div>
+        <p style="font-size: 12px; color: var(--wa-text-secondary); margin-bottom: 12px; line-height: 1.4;">
+          Controle da vigência anual (365 dias), envio de contrato pelo WhatsApp e upload do documento assinado por ambas as partes (Studio Shanti / Natália e Aluno).
+        </p>
+        <div class="wa-stat-grid" style="grid-template-columns: repeat(4, 1fr);">
+          <div class="wa-stat-box" style="cursor: pointer;" onclick="filtrarContratos('em_dia')">
+            <span class="wa-stat-value success" id="stat-contratos-em-dia">0</span>
+            <span class="wa-stat-label">Em Dia</span>
+          </div>
+          <div class="wa-stat-box" style="cursor: pointer;" onclick="filtrarContratos('a_vencer')">
+            <span class="wa-stat-value" style="color: #d97706;" id="stat-contratos-a-vencer">0</span>
+            <span class="wa-stat-label">A Vencer (≤30d)</span>
+          </div>
+          <div class="wa-stat-box" style="cursor: pointer;" onclick="filtrarContratos('pendente')">
+            <span class="wa-stat-value" style="color: #6366f1;" id="stat-contratos-pendentes">0</span>
+            <span class="wa-stat-label">Pendentes</span>
+          </div>
+          <div class="wa-stat-box" style="cursor: pointer;" onclick="filtrarContratos('vencido')">
+            <span class="wa-stat-value danger" id="stat-contratos-vencidos">0</span>
+            <span class="wa-stat-label">Vencidos</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Barra de Filtros e Busca -->
+      <div style="display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; align-items: center;">
+        <div style="flex: 1; min-width: 200px; position: relative;">
+          <input type="text" id="input-busca-contrato" placeholder="Buscar aluno por nome ou CPF..." style="width: 100%; padding: 8px 12px 8px 34px; border-radius: 8px; border: 1px solid var(--wa-border); background: var(--wa-bg-card); color: var(--wa-text-primary); font-size: 13px;" oninput="filtrarContratosTexto(this.value)">
+          <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--wa-text-secondary); font-size: 13px;"></i>
+        </div>
+        <div class="wa-filter-chips" style="display: flex; gap: 6px; flex-wrap: wrap;">
+          <button class="wa-filter-chip active" id="chip-contrato-todos" onclick="filtrarContratos('todos')">Todos</button>
+          <button class="wa-filter-chip" id="chip-contrato-em_dia" onclick="filtrarContratos('em_dia')">Em Dia</button>
+          <button class="wa-filter-chip" id="chip-contrato-a_vencer" onclick="filtrarContratos('a_vencer')">A Vencer (30d)</button>
+          <button class="wa-filter-chip" id="chip-contrato-pendente" onclick="filtrarContratos('pendente')">Pendentes</button>
+          <button class="wa-filter-chip" id="chip-contrato-vencido" onclick="filtrarContratos('vencido')">Vencidos</button>
+        </div>
+      </div>
+
+      <!-- Lista de Cards de Contratos -->
+      <div id="lista-contratos-container" style="display: flex; flex-direction: column; gap: 12px;">
+        <div style="text-align: center; padding: 24px; color: var(--wa-text-secondary);">
+          <i class="fa-solid fa-spinner fa-spin" style="font-size: 20px; color: var(--shanti-gold);"></i>
+          <p style="margin-top: 8px; font-size: 13px;">Carregando contratos...</p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ====================================================================
        TELA 5: AJUSTES E CONFIGURAÇÕES (ACIONADA PELA ENGRENAGEM)
        ==================================================================== -->
   <section class="wa-screen" id="screen-ajustes">
@@ -683,6 +764,11 @@
       </div>
 
       <div class="wa-form-group">
+        <label>CPF do Aluno (para o Contrato Digital)</label>
+        <input type="text" class="wa-form-control" id="cad-cpf" placeholder="000.000.000-00">
+      </div>
+
+      <div class="wa-form-group">
         <label>E-mail (opcional)</label>
         <input type="email" class="wa-form-control" id="cad-email" placeholder="juliana@email.com">
       </div>
@@ -796,9 +882,23 @@
     </div>
 
     <div id="det-content">
+      <!-- Banner de Aprovação Pendente (Entrou, Pagou) -->
+      <div id="det-box-aprovacao-pendente" style="display: none; background: #fffbeb; border: 1.5px solid #f59e0b; border-radius: 12px; padding: 12px 14px; margin-bottom: 14px;">
+        <div style="font-weight: 700; color: #92400e; font-size: 13px; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+          <i class="fa-solid fa-clock" style="color: #d97706;"></i> Matrícula Pendente de Aprovação
+        </div>
+        <p style="font-size: 12px; color: #b45309; margin: 0 0 8px 0; line-height: 1.4;">
+          O aluno realizou a matrícula online e aguarda confirmação do PIX da 1ª mensalidade. Ao confirmar, o aluno é ativado e a mensalidade é lançada automaticamente como Paga ("Entrou, Pagou").
+        </p>
+        <button type="button" id="det-btn-aprovar-pagamento" class="wa-btn-primary" style="width: 100%; background: #16a34a; color: #fff; padding: 8px 12px; font-size: 12.5px; font-weight: 700; border: none;">
+          <i class="fa-solid fa-circle-check"></i> Confirmar Pagamento da Matrícula (Entrou, Pagou)
+        </button>
+      </div>
+
       <div style="background-color: var(--shanti-sand); border: 1px solid var(--wa-border); border-radius: 12px; padding: 14px; margin-bottom: 14px;">
         <div style="font-size: 13.5px; line-height: 1.7;">
           <div><b>WhatsApp:</b> <span id="det-telefone"></span></div>
+          <div><b>CPF:</b> <span id="det-cpf">Não informado</span></div>
           <div><b>Plano:</b> <span id="det-plano"></span></div>
           <div id="det-box-dia-1x" style="display:none; margin: 4px 0; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 6px 10px; font-size: 12.5px; color: #166534;">
             <b><i class="fa-regular fa-calendar-check"></i> Dia Escolhido (1x):</b> <span id="det-dia-semana-1x" style="font-weight: 700;"></span>
@@ -820,6 +920,36 @@
           <div id="det-motivo-box" style="display:none; color: var(--wa-danger); margin-top: 4px;">
             <b>Motivo Saída:</b> <span id="det-motivo-saida"></span>
           </div>
+        </div>
+      </div>
+
+      <!-- Gestão do Contrato Digital do Aluno -->
+      <div style="background: #ffffff; border: 1.5px solid var(--wa-border); border-radius: 12px; padding: 14px; margin-bottom: 14px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <h4 style="font-size: 13.5px; margin: 0; color: var(--shanti-primary); font-weight: 700; display: flex; align-items: center; gap: 6px;">
+            <i class="fa-solid fa-file-signature" style="color: var(--shanti-gold);"></i> Contrato Digital (1 Ano)
+          </h4>
+          <span id="det-contrato-status-badge" class="wa-student-badge">Pendente</span>
+        </div>
+        
+        <div style="font-size: 12px; color: var(--wa-text-secondary); margin-bottom: 10px; line-height: 1.5;">
+          <div><b>Vigência:</b> <span id="det-contrato-vigencia" style="font-weight: 600; color: var(--wa-text-primary);">Pendente de assinatura</span></div>
+          <div><b>Documento Assinado:</b> <span id="det-contrato-arquivo-status">Nenhum arquivo enviado</span></div>
+        </div>
+
+        <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+          <a id="det-btn-contrato-pdf" href="#" target="_blank" class="wa-btn-primary" style="flex: 1; min-width: 105px; padding: 6px 8px; font-size: 11.5px; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 5px;">
+            <i class="fa-solid fa-file-pdf"></i> Minuta PDF
+          </a>
+          <a id="det-btn-contrato-wa" href="#" target="_blank" class="wa-btn-primary" style="flex: 1; min-width: 105px; padding: 6px 8px; font-size: 11.5px; background: #25D366; color: #fff; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 5px; border-color: #22c55e;">
+            <i class="fa-brands fa-whatsapp"></i> WhatsApp
+          </a>
+          <button type="button" id="det-btn-contrato-upload" class="wa-btn-primary" style="flex: 1; min-width: 105px; padding: 6px 8px; font-size: 11.5px; background: var(--shanti-gold); color: #0c3b2e; border: none;">
+            <i class="fa-solid fa-upload"></i> Upload
+          </button>
+          <a id="det-btn-contrato-ver" href="#" target="_blank" class="wa-btn-primary" style="flex: 1; min-width: 105px; padding: 6px 8px; font-size: 11.5px; background: #3b82f6; color: #fff; text-decoration: none; display: none; align-items: center; justify-content: center; gap: 5px; border-color: #2563eb;">
+            <i class="fa-solid fa-eye"></i> Ver
+          </a>
         </div>
       </div>
 
@@ -910,6 +1040,53 @@
 </div>
 
 <!-- ======================================================================
+     MODAL: UPLOAD DO CONTRATO ASSINADO (AMBAS AS ASSINATURAS)
+     ====================================================================== -->
+<div class="wa-modal-overlay" id="modal-upload-contrato">
+  <div class="wa-modal-sheet">
+    <div class="wa-modal-header">
+      <h3 class="wa-modal-title"><i class="fa-solid fa-file-arrow-up" style="color:var(--shanti-gold);"></i> Upload Contrato Assinado</h3>
+      <button class="wa-modal-close" data-close-modal="modal-upload-contrato">&times;</button>
+    </div>
+
+    <form id="form-upload-contrato">
+      <input type="hidden" id="upload-contrato-aluno-id">
+
+      <div style="background: var(--shanti-sand); border: 1px solid var(--wa-border); border-radius: 10px; padding: 12px; margin-bottom: 14px;">
+        <div style="font-size: 14px; font-weight: 700; color: var(--shanti-primary); margin-bottom: 4px;" id="upload-contrato-aluno-nome">
+          Nome do Aluno
+        </div>
+        <div style="font-size: 12px; color: var(--wa-text-secondary);" id="upload-contrato-aluno-info">
+          Plano / Turma
+        </div>
+      </div>
+
+      <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 10px; padding: 12px; margin-bottom: 14px; font-size: 12.5px; color: #1e40af; line-height: 1.45;">
+        <i class="fa-solid fa-circle-check" style="color: #2563eb; margin-right: 4px;"></i>
+        <b>Regra de Assinatura Oficial:</b> Este documento deve conter <u>ambas as assinaturas</u> (Studio Shanti / Natália Garufe e Aluno). Ao enviar o arquivo, o contrato é automaticamente validado como <b>Em Dia</b> com vigência de <b>1 ano (365 dias)</b>.
+      </div>
+
+      <div class="wa-form-group">
+        <label>Arquivo Digitalizado / Foto do Contrato (PDF, JPG, PNG) *</label>
+        <input type="file" class="wa-form-control" id="upload-contrato-arquivo" accept=".pdf,.jpg,.jpeg,.png" required style="padding: 8px;">
+        <small style="color: var(--wa-text-secondary); font-size: 11.5px; display: block; margin-top: 4px;">
+          Formatos suportados: PDF, JPG, JPEG, PNG. Limite de 10 MB.
+        </small>
+      </div>
+
+      <div style="display: flex; gap: 8px; margin-top: 16px;">
+        <button type="button" class="wa-btn-primary" data-close-modal="modal-upload-contrato" style="flex: 1; background: #e5e7eb; color: #374151; border: none; box-shadow: none;">
+          Cancelar
+        </button>
+        <button type="submit" class="wa-btn-primary" id="btn-submit-upload-contrato" style="flex: 2; background: linear-gradient(135deg, var(--shanti-gold), #b8934b); color: #0c3b2e; font-weight: 700;">
+          <i class="fa-solid fa-cloud-arrow-up"></i> Salvar Contrato
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ======================================================================
      MODAL: COMO ATIVAR O MICROFONE
      ====================================================================== -->
 <div class="wa-modal-overlay" id="modal-mic-help">
@@ -966,12 +1143,12 @@
 <div class="wa-toast" id="toast-msg">Notificação</div>
 
 <!-- JavaScript Principal -->
-<script src="/js/app.js?v=16"></script>
+<script src="/js/app.js?v=17"></script>
 
 <script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/service-worker.js?v=16').then(reg => {
+      navigator.serviceWorker.register('/service-worker.js?v=17').then(reg => {
         reg.update();
       }).catch(err => {
         console.log('SW reg:', err);

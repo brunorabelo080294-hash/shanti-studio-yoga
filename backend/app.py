@@ -9,14 +9,17 @@ import datetime
 import re
 from typing import Optional, Dict, Any, List
 from fastapi import FastAPI, HTTPException, UploadFile, File, Form, Response
+from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from PIL import Image
+import urllib.parse
 
 import backend.database as db
 import backend.ai_service as ai
 import backend.pdf_service as pdf_service
+import backend.contract_service as contract_service
 
 app = FastAPI(title="Yoga Studio - WhatsApp AI Assistant")
 
@@ -43,6 +46,7 @@ async def add_no_cache_header(request, call_next):
 class AlunoCreate(BaseModel):
     nome: str
     telefone: str
+    cpf: Optional[str] = ""
     email: Optional[str] = ""
     plano: Optional[str] = "2x na semana"
     dia_semana_1x: Optional[str] = None
@@ -54,10 +58,12 @@ class AlunoCreate(BaseModel):
     data_nascimento: Optional[str] = ""
     autoriza_imagem: Optional[int] = 1
     turma_ids: Optional[List[int]] = None
+    aprovacao_pagamento: Optional[str] = "aprovado"
 
 class AlunoUpdate(BaseModel):
     nome: Optional[str] = None
     telefone: Optional[str] = None
+    cpf: Optional[str] = None
     email: Optional[str] = None
     plano: Optional[str] = None
     dia_semana_1x: Optional[str] = None
@@ -68,6 +74,7 @@ class AlunoUpdate(BaseModel):
     observacoes: Optional[str] = None
     autoriza_imagem: Optional[int] = None
     turma_ids: Optional[List[int]] = None
+    aprovacao_pagamento: Optional[str] = None
 
 class TurmaMatriculaRequest(BaseModel):
     turma_id: int
@@ -373,6 +380,153 @@ def api_excluir_despesa(despesa_id: int):
     if not sucesso:
         raise HTTPException(status_code=404, detail="Despesa não encontrada")
     return {"status": "ok", "sucesso": True, "mensagem": "Despesa excluída com sucesso!"}
+
+# --- FASE 4: Rotas de Contratos Digitais, Matrícula Online & 'Entrou, Pagou' ---
+
+UPLOAD_CONTRATOS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "uploads", "contratos")
+os.makedirs(UPLOAD_CONTRATOS_DIR, exist_ok=True)
+
+@app.get("/matricula")
+def get_pagina_matricula():
+    """Serve a página pública de auto-matrícula do aluno."""
+    html_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "frontend", "matricula.html")
+    if os.path.exists(html_path):
+        return FileResponse(html_path)
+    raise HTTPException(status_code=404, detail="Página de matrícula não encontrada")
+
+@app.post("/api/matricula/publica")
+def api_cadastrar_matricula_publica(dados: AlunoCreate):
+    """Permite que um novo aluno preencha o formulário online e se inscreva."""
+    aluno_id = db.cadastrar_matricula_publica(dados.dict())
+    return {
+        "sucesso": True,
+        "aluno_id": aluno_id,
+        "aprovacao_pagamento": "pendente",
+        "mensagem": "Matrícula recebida com sucesso! Aguardando confirmação de pagamento pela professora Natália."
+    }
+
+@app.post("/api/alunos/{aluno_id}/aprovar-pagamento")
+def api_aprovar_matricula_pagamento(aluno_id: int, payload: Optional[Dict[str, Any]] = None):
+    """Regra 'Entrou, Pagou': Natália confirma pagamento, lança 1ª mensalidade como paga e ativa aluno."""
+    try:
+        forma = "PIX"
+        if payload and isinstance(payload, dict):
+            forma = payload.get("forma_pagamento", "PIX")
+        res = db.aprovar_matricula_pagamento(aluno_id, forma_pagamento=forma)
+        return res
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.get("/api/contratos")
+def api_listar_contratos(filtro: Optional[str] = None):
+    """Retorna listagem de contratos com cálculo dinâmico de vigência e status."""
+    return db.listar_contratos(filtro=filtro)
+
+@app.get("/api/contratos/alertas")
+def api_obter_alertas_contratos():
+    """Retorna contadores de contratos a vencer (30 dias), pendentes e vencidos."""
+    return db.obter_alertas_contratos()
+
+@app.get("/api/alunos/{aluno_id}/contrato/pdf")
+def api_baixar_contrato_aluno_pdf(aluno_id: int):
+    """Gera e retorna o PDF oficial do contrato preenchido com as cláusulas 1 a 13 congeladas."""
+    aluno = db.obter_aluno(aluno_id)
+    if not aluno:
+        raise HTTPException(status_code=404, detail="Aluno não encontrado")
+    buffer = contract_service.gerar_pdf_contrato(aluno_id)
+    nome_limpo = re.sub(r'[^a-zA-Z0-9_]', '_', aluno.get("nome", "Aluno"))
+    nome_arquivo = f"Contrato_Studio_Shanti_{nome_limpo}.pdf"
+    return Response(
+        content=buffer.getvalue(),
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": f"inline; filename={nome_arquivo}"
+        }
+    )
+
+@app.get("/api/alunos/{aluno_id}/contrato/whatsapp")
+def api_obter_link_whatsapp_contrato(aluno_id: int):
+    """Retorna mensagem e link do WhatsApp para envio do contrato ao aluno."""
+    aluno = db.obter_aluno(aluno_id)
+    if not aluno:
+        raise HTTPException(status_code=404, detail="Aluno não encontrado")
+    
+    configs = db.obter_configuracoes()
+    studio_nome = configs.get("nome_studio", "Studio Shanti")
+    nome = aluno.get("nome", "")
+    plano = aluno.get("plano", "")
+    
+    msg = (
+        f"📜 *CONTRATO DE MATRÍCULA - {studio_nome}* 🧘‍♀️\n\n"
+        f"Olá, *{nome}*! Seja muito bem-vindo(a) à nossa família Shanti! 🙏\n\n"
+        f"Preparamos o seu Contrato de Prestação de Serviços (Plano {plano}) com todo carinho. "
+        f"A professora Natália já assinou o documento oficial.\n\n"
+        f"Por favor, acesse o link abaixo para visualizar, assinar a sua via e nos enviar de volta para validação no estúdio:\n"
+        f"👉 https://shanti-studio-yoga.onrender.com/api/alunos/{aluno_id}/contrato/pdf\n\n"
+        f"Qualquer dúvida estamos à disposição! Namastê. ✨"
+    )
+    
+    tel_limpo = "".join(filter(str.isdigit, aluno.get("telefone", "")))
+    if tel_limpo and not tel_limpo.startswith("55"):
+        tel_limpo = "55" + tel_limpo
+        
+    link_wa = f"https://wa.me/{tel_limpo}?text={urllib.parse.quote(msg)}"
+    return {
+        "aluno_id": aluno_id,
+        "mensagem": msg,
+        "link_whatsapp": link_wa
+    }
+
+@app.post("/api/alunos/{aluno_id}/contrato/upload")
+async def api_upload_contrato_assinado(aluno_id: int, file: UploadFile = File(...)):
+    """Recebe o arquivo com as DUAS assinaturas (Natália + Aluno) e atualiza para 'Em dia'."""
+    aluno = db.obter_aluno(aluno_id)
+    if not aluno:
+        raise HTTPException(status_code=404, detail="Aluno não encontrado")
+        
+    ext = os.path.splitext(file.filename)[1].lower() or ".pdf"
+    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    novo_nome = f"contrato_assinado_{aluno_id}_{timestamp}{ext}"
+    destino = os.path.join(UPLOAD_CONTRATOS_DIR, novo_nome)
+    
+    conteudo = await file.read()
+    with open(destino, "wb") as f:
+        f.write(conteudo)
+        
+    caminho_relativo = f"uploads/contratos/{novo_nome}"
+    db.salvar_contrato_assinado(aluno_id, caminho_relativo)
+    aluno_atualizado = db.obter_aluno(aluno_id) or {}
+    return {
+        "sucesso": True,
+        "mensagem": "Contrato assinado anexado com sucesso! Status atualizado para 'Em dia' com vigência de 1 ano.",
+        "arquivo": caminho_relativo,
+        "status_contrato": aluno_atualizado.get("status_contrato", "em_dia"),
+        "data_vigencia_contrato": aluno_atualizado.get("data_vigencia_contrato")
+    }
+
+@app.get("/api/alunos/{aluno_id}/contrato/arquivo")
+def api_obter_arquivo_contrato_assinado(aluno_id: int):
+    """Permite visualizar/baixar o arquivo assinado armazenado."""
+    aluno = db.obter_aluno(aluno_id)
+    if not aluno:
+        raise HTTPException(status_code=404, detail="Aluno não encontrado")
+    arq_relativo = aluno.get("contrato_assinado_arquivo")
+    if not arq_relativo:
+        raise HTTPException(status_code=404, detail="Nenhum contrato assinado anexado para este aluno.")
+    
+    caminho_completo = os.path.join(os.path.dirname(os.path.abspath(__file__)), arq_relativo.replace("/", os.sep))
+    if not os.path.exists(caminho_completo):
+        raise HTTPException(status_code=404, detail="Arquivo físico do contrato não encontrado no servidor.")
+    return FileResponse(caminho_completo)
+
+@app.delete("/api/alunos/{aluno_id}/contrato/arquivo")
+def api_remover_arquivo_contrato_assinado(aluno_id: int):
+    """Remove a vinculação do arquivo assinado."""
+    aluno = db.obter_aluno(aluno_id)
+    if not aluno:
+        raise HTTPException(status_code=404, detail="Aluno não encontrado")
+    db.remover_contrato_assinado(aluno_id)
+    return {"sucesso": True, "mensagem": "Contrato assinado removido com sucesso. Status retornado para pendente."}
 
 @app.get("/api/aniversariantes")
 def api_obter_aniversariantes(mes: Optional[int] = None):

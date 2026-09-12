@@ -71,6 +71,21 @@ def init_db():
     except sqlite3.OperationalError:
         pass
 
+    # --- FASE 4: Colunas para CPF, Contratos Digitais e Aprovação de Matrícula ---
+    for col_def in [
+        ("cpf", "TEXT"),
+        ("aprovacao_pagamento", "TEXT DEFAULT 'aprovado'"),
+        ("contrato_pdf_gerado", "TEXT"),
+        ("contrato_assinado_arquivo", "TEXT"),
+        ("data_assinatura_contrato", "TEXT"),
+        ("data_vigencia_contrato", "TEXT"),
+        ("status_contrato", "TEXT DEFAULT 'pendente'")
+    ]:
+        try:
+            cursor.execute(f"ALTER TABLE alunos ADD COLUMN {col_def[0]} {col_def[1]}")
+        except sqlite3.OperationalError:
+            pass
+
     # Tabela de Turmas do Studio Shanti
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS turmas (
@@ -426,10 +441,12 @@ def cadastrar_aluno(dados: Dict[str, Any]) -> int:
         valor = 120.0 if "1x" in plano else 150.0
 
     dia_semana_1x = dados.get("dia_semana_1x") or ""
+    cpf = dados.get("cpf") or ""
+    aprovacao_pagamento = dados.get("aprovacao_pagamento") or "aprovado"
 
     cursor.execute("""
-    INSERT INTO alunos (nome, telefone, email, plano, dia_vencimento, valor_mensalidade, tipo_pagamento, status, data_matricula, mes_matricula, observacoes, data_nascimento, autoriza_imagem, dia_semana_1x)
-    VALUES (?, ?, ?, ?, ?, ?, ?, 'ativo', ?, ?, ?, ?, ?, ?)
+    INSERT INTO alunos (nome, telefone, email, plano, dia_vencimento, valor_mensalidade, tipo_pagamento, status, data_matricula, mes_matricula, observacoes, data_nascimento, autoriza_imagem, dia_semana_1x, cpf, aprovacao_pagamento)
+    VALUES (?, ?, ?, ?, ?, ?, ?, 'ativo', ?, ?, ?, ?, ?, ?, ?, ?)
     """, (
         dados.get("nome"),
         dados.get("telefone", ""),
@@ -443,7 +460,9 @@ def cadastrar_aluno(dados: Dict[str, Any]) -> int:
         dados.get("observacoes", ""),
         dados.get("data_nascimento") or None,
         autoriza_img,
-        dia_semana_1x
+        dia_semana_1x,
+        cpf,
+        aprovacao_pagamento
     ))
     aluno_id = cursor.lastrowid
 
@@ -1236,6 +1255,196 @@ def gerar_comprovante_pagamento(pagamento_id: int) -> Optional[Dict[str, Any]]:
         "texto_recibo": msg,
         "link_whatsapp": link_wa
     }
+
+# --- FASE 4: Gestão de Contratos Digitais, Matrícula Pública & 'Entrou, Pagou' ---
+
+def cadastrar_matricula_publica(dados: Dict[str, Any]) -> int:
+    """
+    Cadastra um novo aluno vindo do formulário público online (/matricula).
+    O aluno é inserido com aprovacao_pagamento = 'pendente' aguardando validação da Natália.
+    """
+    dados_cad = dict(dados)
+    dados_cad["aprovacao_pagamento"] = "pendente"
+    dados_cad["status_contrato"] = "pendente"
+    return cadastrar_aluno(dados_cad)
+
+def aprovar_matricula_pagamento(aluno_id: int, forma_pagamento: str = "PIX") -> Dict[str, Any]:
+    """
+    Regra 'Entrou, Pagou':
+    A Natália aprova o pagamento da matrícula do aluno.
+    Automaticamente:
+    1. Marca aprovacao_pagamento = 'aprovado'
+    2. Lança a primeira mensalidade na tabela pagamentos como 'pago' para a competência atual.
+    """
+    aluno = obter_aluno(aluno_id)
+    if not aluno:
+        raise ValueError(f"Aluno com ID {aluno_id} não encontrado.")
+
+    hoje = datetime.date.today()
+    mes_atual = hoje.strftime("%Y-%m")
+    hoje_str = hoje.strftime("%Y-%m-%d")
+
+    # Registrar pagamento inicial ("Entrou, Pagou")
+    valor = float(aluno.get("valor_mensalidade", 150.0))
+    pagamento_id = registrar_pagamento(
+        aluno_id=aluno_id,
+        valor=valor,
+        forma_pagamento=forma_pagamento or "PIX",
+        mes_referencia=mes_atual,
+        data_pagamento=hoje_str
+    )
+
+    # Atualizar status de aprovação
+    atualizar_aluno(aluno_id, {
+        "aprovacao_pagamento": "aprovado"
+    })
+
+    return {
+        "sucesso": True,
+        "aluno_id": aluno_id,
+        "aluno_nome": aluno.get("nome"),
+        "aprovacao_pagamento": "aprovado",
+        "pagamento_id": pagamento_id,
+        "valor": valor,
+        "mes_referencia": mes_atual,
+        "forma_pagamento": forma_pagamento,
+        "mensagem": f"Pagamento da 1ª mensalidade de {aluno.get('nome')} aprovado com sucesso! Matrícula ativada ('Entrou, Pagou')."
+    }
+
+def listar_contratos(filtro: Optional[str] = None) -> List[Dict[str, Any]]:
+    """
+    Lista todos os alunos ativos e o status detalhado de seus contratos:
+    - pendente: sem o arquivo com as duas assinaturas anexado.
+    - em_dia: assinado por ambas as partes e com vigência superior a 30 dias.
+    - a_vencer: assinado, porém faltando 30 dias ou menos para completar o ciclo de 1 ano.
+    - vencido: vigência expirada (mais de 1 ano).
+    """
+    alunos = listar_alunos(status="ativo")
+    hoje = datetime.date.today()
+    contratos = []
+
+    for al in alunos:
+        assinado_arquivo = al.get("contrato_assinado_arquivo") or ""
+        tem_arquivo = bool(assinado_arquivo.strip())
+        data_assinatura = al.get("data_assinatura_contrato") or ""
+        data_vigencia_str = al.get("data_vigencia_contrato") or ""
+
+        # Formatar turmas
+        turmas_nomes = [t["nome"] for t in al.get("turmas", [])]
+        turmas_str = ", ".join(turmas_nomes) if turmas_nomes else "Sem turma associada"
+
+        if not tem_arquivo:
+            status = "pendente"
+            status_label = "Pendente de Assinatura"
+            dias_restantes = None
+            data_vigencia_exibicao = "-"
+        else:
+            # Calcular vigência
+            if data_vigencia_str:
+                try:
+                    dt_vig = datetime.date.fromisoformat(data_vigencia_str)
+                except Exception:
+                    dt_vig = hoje + datetime.timedelta(days=365)
+            elif data_assinatura:
+                try:
+                    dt_ass = datetime.date.fromisoformat(data_assinatura)
+                    dt_vig = dt_ass + datetime.timedelta(days=365)
+                except Exception:
+                    dt_vig = hoje + datetime.timedelta(days=365)
+            else:
+                dt_vig = hoje + datetime.timedelta(days=365)
+
+            data_vigencia_exibicao = dt_vig.strftime("%d/%m/%Y")
+            dias_restantes = (dt_vig - hoje).days
+
+            if dias_restantes < 0:
+                status = "vencido"
+                status_label = f"Vencido há {abs(dias_restantes)} dias"
+            elif dias_restantes <= 30:
+                status = "a_vencer"
+                status_label = f"Vence em {dias_restantes} dias"
+            else:
+                status = "em_dia"
+                status_label = f"Em dia ({dias_restantes} dias restantes)"
+
+        c_item = {
+            "id": al["id"],
+            "aluno_id": al["id"],
+            "nome": al["nome"],
+            "telefone": al["telefone"],
+            "cpf": al.get("cpf") or "Não informado",
+            "plano": al.get("plano") or "2x na semana",
+            "dia_semana_1x": al.get("dia_semana_1x") or "",
+            "turmas_str": turmas_str,
+            "data_matricula": al.get("data_matricula"),
+            "data_assinatura": data_assinatura,
+            "data_vigencia": data_vigencia_exibicao,
+            "data_vigencia_contrato": al.get("data_vigencia_contrato"),
+            "dias_restantes": dias_restantes,
+            "status_contrato": status,
+            "status_label": status_label,
+            "tem_arquivo_assinado": tem_arquivo,
+            "arquivo_assinado": assinado_arquivo,
+            "contrato_assinado_arquivo": assinado_arquivo,
+            "aprovacao_pagamento": al.get("aprovacao_pagamento") or "aprovado"
+        }
+
+        if not filtro or filtro == "todos" or status == filtro:
+            contratos.append(c_item)
+
+    # Ordenação estratégica: primeiro os 'a_vencer', depois 'pendente', 'vencido', e por fim 'em_dia'
+    ordem_status = {"a_vencer": 0, "vencido": 1, "pendente": 2, "em_dia": 3}
+    return sorted(contratos, key=lambda x: (ordem_status.get(x["status_contrato"], 4), x.get("dias_restantes") or 999, x["nome"]))
+
+def obter_alertas_contratos() -> Dict[str, Any]:
+    """
+    Retorna métricas consolidadas e listas de alunos para o painel de Contratos e para a IA.
+    """
+    contratos = listar_contratos()
+    pendentes = [c for c in contratos if c["status_contrato"] == "pendente"]
+    a_vencer = [c for c in contratos if c["status_contrato"] == "a_vencer"]
+    vencidos = [c for c in contratos if c["status_contrato"] == "vencido"]
+    em_dia = [c for c in contratos if c["status_contrato"] == "em_dia"]
+
+    return {
+        "total_geral": len(contratos),
+        "total_pendentes": len(pendentes),
+        "total_a_vencer": len(a_vencer),
+        "total_vencidos": len(vencidos),
+        "total_em_dia": len(em_dia),
+        "pendentes": len(pendentes),
+        "a_vencer": len(a_vencer),
+        "vencidos": len(vencidos),
+        "em_dia": len(em_dia),
+        "alunos_a_vencer": a_vencer,
+        "alunos_pendentes": pendentes,
+        "alunos_vencidos": vencidos
+    }
+
+def salvar_contrato_assinado(aluno_id: int, caminho_arquivo: str) -> bool:
+    """
+    Registra que o documento final com as DUAS assinaturas (Natália + Aluno) foi anexado.
+    Calcula automaticamente a vigência de 1 ano e define o status como 'em_dia'.
+    """
+    hoje = datetime.date.today()
+    hoje_str = hoje.strftime("%Y-%m-%d")
+    vigencia_str = (hoje + datetime.timedelta(days=365)).strftime("%Y-%m-%d")
+
+    atualizar_aluno(aluno_id, {
+        "contrato_assinado_arquivo": caminho_arquivo,
+        "data_assinatura_contrato": hoje_str,
+        "data_vigencia_contrato": vigencia_str,
+        "status_contrato": "em_dia"
+    })
+    return True
+
+def remover_contrato_assinado(aluno_id: int) -> bool:
+    """Remove a vinculação do contrato assinado, retornando para 'pendente'."""
+    atualizar_aluno(aluno_id, {
+        "contrato_assinado_arquivo": "",
+        "status_contrato": "pendente"
+    })
+    return True
 
 # Inicializar ao importar
 init_db()
