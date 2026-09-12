@@ -47,6 +47,7 @@ class AlunoCreate(BaseModel):
     tipo_pagamento: Optional[str] = "PIX"
     observacoes: Optional[str] = ""
     mes_matricula: Optional[str] = None
+    data_nascimento: Optional[str] = ""
 
 class AlunoUpdate(BaseModel):
     nome: Optional[str] = None
@@ -56,6 +57,7 @@ class AlunoUpdate(BaseModel):
     dia_vencimento: Optional[int] = None
     valor_mensalidade: Optional[float] = None
     tipo_pagamento: Optional[str] = None
+    data_nascimento: Optional[str] = None
     observacoes: Optional[str] = None
 
 class InativarAlunoRequest(BaseModel):
@@ -67,6 +69,20 @@ class PagamentoCreate(BaseModel):
     forma_pagamento: str = "PIX"
     mes_referencia: Optional[str] = None
     data_pagamento: Optional[str] = None
+
+class PresencaCreate(BaseModel):
+    aluno_id: int
+    data: Optional[str] = None
+    horario: Optional[str] = None
+    modalidade: Optional[str] = "Yoga Regular"
+    observacao: Optional[str] = ""
+
+class DespesaCreate(BaseModel):
+    descricao: str
+    valor: float
+    categoria: Optional[str] = "Geral"
+    data: Optional[str] = None
+    observacao: Optional[str] = ""
 
 class ChatRequest(BaseModel):
     mensagem: str
@@ -140,6 +156,58 @@ def api_obter_relatorio(mes_ano: Optional[str] = None):
 def api_obter_cobrancas(tipo: str = "atrasados"):
     """Retorna lista de lembretes e links 'wa.me' prontos para disparar no WhatsApp com 1 clique."""
     return db.gerar_mensagens_cobranca(tipo=tipo)
+
+@app.get("/api/pagamentos/{pagamento_id}/recibo")
+def api_obter_recibo_pagamento(pagamento_id: int):
+    recibo = db.gerar_comprovante_pagamento(pagamento_id)
+    if not recibo:
+        raise HTTPException(status_code=404, detail="Pagamento não encontrado")
+    return recibo
+
+@app.get("/api/frequencias")
+def api_listar_frequencias(aluno_id: Optional[int] = None, data: Optional[str] = None):
+    return db.listar_presencas(aluno_id=aluno_id, data=data)
+
+@app.post("/api/frequencias")
+def api_registrar_frequencia(dados: PresencaCreate):
+    fid = db.registrar_presenca(
+        aluno_id=dados.aluno_id,
+        data=dados.data,
+        horario=dados.horario,
+        modalidade=dados.modalidade or "Yoga Regular",
+        observacao=dados.observacao or ""
+    )
+    return {"status": "ok", "id": fid, "mensagem": "Presença registrada com sucesso!"}
+
+@app.get("/api/frequencias/ausentes")
+def api_obter_alunos_ausentes(dias: int = 10):
+    return db.obter_alunos_ausentes(dias_sem_aula=dias)
+
+@app.get("/api/despesas")
+def api_listar_despesas(mes_ano: Optional[str] = None):
+    return db.listar_despesas(mes_ano=mes_ano)
+
+@app.post("/api/despesas")
+def api_cadastrar_despesa(dados: DespesaCreate):
+    did = db.registrar_despesa(
+        descricao=dados.descricao,
+        valor=dados.valor,
+        categoria=dados.categoria or "Geral",
+        data=dados.data,
+        observacao=dados.observacao or ""
+    )
+    return {"status": "ok", "id": did, "mensagem": "Despesa registrada com sucesso!"}
+
+@app.delete("/api/despesas/{despesa_id}")
+def api_excluir_despesa(despesa_id: int):
+    sucesso = db.excluir_despesa(despesa_id)
+    if not sucesso:
+        raise HTTPException(status_code=404, detail="Despesa não encontrada")
+    return {"status": "ok", "mensagem": "Despesa excluída com sucesso!"}
+
+@app.get("/api/aniversariantes")
+def api_obter_aniversariantes(mes: Optional[int] = None):
+    return db.obter_aniversariantes_mes(mes=mes)
 
 @app.post("/api/chat")
 async def api_chat(req: ChatRequest):

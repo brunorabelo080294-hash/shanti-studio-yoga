@@ -977,3 +977,85 @@ body {
   box-shadow: 0 4px 15px rgba(0,0,0,0.25);
   display: none;
 }
+
+/* Botão de Ouvir Mensagem com Voz no Chat */
+.wa-msg-speak-btn {
+  background: none;
+  border: none;
+  color: var(--shanti-gold);
+  font-size: 13px;
+  cursor: pointer;
+  padding: 3px 6px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-right: auto;
+  transition: all 0.2s;
+}
+
+.wa-msg-speak-btn:hover {
+  color: var(--shanti-primary);
+  background-color: rgba(197, 160, 89, 0.15);
+}
+
+.wa-msg-speak-btn.speaking {
+  color: #10b981;
+  animation: waPulse 1.2s infinite;
+}
+
+@keyframes waPulse {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.15); opacity: 0.7; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* Itens de Aniversariantes e Ausentes nos Relatórios */
+.wa-report-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: #fdfbf7;
+  border: 1px solid var(--wa-border);
+  border-radius: 10px;
+  font-size: 13px;
+}
+
+.wa-report-item-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.wa-report-item-title {
+  font-weight: 700;
+  color: var(--shanti-primary);
+}
+
+.wa-report-item-sub {
+  font-size: 11.5px;
+  color: var(--wa-text-secondary);
+}
+
+.wa-btn-sm-whatsapp {
+  background: #25d366;
+  color: #ffffff;
+  border: none;
+  border-radius: 16px;
+  padding: 4px 10px;
+  font-size: 11.5px;
+  font-weight: 700;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(37, 211, 102, 0.3);
+  transition: transform 0.15s;
+}
+
+.wa-btn-sm-whatsapp:active {
+  transform: scale(0.95);
+}
+

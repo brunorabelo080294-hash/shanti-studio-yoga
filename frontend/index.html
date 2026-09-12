@@ -21,7 +21,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
   <!-- WhatsApp Luxe Theme Stylesheet -->
-  <link rel="stylesheet" href="/css/whatsapp-theme.css?v=3">
+  <link rel="stylesheet" href="/css/whatsapp-theme.css?v=6">
 </head>
 <body>
 
@@ -42,6 +42,10 @@
       </div>
     </div>
     <div class="wa-header-actions">
+      <button class="wa-icon-btn" id="btn-toggle-live-voice" title="Modo Conversa por Voz (Ao Vivo)" style="position: relative; color: var(--shanti-gold);">
+        <i class="fa-solid fa-headset"></i>
+        <span id="live-voice-indicator" style="position: absolute; top: 4px; right: 4px; width: 8px; height: 8px; border-radius: 50%; background: #94a3b8;"></span>
+      </button>
       <button class="wa-icon-btn" id="btn-header-action" title="Atualizar dados">
         <i class="fa-solid fa-arrows-rotate"></i>
       </button>
@@ -73,7 +77,15 @@
        ==================================================================== -->
   <section class="wa-screen active" id="screen-chat">
     <div class="wa-chat-container">
-      
+
+      <!-- Banner Modo Conversa Ao Vivo -->
+      <div id="live-voice-banner" style="display:none; background: #ecfdf5; border: 1px solid #a7f3d0; color: #065f46; padding: 10px 14px; font-size: 13px; border-radius: 10px; margin: 10px 14px; align-items: center; justify-content: space-between; box-shadow: 0 2px 6px rgba(0,0,0,0.05);">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <i class="fa-solid fa-circle-dot" style="color: #10b981; animation: pulse 1.5s infinite;"></i>
+          <span><b>Modo Voz Ao Vivo:</b> a Shanti fala as respostas e ouve você!</span>
+        </div>
+        <button id="btn-stop-live-voice" style="background:none; border:none; color:#065f46; font-weight:700; cursor:pointer; font-size: 12px; text-decoration: underline;">Pausar</button>
+      </div>
 
       <!-- Lista de Mensagens do Chat -->
       <div class="wa-messages-list" id="chat-messages">
@@ -206,13 +218,16 @@
         </div>
       </div>
 
-      <!-- Card: Faturamento do Mês -->
+      <!-- Card: Faturamento & Lucro do Mês -->
       <div class="wa-card">
         <div class="wa-card-header">
           <div class="wa-card-title">
             <i class="fa-solid fa-wallet" style="color: var(--wa-success);"></i>
-            <span>Financeiro do Studio</span>
+            <span>Financeiro & Lucro Real</span>
           </div>
+          <button class="wa-btn-primary" id="btn-abrir-modal-despesa" style="padding: 6px 12px; font-size: 11.5px; width: auto; background: var(--shanti-primary); box-shadow:none;">
+            <i class="fa-solid fa-plus"></i> Despesa
+          </button>
         </div>
         <div class="wa-stat-grid">
           <div class="wa-stat-box">
@@ -224,13 +239,41 @@
             <span class="wa-stat-label">Já Recebido</span>
           </div>
           <div class="wa-stat-box">
-            <span class="wa-stat-value danger" id="stat-total-pendente">R$ 0,00</span>
-            <span class="wa-stat-label">Pendente / Atrasado</span>
+            <span class="wa-stat-value danger" id="stat-total-despesas">R$ 0,00</span>
+            <span class="wa-stat-label">Despesas do Mês</span>
           </div>
-          <div class="wa-stat-box">
-            <span class="wa-stat-value" id="stat-qtd-pagamentos">0</span>
-            <span class="wa-stat-label">Mensalidades Quitadas</span>
+          <div class="wa-stat-box" style="background: #fdfbf7; border: 1px solid var(--shanti-gold);">
+            <span class="wa-stat-value" id="stat-lucro-real" style="color: var(--shanti-primary); font-weight: 800;">R$ 0,00</span>
+            <span class="wa-stat-label" style="font-weight: 700; color: var(--shanti-gold);">Lucro Líquido Real</span>
           </div>
+        </div>
+      </div>
+
+      <!-- Card: Aniversariantes do Mês -->
+      <div class="wa-card" id="card-aniversariantes">
+        <div class="wa-card-header">
+          <div class="wa-card-title">
+            <i class="fa-solid fa-cake-candles" style="color: #ec4899;"></i>
+            <span>Aniversariantes do Mês</span>
+          </div>
+          <span class="wa-tab-badge" id="badge-aniversariantes" style="background: #fdf2f8; color: #db2777;">0</span>
+        </div>
+        <div id="list-aniversariantes" style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px;">
+          <div style="font-size: 12px; color: var(--wa-text-secondary); text-align: center; padding: 8px;">Nenhum aniversariante neste mês</div>
+        </div>
+      </div>
+
+      <!-- Card: Alunos Ausentes / Sem Praticar -->
+      <div class="wa-card" id="card-ausentes">
+        <div class="wa-card-header">
+          <div class="wa-card-title">
+            <i class="fa-solid fa-heart-pulse" style="color: #f59e0b;"></i>
+            <span>Alunos Ausentes (>10 dias)</span>
+          </div>
+          <span class="wa-tab-badge" id="badge-ausentes" style="background: #fef3c7; color: #b45309;">0</span>
+        </div>
+        <div id="list-ausentes" style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px;">
+          <div style="font-size: 12px; color: var(--wa-text-secondary); text-align: center; padding: 8px;">Todos os alunos ativos estão frequentando!</div>
         </div>
       </div>
 
@@ -316,6 +359,51 @@
 </div>
 
 <!-- ======================================================================
+     MODAL: REGISTRAR DESPESA DO ESTÚDIO
+     ====================================================================== -->
+<div class="wa-modal-overlay" id="modal-add-despesa">
+  <div class="wa-modal-sheet">
+    <div class="wa-modal-header">
+      <h3 class="wa-modal-title"><i class="fa-solid fa-money-bill-transfer" style="color:var(--shanti-gold);"></i> Registrar Despesa</h3>
+      <button class="wa-modal-close" data-close-modal="modal-add-despesa">&times;</button>
+    </div>
+
+    <form id="form-add-despesa">
+      <div class="wa-form-group">
+        <label>Descrição da Despesa *</label>
+        <input type="text" class="wa-form-control" id="desp-desc" required placeholder="Ex: Incensos e aromatizadores, Conta de Luz...">
+      </div>
+
+      <div class="wa-form-group">
+        <label>Valor (R$) *</label>
+        <input type="number" step="0.01" class="wa-form-control" id="desp-valor" required placeholder="Ex: 85.00">
+      </div>
+
+      <div class="wa-form-group">
+        <label>Categoria</label>
+        <select class="wa-form-control" id="desp-cat">
+          <option value="Aluguel">Aluguel do Espaço</option>
+          <option value="Energia/Água">Energia, Água & Internet</option>
+          <option value="Materiais">Materiais, Óleos & Incensos</option>
+          <option value="Marketing">Marketing & Divulgação</option>
+          <option value="Manutenção">Limpeza & Manutenção</option>
+          <option value="Geral" selected>Geral / Outros</option>
+        </select>
+      </div>
+
+      <div class="wa-form-group">
+        <label>Data</label>
+        <input type="date" class="wa-form-control" id="desp-data">
+      </div>
+
+      <button type="submit" class="wa-btn-primary" style="margin-top: 10px;">
+        <i class="fa-solid fa-check"></i> Salvar Despesa
+      </button>
+    </form>
+  </div>
+</div>
+
+<!-- ======================================================================
      MODAL: NOVA MATRÍCULA DE ALUNO
      ====================================================================== -->
 <div class="wa-modal-overlay" id="modal-add-student">
@@ -339,6 +427,11 @@
       <div class="wa-form-group">
         <label>E-mail (opcional)</label>
         <input type="email" class="wa-form-control" id="cad-email" placeholder="juliana@email.com">
+      </div>
+
+      <div class="wa-form-group">
+        <label>Data de Nascimento (para parabenizar no aniversário)</label>
+        <input type="date" class="wa-form-control" id="cad-nascimento">
       </div>
 
       <div class="wa-form-group">
@@ -406,6 +499,7 @@
           <div><b>WhatsApp:</b> <span id="det-telefone"></span></div>
           <div><b>Plano:</b> <span id="det-plano"></span></div>
           <div><b>Mensalidade:</b> R$ <span id="det-valor"></span> (Vencimento todo dia <span id="det-dia-venc"></span>)</div>
+          <div><b>Aniversário:</b> <span id="det-nascimento">Não informado</span></div>
           <div><b>Situação Atual:</b> <span id="det-status-badge"></span></div>
           <div id="det-motivo-box" style="display:none; color: var(--wa-danger); margin-top: 4px;">
             <b>Motivo Saída:</b> <span id="det-motivo-saida"></span>
@@ -414,19 +508,28 @@
       </div>
 
       <!-- Ações Rápidas do Aluno -->
-      <div style="display: flex; gap: 10px; margin-bottom: 16px;">
-        <a id="det-btn-whatsapp" href="#" target="_blank" class="wa-action-btn-whatsapp" style="flex: 1;">
+      <div style="display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap;">
+        <a id="det-btn-whatsapp" href="#" target="_blank" class="wa-action-btn-whatsapp" style="flex: 1; min-width: 140px;">
           <i class="fa-brands fa-whatsapp"></i> Conversar / Cobrar
         </a>
-        <button id="det-btn-dar-baixa" class="wa-btn-primary" style="flex: 1; padding: 8px 12px;">
+        <button id="det-btn-dar-baixa" class="wa-btn-primary" style="flex: 1; min-width: 140px; padding: 8px 12px;">
           <i class="fa-solid fa-receipt"></i> Baixar Pagamento
+        </button>
+        <button id="det-btn-presenca" class="wa-btn-primary" style="flex: 1; min-width: 140px; padding: 8px 12px; background: #e0f2fe; color: #0284c7; border: 1px solid #bae6fd; box-shadow:none;">
+          <i class="fa-solid fa-clipboard-check"></i> Marcar Presença
         </button>
       </div>
 
       <!-- Histórico de Pagamentos -->
       <h4 style="font-size: 14px; margin-bottom: 8px; color: var(--shanti-primary); font-weight: 700;">Histórico de Mensalidades:</h4>
-      <div id="det-historico-pagamentos" style="max-height: 150px; overflow-y: auto; border: 1px solid var(--wa-border); border-radius: 10px; padding: 10px; background: #ffffff;">
+      <div id="det-historico-pagamentos" style="max-height: 130px; overflow-y: auto; border: 1px solid var(--wa-border); border-radius: 10px; padding: 10px; background: #ffffff; margin-bottom: 14px;">
         <!-- Lista de pagamentos do aluno -->
+      </div>
+
+      <!-- Histórico de Presenças -->
+      <h4 style="font-size: 14px; margin-bottom: 8px; color: var(--shanti-primary); font-weight: 700;">Últimas Presenças nas Aulas:</h4>
+      <div id="det-historico-presencas" style="max-height: 120px; overflow-y: auto; border: 1px solid var(--wa-border); border-radius: 10px; padding: 10px; background: #ffffff;">
+        <!-- Lista de presenças do aluno -->
       </div>
 
       <!-- Botão de Inativar / Saída de Aluno -->
@@ -544,12 +647,12 @@
 <div class="wa-toast" id="toast-msg">Notificação</div>
 
 <!-- JavaScript Principal -->
-<script src="/js/app.js?v=5"></script>
+<script src="/js/app.js?v=6"></script>
 
 <script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/service-worker.js?v=5').then(reg => {
+      navigator.serviceWorker.register('/service-worker.js?v=6').then(reg => {
         reg.update();
       }).catch(err => {
         console.log('SW reg:', err);

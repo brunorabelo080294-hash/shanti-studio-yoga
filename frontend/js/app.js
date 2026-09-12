@@ -14,7 +14,9 @@ const state = {
   recordSeconds: 0,
   speechRecognition: null,
   currentFilter: 'todos',
-  configuracoes: {}
+  configuracoes: {},
+  liveVoiceMode: false,
+  isSpeaking: false
 };
 
 // =============================================================================
@@ -24,9 +26,17 @@ document.addEventListener('DOMContentLoaded', async () => {
   setupNavigation();
   setupChat();
   setupAudio();
+  setupLiveVoice();
   setupModals();
   setupSettings();
   
+  // Pré-carregar vozes para síntese de fala
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.onvoiceschanged = () => {
+      window.speechSynthesis.getVoices();
+    };
+  }
+
   // Horário da mensagem de boas-vindas
   const now = new Date();
   const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
@@ -50,6 +60,86 @@ function showToast(msg) {
   setTimeout(() => {
     toast.style.display = 'none';
   }, 3000);
+}
+
+function formatarDataBR(dataStr) {
+  if (!dataStr) return '';
+  const partes = dataStr.split('T')[0].split('-');
+  if (partes.length === 3) return `${partes[2]}/${partes[1]}/${partes[0]}`;
+  return dataStr;
+}
+
+function formatarDataHoraBR(dataHoraStr) {
+  if (!dataHoraStr) return '';
+  const d = new Date(dataHoraStr);
+  if (isNaN(d.getTime())) return dataHoraStr;
+  const dia = String(d.getDate()).padStart(2, '0');
+  const mes = String(d.getMonth() + 1).padStart(2, '0');
+  const ano = d.getFullYear();
+  const hora = String(d.getHours()).padStart(2, '0');
+  const min = String(d.getMinutes()).padStart(2, '0');
+  return `${dia}/${mes}/${ano} às ${hora}:${min}`;
+}
+
+// =============================================================================
+// SÍNTESE DE VOZ (ASSISTENTE FALANTE 100% GRATUITO)
+// =============================================================================
+function limparTextoParaFala(texto) {
+  if (!texto) return '';
+  return texto
+    .replace(/[*_#`~]/g, '') // remove formatação markdown
+    .replace(/https?:\/\/\S+/g, '') // remove URLs
+    .replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F1E0}-\u{1F1FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F900}-\u{1F9FF}\u{1FA70}-\u{1FAFF}]/gu, '') // remove emojis
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function falarTexto(texto, onEnd = null) {
+  if (!('speechSynthesis' in window)) {
+    if (onEnd) onEnd();
+    return;
+  }
+  window.speechSynthesis.cancel();
+  const textoLimpo = limparTextoParaFala(texto);
+  if (!textoLimpo) {
+    if (onEnd) onEnd();
+    return;
+  }
+
+  const utterance = new SpeechSynthesisUtterance(textoLimpo);
+  utterance.lang = 'pt-BR';
+  utterance.rate = 1.05;
+  utterance.pitch = 1.0;
+
+  const voices = window.speechSynthesis.getVoices();
+  const ptVoice = voices.find(v => (v.lang === 'pt-BR' || v.lang === 'pt_BR') && (v.name.includes('Google') || v.name.includes('Luciana') || v.name.includes('Maria') || v.name.includes('Natural') || v.name.includes('Francisca'))) 
+               || voices.find(v => v.lang === 'pt-BR' || v.lang === 'pt_BR');
+  if (ptVoice) utterance.voice = ptVoice;
+
+  state.isSpeaking = true;
+
+  utterance.onend = () => {
+    state.isSpeaking = false;
+    document.querySelectorAll('.wa-msg-speak-btn').forEach(btn => btn.classList.remove('speaking'));
+    if (onEnd) onEnd();
+  };
+
+  utterance.onerror = (e) => {
+    state.isSpeaking = false;
+    document.querySelectorAll('.wa-msg-speak-btn').forEach(btn => btn.classList.remove('speaking'));
+    console.warn('SpeechSynthesis error:', e);
+    if (onEnd) onEnd();
+  };
+
+  window.speechSynthesis.speak(utterance);
+}
+
+function pararFala() {
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.cancel();
+  }
+  state.isSpeaking = false;
+  document.querySelectorAll('.wa-msg-speak-btn').forEach(btn => btn.classList.remove('speaking'));
 }
 
 // =============================================================================
@@ -140,30 +230,104 @@ function adicionarMensagem(texto, remetente = 'bot', dadosExtras = null, element
       <div class="wa-message-content">${formattedText}</div>
   `;
 
-  // Se vier com dados de cobrança (links do WhatsApp)
-  if (dadosExtras && Array.isArray(dadosExtras) && dadosExtras.length > 0) {
-    htmlInner += `<div style="margin-top: 10px; display: flex; flex-direction: column; gap: 8px;">`;
-    dadosExtras.forEach(al => {
+  // Renderizar Cards de Ação Extras
+  if (dadosExtras) {
+    // 1. Recibo individual de pagamento
+    if (dadosExtras.tipo === 'recibo' || dadosExtras.recibo || dadosExtras.texto_recibo) {
+      const r = dadosExtras;
       htmlInner += `
-        <div class="wa-action-card">
+        <div class="wa-action-card" style="border-left-color: var(--wa-success); margin-top: 10px;">
           <div class="wa-action-card-header">
-            <span class="wa-action-card-name">${al.nome}</span>
-            <span class="wa-action-card-val">R$ ${al.valor.toFixed(2)}</span>
+            <span class="wa-action-card-name"><i class="fa-solid fa-receipt" style="color:var(--wa-success);"></i> Recibo de ${r.aluno || 'Mensalidade'}</span>
+            <span class="wa-action-card-val">R$ ${(r.valor || 0).toFixed(2)}</span>
           </div>
-          <div class="wa-action-card-sub">
-            • ${al.situacao}
+          <div class="wa-action-card-sub" style="color: var(--shanti-primary); font-weight:600;">
+            • Mês ${r.mes_referencia} (${r.forma_pagamento || 'PIX'})
           </div>
-          <a href="${al.link_whatsapp}" target="_blank" class="wa-action-btn-whatsapp">
-            <i class="fa-brands fa-whatsapp"></i> Cobrar no WhatsApp
-          </a>
+          ${r.link_whatsapp ? `
+            <a href="${r.link_whatsapp}" target="_blank" class="wa-action-btn-whatsapp" style="background: linear-gradient(135deg, #10b981, #059669);">
+              <i class="fa-brands fa-whatsapp"></i> Enviar Recibo no WhatsApp
+            </a>
+          ` : ''}
         </div>
       `;
-    });
-    htmlInner += `</div>`;
+    } 
+    // 2. Lista de Alunos Ausentes
+    else if (Array.isArray(dadosExtras) && dadosExtras.length > 0 && dadosExtras[0].dias_ausente !== undefined) {
+      htmlInner += `<div style="margin-top: 10px; display: flex; flex-direction: column; gap: 8px;">`;
+      dadosExtras.forEach(al => {
+        htmlInner += `
+          <div class="wa-action-card" style="border-left-color: #f59e0b;">
+            <div class="wa-action-card-header">
+              <span class="wa-action-card-name">${al.nome}</span>
+              <span style="font-size:12px; color:#b45309; font-weight:700;">⚠️ ${al.dias_ausente} dias ausente</span>
+            </div>
+            <div class="wa-action-card-sub" style="color: var(--wa-text-secondary);">
+              • Última presença: ${al.ultima_presenca ? formatarDataBR(al.ultima_presenca.split(' ')[0]) : 'Sem registro recente'}
+            </div>
+            ${al.link_whatsapp ? `
+              <a href="${al.link_whatsapp}" target="_blank" class="wa-action-btn-whatsapp" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+                <i class="fa-brands fa-whatsapp"></i> Convidar de Volta
+              </a>
+            ` : ''}
+          </div>
+        `;
+      });
+      htmlInner += `</div>`;
+    }
+    // 3. Lista de Aniversariantes do Mês
+    else if (Array.isArray(dadosExtras) && dadosExtras.length > 0 && (dadosExtras[0].dia !== undefined || dadosExtras[0].data_nascimento !== undefined)) {
+      htmlInner += `<div style="margin-top: 10px; display: flex; flex-direction: column; gap: 8px;">`;
+      dadosExtras.forEach(al => {
+        htmlInner += `
+          <div class="wa-action-card" style="border-left-color: #ec4899;">
+            <div class="wa-action-card-header">
+              <span class="wa-action-card-name">🎂 ${al.nome}</span>
+              <span style="font-size:12px; color:#db2777; font-weight:700;">Dia ${al.dia || (al.data_nascimento ? al.data_nascimento.split('-')[2] : '')}</span>
+            </div>
+            <div class="wa-action-card-sub" style="color: var(--wa-text-secondary);">
+              • ${al.plano || 'Aluno(a) Shanti Yoga'}
+            </div>
+            ${al.link_whatsapp ? `
+              <a href="${al.link_whatsapp}" target="_blank" class="wa-action-btn-whatsapp" style="background: linear-gradient(135deg, #ec4899, #db2777);">
+                <i class="fa-brands fa-whatsapp"></i> Dar Parabéns
+              </a>
+            ` : ''}
+          </div>
+        `;
+      });
+      htmlInner += `</div>`;
+    }
+    // 4. Lista Padrão de Cobrança de Atrasados
+    else if (Array.isArray(dadosExtras) && dadosExtras.length > 0) {
+      htmlInner += `<div style="margin-top: 10px; display: flex; flex-direction: column; gap: 8px;">`;
+      dadosExtras.forEach(al => {
+        htmlInner += `
+          <div class="wa-action-card">
+            <div class="wa-action-card-header">
+              <span class="wa-action-card-name">${al.nome}</span>
+              <span class="wa-action-card-val">R$ ${(al.valor || 0).toFixed(2)}</span>
+            </div>
+            <div class="wa-action-card-sub">
+              • ${al.situacao || 'Vencimento pendente'}
+            </div>
+            <a href="${al.link_whatsapp}" target="_blank" class="wa-action-btn-whatsapp">
+              <i class="fa-brands fa-whatsapp"></i> Cobrar no WhatsApp
+            </a>
+          </div>
+        `;
+      });
+      htmlInner += `</div>`;
+    }
   }
 
   htmlInner += `
       <div class="wa-message-footer">
+        ${remetente === 'bot' ? `
+          <button class="wa-msg-speak-btn" title="Ouvir resposta em áudio">
+            <i class="fa-solid fa-volume-high"></i> Ouvir
+          </button>
+        ` : ''}
         <span class="wa-msg-time">${timeStr}</span>
         ${remetente === 'user' ? '<span class="wa-ticks">✓✓</span>' : ''}
       </div>
@@ -173,6 +337,39 @@ function adicionarMensagem(texto, remetente = 'bot', dadosExtras = null, element
   rowEl.innerHTML = htmlInner;
   container.appendChild(rowEl);
   container.scrollTop = container.scrollHeight;
+
+  // Configurar botão de áudio na mensagem
+  const speakBtn = rowEl.querySelector('.wa-msg-speak-btn');
+  if (speakBtn) {
+    speakBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (speakBtn.classList.contains('speaking')) {
+        pararFala();
+      } else {
+        document.querySelectorAll('.wa-msg-speak-btn').forEach(b => b.classList.remove('speaking'));
+        speakBtn.classList.add('speaking');
+        falarTexto(texto, () => {
+          speakBtn.classList.remove('speaking');
+        });
+      }
+    });
+  }
+
+  // Se o Modo Voz Ao Vivo estiver ativado, falar automaticamente e reabrir o microfone
+  if (state.liveVoiceMode && remetente === 'bot') {
+    if (speakBtn) speakBtn.classList.add('speaking');
+    falarTexto(texto, () => {
+      if (speakBtn) speakBtn.classList.remove('speaking');
+      if (state.liveVoiceMode && !state.isRecording) {
+        setTimeout(() => {
+          if (state.liveVoiceMode && !state.isRecording && window.iniciarGravacaoAoVivo) {
+            window.iniciarGravacaoAoVivo();
+          }
+        }, 500);
+      }
+    });
+  }
+
   return rowEl;
 }
 
@@ -238,7 +435,7 @@ async function enviarMensagemTexto() {
 
     adicionarMensagem(data.resposta, 'bot', data.dados);
     
-    if (data.tipo === 'pagamento_registrado' || data.tipo === 'aluno_inativado') {
+    if (data.tipo === 'pagamento_registrado' || data.tipo === 'aluno_inativado' || data.tipo === 'despesa_registrada' || data.tipo === 'presenca_registrada') {
       await atualizarTudo();
     }
   } catch (err) {
@@ -311,7 +508,7 @@ function setupAudio() {
         }
 
         adicionarMensagem(data.resposta, 'bot', data.dados);
-        if (data.tipo === 'pagamento_registrado' || data.tipo === 'aluno_inativado') {
+        if (data.tipo === 'pagamento_registrado' || data.tipo === 'aluno_inativado' || data.tipo === 'despesa_registrada' || data.tipo === 'presenca_registrada') {
           await atualizarTudo();
         }
       } catch (err) {
@@ -438,7 +635,7 @@ function setupAudio() {
           }
 
           adicionarMensagem(data.resposta, 'bot', data.dados);
-          if (data.tipo === 'pagamento_registrado' || data.tipo === 'aluno_inativado') {
+          if (data.tipo === 'pagamento_registrado' || data.tipo === 'aluno_inativado' || data.tipo === 'despesa_registrada' || data.tipo === 'presenca_registrada') {
             await atualizarTudo();
           }
         } catch (e) {
@@ -494,6 +691,55 @@ function setupAudio() {
       await stopRecording(true);
     }
   });
+
+  // Exportar para que o modo conversa ao vivo possa invocar
+  window.iniciarGravacaoAoVivo = startRecording;
+  window.pararGravacaoAoVivo = stopRecording;
+}
+
+// =============================================================================
+// MODO VOZ AO VIVO (ASSISTENTE CONVERSACIONAL HANDS-FREE)
+// =============================================================================
+function setupLiveVoice() {
+  const btnToggle = document.getElementById('btn-toggle-live-voice');
+  const btnStop = document.getElementById('btn-stop-live-voice');
+  const indicator = document.getElementById('live-voice-indicator');
+  const banner = document.getElementById('live-voice-banner');
+
+  function alternarModoAoVivo() {
+    state.liveVoiceMode = !state.liveVoiceMode;
+    if (state.liveVoiceMode) {
+      if (indicator) indicator.style.background = '#10b981';
+      if (banner) banner.style.display = 'flex';
+      showToast('Modo Voz Ao Vivo Ativado! 🧘‍♀️');
+
+      // Se estiver em outra tela, vai para tela do chat
+      const tabChat = document.querySelector('.wa-tab-btn[data-tab="chat"]');
+      if (tabChat && !tabChat.classList.contains('active')) tabChat.click();
+
+      // Fala saudação e inicia gravação automaticamente
+      falarTexto('Modo voz ao vivo ativado! Pode falar comigo, estou ouvindo.', () => {
+        if (state.liveVoiceMode && !state.isRecording) {
+          setTimeout(() => {
+            if (state.liveVoiceMode && !state.isRecording && window.iniciarGravacaoAoVivo) {
+              window.iniciarGravacaoAoVivo();
+            }
+          }, 400);
+        }
+      });
+    } else {
+      if (indicator) indicator.style.background = '#94a3b8';
+      if (banner) banner.style.display = 'none';
+      pararFala();
+      if (state.isRecording && window.pararGravacaoAoVivo) {
+        window.pararGravacaoAoVivo(false);
+      }
+      showToast('Modo Voz Ao Vivo pausado');
+    }
+  }
+
+  if (btnToggle) btnToggle.addEventListener('click', alternarModoAoVivo);
+  if (btnStop) btnStop.addEventListener('click', alternarModoAoVivo);
 }
 
 // =============================================================================
@@ -639,6 +885,12 @@ async function abrirDetalhesAluno(alunoId) {
     document.getElementById('det-valor').textContent = al.valor_mensalidade.toFixed(2);
     document.getElementById('det-dia-venc').textContent = al.dia_vencimento;
     
+    // Data de Nascimento
+    const detNasc = document.getElementById('det-nascimento');
+    if (detNasc) {
+      detNasc.textContent = al.data_nascimento ? formatarDataBR(al.data_nascimento) : 'Não informado';
+    }
+
     const badgeEl = document.getElementById('det-status-badge');
     badgeEl.textContent = al.status === 'ativo' ? 'Matrícula Ativa' : 'Inativo (Saída)';
     badgeEl.className = `wa-student-badge ${al.status === 'ativo' ? 'badge-em-dia' : 'badge-inativo'}`;
@@ -660,6 +912,26 @@ async function abrirDetalhesAluno(alunoId) {
     const msg = encodeURIComponent(`Olá, ${al.nome}! Tudo bem? Shanti Studio de Yoga passando para falar com você. Namastê 🙏`);
     document.getElementById('det-btn-whatsapp').href = `https://wa.me/${tel}?text=${msg}`;
 
+    // Configurar botão de Marcar Presença
+    const btnPresenca = document.getElementById('det-btn-presenca');
+    if (btnPresenca) {
+      btnPresenca.onclick = async () => {
+        try {
+          await fetch('/api/frequencias', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ aluno_id: al.id, modalidade: al.plano })
+          });
+          showToast(`Presença de ${al.nome} registrada! 🧘‍♀️`);
+          await carregarPresencasAluno(al.id);
+          await carregarRelatorios();
+        } catch (e) {
+          showToast('Erro ao registrar presença');
+        }
+      };
+    }
+
+    // Histórico de Pagamentos
     const histEl = document.getElementById('det-historico-pagamentos');
     if (pagamentos.length === 0) {
       histEl.innerHTML = '<div style="font-size: 12px; color: #8c9c94; text-align: center; padding: 10px;">Nenhum pagamento registrado ainda.</div>';
@@ -672,9 +944,33 @@ async function abrirDetalhesAluno(alunoId) {
       `).join('');
     }
 
+    // Histórico de Presenças
+    await carregarPresencasAluno(al.id);
+
     abrirModal('modal-student-details');
   } catch (err) {
     console.error('Erro ao buscar detalhes:', err);
+  }
+}
+
+async function carregarPresencasAluno(alunoId) {
+  const histPresencas = document.getElementById('det-historico-presencas');
+  if (!histPresencas) return;
+  try {
+    const res = await fetch(`/api/frequencias?aluno_id=${alunoId}&limit=10`);
+    const frequencias = await res.json();
+    if (!frequencias || frequencias.length === 0) {
+      histPresencas.innerHTML = '<div style="font-size: 12px; color: #8c9c94; text-align: center; padding: 10px;">Nenhuma presença registrada ainda. Toque em "Marcar Presença" acima! 🧘‍♀️</div>';
+    } else {
+      histPresencas.innerHTML = frequencias.map(f => `
+        <div style="display: flex; justify-content: space-between; font-size: 12.5px; padding: 6px 0; border-bottom: 1px dashed var(--wa-border);">
+          <span><i class="fa-solid fa-check-circle" style="color:var(--wa-success);"></i> <b>${f.modalidade || 'Aula de Yoga'}</b></span>
+          <span style="color: var(--shanti-primary); font-weight: 600;">${formatarDataHoraBR(f.data_presenca)}</span>
+        </div>
+      `).join('');
+    }
+  } catch (err) {
+    console.warn('Erro ao carregar presenças:', err);
   }
 }
 
@@ -709,6 +1005,7 @@ function setupModals() {
       nome: document.getElementById('cad-nome').value.trim(),
       telefone: document.getElementById('cad-telefone').value.trim(),
       email: document.getElementById('cad-email').value.trim(),
+      data_nascimento: document.getElementById('cad-nascimento').value || null,
       plano: document.getElementById('cad-plano').value,
       dia_vencimento: parseInt(document.getElementById('cad-vencimento').value),
       valor_mensalidade: parseFloat(document.getElementById('cad-valor').value),
@@ -774,6 +1071,46 @@ function setupModals() {
     }
   });
 
+  // Modal de Despesas
+  const btnAbrirDespesa = document.getElementById('btn-abrir-modal-despesa');
+  if (btnAbrirDespesa) {
+    btnAbrirDespesa.addEventListener('click', () => {
+      document.getElementById('form-add-despesa').reset();
+      const today = new Date().toISOString().split('T')[0];
+      const dataInput = document.getElementById('desp-data');
+      if (dataInput) dataInput.value = today;
+      abrirModal('modal-add-despesa');
+    });
+  }
+
+  const formDespesa = document.getElementById('form-add-despesa');
+  if (formDespesa) {
+    formDespesa.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const dados = {
+        descricao: document.getElementById('desp-desc').value.trim(),
+        valor: parseFloat(document.getElementById('desp-valor').value),
+        categoria: document.getElementById('desp-cat').value,
+        data_despesa: document.getElementById('desp-data').value || undefined
+      };
+
+      try {
+        await fetch('/api/despesas', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(dados)
+        });
+        fecharModal('modal-add-despesa');
+        showToast('Despesa registrada com sucesso!');
+        await atualizarTudo();
+
+        adicionarMensagem(`💸 *Despesa registrada:* ${dados.descricao} no valor de *R$ ${dados.valor.toFixed(2)}* (${dados.categoria}).`, 'bot');
+      } catch (err) {
+        alert('Erro ao registrar despesa.');
+      }
+    });
+  }
+
   document.getElementById('det-btn-inativar').addEventListener('click', async () => {
     if (!state.alunoSelecionado) return;
     const motivo = prompt('Informe o motivo da saída/desistência do aluno:', 'Mudança de horário / rotina');
@@ -827,13 +1164,17 @@ function fecharModal(id) {
 // =============================================================================
 async function carregarRelatorios() {
   try {
-    const [resQuant, resRel] = await Promise.all([
+    const [resQuant, resRel, resAniv, resAusentes] = await Promise.all([
       fetch('/api/quantitativo'),
-      fetch('/api/relatorio')
+      fetch('/api/relatorio'),
+      fetch('/api/aniversariantes'),
+      fetch('/api/frequencias/ausentes?dias=10')
     ]);
 
     const quant = await resQuant.json();
     const rel = await resRel.json();
+    const aniversariantes = await resAniv.json();
+    const ausentes = await resAusentes.json();
 
     document.getElementById('stat-alunos-ativos').textContent = quant.alunos_ativos;
     document.getElementById('stat-alunos-inadimplentes').textContent = quant.inadimplentes_mes;
@@ -844,6 +1185,76 @@ async function carregarRelatorios() {
     document.getElementById('stat-faturamento-realizado').textContent = `R$ ${rel.faturamento_realizado.toFixed(2)}`;
     document.getElementById('stat-total-pendente').textContent = `R$ ${rel.total_pendente_ou_atrasado.toFixed(2)}`;
     document.getElementById('stat-qtd-pagamentos').textContent = rel.qtd_pagamentos_recebidos;
+
+    // Despesas & Lucro Líquido Real
+    const elDespesas = document.getElementById('stat-total-despesas');
+    if (elDespesas) {
+      elDespesas.textContent = `R$ ${(rel.total_despesas || 0).toFixed(2)}`;
+    }
+    const elLucro = document.getElementById('stat-lucro-real');
+    if (elLucro) {
+      const lucroVal = rel.lucro_liquido_real !== undefined ? rel.lucro_liquido_real : (rel.faturamento_realizado || 0);
+      elLucro.textContent = `R$ ${lucroVal.toFixed(2)}`;
+      elLucro.style.color = lucroVal >= 0 ? 'var(--shanti-primary)' : 'var(--wa-danger)';
+    }
+
+    // Aniversariantes do Mês
+    const listAniv = document.getElementById('list-aniversariantes');
+    const badgeAniv = document.getElementById('badge-aniversariantes');
+    if (badgeAniv) badgeAniv.textContent = (aniversariantes && aniversariantes.length) || 0;
+    if (listAniv) {
+      if (!aniversariantes || aniversariantes.length === 0) {
+        listAniv.innerHTML = '<div style="font-size: 12px; color: var(--wa-text-secondary); text-align: center; padding: 8px;">Nenhum aniversariante neste mês 🎂</div>';
+      } else {
+        listAniv.innerHTML = aniversariantes.map(a => {
+          let tel = a.telefone.replace(/\D/g, '');
+          if (!tel.startsWith('55')) tel = '55' + tel;
+          const msgParabens = encodeURIComponent(`Olá, ${a.nome}! 🎉🎂 Passando para te desejar um Feliz Aniversário repleto de paz, luz e harmonia! Muita gratidão por fazer parte da família Shanti Studio de Yoga. Namastê! 🙏✨`);
+          const waLink = `https://wa.me/${tel}?text=${msgParabens}`;
+
+          return `
+            <div class="wa-report-item">
+              <div class="wa-report-item-info">
+                <span class="wa-report-item-title">🎂 ${a.nome}</span>
+                <span class="wa-report-item-sub">Dia ${a.dia} (${a.data_nascimento ? formatarDataBR(a.data_nascimento) : ''}) • ${a.plano}</span>
+              </div>
+              <a href="${waLink}" target="_blank" class="wa-btn-sm-whatsapp" style="background: linear-gradient(135deg, #ec4899, #db2777);">
+                <i class="fa-brands fa-whatsapp"></i> Parabéns
+              </a>
+            </div>
+          `;
+        }).join('');
+      }
+    }
+
+    // Alunos Ausentes (>10 dias sem aula)
+    const listAus = document.getElementById('list-ausentes');
+    const badgeAus = document.getElementById('badge-ausentes');
+    if (badgeAus) badgeAus.textContent = (ausentes && ausentes.length) || 0;
+    if (listAus) {
+      if (!ausentes || ausentes.length === 0) {
+        listAus.innerHTML = '<div style="font-size: 12px; color: var(--wa-text-secondary); text-align: center; padding: 8px;">Todos os alunos ativos estão frequentando! 🧘‍♀️</div>';
+      } else {
+        listAus.innerHTML = ausentes.map(au => {
+          let tel = au.telefone.replace(/\D/g, '');
+          if (!tel.startsWith('55')) tel = '55' + tel;
+          const msgVolta = encodeURIComponent(`Olá, ${au.nome}! 🧘‍♀️ Sentimos sua falta nas aulas do Shanti Studio de Yoga! Está tudo bem com você? Esperamos te ver no tapetinho em breve. Namastê! 🙏`);
+          const waLink = `https://wa.me/${tel}?text=${msgVolta}`;
+
+          return `
+            <div class="wa-report-item">
+              <div class="wa-report-item-info">
+                <span class="wa-report-item-title">${au.nome}</span>
+                <span class="wa-report-item-sub" style="color: #b45309; font-weight:600;">⚠️ ${au.dias_ausente} dias sem praticar • ${au.plano}</span>
+              </div>
+              <a href="${waLink}" target="_blank" class="wa-btn-sm-whatsapp" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+                <i class="fa-brands fa-whatsapp"></i> Convidar
+              </a>
+            </div>
+          `;
+        }).join('');
+      }
+    }
 
     document.getElementById('btn-gerar-cobrancas-relatorio').onclick = () => {
       const tabAlunos = document.querySelector('.wa-tab-btn[data-tab="alunos"]');
