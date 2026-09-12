@@ -6,13 +6,13 @@
   <title>Studio Shanti - Painel de Gestão</title>
 
   <!-- Favicon & PWA Meta Tags -->
-  <link rel="icon" type="image/png" href="/favicon.png?v=17">
-  <link rel="manifest" href="/manifest.json?v=17">
+  <link rel="icon" type="image/png" href="/favicon.png?v=18">
+  <link rel="manifest" href="/manifest.json?v=18">
   <meta name="theme-color" content="#1C2B24">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Studio Shanti">
-  <link rel="apple-touch-icon" href="/icons/icon-192.png?v=17">
+  <link rel="apple-touch-icon" href="/icons/icon-192.png?v=18">
 
   <!-- Fontes Google & Ícones FontAwesome -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -21,7 +21,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
   <!-- WhatsApp Luxe Theme Stylesheet -->
-  <link rel="stylesheet" href="/css/whatsapp-theme.css?v=17">
+  <link rel="stylesheet" href="/css/whatsapp-theme.css?v=18">
 </head>
 <body>
 
@@ -101,6 +101,50 @@
        ==================================================================== -->
   <section class="wa-screen active" id="screen-chat">
     <div class="wa-chat-container">
+
+      <!-- Atalhos de Acesso Rápido na Tela Inicial (Fase 5) -->
+      <div class="wa-quick-shortcuts-bar" id="quick-shortcuts-bar">
+        <div class="wa-shortcuts-header">
+          <span class="wa-shortcuts-title">
+            <i class="fa-solid fa-bolt" style="color: var(--shanti-gold);"></i> Atalhos Rápidos
+          </span>
+          <span class="wa-shortcuts-hint">Toque para consultar</span>
+        </div>
+        <div class="wa-shortcuts-scroll">
+          <button type="button" class="wa-shortcut-chip" data-query="Quem está com a matrícula atrasada este mês?">
+            <span class="shortcut-icon icon-danger"><i class="fa-solid fa-triangle-exclamation"></i></span>
+            <span class="shortcut-text">Atrasados do Mês</span>
+          </button>
+          <button type="button" class="wa-shortcut-chip" data-query="Quem já pagou este mês?">
+            <span class="shortcut-icon icon-success"><i class="fa-solid fa-circle-check"></i></span>
+            <span class="shortcut-text">Quem Já Pagou</span>
+          </button>
+          <button type="button" class="wa-shortcut-chip" data-query="Quantos alunos ativos temos hoje?">
+            <span class="shortcut-icon icon-primary"><i class="fa-solid fa-users"></i></span>
+            <span class="shortcut-text">Alunos Ativos</span>
+          </button>
+          <button type="button" class="wa-shortcut-chip" data-query="Quem são os aniversariantes do mês?">
+            <span class="shortcut-icon icon-pink"><i class="fa-solid fa-cake-candles"></i></span>
+            <span class="shortcut-text">Aniversariantes</span>
+          </button>
+          <button type="button" class="wa-shortcut-chip" data-query="Quais contratos vencem nos próximos 30 dias?">
+            <span class="shortcut-icon icon-warning"><i class="fa-solid fa-file-contract"></i></span>
+            <span class="shortcut-text">Contratos a Vencer</span>
+          </button>
+          <button type="button" class="wa-shortcut-chip" data-query="Me envie o relatório financeiro do mês">
+            <span class="shortcut-icon icon-gold"><i class="fa-solid fa-chart-pie"></i></span>
+            <span class="shortcut-text">Relatório Financeiro</span>
+          </button>
+          <button type="button" class="wa-shortcut-chip" data-query="Consultar despesas e saldo do mês">
+            <span class="shortcut-icon icon-purple"><i class="fa-solid fa-receipt"></i></span>
+            <span class="shortcut-text">Despesas & Saldo</span>
+          </button>
+          <button type="button" class="wa-shortcut-chip" data-query="Envie cobrança para os alunos atrasados">
+            <span class="shortcut-icon icon-whatsapp"><i class="fa-brands fa-whatsapp"></i></span>
+            <span class="shortcut-text">Cobrar Atrasados</span>
+          </button>
+        </div>
+      </div>
 
       <!-- Lista de Mensagens do Chat -->
       <div class="wa-messages-list" id="chat-messages">
@@ -786,8 +830,16 @@
         </select>
       </div>
 
+      <!-- Turma(s) e Horário(s) - Vem ANTES do Dia Pretendido -->
+      <div class="wa-form-group">
+        <label style="font-weight: 600; color: var(--shanti-primary);">Turma(s) e Horário(s) *</label>
+        <div id="cad-turmas-container" style="display: flex; flex-direction: column; gap: 8px; background: var(--shanti-sand); padding: 10px 12px; border-radius: 10px; border: 0.5px solid var(--wa-border);">
+          <!-- Preenchido dinamicamente via JavaScript -->
+        </div>
+      </div>
+
       <!-- Campo Condicional: Dia da Semana (Apenas para 1x na semana) -->
-      <div class="wa-form-group" id="group-cad-dia-semana-1x" style="display: none; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; padding: 12px; margin-top: -6px; margin-bottom: 14px;">
+      <div class="wa-form-group" id="group-cad-dia-semana-1x" style="display: none; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; padding: 12px; margin-top: 4px; margin-bottom: 14px;">
         <label style="font-weight: 700; color: #166534; font-size: 13px; display: flex; align-items: center; gap: 6px; margin-bottom: 6px;">
           <i class="fa-solid fa-calendar-check" style="color: #16a34a;"></i>
           Dia da Semana Escolhido (Plano 1x na semana) *
@@ -804,13 +856,6 @@
         <small style="color: #15803d; font-size: 11.5px; display: block; margin-top: 5px; line-height: 1.3;">
           <i class="fa-solid fa-circle-info"></i> Informe qual dia da semana o aluno irá comparecer para controle de chamada.
         </small>
-      </div>
-
-      <div class="wa-form-group">
-        <label style="font-weight: 600; color: var(--shanti-primary);">Turma(s) e Horário(s) *</label>
-        <div id="cad-turmas-container" style="display: flex; flex-direction: column; gap: 8px; background: var(--shanti-sand); padding: 10px 12px; border-radius: 10px; border: 0.5px solid var(--wa-border);">
-          <!-- Preenchido dinamicamente via JavaScript -->
-        </div>
       </div>
 
       <div style="display: flex; gap: 12px;">
@@ -1143,12 +1188,12 @@
 <div class="wa-toast" id="toast-msg">Notificação</div>
 
 <!-- JavaScript Principal -->
-<script src="/js/app.js?v=17"></script>
+<script src="/js/app.js?v=18"></script>
 
 <script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/service-worker.js?v=17').then(reg => {
+      navigator.serviceWorker.register('/service-worker.js?v=18').then(reg => {
         reg.update();
       }).catch(err => {
         console.log('SW reg:', err);

@@ -1576,4 +1576,114 @@ body {
   letter-spacing: 0.5px;
 }
 
+/* ==========================================================================
+   FASE 5: ATALHOS DE ACESSO RÁPIDO NA TELA INICIAL (CHAT / DASHBOARD)
+   ========================================================================== */
+.wa-quick-shortcuts-bar {
+  background: var(--shanti-secondary);
+  border-bottom: 1px solid rgba(217, 182, 103, 0.2);
+  padding: 8px 12px 10px 12px;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  z-index: 10;
+}
+
+.wa-shortcuts-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 7px;
+  padding: 0 2px;
+}
+
+.wa-shortcuts-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--shanti-gold);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.wa-shortcuts-hint {
+  font-size: 10px;
+  color: var(--shanti-text-muted-dark);
+}
+
+.wa-shortcuts-scroll {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(217, 182, 103, 0.3) transparent;
+  -webkit-overflow-scrolling: touch;
+}
+
+.wa-shortcuts-scroll::-webkit-scrollbar {
+  height: 3px;
+}
+
+.wa-shortcuts-scroll::-webkit-scrollbar-thumb {
+  background: rgba(217, 182, 103, 0.35);
+  border-radius: 4px;
+}
+
+.wa-shortcut-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(217, 182, 103, 0.25);
+  color: #F3EFE4;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: inherit;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.wa-shortcut-chip:hover {
+  background: rgba(217, 182, 103, 0.2);
+  border-color: var(--shanti-gold);
+  color: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+}
+
+.wa-shortcut-chip:active {
+  transform: scale(0.96);
+  background: rgba(217, 182, 103, 0.3);
+}
+
+.wa-shortcut-chip.clicked {
+  border-color: #ffffff;
+  background: rgba(217, 182, 103, 0.35);
+  box-shadow: 0 0 10px var(--shanti-gold);
+}
+
+.wa-shortcut-chip .shortcut-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+}
+
+.wa-shortcut-chip .icon-danger { color: #f87171; }
+.wa-shortcut-chip .icon-success { color: #4ade80; }
+.wa-shortcut-chip .icon-primary { color: #60a5fa; }
+.wa-shortcut-chip .icon-pink { color: #f472b6; }
+.wa-shortcut-chip .icon-warning { color: #fbbf24; }
+.wa-shortcut-chip .icon-gold { color: #D9B667; }
+.wa-shortcut-chip .icon-purple { color: #c084fc; }
+.wa-shortcut-chip .icon-whatsapp { color: #25d366; }
+
+
 

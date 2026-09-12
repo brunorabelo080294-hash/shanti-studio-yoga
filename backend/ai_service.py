@@ -214,6 +214,50 @@ def processar_comando_local(texto: str) -> Dict[str, Any]:
             "dados": turmas
         }
 
+    # Alunos que já pagaram no mês / Pagamentos Confirmados (Fase 5)
+    if any(p in texto_lower for p in ["quem já pagou", "quem pagou", "já pagou este mês", "pagamentos confirmados", "quem está em dia", "mensalidades pagas", "pagos este mês"]):
+        hoje = datetime.date.today()
+        mes_atual = hoje.strftime("%Y-%m")
+        pagos = db.listar_pagamentos_mes(mes_atual)
+        if not pagos:
+            return {
+                "resposta": f"🧘 Ainda não constam pagamentos registrados para o mês atual ({mes_atual}).",
+                "tipo": "pagamentos_mes",
+                "dados": []
+            }
+        
+        total_arrecadado = sum(p["valor"] for p in pagos)
+        comprovantes = []
+        for p in pagos:
+            comp = db.gerar_comprovante_pagamento(p["id"])
+            if comp:
+                comp["aluno"] = p["aluno_nome"]
+                comp["plano"] = p.get("aluno_plano") or ""
+                comp["dia_semana_1x"] = p.get("dia_semana_1x")
+                comprovantes.append(comp)
+
+        resposta = f"💰 *Alunos que já pagaram este mês ({mes_atual}):* ({len(pagos)})\n\n"
+        for idx, p in enumerate(pagos, 1):
+            dt = p.get("data_pagamento") or ""
+            dt_fmt = ""
+            if dt:
+                partes = dt.split()[0].split("-")
+                if len(partes) == 3:
+                    dt_fmt = f" em {partes[2]}/{partes[1]}"
+            plano_info = p.get("aluno_plano") or ""
+            if "1x" in plano_info and p.get("dia_semana_1x"):
+                plano_info += f" ({p['dia_semana_1x']})"
+            resposta += f"{idx}. *{p['aluno_nome']}* — R$ {p['valor']:.2f}{dt_fmt}\n   • Plano: {plano_info} | Forma: {p.get('forma_pagamento', 'PIX')}\n"
+        
+        resposta += f"\n✨ *Total arrecadado no mês:* R$ {total_arrecadado:.2f}\n"
+        resposta += "💡 *Dica:* Você pode tocar no botão abaixo para reenviar o comprovante de pagamento de cada aluno no WhatsApp."
+
+        return {
+            "resposta": resposta.strip(),
+            "tipo": "pagamentos_mes",
+            "dados": comprovantes if comprovantes else pagos
+        }
+
     # 6. Registrar Pagamento via Chat
     if any(p in texto_lower for p in ["pagou", "recebi", "pagamento de", "baixar mensalidade"]):
         alunos = db.listar_alunos(status="ativo")
@@ -484,12 +528,22 @@ async def processar_mensagem_ia(texto: str) -> Dict[str, Any]:
         if any(p in texto_lower for p in ["atraso", "atrasada", "atrasados", "cobrança", "cobrar", "devedor", "lembrete"]):
             dados_extras = db.gerar_mensagens_cobranca(tipo="atrasados")
             tipo = "inadimplencia" if "quem" in texto_lower else "cobranca"
+        elif any(p in texto_lower for p in ["quem já pagou", "quem pagou", "já pagou este mês", "pagamentos confirmados", "quem está em dia"]):
+            pagos = db.listar_pagamentos_mes(datetime.date.today().strftime("%Y-%m"))
+            dados_extras = [db.gerar_comprovante_pagamento(p["id"]) for p in pagos if db.gerar_comprovante_pagamento(p["id"])]
+            tipo = "pagamentos_mes"
         elif any(p in texto_lower for p in ["aniversariante", "aniversario", "aniversário"]):
             dados_extras = db.obter_aniversariantes_mes()
             tipo = "aniversariantes"
         elif any(p in texto_lower for p in ["ausente", "ausentes", "sumido", "sumidos", "faltou", "faltas"]):
             dados_extras = db.obter_alunos_ausentes()
             tipo = "ausentes"
+        elif any(p in texto_lower for p in ["contrato", "contratos", "vigência", "vigencia", "30 dias"]):
+            dados_extras = db.obter_alertas_contratos()
+            tipo = "contratos"
+        elif any(p in texto_lower for p in ["despesa", "despesas", "gastei", "contas a pagar"]):
+            dados_extras = db.listar_despesas(datetime.date.today().strftime("%Y-%m"))
+            tipo = "despesas"
 
         return {
             "resposta": resposta_texto,

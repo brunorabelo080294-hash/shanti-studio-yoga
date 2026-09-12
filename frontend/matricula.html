@@ -143,44 +143,87 @@
       margin-top: 4px;
     }
 
+    .planos-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 6px;
+    }
+
     .plano-option {
-      border: 1.5px solid var(--shanti-border);
-      border-radius: 12px;
-      padding: 14px 12px;
+      border: 2px solid #cbd5e1;
+      border-radius: 14px;
+      padding: 16px 12px;
       text-align: center;
       cursor: pointer;
-      background: var(--shanti-sand);
-      transition: all 0.2s;
+      background: #ffffff;
+      transition: all 0.25s ease;
       position: relative;
     }
 
+    .plano-option:hover {
+      border-color: #94a3b8;
+    }
+
+    .plano-option .plano-nome {
+      font-size: 13.5px;
+      font-weight: 600;
+      color: #64748b;
+      margin-bottom: 5px;
+      transition: all 0.2s;
+    }
+
+    .plano-option .plano-preco {
+      font-size: 16.5px;
+      font-weight: 700;
+      color: #64748b; /* Plano não selecionado fica em cinza neutro */
+      transition: all 0.2s;
+    }
+
+    .plano-option .plano-sub {
+      font-size: 11px;
+      color: #94a3b8;
+      margin-top: 3px;
+      transition: all 0.2s;
+    }
+
+    /* PLANO ESCOLHIDO: 100% EM VERDE DESTAQUE NÍTIDO */
     .plano-option.active {
-      border-color: var(--shanti-primary);
-      background: #ffffff;
-      box-shadow: 0 4px 12px rgba(28, 43, 36, 0.1);
+      border: 3px solid #16a34a !important;
+      background: #f0fdf4 !important; /* Fundo verde claro evidente */
+      box-shadow: 0 4px 20px rgba(22, 163, 74, 0.25) !important;
+      transform: translateY(-2px);
+    }
+
+    .plano-option.active .plano-nome {
+      color: #166534 !important;
+      font-weight: 800 !important;
+    }
+
+    .plano-option.active .plano-preco {
+      color: #15803d !important; /* VERDE VIBRANTE APENAS NO PLANO ESCOLHIDO */
+      font-weight: 900 !important;
+      font-size: 20px !important;
+    }
+
+    .plano-option.active .plano-sub {
+      color: #16a34a !important;
+      font-weight: 700 !important;
     }
 
     .plano-option.active::after {
-      content: '✓';
+      content: '✓ PLANO ESCOLHIDO';
       position: absolute;
-      top: 6px;
-      right: 8px;
-      font-size: 12px;
+      top: -11px;
+      right: 10px;
+      background: #16a34a;
+      color: #ffffff;
+      font-size: 9.5px;
       font-weight: 800;
-      color: var(--shanti-primary);
-    }
-
-    .plano-nome {
-      font-size: 13px;
-      font-weight: 700;
-      color: var(--shanti-primary);
-      margin-bottom: 4px;
-    }
-
-    .plano-preco {
-      font-size: 16px;
-      font-weight: 800;
-      color: var(--shanti-green);
+      padding: 3px 9px;
+      border-radius: 12px;
+      letter-spacing: 0.5px;
+      box-shadow: 0 2px 8px rgba(22, 163, 74, 0.4);
     }
 
     /* Box de Pagamento PIX */
@@ -323,7 +366,7 @@
   
   <!-- Header -->
   <div class="matricula-header">
-    <img src="/icons/icon-192.png?v=17" alt="Studio Shanti" class="studio-logo">
+    <img src="/icons/icon-192.png?v=18" alt="Studio Shanti" class="studio-logo">
     <h1 class="studio-title">Studio Shanti</h1>
     <p class="studio-sub">Matrícula Online • Prática & Filosofia do Yoga</p>
   </div>
@@ -363,31 +406,17 @@
           <div class="plano-option active" data-plano="2x na semana" data-valor="150.00">
             <div class="plano-nome">2x na semana</div>
             <div class="plano-preco">R$ 150,00</div>
-            <div style="font-size: 10.5px; color: var(--shanti-muted); margin-top:2px;">por mês</div>
+            <div class="plano-sub">por mês</div>
           </div>
           <div class="plano-option" data-plano="1x na semana" data-valor="120.00">
             <div class="plano-nome">1x na semana</div>
             <div class="plano-preco">R$ 120,00</div>
-            <div style="font-size: 10.5px; color: var(--shanti-muted); margin-top:2px;">por mês</div>
+            <div class="plano-sub">por mês</div>
           </div>
         </div>
       </div>
 
-      <!-- Dia da Semana (se plano 1x) -->
-      <div class="form-group" id="group-dia-1x" style="display:none; background:#f0fdf4; padding:12px; border-radius:10px; border:1px solid #86efac;">
-        <label class="form-label" for="cad-dia-1x" style="color:#15803d;">Dia da Semana Escolhido (Plano 1x) *</label>
-        <select id="cad-dia-1x" class="form-control" style="border-color:#86efac;">
-          <option value="">Selecione o dia da semana...</option>
-          <option value="Segunda-feira">Segunda-feira</option>
-          <option value="Terça-feira">Terça-feira</option>
-          <option value="Quarta-feira">Quarta-feira</option>
-          <option value="Quinta-feira">Quinta-feira</option>
-          <option value="Sexta-feira">Sexta-feira</option>
-          <option value="Sábado">Sábado</option>
-        </select>
-      </div>
-
-      <!-- Turma / Horário -->
+      <!-- Turma / Horário (Vem ANTES do Dia Pretendido) -->
       <div class="form-group">
         <label class="form-label" for="cad-turma">Turma & Horário Pretendido *</label>
         <select id="cad-turma" class="form-control" required>
@@ -396,6 +425,25 @@
           <option value="3" selected>Sunrise (Hatha Yoga Adultos) — Ter e Qui às 06:00</option>
         </select>
         <span style="font-size: 11px; color: var(--shanti-muted); margin-top: 4px; display: block;">Capacidade máxima de 16 alunos por turma para atendimento personalizado.</span>
+      </div>
+
+      <!-- Dia da Semana Pretendido (apenas se plano 1x na semana) -->
+      <div class="form-group" id="group-dia-1x" style="display:none; background:#f0fdf4; padding:13px 14px; border-radius:12px; border:1.5px solid #86efac; box-shadow:0 2px 8px rgba(22,163,74,0.08);">
+        <label class="form-label" for="cad-dia-1x" style="color:#15803d; font-weight:700; display:flex; align-items:center; gap:6px;">
+          <i class="fa-solid fa-calendar-day"></i> Dia da Semana Pretendido (Plano 1x) *
+        </label>
+        <select id="cad-dia-1x" class="form-control" style="border-color:#86efac; font-weight:600; background:#ffffff;">
+          <option value="">Selecione o dia da aula na semana...</option>
+          <option value="Segunda-feira">Segunda-feira</option>
+          <option value="Terça-feira">Terça-feira</option>
+          <option value="Quarta-feira">Quarta-feira</option>
+          <option value="Quinta-feira">Quinta-feira</option>
+          <option value="Sexta-feira">Sexta-feira</option>
+          <option value="Sábado">Sábado</option>
+        </select>
+        <span style="font-size: 11.5px; color:#166534; margin-top:5px; display:block; line-height:1.35;">
+          Como você escolheu o plano de 1x na semana, indique qual dos dias da turma você irá frequentar.
+        </span>
       </div>
 
       <!-- Autorização de Imagem (Cláusula 11) -->
@@ -523,23 +571,61 @@
     }
   });
 
-  // Carregar Turmas Atualizadas do Backend
+  // Carregar Turmas Atualizadas do Backend e Adaptar Dias da Turma
+  const selectTurma = document.getElementById('cad-turma');
+
+  function atualizarDiasDisponiveis1x() {
+    const textoTurma = selectTurma.options[selectTurma.selectedIndex]?.text || '';
+    const valorAtual = selectDia1x.value;
+    
+    let diasSugeridos = [];
+    if (textoTurma.includes('Seg') || textoTurma.includes('Segunda')) diasSugeridos.push('Segunda-feira');
+    if (textoTurma.includes('Ter') || textoTurma.includes('Terça')) diasSugeridos.push('Terça-feira');
+    if (textoTurma.includes('Qua') || textoTurma.includes('Quarta')) diasSugeridos.push('Quarta-feira');
+    if (textoTurma.includes('Qui') || textoTurma.includes('Quinta')) diasSugeridos.push('Quinta-feira');
+    if (textoTurma.includes('Sex') || textoTurma.includes('Sexta')) diasSugeridos.push('Sexta-feira');
+    if (textoTurma.includes('Sáb') || textoTurma.includes('Sábado')) diasSugeridos.push('Sábado');
+
+    if (diasSugeridos.length > 0) {
+      selectDia1x.innerHTML = `
+        <option value="">Selecione um dos dias da turma...</option>
+        ${diasSugeridos.map(d => `<option value="${d}">${d}</option>`).join('')}
+      `;
+      if (diasSugeridos.includes(valorAtual)) {
+        selectDia1x.value = valorAtual;
+      }
+    } else {
+      selectDia1x.innerHTML = `
+        <option value="">Selecione o dia da semana...</option>
+        <option value="Segunda-feira">Segunda-feira</option>
+        <option value="Terça-feira">Terça-feira</option>
+        <option value="Quarta-feira">Quarta-feira</option>
+        <option value="Quinta-feira">Quinta-feira</option>
+        <option value="Sexta-feira">Sexta-feira</option>
+        <option value="Sábado">Sábado</option>
+      `;
+    }
+  }
+
+  selectTurma.addEventListener('change', atualizarDiasDisponiveis1x);
+
   async function carregarTurmas() {
     try {
       const res = await fetch('/api/turmas/completo');
       if (res.ok) {
         const turmas = await res.json();
-        const selectTurma = document.getElementById('cad-turma');
         if (turmas && turmas.length > 0) {
           selectTurma.innerHTML = turmas.map(t => {
             const vagas = t.vagas_disponiveis;
             const vagaTxt = vagas > 0 ? `(${vagas} vagas livres)` : '(TURMA LOTADA)';
             return `<option value="${t.id}">${t.nome} — ${t.dias_semana} às ${t.horario} ${vagaTxt}</option>`;
           }).join('');
+          atualizarDiasDisponiveis1x();
         }
       }
     } catch (err) {
       console.log('Usando turmas padrão');
+      atualizarDiasDisponiveis1x();
     }
   }
   carregarTurmas();

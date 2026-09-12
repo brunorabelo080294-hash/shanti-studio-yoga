@@ -391,7 +391,28 @@ function setupChat() {
     }
   });
 
-  btnSend.addEventListener('click', enviarMensagemTexto);
+  btnSend.addEventListener('click', () => enviarMensagemTexto());
+
+  // Atalhos de Acesso Rápido na Tela Inicial (Fase 5)
+  const shortcutChips = document.querySelectorAll('.wa-shortcut-chip');
+  shortcutChips.forEach(chip => {
+    chip.addEventListener('click', async () => {
+      const query = chip.dataset.query;
+      if (!query) return;
+
+      chip.classList.add('clicked');
+      setTimeout(() => chip.classList.remove('clicked'), 350);
+
+      // Se o usuário estiver em outra aba, voltar para a aba Conversas
+      const activeTab = document.querySelector('.wa-tab-btn.active');
+      if (activeTab && activeTab.dataset.tab !== 'chat') {
+        const chatTab = document.querySelector('.wa-tab-btn[data-tab="chat"]');
+        if (chatTab) chatTab.click();
+      }
+
+      await enviarMensagemTexto(query);
+    });
+  });
 }
 
 function adicionarMensagem(texto, remetente = 'bot', dadosExtras = null, elementId = null) {
@@ -422,7 +443,7 @@ function adicionarMensagem(texto, remetente = 'bot', dadosExtras = null, element
   // Renderizar Cards de Ação Extras
   if (dadosExtras) {
     // 1. Recibo individual de pagamento
-    if (dadosExtras.tipo === 'recibo' || dadosExtras.recibo || dadosExtras.texto_recibo) {
+    if (!Array.isArray(dadosExtras) && (dadosExtras.tipo === 'recibo' || dadosExtras.recibo || dadosExtras.texto_recibo)) {
       const r = dadosExtras;
       htmlInner += `
         <div class="wa-action-card" style="border-left-color: var(--wa-success); margin-top: 10px;">
@@ -441,6 +462,29 @@ function adicionarMensagem(texto, remetente = 'bot', dadosExtras = null, element
         </div>
       `;
     } 
+    // 1b. Lista de Pagamentos / Recibos do Mês (Fase 5)
+    else if (Array.isArray(dadosExtras) && dadosExtras.length > 0 && (dadosExtras[0].texto_recibo !== undefined || dadosExtras[0].pagamento_id !== undefined)) {
+      htmlInner += `<div style="margin-top: 10px; display: flex; flex-direction: column; gap: 8px;">`;
+      dadosExtras.forEach(r => {
+        htmlInner += `
+          <div class="wa-action-card" style="border-left-color: var(--wa-success);">
+            <div class="wa-action-card-header">
+              <span class="wa-action-card-name"><i class="fa-solid fa-circle-check" style="color:var(--wa-success);"></i> ${r.aluno || r.aluno_nome}</span>
+              <span class="wa-action-card-val" style="color:var(--wa-success);">R$ ${(r.valor || 0).toFixed(2)}</span>
+            </div>
+            <div class="wa-action-card-sub" style="color: var(--wa-text-secondary);">
+              • ${r.plano || '2x na semana'}${r.dia_semana_1x ? ` (${r.dia_semana_1x})` : ''} • Mês ${r.mes_referencia} (${r.forma_pagamento || 'PIX'})
+            </div>
+            ${r.link_whatsapp ? `
+              <a href="${r.link_whatsapp}" target="_blank" class="wa-action-btn-whatsapp" style="background: linear-gradient(135deg, #10b981, #059669);">
+                <i class="fa-brands fa-whatsapp"></i> Reenviar Comprovante no WhatsApp
+              </a>
+            ` : ''}
+          </div>
+        `;
+      });
+      htmlInner += `</div>`;
+    }
     // 2. Lista de Alunos Ausentes
     else if (Array.isArray(dadosExtras) && dadosExtras.length > 0 && dadosExtras[0].dias_ausente !== undefined) {
       htmlInner += `<div style="margin-top: 10px; display: flex; flex-direction: column; gap: 8px;">`;
@@ -586,15 +630,19 @@ function criarIndicadorDigitacao(msgInicial = 'Consultando o estúdio... 🧘‍
   };
 }
 
-async function enviarMensagemTexto() {
+async function enviarMensagemTexto(textoCustomizado = null) {
   const input = document.getElementById('chat-input');
-  const texto = input.value.trim();
+  const texto = (typeof textoCustomizado === 'string' && textoCustomizado.trim()) 
+    ? textoCustomizado.trim() 
+    : input.value.trim();
   if (!texto) return;
 
   adicionarMensagem(texto, 'user');
-  input.value = '';
-  document.getElementById('btn-mic').style.display = 'flex';
-  document.getElementById('btn-send').style.display = 'none';
+  if (!textoCustomizado) {
+    input.value = '';
+    document.getElementById('btn-mic').style.display = 'flex';
+    document.getElementById('btn-send').style.display = 'none';
+  }
 
   const indicador = criarIndicadorDigitacao('Consultando o estúdio... 🧘‍♀️');
 
