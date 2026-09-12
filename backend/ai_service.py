@@ -421,13 +421,28 @@ def processar_comando_local(texto: str) -> Dict[str, Any]:
 
 async def processar_mensagem_ia(texto: str) -> Dict[str, Any]:
     """
-    Processa a mensagem com o Gemini Flash Lite com fallback inteligente
-    e motor de execução em tempo real.
+    Processa a mensagem com fast-path instantâneo para comandos do estúdio (0.005s)
+    e Gemini Flash Lite otimizado com timeout para conversas abertas.
     """
     texto_lower = texto.lower()
 
-    # Se for comando de registrar ação direta no banco, executar de imediato
-    if any(p in texto_lower for p in ["pagou", "recebi pagamento", "baixar mensalidade", "marque presença", "marque presenca", "veio na aula", "gastei", "despesa de"]):
+    # 1. Fast-path: Se for qualquer comando ou consulta do estúdio, responder IMEDIATAMENTE (0.005s)
+    termos_estudio = [
+        "atraso", "atrasada", "atrasadas", "atrasados", "devedor", "inadimplente", "quem deve", "não pagou", "vencid",
+        "cobrança", "cobrar", "lembrete", "mandar mensagem", "enviar mensagem", "aviso de vencimento", "aviso whatsapp",
+        "quem já pagou", "quem pagou", "já pagou este mês", "pagamentos confirmados", "quem está em dia", "mensalidades pagas", "pagos este mês",
+        "pagou", "recebi", "pagamento de", "baixar mensalidade",
+        "relatorio", "relatório", "faturamento", "receita", "financeiro", "balanço", "quanto recebi", "lucro",
+        "despesa", "despesas", "gastei", "quanto gastou", "contas a pagar", "contas a vencer", "vencimento de conta", "detalhe das contas", "contas pendentes", "paguei conta", "comprei", "gasto",
+        "contrato", "contratos", "vigência", "vigencia", "30 dias", "assinatura de contrato", "pendente de assinatura", "contratos a vencer",
+        "quantitativo", "quantos alunos", "total de alunos", "número de alunos", "alunos ativos", "evasão", "saídas",
+        "saiu", "desistiu", "cancelou", "inativar", "trancar", "parou",
+        "turma", "turmas", "horário", "horario", "horários", "horarios", "vaga", "vagas", "aula", "aulas",
+        "presença", "presenca", "veio", "veio na aula", "presente", "chegou", "frequencia",
+        "ausente", "ausentes", "sumido", "sumidos", "faltou", "faltas",
+        "aniversariante", "aniversariantes", "aniversario", "aniversário"
+    ]
+    if any(t in texto_lower for t in termos_estudio):
         return processar_comando_local(texto)
 
     api_key = get_api_key()
@@ -490,10 +505,8 @@ async def processar_mensagem_ia(texto: str) -> Dict[str, Any]:
         """
 
         candidate_models = [
-            "gemini-3.6-flash",
-            "gemini-3.5-flash",
-            "gemini-flash-lite-latest",
             "gemini-3.5-flash-lite",
+            "gemini-3.1-flash-lite",
             "gemini-flash-latest"
         ]
 
@@ -502,20 +515,23 @@ async def processar_mensagem_ia(texto: str) -> Dict[str, Any]:
 
         for modelo in candidate_models:
             try:
-                response = await client.aio.models.generate_content(
-                    model=modelo,
-                    contents=texto,
-                    config=types.GenerateContentConfig(
-                        system_instruction=system_instruction,
-                        temperature=0.3
-                    )
+                response = await asyncio.wait_for(
+                    client.aio.models.generate_content(
+                        model=modelo,
+                        contents=texto,
+                        config=types.GenerateContentConfig(
+                            system_instruction=system_instruction,
+                            temperature=0.3
+                        )
+                    ),
+                    timeout=5.0
                 )
                 resposta_texto = (response.text or "").strip()
                 if resposta_texto:
                     break
             except Exception as ex:
                 ultimo_erro = ex
-                print(f"Modelo {modelo} falhou: {ex}. Tentando próximo modelo...")
+                print(f"Modelo {modelo} falhou ou expirou: {ex}. Tentando próximo modelo...")
                 continue
 
         if not resposta_texto and ultimo_erro:

@@ -6,6 +6,7 @@ import os
 import sys
 import io
 import datetime
+import asyncio
 import re
 from typing import Optional, Dict, Any, List
 from fastapi import FastAPI, HTTPException, UploadFile, File, Form, Response
@@ -571,29 +572,33 @@ async def api_chat_audio(audio: UploadFile = File(...), texto_transcrito: Option
                     mime_type = "audio/webm"
 
                 candidate_models = [
-                    "gemini-3.6-flash",
-                    "gemini-3.5-flash",
-                    "gemini-flash-lite-latest",
                     "gemini-3.5-flash-lite",
+                    "gemini-3.1-flash-lite",
                     "gemini-flash-latest"
                 ]
                 for modelo in candidate_models:
                     try:
-                        response = await client.aio.models.generate_content(
-                            model=modelo,
-                            contents=[
-                                types.Part.from_bytes(data=conteudo, mime_type=mime_type),
-                                "Você é um assistente do estúdio de yoga. Transcreva com fidelidade absoluta o que foi falado neste áudio em português do Brasil (pt-BR). Retorne APENAS o texto transcrito, sem aspas, sem pontuações extras e sem explicações. Se houver apenas silêncio ou ruído inaudível, responda SILENCIO."
-                            ]
+                        response = await asyncio.wait_for(
+                            asyncio.to_thread(
+                                client.models.generate_content,
+                                model=modelo,
+                                contents=[
+                                    types.Part.from_bytes(data=conteudo, mime_type=mime_type),
+                                    "Você é um assistente do estúdio de yoga. Transcreva com fidelidade absoluta o que foi falado neste áudio em português do Brasil (pt-BR). Retorne APENAS o texto transcrito, sem aspas, sem pontuações extras e sem explicações. Se houver apenas silêncio ou ruído inaudível, responda SILENCIO."
+                                ]
+                            ),
+                            timeout=15.0
                         )
-                        texto = (response.text or "").strip()
-                        texto = re.sub(r'^["\'\s]+|["\'\s]+$', '', texto)
-                        if any(texto.lower().startswith(x) for x in ["silêncio", "silencio", "sem fala", "inaudível", "inaudivel", "ruído", "ruido", "nenhum som"]):
+                        texto_resp = (response.text or "").strip()
+                        texto_resp = re.sub(r'^["\'\s]+|["\'\s]+$', '', texto_resp)
+                        if any(texto_resp.lower().startswith(x) for x in ["silêncio", "silencio", "sem fala", "inaudível", "inaudivel", "ruído", "ruido", "nenhum som"]):
                             texto = ""
-                        if texto:
+                            break
+                        if texto_resp:
+                            texto = texto_resp
                             break
                     except Exception as err_m:
-                        print(f"Modelo áudio {modelo} falhou: {err_m}. Tentando próximo...")
+                        print(f"Modelo áudio {modelo} falhou ou expirou: {err_m}. Tentando próximo...")
                         continue
             except Exception as e:
                 print(f"Erro ao transcrever áudio com Gemini: {e}")
