@@ -6,6 +6,7 @@
 // Estado global da aplicação
 const state = {
   alunos: [],
+  turmas: [],
   alunoSelecionado: null,
   isRecording: false,
   mediaRecorder: null,
@@ -68,8 +69,39 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 async function atualizarTudo() {
+  await carregarTurmas();
   await carregarAlunos();
   await carregarRelatorios();
+}
+
+async function carregarTurmas() {
+  try {
+    const res = await fetch('/api/turmas');
+    state.turmas = await res.json();
+    renderizarSeletorTurmas();
+  } catch (err) {
+    console.warn('Erro ao carregar turmas:', err);
+  }
+}
+
+function renderizarSeletorTurmas() {
+  const container = document.getElementById('cad-turmas-container');
+  if (!container) return;
+  if (!state.turmas || state.turmas.length === 0) {
+    container.innerHTML = '<span style="font-size:12px; color:var(--wa-text-secondary);">Nenhuma turma ativa cadastrada.</span>';
+    return;
+  }
+  container.innerHTML = state.turmas.map(t => {
+    const vagasInfo = t.vagas_disponiveis > 0 
+      ? `<span style="color:var(--wa-success); font-weight:600;">(${t.vagas_disponiveis} vagas livres)</span>`
+      : `<span style="color:var(--wa-danger); font-weight:600;">(Lotada)</span>`;
+    return `
+      <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:12.5px; line-height:1.4; color:var(--wa-text-primary);">
+        <input type="checkbox" class="cad-turma-check" value="${t.id}" style="accent-color:var(--shanti-primary); cursor:pointer;">
+        <span><b>${t.nome}</b> — ${t.dias_semana} às ${t.horario} ${vagasInfo}</span>
+      </label>
+    `;
+  }).join('');
 }
 
 function showToast(msg) {
@@ -865,10 +897,47 @@ async function abrirDetalhesAluno(alunoId) {
     document.getElementById('det-valor').textContent = al.valor_mensalidade.toFixed(2);
     document.getElementById('det-dia-venc').textContent = al.dia_vencimento;
     
+    // Turmas vinculadas
+    const detTurmas = document.getElementById('det-turmas');
+    if (detTurmas) {
+      if (al.turmas && al.turmas.length > 0) {
+        detTurmas.innerHTML = al.turmas.map(t => `<span style="display:inline-block; background:#e8f0eb; color:var(--shanti-primary); padding:2px 8px; border-radius:6px; margin:2px 2px; font-size:12px; border:0.5px solid var(--wa-border);"><b>${t.nome}</b> (${t.horario})</span>`).join(' ');
+      } else {
+        detTurmas.textContent = 'Nenhuma turma vinculada';
+      }
+    }
+
     // Data de Nascimento
     const detNasc = document.getElementById('det-nascimento');
     if (detNasc) {
       detNasc.textContent = al.data_nascimento ? formatarDataBR(al.data_nascimento) : 'Não informado';
+    }
+
+    // Autorização de Imagem (Fase 2)
+    const badgeImg = document.getElementById('det-autoriza-imagem-badge');
+    const autorizou = (al.autoriza_imagem === 1 || al.autoriza_imagem === true || al.autoriza_imagem === '1');
+    if (badgeImg) {
+      badgeImg.textContent = autorizou ? 'SIM (Autorizado)' : 'NÃO';
+      badgeImg.className = `wa-student-badge ${autorizou ? 'badge-em-dia' : 'badge-atrasado'}`;
+    }
+
+    const btnToggleImg = document.getElementById('det-btn-toggle-imagem');
+    if (btnToggleImg) {
+      btnToggleImg.onclick = async () => {
+        const novoValor = autorizou ? 0 : 1;
+        try {
+          await fetch(`/api/alunos/${al.id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ autoriza_imagem: novoValor })
+          });
+          showToast(`Autorização de imagem alterada para ${novoValor ? 'SIM' : 'NÃO'}!`);
+          await abrirDetalhesAluno(al.id);
+          await carregarAlunos();
+        } catch (e) {
+          showToast('Erro ao alterar autorização.');
+        }
+      };
     }
 
     const badgeEl = document.getElementById('det-status-badge');
@@ -995,8 +1064,29 @@ function setupModals() {
     });
   });
 
+  const cadPlanoSelect = document.getElementById('cad-plano');
+  if (cadPlanoSelect) {
+    cadPlanoSelect.addEventListener('change', () => {
+      const preco = cadPlanoSelect.value.includes('1x') 
+        ? (state.configuracoes.valor_plano_1x || '120.00') 
+        : (state.configuracoes.valor_plano_2x || '150.00');
+      document.getElementById('cad-valor').value = parseFloat(preco).toFixed(2);
+    });
+  }
+
   document.getElementById('btn-open-add-student').addEventListener('click', () => {
     document.getElementById('form-add-student').reset();
+    renderizarSeletorTurmas();
+    
+    // Configurar plano e valor inicial padrão (2x na semana)
+    if (cadPlanoSelect) cadPlanoSelect.value = '2x na semana';
+    const precoPadrao = state.configuracoes.valor_plano_2x || '150.00';
+    document.getElementById('cad-valor').value = parseFloat(precoPadrao).toFixed(2);
+
+    // Marcar Autorização de Imagem como SIM por padrão
+    const radioSim = document.querySelector('input[name="cad-autoriza-imagem"][value="1"]');
+    if (radioSim) radioSim.checked = true;
+
     const now = new Date();
     const mesAtual = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
     const el = document.getElementById('cad-mes-matricula');
@@ -1006,6 +1096,11 @@ function setupModals() {
 
   document.getElementById('form-add-student').addEventListener('submit', async (e) => {
     e.preventDefault();
+    const turmaChecks = document.querySelectorAll('.cad-turma-check:checked');
+    const turma_ids = Array.from(turmaChecks).map(c => parseInt(c.value));
+    const radioImg = document.querySelector('input[name="cad-autoriza-imagem"]:checked');
+    const autoriza_imagem = radioImg ? parseInt(radioImg.value) : 1;
+
     const dados = {
       nome: document.getElementById('cad-nome').value.trim(),
       telefone: document.getElementById('cad-telefone').value.trim(),
@@ -1016,7 +1111,9 @@ function setupModals() {
       valor_mensalidade: parseFloat(document.getElementById('cad-valor').value),
       tipo_pagamento: document.getElementById('cad-forma-pagamento').value,
       mes_matricula: document.getElementById('cad-mes-matricula').value,
-      observacoes: document.getElementById('cad-obs').value.trim()
+      observacoes: document.getElementById('cad-obs').value.trim(),
+      autoriza_imagem: autoriza_imagem,
+      turma_ids: turma_ids
     };
 
     try {
@@ -1303,6 +1400,14 @@ async function carregarConfiguracoes() {
     if (state.configuracoes.gemini_api_key) {
       document.getElementById('cfg-gemini-key').value = state.configuracoes.gemini_api_key;
     }
+    if (state.configuracoes.valor_plano_1x) {
+      const el1x = document.getElementById('cfg-valor-plano-1x');
+      if (el1x) el1x.value = state.configuracoes.valor_plano_1x;
+    }
+    if (state.configuracoes.valor_plano_2x) {
+      const el2x = document.getElementById('cfg-valor-plano-2x');
+      if (el2x) el2x.value = state.configuracoes.valor_plano_2x;
+    }
 
     // Inicializar escala do ícone salva
     if (state.configuracoes.icone_escala) {
@@ -1330,7 +1435,9 @@ function setupSettings() {
       nome_studio: document.getElementById('cfg-nome-studio').value.trim() || 'Studio Shanti',
       chave_pix: document.getElementById('cfg-chave-pix').value.trim(),
       tipo_chave_pix: document.getElementById('cfg-tipo-pix').value,
-      gemini_api_key: document.getElementById('cfg-gemini-key').value.trim()
+      gemini_api_key: document.getElementById('cfg-gemini-key').value.trim(),
+      valor_plano_1x: document.getElementById('cfg-valor-plano-1x')?.value.trim() || '120.00',
+      valor_plano_2x: document.getElementById('cfg-valor-plano-2x')?.value.trim() || '150.00'
     };
 
     try {
@@ -1339,7 +1446,7 @@ function setupSettings() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ configs })
       });
-      state.configuracoes = configs;
+      state.configuracoes = { ...state.configuracoes, ...configs };
       document.getElementById('header-studio-name').textContent = configs.nome_studio;
       showToast('Configurações salvas com sucesso!');
     } catch (err) {

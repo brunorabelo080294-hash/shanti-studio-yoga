@@ -6,13 +6,13 @@
   <title>Studio Shanti - Painel de Gestão</title>
 
   <!-- Favicon & PWA Meta Tags -->
-  <link rel="icon" type="image/png" href="/favicon.png?v=11">
-  <link rel="manifest" href="/manifest.json?v=11">
+  <link rel="icon" type="image/png" href="/favicon.png?v=12">
+  <link rel="manifest" href="/manifest.json?v=12">
   <meta name="theme-color" content="#1C2B24">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Studio Shanti">
-  <link rel="apple-touch-icon" href="/icons/icon-192.png?v=11">
+  <link rel="apple-touch-icon" href="/icons/icon-192.png?v=12">
 
   <!-- Fontes Google & Ícones FontAwesome -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -21,7 +21,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
   <!-- WhatsApp Luxe Theme Stylesheet -->
-  <link rel="stylesheet" href="/css/whatsapp-theme.css?v=11">
+  <link rel="stylesheet" href="/css/whatsapp-theme.css?v=12">
 </head>
 <body>
 
@@ -406,6 +406,27 @@
 
       <div class="wa-card">
         <div class="wa-card-title" style="margin-bottom: 14px;">
+          <i class="fa-solid fa-tags" style="color: var(--shanti-gold);"></i>
+          <span>Planos e Valores de Referência (Studio Shanti)</span>
+        </div>
+
+        <div style="display: flex; gap: 12px; margin-bottom: 6px;">
+          <div class="wa-form-group" style="flex: 1;">
+            <label>1x na Semana (R$)</label>
+            <input type="number" step="0.01" class="wa-form-control" id="cfg-valor-plano-1x" placeholder="120.00">
+          </div>
+          <div class="wa-form-group" style="flex: 1;">
+            <label>2x na Semana (R$)</label>
+            <input type="number" step="0.01" class="wa-form-control" id="cfg-valor-plano-2x" placeholder="150.00">
+          </div>
+        </div>
+        <small style="font-size: 11.5px; color: var(--wa-text-secondary); display: block; line-height: 1.4;">
+          Valores base configuráveis do estúdio. Ao matricular novos alunos, esses valores serão preenchidos automaticamente.
+        </small>
+      </div>
+
+      <div class="wa-card">
+        <div class="wa-card-title" style="margin-bottom: 14px;">
           <i class="fa-solid fa-brain" style="color: var(--shanti-gold);"></i>
           <span>Inteligência Artificial (Gemini)</span>
         </div>
@@ -506,14 +527,18 @@
       </div>
 
       <div class="wa-form-group">
-        <label>Modalidade / Turma</label>
+        <label>Plano Contratado *</label>
         <select class="wa-form-control" id="cad-plano">
-          <option value="Hatha Yoga (2x/sem)">Hatha Yoga (2x/sem)</option>
-          <option value="Vinyasa Flow (2x/sem)">Vinyasa Flow (2x/sem)</option>
-          <option value="Yin Yoga & Meditação">Yin Yoga & Meditação</option>
-          <option value="Yoga Livre (Ilimitado)">Yoga Livre (Ilimitado)</option>
-          <option value="Yoga Gestante">Yoga Gestante</option>
+          <option value="1x na semana">1x na semana (Ref. R$ 120,00)</option>
+          <option value="2x na semana" selected>2x na semana (Ref. R$ 150,00)</option>
         </select>
+      </div>
+
+      <div class="wa-form-group">
+        <label style="font-weight: 600; color: var(--shanti-primary);">Turma(s) e Horário(s) *</label>
+        <div id="cad-turmas-container" style="display: flex; flex-direction: column; gap: 8px; background: var(--shanti-sand); padding: 10px 12px; border-radius: 10px; border: 0.5px solid var(--wa-border);">
+          <!-- Preenchido dinamicamente via JavaScript -->
+        </div>
       </div>
 
       <div style="display: flex; gap: 12px;">
@@ -523,7 +548,7 @@
         </div>
         <div class="wa-form-group" style="flex: 1;">
           <label>Valor Mensal (R$)</label>
-          <input type="number" step="0.01" class="wa-form-control" id="cad-valor" value="160.00" required>
+          <input type="number" step="0.01" class="wa-form-control" id="cad-valor" value="150.00" required>
         </div>
       </div>
       
@@ -540,6 +565,26 @@
           <option value="Dinheiro">Dinheiro</option>
           <option value="Boleto">Boleto</option>
         </select>
+      </div>
+
+      <div class="wa-form-group" style="background: #ffffff; border: 1px solid var(--wa-border); border-radius: 10px; padding: 12px;">
+        <label style="font-weight: 600; color: var(--shanti-primary); font-size: 13.5px; display: block; margin-bottom: 8px;">
+          <i class="fa-solid fa-camera" style="color: var(--shanti-gold); margin-right: 5px;"></i>
+          Autoriza o uso da imagem para divulgação do Shanti? *
+        </label>
+        <div style="display: flex; gap: 24px; align-items: center;">
+          <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px; font-weight: 600; color: var(--wa-success);">
+            <input type="radio" name="cad-autoriza-imagem" value="1" checked style="accent-color: var(--shanti-primary); cursor: pointer;">
+            SIM
+          </label>
+          <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px; font-weight: 600; color: var(--wa-danger);">
+            <input type="radio" name="cad-autoriza-imagem" value="0" style="accent-color: var(--shanti-primary); cursor: pointer;">
+            NÃO
+          </label>
+        </div>
+        <small style="color: var(--wa-text-secondary); font-size: 11px; display: block; margin-top: 6px;">
+          Poderá ser alterado a qualquer momento na ficha do aluno.
+        </small>
       </div>
 
       <div class="wa-form-group">
@@ -569,8 +614,16 @@
         <div style="font-size: 13.5px; line-height: 1.7;">
           <div><b>WhatsApp:</b> <span id="det-telefone"></span></div>
           <div><b>Plano:</b> <span id="det-plano"></span></div>
+          <div><b>Turma(s):</b> <span id="det-turmas" style="color: var(--shanti-primary); font-weight: 600;">Nenhuma</span></div>
           <div><b>Mensalidade:</b> R$ <span id="det-valor"></span> (Vencimento todo dia <span id="det-dia-venc"></span>)</div>
           <div><b>Aniversário:</b> <span id="det-nascimento">Não informado</span></div>
+          <div style="display: flex; align-items: center; gap: 8px; margin: 3px 0;">
+            <b>Uso de Imagem:</b> 
+            <span id="det-autoriza-imagem-badge" class="wa-student-badge"></span>
+            <button type="button" id="det-btn-toggle-imagem" title="Alterar autorização de uso de imagem" style="font-size: 11px; padding: 2px 8px; border-radius: 4px; border: 1px solid var(--wa-border); background: #ffffff; cursor: pointer; color: var(--shanti-primary); font-weight: 600;">
+              <i class="fa-solid fa-repeat"></i> Alternar
+            </button>
+          </div>
           <div><b>Situação Atual:</b> <span id="det-status-badge"></span></div>
           <div id="det-motivo-box" style="display:none; color: var(--wa-danger); margin-top: 4px;">
             <b>Motivo Saída:</b> <span id="det-motivo-saida"></span>
@@ -721,12 +774,12 @@
 <div class="wa-toast" id="toast-msg">Notificação</div>
 
 <!-- JavaScript Principal -->
-<script src="/js/app.js?v=11"></script>
+<script src="/js/app.js?v=12"></script>
 
 <script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/service-worker.js?v=11').then(reg => {
+      navigator.serviceWorker.register('/service-worker.js?v=12').then(reg => {
         reg.update();
       }).catch(err => {
         console.log('SW reg:', err);
