@@ -1138,6 +1138,7 @@ def obter_grade_calendario_mes(ano: int, mes: int) -> Dict[str, Any]:
                 "dia_semana_idx": w,
                 "turmas_count": len(turmas_do_dia),
                 "turmas_nomes": [t["nome"] for t in turmas_do_dia],
+                "turmas_detalhes": [{"id": t["id"], "nome": t["nome"], "horario": t["horario"], "total_matriculados": t["total_matriculados"]} for t in turmas_do_dia],
                 "total_esperados": total_esperados,
                 "presentes": p_count,
                 "faltas": f_count,

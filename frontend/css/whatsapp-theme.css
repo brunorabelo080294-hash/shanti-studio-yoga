@@ -1949,36 +1949,61 @@ body {
 }
 
 .cal-day-cell {
-  min-height: 52px;
-  border-radius: 10px;
-  border: 1px solid transparent;
+  min-height: 76px;
+  border-radius: 12px;
+  border: 1px solid #EAE6DF;
+  background: #FFFFFF;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  align-items: stretch;
+  justify-content: flex-start;
   position: relative;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   user-select: none;
-  background: transparent;
-  padding: 2px;
+  padding: 5px 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
 }
 
 .cal-day-cell.empty {
   cursor: default;
   background: transparent;
+  border-color: transparent;
+  box-shadow: none;
 }
 
 .cal-day-cell:not(.empty):hover {
-  background: var(--shanti-sand-light);
-  border-color: var(--shanti-sand-border);
+  background: #FAF8F5;
+  border-color: #B5D2BC;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.06);
+  transform: translateY(-1px);
+  z-index: 1;
+}
+
+.cal-day-cell.has-class {
+  background: #FCFDFB;
+  border-color: #C8E6C9;
+}
+
+.cal-day-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0 2px;
+  margin-bottom: 3px;
 }
 
 .cal-day-num {
   font-size: 13.5px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--shanti-charcoal);
   line-height: 1;
+}
+
+.cal-day-cell.today {
+  border-color: var(--shanti-terracotta-border);
+  background: #FFFBF8;
 }
 
 .cal-day-cell.today .cal-day-num {
@@ -1986,31 +2011,21 @@ body {
   font-weight: 800;
 }
 
-.cal-day-cell.today {
-  border-color: var(--shanti-terracotta-border);
-  background: var(--shanti-terracotta-light);
-}
-
 .cal-day-cell.selected {
-  background: var(--shanti-forest) !important;
-  border-color: var(--shanti-forest) !important;
+  border: 2px solid var(--shanti-forest) !important;
+  box-shadow: 0 0 0 3px rgba(45, 79, 62, 0.16), 0 4px 12px rgba(45, 79, 62, 0.08) !important;
+  background: #F4F8F5 !important;
 }
 
 .cal-day-cell.selected .cal-day-num {
-  color: #ffffff !important;
-}
-
-.cal-day-cell.selected .cal-class-badge {
-  background: rgba(255, 255, 255, 0.25) !important;
-  color: #ffffff !important;
+  color: var(--shanti-forest) !important;
+  font-weight: 800;
 }
 
 .cal-class-indicator {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 2px;
-  margin-top: 3px;
+  gap: 3px;
 }
 
 .cal-dot {
@@ -2018,38 +2033,110 @@ body {
   height: 6px;
   border-radius: 50%;
   display: inline-block;
+  flex-shrink: 0;
 }
 
 .cal-dot.pendente {
-  background: var(--shanti-sand);
+  background: #CBD5E1;
 }
 
 .cal-dot.concluido {
-  background: #16a34a;
+  background: #16A34A;
+  box-shadow: 0 0 4px rgba(22, 163, 74, 0.4);
 }
 
 .cal-dot.parcial {
-  background: #d97706;
+  background: #D97706;
 }
 
-.cal-class-badge {
+/* Lista de Turmas dentro do dia do Calendário */
+.cal-turmas-list {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  width: 100%;
+}
+
+/* Marcação Verde das Aulas de Yoga */
+.cal-turma-pill.verde {
+  background: #E8F5E9;
+  border: 1.5px solid #81C784;
+  color: #1B5E20;
+  border-radius: 7px;
+  padding: 2.5px 5px;
+  font-size: 10.5px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-shadow: 0 1px 3px rgba(46, 125, 50, 0.12);
+  line-height: 1.2;
+}
+
+.cal-turma-pill.verde:hover {
+  background: #C8E6C9;
+  border-color: #388E3C;
+  transform: translateY(-1px) scale(1.03);
+  box-shadow: 0 3px 8px rgba(46, 125, 50, 0.28);
+  color: #0A3D12;
+  z-index: 2;
+}
+
+.cal-turma-pill.verde:active {
+  transform: scale(0.98);
+}
+
+.cal-turma-pill.verde .pill-dot {
+  width: 5px;
+  height: 5px;
+  min-width: 5px;
+  border-radius: 50%;
+  background: #2E7D32;
+  display: inline-block;
+}
+
+.cal-turma-pill.verde .pill-time {
+  font-weight: 800;
+  color: #1B5E20;
+  font-size: 10px;
+  letter-spacing: -0.2px;
+}
+
+.cal-turma-pill.verde .pill-name {
+  font-weight: 600;
+  color: #2E7D32;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 10.5px;
+}
+
+.cal-turma-pill.mais {
+  background: #F1F5F9;
+  border: 1px solid #CBD5E1;
+  color: #475569;
+  border-radius: 5px;
+  padding: 1.5px 4px;
   font-size: 9.5px;
   font-weight: 700;
-  padding: 1px 4px;
-  border-radius: 6px;
-  margin-top: 2px;
+  text-align: center;
   line-height: 1.1;
-  background: var(--shanti-sage-light);
-  color: var(--shanti-forest);
 }
 
+/* Card de Chamada Diária */
 .cal-daily-sheet {
   background: var(--shanti-card-bg);
-  border: 1px solid var(--shanti-sand-border);
-  border-radius: 16px;
-  padding: 16px;
-  margin-bottom: 14px;
+  border: 1.5px solid var(--shanti-sand-border);
+  border-radius: 18px;
+  padding: 18px;
+  margin-bottom: 16px;
   box-shadow: var(--shadow-sm);
+  scroll-margin-top: 16px;
 }
 
 .cal-daily-header {
@@ -2057,15 +2144,15 @@ body {
   align-items: center;
   justify-content: space-between;
   padding-bottom: 12px;
-  margin-bottom: 12px;
+  margin-bottom: 14px;
   border-bottom: 1px solid var(--shanti-sand-border);
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 10px;
 }
 
 .cal-daily-title {
   font-family: var(--font-brand);
-  font-size: 16.5px;
+  font-size: 17px;
   font-weight: 700;
   color: var(--shanti-forest);
   margin: 0;
@@ -2084,7 +2171,7 @@ body {
 .cal-pill {
   font-size: 11.5px;
   font-weight: 600;
-  padding: 3px 8px;
+  padding: 3px 9px;
   border-radius: 12px;
   display: inline-flex;
   align-items: center;
@@ -2115,42 +2202,116 @@ body {
   border: 1px solid #FDE68A;
 }
 
+/* Card Individual de Cada Turma com Horário e Alunos */
 .cal-turma-card {
-  background: var(--shanti-sand-light);
-  border: 1px solid var(--shanti-sand-border);
-  border-radius: 14px;
-  padding: 12px 14px;
-  margin-bottom: 12px;
+  background: #FAF9F6;
+  border: 1.5px solid var(--shanti-sand-border);
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 14px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  scroll-margin-top: 20px;
+}
+
+.cal-turma-card.focused {
+  border-color: #2E7D32 !important;
+  box-shadow: 0 0 0 4px rgba(46, 125, 50, 0.25), 0 8px 24px rgba(46, 125, 50, 0.15) !important;
+  background: #FFFFFF !important;
+  animation: pulse-turma-focus 1.8s ease-out;
+}
+
+@keyframes pulse-turma-focus {
+  0% { transform: scale(1); }
+  30% { transform: scale(1.015); }
+  100% { transform: scale(1); }
 }
 
 .cal-turma-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #E8E3D7;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 10px;
 }
 
 .cal-turma-info {
   display: flex;
   flex-direction: column;
+  gap: 4px;
 }
 
 .cal-turma-nome {
-  font-size: 14px;
+  font-family: var(--font-brand);
+  font-size: 15.5px;
   font-weight: 700;
   color: var(--shanti-forest);
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
-.cal-turma-sub {
+.cal-turma-badges {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.cal-badge-horario {
+  background: #E8F5E9;
+  color: #1B5E20;
+  border: 1px solid #A5D6A7;
+  padding: 2.5px 8px;
+  border-radius: 8px;
+  font-weight: 700;
   font-size: 11.5px;
-  color: var(--shanti-stone);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.cal-badge-vagas {
+  background: #F1F5F9;
+  color: #475569;
+  border: 1px solid #CBD5E1;
+  padding: 2.5px 8px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 11px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.cal-btn-marcar-todos {
+  background: var(--shanti-forest);
+  color: #FFFFFF;
+  border: none;
+  border-radius: 16px;
+  padding: 6px 14px;
+  font-size: 11.5px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 5px rgba(45, 79, 62, 0.2);
+}
+
+.cal-btn-marcar-todos:hover {
+  background: #1E372B;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(45, 79, 62, 0.3);
 }
 
 .cal-aluno-item {
-  background: var(--shanti-card-bg);
-  border: 1px solid var(--shanti-sand-border);
+  background: #FFFFFF;
+  border: 1px solid #ECE7DD;
   border-radius: 12px;
   padding: 10px 12px;
   margin-bottom: 8px;
@@ -2158,7 +2319,36 @@ body {
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 10px;
+  transition: all 0.15s ease;
+}
+
+.cal-aluno-item:hover {
+  border-color: #CBD5E1;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+}
+
+.cal-aluno-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 200px;
+}
+
+.cal-aluno-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #DCEEE2 0%, #B8DAC1 100%);
+  color: #1B5E20;
+  font-weight: 700;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
 .cal-aluno-info {
@@ -2169,22 +2359,36 @@ body {
 
 .cal-aluno-nome {
   font-size: 13.5px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--shanti-charcoal);
   display: flex;
   align-items: center;
   gap: 6px;
+  flex-wrap: wrap;
 }
 
 .cal-aluno-detalhe {
-  font-size: 11px;
+  font-size: 11.5px;
   color: var(--shanti-stone);
+}
+
+.cal-aluno-pausa-badge {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: #B45309;
+  background: #FDF3E7;
+  padding: 2px 7px;
+  border-radius: 8px;
+  border: 1px solid #F6D6B2;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .cal-presence-toggle {
   display: inline-flex;
-  background: var(--shanti-oatmeal);
-  border: 1px solid var(--shanti-sand-border);
+  background: #F1F5F9;
+  border: 1px solid #E2E8F0;
   border-radius: 20px;
   padding: 2px;
   gap: 2px;
@@ -2195,32 +2399,35 @@ body {
   background: transparent;
   font-size: 11.5px;
   font-weight: 600;
-  padding: 5px 10px;
+  padding: 5px 11px;
   border-radius: 16px;
   cursor: pointer;
-  transition: all 0.15s ease;
-  color: var(--shanti-stone);
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  color: #64748B;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
 }
 
 .cal-toggle-btn.active-pendente {
   background: #FFFFFF;
   color: var(--shanti-charcoal);
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  font-weight: 700;
 }
 
 .cal-toggle-btn.active-presente {
-  background: #16a34a;
+  background: #16A34A;
   color: #FFFFFF;
-  box-shadow: 0 1px 4px rgba(22, 163, 74, 0.35);
+  box-shadow: 0 2px 6px rgba(22, 163, 74, 0.35);
+  font-weight: 700;
 }
 
 .cal-toggle-btn.active-faltou {
   background: var(--shanti-terracotta);
   color: #FFFFFF;
-  box-shadow: 0 1px 4px rgba(177, 106, 76, 0.35);
+  box-shadow: 0 2px 6px rgba(177, 106, 76, 0.35);
+  font-weight: 700;
 }
 
 .cal-retencao-card {

@@ -23,6 +23,13 @@ class TestCalendarioPresenca(unittest.TestCase):
         self.assertIn(1, dias_com_aula_dict)
         self.assertIn(2, dias_com_aula_dict)
         self.assertNotIn(6, dias_com_aula_dict)
+        self.assertIn('turmas_detalhes', dias_com_aula_dict[1])
+        if dias_com_aula_dict[1]['turmas_detalhes']:
+            t0 = dias_com_aula_dict[1]['turmas_detalhes'][0]
+            self.assertIn('id', t0)
+            self.assertIn('nome', t0)
+            self.assertIn('horario', t0)
+            self.assertIn('total_matriculados', t0)
 
     def test_obter_chamada_dia_e_status_pendente(self):
         chamada = db.obter_chamada_dia('2026-09-02')
@@ -94,6 +101,16 @@ class TestCalendarioPresenca(unittest.TestCase):
 
             db.alternar_pausa_alerta(5, pausar=False)
 
+    @classmethod
+    def tearDownClass(cls):
+        conn = db.get_connection()
+        c = conn.cursor()
+        c.execute('DELETE FROM historico_presenca')
+        c.execute('DELETE FROM frequencias WHERE observacao LIKE ?', ('%Calend%',))
+        c.execute('UPDATE alunos SET pausar_alerta_ausencia = 0, motivo_pausa_alerta = NULL')
+        conn.commit()
+        conn.close()
+
 from fastapi.testclient import TestClient
 from backend.app import app
 
@@ -152,10 +169,12 @@ class TestCalendarioAPI(unittest.TestCase):
         res_css = self.client.get('/css/whatsapp-theme.css')
         self.assertEqual(res_css.status_code, 200)
         self.assertIn('cal-container', res_css.text)
+        self.assertIn('cal-turma-pill.verde', res_css.text)
 
         res_js = self.client.get('/js/app.js')
         self.assertEqual(res_js.status_code, 200)
         self.assertIn('carregarCalendario', res_js.text)
+        self.assertIn('extrairIniciaisAluno', res_js.text)
 
     @classmethod
     def tearDownClass(cls):
