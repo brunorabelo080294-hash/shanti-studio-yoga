@@ -2876,6 +2876,28 @@ function abrirModalEnviarAutentique(alunoId, alunoNome, alunoPlano, alunoTelefon
   if (sbCheck) {
     sbCheck.checked = (state.configuracoes?.autentique_sandbox !== 'false');
   }
+
+  // Verificar se o token da API já está configurado
+  const avisoToken = document.getElementById('aviso-token-autentique-modal');
+  const tokenAtual = (state.configuracoes?.autentique_api_token || '').trim();
+  const tokenValido = tokenAtual.length > 10 && !tokenAtual.includes('mock') && !tokenAtual.includes('placeholder');
+  if (avisoToken) {
+    avisoToken.style.display = tokenValido ? 'none' : 'block';
+  }
+
+  const linkIrAjustes = document.getElementById('link-ir-ajustes-autentique');
+  if (linkIrAjustes && !linkIrAjustes._hasListener) {
+    linkIrAjustes._hasListener = true;
+    linkIrAjustes.addEventListener('click', (e) => {
+      e.preventDefault();
+      fecharModal('modal-enviar-autentique');
+      abrirTela('screen-ajustes');
+      setTimeout(() => {
+        document.getElementById('card-autentique-config')?.scrollIntoView({ behavior: 'smooth' });
+        document.getElementById('cfg-autentique-token')?.focus();
+      }, 300);
+    });
+  }
   
   abrirModal('modal-enviar-autentique');
 }
@@ -2909,7 +2931,23 @@ async function confirmarEnvioAutentique(e) {
       abrirModalLinksAutentique(alunoId, aluno.nome || 'Aluno', data.document_id, data.link_aluno, aluno.telefone);
     }
   } catch (err) {
-    alert(`Falha no envio ao Autentique: ${err.message}`);
+    const msg = err.message || '';
+    if (msg.includes('Token') || msg.includes('401') || msg.includes('não configurado')) {
+      alert(
+        '⚠️ Token da API Autentique não configurado ou inválido (HTTP 401).\n\n' +
+        'Para disparar contratos eletrônicos pelo celular com validade jurídica, ' +
+        'acesse a tela de Ajustes (engrenagem no topo) e insira o Token gratuito da sua conta gerado em painel.autentique.com.br.\n\n' +
+        'Redirecionando você para a tela de Ajustes...'
+      );
+      fecharModal('modal-enviar-autentique');
+      abrirTela('screen-ajustes');
+      setTimeout(() => {
+        document.getElementById('card-autentique-config')?.scrollIntoView({ behavior: 'smooth' });
+        document.getElementById('cfg-autentique-token')?.focus();
+      }, 300);
+    } else {
+      alert(`Falha no envio ao Autentique: ${msg}`);
+    }
   } finally {
     btnSubmit.disabled = false;
     btnSubmit.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Enviar p/ Autentique';

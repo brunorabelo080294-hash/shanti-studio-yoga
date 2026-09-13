@@ -246,7 +246,14 @@ def criar_documento_contrato(aluno_id: int, sandbox: Optional[bool] = None) -> D
     logger.info(f"Disparando contrato para Autentique (Aluno ID {aluno_id}, Sandbox: {modo_sandbox})")
     res = requests.post(AUTENTIQUE_GRAPHQL_URL, headers=headers, data=payload, files=files, timeout=40)
 
-    if res.status_code != 200:
+    if res.status_code == 401:
+        logger.error(f"Erro 401 no Autentique: Token inválido ou não autorizado.")
+        raise ValueError(
+            "Token da API do Autentique não configurado ou inválido (HTTP 401). "
+            "Por favor, acesse o menu 'Ajustes' (ícone de engrenagem no topo) "
+            "e insira o Token gerado em painel.autentique.com.br."
+        )
+    elif res.status_code != 200:
         logger.error(f"Erro HTTP {res.status_code} na resposta do Autentique: {res.text}")
         raise RuntimeError(f"Falha na API Autentique (HTTP {res.status_code}): {res.text}")
 
