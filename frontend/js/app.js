@@ -456,9 +456,9 @@ function adicionarMensagem(texto, remetente = 'bot', dadosExtras = null, element
 
   let htmlInner = '';
   
-  // Se for mensagem da IA, exibir o avatar quadrado com borda dourada do Studio Shanti
+  // Se for mensagem da IA, exibir o avatar quadrado com borda suave do Studio Shanti
   if (remetente === 'bot') {
-    htmlInner += `<img src="/icons/icon-192.png?v=9" alt="Studio Shanti" class="wa-msg-avatar" style="border-radius: 8px; border: 1px solid var(--shanti-gold); background: #1C2B24;">`;
+    htmlInner += `<img src="/icons/lotus-brand.png?v=1" alt="Studio Shanti" class="wa-msg-avatar" style="border-radius: 8px; border: 1px solid var(--shanti-sand-border); background: #FFFFFF; padding: 2px;">`;
   }
 
   htmlInner += `
@@ -578,11 +578,11 @@ function adicionarMensagem(texto, remetente = 'bot', dadosExtras = null, element
               </div>
               <div style="display: flex; gap: 6px; margin-top: 8px;">
                 ${!isPaga ? `
-                  <button type="button" class="wa-action-btn-whatsapp" onclick="marcarDespesaPagaChat(${d.id})" style="background: linear-gradient(135deg, #10b981, #059669); flex: 1; border: none; cursor: pointer;">
+                  <button type="button" class="wa-action-btn-whatsapp" onclick="marcarDespesaPagaChat(${d.id})" style="background: linear-gradient(135deg, #10b981, #059669); flex: 1; border: none; cursor: pointer; border-radius: 20px;">
                     <i class="fa-solid fa-check"></i> Marcar Paga
                   </button>
                 ` : ''}
-                <button type="button" class="wa-action-btn-whatsapp" onclick="navegarParaAba('financeiro')" style="background: #233930; border: 1px solid var(--shanti-gold); color: var(--shanti-gold); flex: 1; cursor: pointer;">
+                <button type="button" class="wa-action-btn-whatsapp" onclick="navegarParaAba('financeiro')" style="background: var(--shanti-card-bg); border: 1px solid var(--shanti-sand-border); color: var(--shanti-terracotta); flex: 1; cursor: pointer; border-radius: 20px; font-weight: 600;">
                   <i class="fa-solid fa-wallet"></i> Ver no Financeiro
                 </button>
               </div>
@@ -592,8 +592,8 @@ function adicionarMensagem(texto, remetente = 'bot', dadosExtras = null, element
       }
       // Botão geral para abrir a aba Financeiro
       htmlInner += `
-        <button type="button" class="wa-action-btn-whatsapp" onclick="navegarParaAba('financeiro')" style="background: var(--shanti-primary); border: 1px solid var(--shanti-gold); color: #ffffff; width: 100%; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 14px; border-radius: 8px; font-weight: 700;">
-          <i class="fa-solid fa-wallet" style="color: var(--shanti-gold);"></i> Abrir Painel Financeiro
+        <button type="button" class="wa-action-btn-whatsapp" onclick="navegarParaAba('financeiro')" style="background: var(--shanti-terracotta); border: none; color: #ffffff; width: 100%; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 14px; border-radius: 20px; font-weight: 600; box-shadow: 0 2px 8px rgba(177, 106, 76, 0.25);">
+          <i class="fa-solid fa-wallet"></i> Abrir Painel Financeiro
         </button>
       </div>`;
     }
@@ -601,8 +601,8 @@ function adicionarMensagem(texto, remetente = 'bot', dadosExtras = null, element
     else if (!Array.isArray(dadosExtras) && (dadosExtras.faturamento_realizado !== undefined || dadosExtras.total_despesas !== undefined)) {
       htmlInner += `
         <div style="margin-top: 10px;">
-          <button type="button" class="wa-action-btn-whatsapp" onclick="navegarParaAba('financeiro')" style="background: var(--shanti-primary); border: 1px solid var(--shanti-gold); color: #ffffff; width: 100%; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 14px; border-radius: 8px; font-weight: 700;">
-            <i class="fa-solid fa-wallet" style="color: var(--shanti-gold);"></i> Abrir Painel Financeiro Completo
+          <button type="button" class="wa-action-btn-whatsapp" onclick="navegarParaAba('financeiro')" style="background: var(--shanti-terracotta); border: none; color: #ffffff; width: 100%; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 14px; border-radius: 20px; font-weight: 600; box-shadow: 0 2px 8px rgba(177, 106, 76, 0.25);">
+            <i class="fa-solid fa-wallet"></i> Abrir Painel Financeiro Completo
           </button>
         </div>
       `;
@@ -622,11 +622,11 @@ function adicionarMensagem(texto, remetente = 'bot', dadosExtras = null, element
               • Plano: ${al.plano || 'Yoga'}${dtMat ? ' • Cadastrado em: ' + dtMat : ''} • Tel: ${al.telefone || '-'}
             </div>
             <div style="display: flex; flex-direction: column; gap: 6px; margin-top: 8px;">
-              <button type="button" class="wa-action-btn-whatsapp" onclick="aprovarMatriculaChat(${al.id}, '${al.nome.replace(/'/g, "\\'")}')" style="background: linear-gradient(135deg, #16a34a, #15803d); font-weight:700; border: none; cursor: pointer;">
+              <button type="button" class="wa-action-btn-whatsapp" onclick="aprovarMatriculaChat(${al.id}, '${al.nome.replace(/'/g, "\\'")}')" style="background: linear-gradient(135deg, #16a34a, #15803d); font-weight:700; border: none; cursor: pointer; border-radius: 20px;">
                 <i class="fa-solid fa-circle-check"></i> Aprovar Matrícula (Entrou, Pagou)
               </button>
               ${al.link_whatsapp ? `
-                <a href="${al.link_whatsapp}" target="_blank" class="wa-action-btn-whatsapp" style="background: #233930; border: 1px solid var(--shanti-gold); color: var(--shanti-gold);">
+                <a href="${al.link_whatsapp}" target="_blank" class="wa-action-btn-whatsapp" style="background: #25D366; border: none; color: #ffffff; font-weight: 600; border-radius: 20px;">
                   <i class="fa-brands fa-whatsapp"></i> Confirmar PIX no WhatsApp
                 </a>
               ` : ''}
@@ -740,9 +740,9 @@ function criarIndicadorDigitacao(msgInicial = 'Consultando o estúdio... 🧘‍
   const typingRow = document.createElement('div');
   typingRow.className = 'wa-message-row bot wa-typing-row';
   typingRow.innerHTML = `
-    <img src="/icons/icon-192.png?v=9" alt="Studio Shanti" class="wa-msg-avatar" style="border-radius: 8px; border: 1px solid var(--shanti-gold); background: #1C2B24;">
+    <img src="/icons/lotus-brand.png?v=1" alt="Studio Shanti" class="wa-msg-avatar" style="border-radius: 8px; border: 1px solid var(--shanti-sand-border); background: #FFFFFF; padding: 2px;">
     <div class="wa-message bot">
-      <div class="wa-message-content" style="color:#63736d;"><span class="typing-text">${msgInicial}</span></div>
+      <div class="wa-message-content" style="color:var(--shanti-stone);"><span class="typing-text">${msgInicial}</span></div>
     </div>
   `;
   container.appendChild(typingRow);
