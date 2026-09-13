@@ -964,7 +964,7 @@
 <div class="wa-modal-overlay" id="modal-add-student">
   <div class="wa-modal-sheet">
     <div class="wa-modal-header">
-      <h3 class="wa-modal-title"><i class="fa-solid fa-user-plus" style="color:var(--shanti-gold);"></i> Nova Matrícula</h3>
+      <h3 class="wa-modal-title"><i class="fa-solid fa-user-plus" style="color:var(--shanti-terracotta);"></i> Nova Matrícula</h3>
       <button class="wa-modal-close" data-close-modal="modal-add-student">&times;</button>
     </div>
 
@@ -1004,19 +1004,19 @@
 
       <!-- Turma(s) e Horário(s) - Vem ANTES do Dia Pretendido -->
       <div class="wa-form-group">
-        <label style="font-weight: 600; color: var(--shanti-primary);">Turma(s) e Horário(s) *</label>
-        <div id="cad-turmas-container" style="display: flex; flex-direction: column; gap: 8px; background: var(--shanti-sand); padding: 10px 12px; border-radius: 10px; border: 0.5px solid var(--wa-border);">
+        <label style="font-weight: 600; color: var(--shanti-charcoal);">Turma(s) e Horário(s) *</label>
+        <div id="cad-turmas-container" style="display: flex; flex-direction: column; gap: 8px; background: var(--shanti-sand-light); padding: 10px 14px; border-radius: 12px; border: 1px solid var(--shanti-sand-border);">
           <!-- Preenchido dinamicamente via JavaScript -->
         </div>
       </div>
 
       <!-- Campo Condicional: Dia da Semana (Apenas para 1x na semana) -->
-      <div class="wa-form-group" id="group-cad-dia-semana-1x" style="display: none; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; padding: 12px; margin-top: 4px; margin-bottom: 14px;">
-        <label style="font-weight: 700; color: #166534; font-size: 13px; display: flex; align-items: center; gap: 6px; margin-bottom: 6px;">
-          <i class="fa-solid fa-calendar-check" style="color: #16a34a;"></i>
+      <div class="wa-form-group" id="group-cad-dia-semana-1x" style="display: none; background: var(--shanti-sand-light); border: 1px solid var(--shanti-sand-border); border-radius: 12px; padding: 12px 14px; margin-top: 4px; margin-bottom: 14px;">
+        <label style="font-weight: 600; color: var(--shanti-forest); font-size: 13px; display: flex; align-items: center; gap: 6px; margin-bottom: 6px;">
+          <i class="fa-solid fa-calendar-check" style="color: var(--shanti-forest);"></i>
           Dia da Semana Escolhido (Plano 1x na semana) *
         </label>
-        <select class="wa-form-control" id="cad-dia-semana-1x" style="border-color: #86efac; background: #fff; font-weight: 600;">
+        <select class="wa-form-control" id="cad-dia-semana-1x" style="border-color: var(--shanti-sand-border); background: #fff; font-weight: 600;">
           <option value="">Selecione o dia da semana...</option>
           <option value="Segunda-feira">Segunda-feira</option>
           <option value="Terça-feira">Terça-feira</option>
@@ -1025,8 +1025,8 @@
           <option value="Sexta-feira">Sexta-feira</option>
           <option value="Sábado">Sábado</option>
         </select>
-        <small style="color: #15803d; font-size: 11.5px; display: block; margin-top: 5px; line-height: 1.3;">
-          <i class="fa-solid fa-circle-info"></i> Informe qual dia da semana o aluno irá comparecer para controle de chamada.
+        <small style="color: var(--shanti-stone); font-size: 11.5px; display: block; margin-top: 5px; line-height: 1.3;">
+          <i class="fa-solid fa-circle-info" style="color:var(--shanti-sage);"></i> Informe qual dia da semana o aluno irá comparecer para controle de chamada.
         </small>
       </div>
 
@@ -1056,22 +1056,22 @@
         </select>
       </div>
 
-      <div class="wa-form-group" style="background: #ffffff; border: 1px solid var(--wa-border); border-radius: 10px; padding: 12px;">
-        <label style="font-weight: 600; color: var(--shanti-primary); font-size: 13.5px; display: block; margin-bottom: 8px;">
-          <i class="fa-solid fa-camera" style="color: var(--shanti-gold); margin-right: 5px;"></i>
+      <div class="wa-form-group" style="background: var(--shanti-sand-light); border: 1px solid var(--shanti-sand-border); border-radius: 12px; padding: 12px 14px;">
+        <label style="font-weight: 600; color: var(--shanti-charcoal); font-size: 13.5px; display: block; margin-bottom: 8px;">
+          <i class="fa-solid fa-camera" style="color: var(--shanti-forest); margin-right: 5px;"></i>
           Autoriza o uso da imagem para divulgação do Shanti? *
         </label>
         <div style="display: flex; gap: 24px; align-items: center;">
-          <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px; font-weight: 600; color: var(--wa-success);">
-            <input type="radio" name="cad-autoriza-imagem" value="1" checked style="accent-color: var(--shanti-primary); cursor: pointer;">
+          <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px; font-weight: 600; color: #3F4E3A;">
+            <input type="radio" name="cad-autoriza-imagem" value="1" checked style="accent-color: var(--shanti-forest); cursor: pointer;">
             SIM
           </label>
-          <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px; font-weight: 600; color: var(--wa-danger);">
-            <input type="radio" name="cad-autoriza-imagem" value="0" style="accent-color: var(--shanti-primary); cursor: pointer;">
+          <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px; font-weight: 600; color: var(--shanti-terracotta);">
+            <input type="radio" name="cad-autoriza-imagem" value="0" style="accent-color: var(--shanti-terracotta); cursor: pointer;">
             NÃO
           </label>
         </div>
-        <small style="color: var(--wa-text-secondary); font-size: 11px; display: block; margin-top: 6px;">
+        <small style="color: var(--shanti-stone); font-size: 11px; display: block; margin-top: 6px;">
           Poderá ser alterado a qualquer momento na ficha do aluno.
         </small>
       </div>
@@ -1081,7 +1081,7 @@
         <input type="text" class="wa-form-control" id="cad-obs" placeholder="Ex: Dor lombar, iniciante...">
       </div>
 
-      <button type="submit" class="wa-btn-primary" style="margin-top: 10px;">
+      <button type="submit" class="wa-btn-primary" style="margin-top: 10px; background: var(--shanti-terracotta); color: #ffffff; border: none; border-radius: 20px; font-weight: 600; box-shadow: var(--shadow-sm);">
         <i class="fa-solid fa-check"></i> Concluir Matrícula
       </button>
     </form>

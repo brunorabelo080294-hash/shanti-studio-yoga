@@ -8,24 +8,39 @@
   <link rel="icon" type="image/png" href="/icons/icon-192.png?v=17">
   <link rel="apple-touch-icon" href="/icons/icon-192.png?v=17">
 
-  <!-- Google Fonts: Cinzel & Plus Jakarta Sans -->
+  <!-- Google Fonts: Marcellus, Cinzel & Plus Jakarta Sans -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Marcellus&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
   <style>
     :root {
-      --shanti-primary: #1C2B24;
-      --shanti-secondary: #233930;
-      --shanti-gold: #C5A059;
-      --shanti-gold-light: #f7edd7;
-      --shanti-sand: #F9F7F2;
-      --shanti-bg: #F3EFE4;
-      --shanti-border: #E2DCD5;
-      --shanti-text: #1e293b;
-      --shanti-muted: #64748b;
-      --shanti-green: #15803d;
+      --shanti-forest: #3F4E3A;
+      --shanti-sage: #8A937E;
+      --shanti-sage-light: #EAECE7;
+      --shanti-sage-border: #D3D8CE;
+      --shanti-terracotta: #B16A4C;
+      --shanti-terracotta-light: #F9EFEA;
+      --shanti-terracotta-border: #E8CFBE;
+      --shanti-sand: #D4B99B;
+      --shanti-sand-light: #F8F4EF;
+      --shanti-sand-border: #E8E0D5;
+      --shanti-oatmeal: #F4EFEA;
+      --shanti-charcoal: #3E3228;
+      --shanti-stone: #9E988F;
+      --shanti-whatsapp-green: #25D366;
+
+      --shanti-primary: #3F4E3A;
+      --shanti-secondary: #2D3929;
+      --shanti-gold: #B16A4C;
+      --shanti-bg: #F4EFEA;
+      --shanti-border: #E8E0D5;
+      --shanti-text: #3E3228;
+      --shanti-muted: #9E988F;
+      --shanti-green: #3F4E3A;
+      --font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-brand: 'Marcellus', 'Cinzel', serif;
     }
 
     * {
@@ -36,9 +51,9 @@
     }
 
     body {
-      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-      background-color: var(--shanti-bg);
-      color: var(--shanti-text);
+      font-family: var(--font-family);
+      background-color: var(--shanti-oatmeal);
+      color: var(--shanti-charcoal);
       line-height: 1.5;
       min-height: 100vh;
       display: flex;
@@ -51,17 +66,17 @@
       width: 100%;
       max-width: 540px;
       background: #ffffff;
-      border-radius: 16px;
-      box-shadow: 0 10px 25px rgba(28, 43, 36, 0.08);
-      border: 1px solid var(--shanti-border);
+      border-radius: 20px;
+      box-shadow: 0 12px 36px rgba(62, 50, 40, 0.08);
+      border: 1px solid var(--shanti-sand-border);
       overflow: hidden;
       margin-bottom: 24px;
     }
 
     .matricula-header {
-      background: linear-gradient(135deg, var(--shanti-primary) 0%, var(--shanti-secondary) 100%);
+      background: linear-gradient(135deg, var(--shanti-forest) 0%, #2D3929 100%);
       color: #ffffff;
-      padding: 24px 20px;
+      padding: 28px 20px;
       text-align: center;
       position: relative;
     }
@@ -72,32 +87,34 @@
       bottom: 0;
       left: 0;
       right: 0;
-      height: 3px;
-      background: linear-gradient(90deg, transparent, var(--shanti-gold), transparent);
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--shanti-sand), transparent);
     }
 
     .studio-logo {
-      width: 68px;
-      height: 68px;
-      border-radius: 12px;
-      border: 2px solid var(--shanti-gold);
+      width: 64px;
+      height: 64px;
+      border-radius: 14px;
+      border: 1.5px solid var(--shanti-sand);
       margin: 0 auto 12px;
       display: block;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+      box-shadow: 0 4px 14px rgba(0,0,0,0.2);
+      background: #ffffff;
+      padding: 6px;
     }
 
     .studio-title {
-      font-family: 'Cinzel', serif;
+      font-family: var(--font-brand);
       font-size: 24px;
-      font-weight: 700;
-      letter-spacing: 1px;
-      color: var(--shanti-gold);
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      color: #ffffff;
       margin-bottom: 4px;
     }
 
     .studio-sub {
       font-size: 13px;
-      color: #e2e8f0;
+      color: #E8E0D5;
       font-weight: 400;
     }
 
@@ -112,37 +129,30 @@
     .form-label {
       display: block;
       font-size: 12.5px;
-      font-weight: 700;
-      color: var(--shanti-primary);
+      font-weight: 600;
+      color: var(--shanti-charcoal);
       margin-bottom: 6px;
     }
 
     .form-control {
       width: 100%;
       padding: 12px 14px;
-      border: 1.5px solid var(--shanti-border);
-      border-radius: 10px;
+      border: 1.5px solid var(--shanti-sand-border);
+      border-radius: 12px;
       font-size: 14px;
       font-family: inherit;
-      color: var(--shanti-text);
+      color: var(--shanti-charcoal);
       background-color: #ffffff;
       transition: border-color 0.2s, box-shadow 0.2s;
     }
 
     .form-control:focus {
       outline: none;
-      border-color: var(--shanti-gold);
-      box-shadow: 0 0 0 3px rgba(197, 160, 89, 0.2);
+      border-color: var(--shanti-terracotta);
+      box-shadow: 0 0 0 3px rgba(177, 106, 76, 0.15);
     }
 
     /* Cards de Seleção de Plano */
-    .planos-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-top: 4px;
-    }
-
     .planos-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -151,86 +161,86 @@
     }
 
     .plano-option {
-      border: 2px solid #cbd5e1;
+      border: 1.5px solid var(--shanti-sand-border);
       border-radius: 14px;
       padding: 16px 12px;
       text-align: center;
       cursor: pointer;
-      background: #ffffff;
+      background: var(--shanti-sand-light);
       transition: all 0.25s ease;
       position: relative;
     }
 
     .plano-option:hover {
-      border-color: #94a3b8;
+      border-color: var(--shanti-sand);
     }
 
     .plano-option .plano-nome {
       font-size: 13.5px;
       font-weight: 600;
-      color: #64748b;
+      color: var(--shanti-stone);
       margin-bottom: 5px;
       transition: all 0.2s;
     }
 
     .plano-option .plano-preco {
-      font-size: 16.5px;
+      font-size: 17px;
       font-weight: 700;
-      color: #64748b; /* Plano não selecionado fica em cinza neutro */
+      color: var(--shanti-charcoal);
       transition: all 0.2s;
     }
 
     .plano-option .plano-sub {
       font-size: 11px;
-      color: #94a3b8;
+      color: var(--shanti-stone);
       margin-top: 3px;
       transition: all 0.2s;
     }
 
-    /* PLANO ESCOLHIDO: 100% EM VERDE DESTAQUE NÍTIDO */
+    /* PLANO ESCOLHIDO: SAGE GREEN BOUTIQUE */
     .plano-option.active {
-      border: 3px solid #16a34a !important;
-      background: #f0fdf4 !important; /* Fundo verde claro evidente */
-      box-shadow: 0 4px 20px rgba(22, 163, 74, 0.25) !important;
+      border: 2px solid var(--shanti-forest) !important;
+      background: var(--shanti-sage-light) !important;
+      box-shadow: 0 4px 18px rgba(63, 78, 58, 0.18) !important;
       transform: translateY(-2px);
     }
 
     .plano-option.active .plano-nome {
-      color: #166534 !important;
-      font-weight: 800 !important;
+      color: var(--shanti-forest) !important;
+      font-weight: 700 !important;
     }
 
     .plano-option.active .plano-preco {
-      color: #15803d !important; /* VERDE VIBRANTE APENAS NO PLANO ESCOLHIDO */
-      font-weight: 900 !important;
+      color: var(--shanti-forest) !important;
+      font-weight: 800 !important;
       font-size: 20px !important;
     }
 
     .plano-option.active .plano-sub {
-      color: #16a34a !important;
-      font-weight: 700 !important;
+      color: var(--shanti-forest) !important;
+      font-weight: 600 !important;
     }
 
     .plano-option.active::after {
-      content: '✓ PLANO ESCOLHIDO';
+      content: '✓ SELECIONADO';
       position: absolute;
       top: -11px;
       right: 10px;
-      background: #16a34a;
+      background: var(--shanti-forest);
       color: #ffffff;
       font-size: 9.5px;
-      font-weight: 800;
+      font-weight: 700;
       padding: 3px 9px;
       border-radius: 12px;
       letter-spacing: 0.5px;
-      box-shadow: 0 2px 8px rgba(22, 163, 74, 0.4);
+      box-shadow: 0 2px 8px rgba(63, 78, 58, 0.3);
     }
 
     /* Box de Pagamento PIX */
     .pix-box {
-      background: #fdfbf7;
-      border: 1px solid var(--shanti-gold);
-      border-radius: 12px;
+      background: var(--shanti-sand-light);
+      border: 1px solid var(--shanti-sand-border);
+      border-radius: 14px;
       padding: 16px;
       margin-top: 20px;
       margin-bottom: 20px;
@@ -245,8 +255,8 @@
 
     .pix-title {
       font-size: 13px;
-      font-weight: 800;
-      color: var(--shanti-primary);
+      font-weight: 700;
+      color: var(--shanti-charcoal);
       display: flex;
       align-items: center;
       gap: 6px;
@@ -260,46 +270,46 @@
 
     .pix-key-input {
       flex: 1;
-      padding: 8px 12px;
+      padding: 9px 12px;
       font-size: 13px;
       font-family: monospace;
       background: #ffffff;
-      border: 1px solid var(--shanti-border);
-      border-radius: 8px;
-      color: var(--shanti-primary);
+      border: 1px solid var(--shanti-sand-border);
+      border-radius: 10px;
+      color: var(--shanti-charcoal);
       font-weight: 600;
     }
 
     .btn-copiar {
-      background: var(--shanti-primary);
+      background: var(--shanti-forest);
       color: #ffffff;
       border: none;
-      padding: 8px 14px;
-      border-radius: 8px;
+      padding: 8px 16px;
+      border-radius: 10px;
       font-size: 12px;
-      font-weight: 700;
+      font-weight: 600;
       cursor: pointer;
-      transition: background 0.2s;
+      transition: opacity 0.2s;
     }
 
     .btn-copiar:hover {
-      background: var(--shanti-secondary);
+      opacity: 0.9;
     }
 
     /* Botão Principal */
     .btn-submit {
       width: 100%;
-      background: linear-gradient(135deg, var(--shanti-primary) 0%, var(--shanti-secondary) 100%);
-      color: var(--shanti-gold);
+      background: var(--shanti-terracotta);
+      color: #ffffff;
       border: none;
       padding: 15px;
-      border-radius: 12px;
+      border-radius: 24px;
       font-size: 15px;
-      font-weight: 700;
-      font-family: 'Cinzel', serif;
-      letter-spacing: 0.5px;
+      font-weight: 600;
+      font-family: var(--font-family);
+      letter-spacing: 0.3px;
       cursor: pointer;
-      box-shadow: 0 4px 14px rgba(28, 43, 36, 0.25);
+      box-shadow: 0 4px 16px rgba(177, 106, 76, 0.35);
       transition: transform 0.1s, box-shadow 0.2s;
       display: flex;
       align-items: center;
@@ -325,21 +335,21 @@
 
     .sucesso-icon {
       font-size: 52px;
-      color: var(--shanti-green);
+      color: var(--shanti-forest);
       margin-bottom: 16px;
     }
 
     .sucesso-titulo {
-      font-family: 'Cinzel', serif;
+      font-family: var(--font-brand);
       font-size: 22px;
-      font-weight: 700;
-      color: var(--shanti-primary);
+      font-weight: 600;
+      color: var(--shanti-charcoal);
       margin-bottom: 8px;
     }
 
     .sucesso-desc {
       font-size: 13.5px;
-      color: var(--shanti-muted);
+      color: var(--shanti-stone);
       line-height: 1.55;
       margin-bottom: 24px;
     }
@@ -349,14 +359,14 @@
       align-items: center;
       justify-content: center;
       gap: 8px;
-      background: #25D366;
+      background: var(--shanti-whatsapp-green);
       color: #ffffff;
       text-decoration: none;
-      padding: 13px 20px;
-      border-radius: 10px;
-      font-weight: 700;
+      padding: 13px 24px;
+      border-radius: 24px;
+      font-weight: 600;
       font-size: 14px;
-      box-shadow: 0 4px 12px rgba(37, 211, 102, 0.25);
+      box-shadow: 0 4px 14px rgba(37, 211, 102, 0.3);
     }
   </style>
 </head>
@@ -366,7 +376,7 @@
   
   <!-- Header -->
   <div class="matricula-header">
-    <img src="/icons/icon-192.png?v=18" alt="Studio Shanti" class="studio-logo">
+    <img src="/icons/lotus-brand.png?v=1" alt="Studio Shanti" class="studio-logo">
     <h1 class="studio-title">Studio Shanti</h1>
     <p class="studio-sub">Matrícula Online • Prática & Filosofia do Yoga</p>
   </div>
@@ -428,11 +438,11 @@
       </div>
 
       <!-- Dia da Semana Pretendido (apenas se plano 1x na semana) -->
-      <div class="form-group" id="group-dia-1x" style="display:none; background:#f0fdf4; padding:13px 14px; border-radius:12px; border:1.5px solid #86efac; box-shadow:0 2px 8px rgba(22,163,74,0.08);">
-        <label class="form-label" for="cad-dia-1x" style="color:#15803d; font-weight:700; display:flex; align-items:center; gap:6px;">
-          <i class="fa-solid fa-calendar-day"></i> Dia da Semana Pretendido (Plano 1x) *
+      <div class="form-group" id="group-dia-1x" style="display:none; background:var(--shanti-sand-light); padding:13px 14px; border-radius:12px; border:1px solid var(--shanti-sand-border); box-shadow:var(--shadow-sm);">
+        <label class="form-label" for="cad-dia-1x" style="color:var(--shanti-forest); font-weight:600; display:flex; align-items:center; gap:6px;">
+          <i class="fa-solid fa-calendar-day" style="color:var(--shanti-forest);"></i> Dia da Semana Pretendido (Plano 1x) *
         </label>
-        <select id="cad-dia-1x" class="form-control" style="border-color:#86efac; font-weight:600; background:#ffffff;">
+        <select id="cad-dia-1x" class="form-control" style="border-color:var(--shanti-sand-border); font-weight:600; background:#ffffff;">
           <option value="">Selecione o dia da aula na semana...</option>
           <option value="Segunda-feira">Segunda-feira</option>
           <option value="Terça-feira">Terça-feira</option>
@@ -441,20 +451,20 @@
           <option value="Sexta-feira">Sexta-feira</option>
           <option value="Sábado">Sábado</option>
         </select>
-        <span style="font-size: 11.5px; color:#166534; margin-top:5px; display:block; line-height:1.35;">
+        <span style="font-size: 11.5px; color:var(--shanti-stone); margin-top:5px; display:block; line-height:1.35;">
           Como você escolheu o plano de 1x na semana, indique qual dos dias da turma você irá frequentar.
         </span>
       </div>
 
       <!-- Autorização de Imagem (Cláusula 11) -->
-      <div class="form-group" style="background:var(--shanti-sand); padding:12px; border-radius:10px; border:1px solid var(--shanti-border);">
+      <div class="form-group" style="background:var(--shanti-sand-light); padding:12px 14px; border-radius:12px; border:1px solid var(--shanti-sand-border);">
         <label class="form-label" style="margin-bottom:8px;">Autoriza o uso da imagem para divulgação do Shanti? *</label>
         <div style="display:flex; gap:16px;">
-          <label style="font-size:13.5px; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:6px;">
-            <input type="radio" name="autoriza_imagem" value="1" checked> <b>SIM</b> (Autorizo)
+          <label style="font-size:13.5px; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:6px; color:#3F4E3A;">
+            <input type="radio" name="autoriza_imagem" value="1" checked style="accent-color:var(--shanti-forest);"> <b>SIM</b> (Autorizo)
           </label>
-          <label style="font-size:13.5px; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:6px;">
-            <input type="radio" name="autoriza_imagem" value="0"> <b>NÃO</b>
+          <label style="font-size:13.5px; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:6px; color:var(--shanti-terracotta);">
+            <input type="radio" name="autoriza_imagem" value="0" style="accent-color:var(--shanti-terracotta);"> <b>NÃO</b>
           </label>
         </div>
       </div>
