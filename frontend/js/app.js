@@ -1923,22 +1923,22 @@ async function carregarFinanceiro() {
     if (bannerAlerta) {
       if (alertas.total_atrasadas > 0) {
         bannerAlerta.style.display = 'block';
-        bannerAlerta.style.background = '#fee2e2';
-        bannerAlerta.style.border = '1px solid #fca5a5';
-        bannerAlerta.style.color = '#991b1b';
+        bannerAlerta.style.background = 'var(--shanti-terracotta-light)';
+        bannerAlerta.style.border = '1px solid var(--shanti-terracotta-border)';
+        bannerAlerta.style.color = 'var(--shanti-terracotta)';
         bannerAlerta.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> <b>${alertas.total_atrasadas} despesa(s) vencida(s) em aberto!</b> Total pendente: <b>R$ ${alertas.valor_total_atrasadas.toFixed(2)}</b>. Verifique abaixo para regularizar.`;
       } else if (alertas.total_vencendo_hoje > 0) {
         bannerAlerta.style.display = 'block';
-        bannerAlerta.style.background = '#fef3c7';
-        bannerAlerta.style.border = '1px solid #fde68a';
-        bannerAlerta.style.color = '#92400e';
+        bannerAlerta.style.background = '#FDF3E7';
+        bannerAlerta.style.border = '1px solid #F6D6B2';
+        bannerAlerta.style.color = '#B45309';
         bannerAlerta.innerHTML = `<i class="fa-solid fa-clock"></i> <b>${alertas.total_vencendo_hoje} conta(s) vencendo HOJE!</b> Total: <b>R$ ${alertas.valor_total_hoje.toFixed(2)}</b>.`;
       } else if (alertas.total_proximas > 0) {
         bannerAlerta.style.display = 'block';
-        bannerAlerta.style.background = '#e0f2fe';
-        bannerAlerta.style.border = '1px solid #bae6fd';
-        bannerAlerta.style.color = '#075985';
-        bannerAlerta.innerHTML = `<i class="fa-solid fa-circle-info"></i> <b>${alertas.total_proximas} despesa(s) vencem nos próximos 5 dias.</b> Total: R$ ${alertas.valor_total_proximas.toFixed(2)}.`;
+        bannerAlerta.style.background = 'var(--shanti-sand-light)';
+        bannerAlerta.style.border = '1px solid var(--shanti-sand-border)';
+        bannerAlerta.style.color = 'var(--shanti-charcoal)';
+        bannerAlerta.innerHTML = `<i class="fa-solid fa-circle-info" style="color:var(--shanti-sage);"></i> <b>${alertas.total_proximas} despesa(s) vencem nos próximos 5 dias.</b> Total: R$ ${alertas.valor_total_proximas.toFixed(2)}.`;
       } else {
         bannerAlerta.style.display = 'none';
       }
@@ -1956,7 +1956,7 @@ async function carregarFinanceiro() {
     if (containerPagamentos) {
       if (!pagamentos || pagamentos.length === 0) {
         containerPagamentos.innerHTML = `
-          <div style="font-size: 12px; color: var(--wa-text-secondary); text-align: center; padding: 14px; background: var(--shanti-sand); border-radius: 8px;">
+          <div style="font-size: 12px; color: var(--shanti-stone); text-align: center; padding: 16px; background: var(--shanti-sand-light); border: 1px dashed var(--shanti-sand-border); border-radius: 12px;">
             Nenhum pagamento registrado ou confirmado para ${nomeMes}/${ano} até o momento.
           </div>
         `;
@@ -1967,20 +1967,20 @@ async function carregarFinanceiro() {
             planoFormatado += ` (${p.dia_semana_1x})`;
           }
           return `
-            <div style="background:var(--shanti-sand); border:0.5px solid var(--wa-border); border-radius:8px; padding:10px 12px; display:flex; justify-content:space-between; align-items:center; gap:10px;">
+            <div style="background:var(--shanti-sand-light); border:1px solid var(--shanti-sand-border); border-radius:12px; padding:12px 14px; display:flex; justify-content:space-between; align-items:center; gap:10px; transition:all 0.2s ease;">
               <div style="flex:1; min-width:0;">
-                <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin-bottom:3px;">
-                  <span style="font-weight:700; font-size:13px; color:var(--wa-text-primary);">${p.aluno_nome}</span>
-                  <span style="font-size:10.5px; background:rgba(43,76,60,0.08); color:var(--shanti-primary); padding:1px 6px; border-radius:4px; font-weight:600;">${planoFormatado}</span>
-                  <span style="background:#e8f5e9; color:#2e7d32; font-weight:700; font-size:10.5px; padding:2px 7px; border-radius:6px; border:0.5px solid #a5d6a7;"><i class="fa-solid fa-check"></i> Pago</span>
+                <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin-bottom:4px;">
+                  <span style="font-weight:600; font-size:13.5px; color:var(--shanti-charcoal);">${p.aluno_nome}</span>
+                  <span style="font-size:10.5px; background:rgba(63,78,58,0.08); color:var(--shanti-forest); padding:2px 7px; border-radius:10px; font-weight:500;">${planoFormatado}</span>
+                  <span style="background:var(--shanti-sage-light); color:#3F4E3A; font-weight:600; font-size:10.5px; padding:2px 8px; border-radius:10px; border:1px solid var(--shanti-sage-border);"><i class="fa-solid fa-check"></i> Pago</span>
                 </div>
-                <div style="font-size:11.5px; color:var(--wa-text-secondary);">
+                <div style="font-size:11.5px; color:var(--shanti-stone);">
                   <span>Data: <b>${formatarDataBR(p.data_pagamento)}</b></span> • <span>Forma: <b>${p.forma_pagamento || 'PIX'}</b></span>
                 </div>
               </div>
               <div style="text-align:right; display:flex; flex-direction:column; align-items:flex-end; gap:6px;">
-                <span style="font-weight:800; font-size:13.5px; color:#15803d;">+ R$ ${p.valor.toFixed(2)}</span>
-                <button class="btn-recibo-pagamento-financeiro" data-id="${p.id}" title="Ver Comprovante" style="background:#fff; border:0.5px solid var(--wa-border); border-radius:6px; padding:3px 8px; font-size:11px; color:var(--shanti-primary); cursor:pointer;">
+                <span style="font-weight:700; font-size:14px; color:#3F4E3A;">+ R$ ${p.valor.toFixed(2)}</span>
+                <button class="btn-recibo-pagamento-financeiro" data-id="${p.id}" title="Ver Comprovante" style="background:#FFFFFF; border:1px solid var(--shanti-sand-border); border-radius:14px; padding:3px 10px; font-size:11px; font-weight:500; color:var(--shanti-forest); cursor:pointer; box-shadow:var(--shadow-sm);">
                   <i class="fa-solid fa-receipt"></i> Recibo
                 </button>
               </div>
@@ -2016,7 +2016,7 @@ async function carregarFinanceiro() {
     if (containerDespesas) {
       if (!despesas || despesas.length === 0) {
         containerDespesas.innerHTML = `
-          <div style="font-size: 12px; color: var(--wa-text-secondary); text-align: center; padding: 14px; background: var(--shanti-sand); border-radius: 8px;">
+          <div style="font-size: 12px; color: var(--shanti-stone); text-align: center; padding: 16px; background: var(--shanti-sand-light); border: 1px dashed var(--shanti-sand-border); border-radius: 12px;">
             Nenhuma despesa registrada para ${nomeMes}/${ano}.<br>Clique em <b>+ Nova Despesa</b> para cadastrar.
           </div>
         `;
@@ -2030,36 +2030,36 @@ async function carregarFinanceiro() {
 
           let statusBadge = '';
           if (isPago) {
-            statusBadge = `<span style="background:#e8f5e9; color:#2e7d32; font-weight:700; font-size:10.5px; padding:2px 7px; border-radius:6px; border:0.5px solid #a5d6a7;"><i class="fa-solid fa-check"></i> Paga</span>`;
+            statusBadge = `<span style="background:var(--shanti-sage-light); color:#3F4E3A; font-weight:600; font-size:10.5px; padding:2px 8px; border-radius:10px; border:1px solid var(--shanti-sage-border);"><i class="fa-solid fa-check"></i> Paga</span>`;
           } else if (isAtrasado) {
-            statusBadge = `<span style="background:#fee2e2; color:#b91c1c; font-weight:700; font-size:10.5px; padding:2px 7px; border-radius:6px; border:0.5px solid #fca5a5;"><i class="fa-solid fa-exclamation"></i> Vencida</span>`;
+            statusBadge = `<span style="background:var(--shanti-terracotta-light); color:var(--shanti-terracotta); font-weight:600; font-size:10.5px; padding:2px 8px; border-radius:10px; border:1px solid var(--shanti-terracotta-border);"><i class="fa-solid fa-exclamation"></i> Vencida</span>`;
           } else if (isHoje) {
-            statusBadge = `<span style="background:#fef3c7; color:#b45309; font-weight:700; font-size:10.5px; padding:2px 7px; border-radius:6px; border:0.5px solid #fde68a;"><i class="fa-solid fa-clock"></i> Vence Hoje</span>`;
+            statusBadge = `<span style="background:#FDF3E7; color:#B45309; font-weight:600; font-size:10.5px; padding:2px 8px; border-radius:10px; border:1px solid #F6D6B2;"><i class="fa-solid fa-clock"></i> Vence Hoje</span>`;
           } else {
-            statusBadge = `<span style="background:#f1f5f9; color:#475569; font-weight:600; font-size:10.5px; padding:2px 7px; border-radius:6px; border:0.5px solid #cbd5e1;">A Pagar</span>`;
+            statusBadge = `<span style="background:var(--shanti-sand-light); color:var(--shanti-stone); font-weight:500; font-size:10.5px; padding:2px 8px; border-radius:10px; border:1px solid var(--shanti-sand-border);">A Pagar</span>`;
           }
 
           return `
-            <div style="background:var(--shanti-sand); border:0.5px solid var(--wa-border); border-radius:8px; padding:10px 12px; display:flex; justify-content:space-between; align-items:center; gap:10px;">
+            <div style="background:var(--shanti-sand-light); border:1px solid var(--shanti-sand-border); border-radius:12px; padding:12px 14px; display:flex; justify-content:space-between; align-items:center; gap:10px; transition:all 0.2s ease;">
               <div style="flex:1; min-width:0;">
-                <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin-bottom:3px;">
-                  <span style="font-weight:700; font-size:13px; color:var(--wa-text-primary);">${d.descricao}</span>
-                  <span style="font-size:10.5px; background:rgba(43,76,60,0.08); color:var(--shanti-primary); padding:1px 6px; border-radius:4px; font-weight:600;">${d.categoria}</span>
+                <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin-bottom:4px;">
+                  <span style="font-weight:600; font-size:13.5px; color:var(--shanti-charcoal);">${d.descricao}</span>
+                  <span style="font-size:10.5px; background:rgba(63,78,58,0.08); color:var(--shanti-forest); padding:2px 7px; border-radius:10px; font-weight:500;">${d.categoria}</span>
                   ${statusBadge}
                 </div>
-                <div style="font-size:11.5px; color:var(--wa-text-secondary);">
+                <div style="font-size:11.5px; color:var(--shanti-stone);">
                   <span>Vencimento: <b>${formatarDataBR(dtVenc)}</b></span>
                   ${d.data_despesa && d.data_despesa !== dtVenc ? ` • <span style="font-size:11px;">Emissão: ${formatarDataBR(d.data_despesa)}</span>` : ''}
                 </div>
               </div>
 
               <div style="text-align:right; display:flex; flex-direction:column; align-items:flex-end; gap:6px;">
-                <span style="font-weight:800; font-size:13.5px; color:#b91c1c;">- R$ ${d.valor.toFixed(2)}</span>
+                <span style="font-weight:700; font-size:14px; color:var(--shanti-terracotta);">- R$ ${d.valor.toFixed(2)}</span>
                 <div style="display:flex; gap:6px;">
-                  <button class="btn-editar-despesa" data-id="${d.id}" title="Editar Despesa" style="background:#fff; border:0.5px solid var(--wa-border); border-radius:6px; padding:4px 8px; font-size:11px; color:var(--shanti-primary); cursor:pointer;">
+                  <button class="btn-editar-despesa" data-id="${d.id}" title="Editar Despesa" style="background:#FFFFFF; border:1px solid var(--shanti-sand-border); border-radius:10px; padding:4px 9px; font-size:11px; color:var(--shanti-forest); cursor:pointer; box-shadow:var(--shadow-sm);">
                     <i class="fa-solid fa-pen"></i>
                   </button>
-                  <button class="btn-excluir-despesa" data-id="${d.id}" data-desc="${d.descricao}" title="Excluir Despesa" style="background:#fff; border:0.5px solid #fca5a5; border-radius:6px; padding:4px 8px; font-size:11px; color:#b91c1c; cursor:pointer;">
+                  <button class="btn-excluir-despesa" data-id="${d.id}" data-desc="${d.descricao}" title="Excluir Despesa" style="background:#FFFFFF; border:1px solid var(--shanti-terracotta-border); border-radius:10px; padding:4px 9px; font-size:11px; color:var(--shanti-terracotta); cursor:pointer; box-shadow:var(--shadow-sm);">
                     <i class="fa-solid fa-trash"></i>
                   </button>
                 </div>

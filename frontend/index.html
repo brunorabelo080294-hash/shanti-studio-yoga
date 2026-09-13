@@ -250,18 +250,18 @@
       
       <!-- Barra Superior: Filtro de Mês/Competência -->
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; gap: 8px;">
-        <span style="font-size: 13px; font-weight: 700; color: var(--shanti-primary);"><i class="fa-solid fa-file-invoice-dollar"></i> Painel Financeiro</span>
-        <input type="month" id="filtro-financeiro-mes" class="wa-form-control" style="width: auto; padding: 5px 10px; font-size: 12px; font-weight: 600; cursor: pointer;">
+        <span style="font-size: 13px; font-weight: 700; color: var(--shanti-charcoal);"><i class="fa-solid fa-file-invoice-dollar" style="color: var(--shanti-terracotta);"></i> Painel Financeiro</span>
+        <input type="month" id="filtro-financeiro-mes" class="wa-form-control" style="width: auto; padding: 6px 12px; font-size: 12px; font-weight: 500; cursor: pointer; border-radius: 20px; border-color: var(--shanti-sand-border); background: #FFFFFF;">
       </div>
 
       <!-- Card 1: Balanço & Lucro Real do Mês -->
       <div class="wa-card">
         <div class="wa-card-header">
           <div class="wa-card-title">
-            <i class="fa-solid fa-wallet" style="color: var(--wa-success);"></i>
+            <i class="fa-solid fa-wallet" style="color: #5A7854;"></i>
             <span>Balanço Financeiro Mensal</span>
           </div>
-          <span style="font-size: 11.5px; font-weight: 600; color: var(--shanti-gold);" id="rep-mes-atual">Mês Atual</span>
+          <span style="font-size: 11.5px; font-weight: 500; color: var(--shanti-stone);" id="rep-mes-atual">Mês Atual</span>
         </div>
         <div class="wa-stat-grid">
           <div class="wa-stat-box">
@@ -276,26 +276,26 @@
             <span class="wa-stat-value danger" id="stat-total-despesas">R$ 0,00</span>
             <span class="wa-stat-label">Despesas do Mês</span>
           </div>
-          <div class="wa-stat-box" style="background: #fdfbf7; border: 1px solid var(--shanti-gold);">
-            <span class="wa-stat-value" id="stat-lucro-real" style="color: var(--shanti-primary); font-weight: 800;">R$ 0,00</span>
-            <span class="wa-stat-label" style="font-weight: 700; color: var(--shanti-gold);">Lucro Líquido Real</span>
+          <div class="wa-stat-box" style="background: #F8F4EF; border: 1.5px solid var(--shanti-sand);">
+            <span class="wa-stat-value" id="stat-lucro-real" style="color: var(--shanti-charcoal); font-weight: 700;">R$ 0,00</span>
+            <span class="wa-stat-label" style="font-weight: 600; color: var(--shanti-forest);">Lucro Líquido Real</span>
           </div>
         </div>
       </div>
 
       <!-- Card 2: Emissão Oficial de Relatório em PDF (Fase 3) -->
-      <div class="wa-card" style="background: linear-gradient(135deg, #1C2B24 0%, #293d33 100%); color: #fff; border: 1px solid var(--shanti-gold);">
+      <div class="wa-card" style="background: linear-gradient(135deg, var(--shanti-forest) 0%, #2D3929 100%); color: #ffffff; border: 1px solid var(--shanti-sand-border); box-shadow: 0 4px 18px rgba(63, 78, 58, 0.18);">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
           <div style="display: flex; align-items: center; gap: 8px;">
-            <i class="fa-solid fa-file-pdf" style="color: var(--shanti-gold); font-size: 20px;"></i>
-            <span style="font-family: var(--font-brand); font-size: 15px; font-weight: 600; color: var(--shanti-gold);">Relatório Oficial em PDF</span>
+            <i class="fa-solid fa-file-pdf" style="color: var(--shanti-sand); font-size: 20px;"></i>
+            <span style="font-family: var(--font-brand); font-size: 15px; font-weight: 600; color: #FFFFFF; letter-spacing: 0.5px;">Relatório Oficial em PDF</span>
           </div>
-          <span style="font-size: 10px; background: rgba(197, 160, 89, 0.25); color: var(--shanti-gold); padding: 2px 8px; border-radius: 6px; border: 0.5px solid var(--shanti-gold); font-weight: 700;">PDF OFICIAL</span>
+          <span style="font-size: 10px; background: rgba(212, 185, 155, 0.2); color: var(--shanti-sand); padding: 2px 8px; border-radius: 8px; border: 1px solid rgba(212, 185, 155, 0.4); font-weight: 600;">PDF OFICIAL</span>
         </div>
-        <p style="font-size: 12px; color: #e2e8f0; margin-bottom: 14px; line-height: 1.45;">
+        <p style="font-size: 12px; color: #E8E0D5; margin-bottom: 14px; line-height: 1.5;">
           Baixe o balanço contábil completo com receitas, detalhamento de despesas, inadimplências e lucratividade líquida formatado para impressão ou arquivamento.
         </p>
-        <button class="wa-btn-primary" id="btn-baixar-relatorio-pdf" style="background: var(--shanti-gold); color: #1C2B24; font-weight: 700; font-size: 13px; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.25); cursor: pointer;">
+        <button class="wa-btn-primary" id="btn-baixar-relatorio-pdf" style="background: var(--shanti-terracotta); color: #ffffff; font-weight: 600; font-size: 13px; border: none; border-radius: 20px; box-shadow: 0 4px 14px rgba(177, 106, 76, 0.35); cursor: pointer;">
           <i class="fa-solid fa-download"></i> Baixar Relatório Financeiro (PDF)
         </button>
       </div>
@@ -304,12 +304,12 @@
       <div class="wa-card" id="card-pagamentos-gestao">
         <div class="wa-card-header">
           <div class="wa-card-title">
-            <i class="fa-solid fa-circle-check" style="color: var(--shanti-whatsapp-green);"></i>
+            <i class="fa-solid fa-circle-check" style="color: #5A7854;"></i>
             <span>Pagamentos Recebidos no Mês</span>
           </div>
-          <span style="font-size: 11px; font-weight: 700; color: #15803d; background: #f0fdf4; border: 1px solid #86efac; padding: 2px 8px; border-radius: 6px;" id="badge-total-pagantes">0 confirmados</span>
+          <span style="font-size: 11px; font-weight: 600; color: #3F4E3A; background: var(--shanti-sage-light); border: 1px solid var(--shanti-sage-border); padding: 2px 8px; border-radius: 12px;" id="badge-total-pagantes">0 confirmados</span>
         </div>
-        <p style="font-size: 12px; color: var(--wa-gray-text); margin-bottom: 10px;">
+        <p style="font-size: 12px; color: var(--shanti-stone); margin-bottom: 10px;">
           Relação de alunos que efetuaram o pagamento da mensalidade nesta competência.
         </p>
         <div id="lista-pagamentos-detalhada" style="display: flex; flex-direction: column; gap: 8px;">
@@ -321,16 +321,16 @@
       <div class="wa-card" id="card-despesas-gestao">
         <div class="wa-card-header">
           <div class="wa-card-title">
-            <i class="fa-solid fa-money-bill-transfer" style="color: #ef4444;"></i>
+            <i class="fa-solid fa-money-bill-transfer" style="color: var(--shanti-terracotta);"></i>
             <span>Despesas do Estúdio</span>
           </div>
-          <button class="wa-btn-primary" id="btn-abrir-modal-despesa" style="padding: 6px 12px; font-size: 11.5px; width: auto; background: var(--shanti-primary); box-shadow:none; cursor:pointer;">
+          <button class="wa-btn-primary" id="btn-abrir-modal-despesa" style="padding: 6px 14px; font-size: 11.5px; width: auto; background: var(--shanti-terracotta); color: #ffffff; border: none; border-radius: 20px; font-weight: 600; box-shadow:none; cursor:pointer;">
             <i class="fa-solid fa-plus"></i> Nova Despesa
           </button>
         </div>
 
         <!-- Banner Dinâmico de Alertas de Vencimento -->
-        <div id="alerta-despesas-vencimento" style="display:none; margin: 10px 0; padding: 10px 12px; border-radius: 8px; font-size: 12px; font-weight: 600;"></div>
+        <div id="alerta-despesas-vencimento" style="display:none; margin: 10px 0; padding: 10px 12px; border-radius: 12px; font-size: 12px; font-weight: 600;"></div>
 
         <!-- Lista Detalhada de Despesas com Botões Editar & Excluir -->
         <div id="lista-despesas-detalhada" style="display: flex; flex-direction: column; gap: 8px; margin-top: 10px;">
@@ -338,13 +338,13 @@
         </div>
       </div>
 
-      <!-- Card 4: Cobranças e Lembretes de Vencimento via WhatsApp -->
+      <!-- Card 5: Cobranças e Lembretes de Vencimento via WhatsApp -->
       <div class="wa-card" style="text-align: center; border-left: 4px solid var(--shanti-whatsapp-green);">
         <div class="wa-card-title" style="justify-content: center; margin-bottom: 8px;">
           <i class="fa-brands fa-whatsapp" style="color: var(--shanti-whatsapp-green); font-size: 22px;"></i>
           <span>Lembretes de Mensalidade</span>
         </div>
-        <p style="font-size: 13px; color: var(--wa-text-secondary); margin-bottom: 14px; line-height: 1.5;">
+        <p style="font-size: 13px; color: var(--shanti-stone); margin-bottom: 14px; line-height: 1.5;">
           Envie lembretes com a chave PIX do Shanti Studio para os alunos com mensalidades em atraso com apenas 1 toque.
         </p>
         <button class="wa-action-btn-whatsapp" id="btn-gerar-cobrancas-relatorio" style="margin: 0 auto; width: 100%; max-width: 260px;">
@@ -844,7 +844,7 @@
 <div class="wa-modal-overlay" id="modal-add-despesa">
   <div class="wa-modal-sheet">
     <div class="wa-modal-header">
-      <h3 class="wa-modal-title"><i class="fa-solid fa-money-bill-transfer" style="color:var(--shanti-gold);"></i> Registrar Despesa</h3>
+      <h3 class="wa-modal-title"><i class="fa-solid fa-money-bill-transfer" style="color:var(--shanti-terracotta);"></i> Registrar Despesa</h3>
       <button class="wa-modal-close" data-close-modal="modal-add-despesa">&times;</button>
     </div>
 
@@ -903,7 +903,7 @@
 <div class="wa-modal-overlay" id="modal-edit-despesa">
   <div class="wa-modal-sheet">
     <div class="wa-modal-header">
-      <h3 class="wa-modal-title"><i class="fa-solid fa-pen-to-square" style="color:var(--shanti-gold);"></i> Editar Despesa</h3>
+      <h3 class="wa-modal-title"><i class="fa-solid fa-pen-to-square" style="color:var(--shanti-terracotta);"></i> Editar Despesa</h3>
       <button class="wa-modal-close" data-close-modal="modal-edit-despesa">&times;</button>
     </div>
 
