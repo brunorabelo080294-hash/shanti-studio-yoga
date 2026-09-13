@@ -94,5 +94,68 @@ class TestCalendarioPresenca(unittest.TestCase):
 
             db.alternar_pausa_alerta(5, pausar=False)
 
+from fastapi.testclient import TestClient
+from backend.app import app
+
+class TestCalendarioAPI(unittest.TestCase):
+
+    def setUp(self):
+        self.client = TestClient(app)
+
+    def test_api_mes_e_dia(self):
+        res_mes = self.client.get('/api/calendario/mes?ano=2026&mes=9')
+        self.assertEqual(res_mes.status_code, 200)
+        self.assertIn('dias_com_aula', res_mes.json())
+
+        res_dia = self.client.get('/api/calendario/dia?data=2026-09-02')
+        self.assertEqual(res_dia.status_code, 200)
+        self.assertIn('turmas', res_dia.json())
+
+    def test_api_presenca_e_lote(self):
+        res_p = self.client.post('/api/calendario/presenca', json={
+            'aluno_id': 1,
+            'turma_id': 2,
+            'data': '2026-09-02',
+            'status': 'presente',
+            'justificativa': 'Presente teste'
+        })
+        self.assertEqual(res_p.status_code, 200)
+        self.assertEqual(res_p.json()['status'], 'presente')
+
+        res_lote = self.client.post('/api/calendario/turma-presenca-lote', json={
+            'turma_id': 2,
+            'data': '2026-09-02'
+        })
+        self.assertEqual(res_lote.status_code, 200)
+        self.assertTrue(res_lote.json()['sucesso'])
+
+    def test_api_retencao_e_pausa(self):
+        res_ret = self.client.get('/api/calendario/retencao?dias=14')
+        self.assertEqual(res_ret.status_code, 200)
+
+        res_pausa = self.client.post('/api/alunos/1/pausar-alerta', json={
+            'pausar': True,
+            'motivo': 'Viagem de férias teste'
+        })
+        self.assertEqual(res_pausa.status_code, 200)
+        self.assertTrue(res_pausa.json()['pausado'])
+
+        # Restaurar
+        self.client.post('/api/alunos/1/pausar-alerta', json={'pausar': False})
+
+    def test_frontend_assets_serving(self):
+        res_html = self.client.get('/')
+        self.assertEqual(res_html.status_code, 200)
+        self.assertIn('screen-calendario', res_html.text)
+        self.assertIn('modal-pausa-alerta', res_html.text)
+
+        res_css = self.client.get('/css/whatsapp-theme.css')
+        self.assertEqual(res_css.status_code, 200)
+        self.assertIn('cal-container', res_css.text)
+
+        res_js = self.client.get('/js/app.js')
+        self.assertEqual(res_js.status_code, 200)
+        self.assertIn('carregarCalendario', res_js.text)
+
 if __name__ == '__main__':
     unittest.main()

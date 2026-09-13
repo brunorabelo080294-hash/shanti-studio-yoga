@@ -21,7 +21,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
   <!-- WhatsApp Luxe Theme Stylesheet -->
-  <link rel="stylesheet" href="/css/whatsapp-theme.css?v=26">
+  <link rel="stylesheet" href="/css/whatsapp-theme.css?v=27">
 </head>
 <body>
 
@@ -83,6 +83,10 @@
     <button class="wa-tab-btn" data-tab="alunos">
       <i class="fa-solid fa-users"></i> Alunos
       <span class="wa-tab-badge danger" id="badge-atrasados" style="display:none;">0</span>
+    </button>
+    <button class="wa-tab-btn" data-tab="calendario">
+      <i class="fa-solid fa-calendar-days"></i> Calendário
+      <span class="wa-tab-badge warning" id="badge-calendario-alert" style="display:none;">0</span>
     </button>
     <button class="wa-tab-btn" data-tab="financeiro">
       <i class="fa-solid fa-file-invoice-dollar"></i> Financeiro
@@ -238,6 +242,95 @@
       <button class="wa-fab" id="btn-open-add-student" title="Nova Matrícula">
         <i class="fa-solid fa-user-plus"></i>
       </button>
+
+    </div>
+  </section>
+
+  <!-- ====================================================================
+       TELA CALENDÁRIO: FREQUÊNCIA, CHAMADA E RETENÇÃO POR TURMA
+       ==================================================================== -->
+  <section class="wa-screen" id="screen-calendario">
+    <div class="cal-container">
+      
+      <!-- Card Superior: Navegador de Mês -->
+      <div class="cal-header-card">
+        <button class="cal-nav-btn" id="btn-cal-prev" title="Mês Anterior">
+          <i class="fa-solid fa-chevron-left"></i>
+        </button>
+        <div style="text-align: center;">
+          <h2 class="cal-month-title" id="cal-month-name">Setembro 2026</h2>
+          <span style="font-size: 11.5px; color: var(--shanti-stone);" id="cal-month-summary">Carregando grade de aulas...</span>
+        </div>
+        <div style="display: flex; gap: 6px; align-items: center;">
+          <button class="cal-nav-btn today" id="btn-cal-today" title="Ir para Hoje">
+            Hoje
+          </button>
+          <button class="cal-nav-btn" id="btn-cal-next" title="Próximo Mês">
+            <i class="fa-solid fa-chevron-right"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Card da Grade do Calendário -->
+      <div class="cal-grid-card">
+        <div class="cal-weekdays">
+          <span>Seg</span>
+          <span>Ter</span>
+          <span>Qua</span>
+          <span>Qui</span>
+          <span>Sex</span>
+          <span>Sáb</span>
+          <span>Dom</span>
+        </div>
+        <div class="cal-days-grid" id="cal-days-container">
+          <!-- Células geradas via JavaScript -->
+        </div>
+        <!-- Legenda explicativa -->
+        <div style="display: flex; justify-content: center; gap: 14px; margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--shanti-sand-border); font-size: 11px; color: var(--shanti-stone); flex-wrap: wrap;">
+          <span style="display: flex; align-items: center; gap: 4px;"><span class="cal-dot pendente"></span> Aula Programada</span>
+          <span style="display: flex; align-items: center; gap: 4px;"><span class="cal-dot concluido"></span> Check-in Feito</span>
+          <span style="display: flex; align-items: center; gap: 4px;"><span class="cal-dot parcial"></span> Em Andamento</span>
+        </div>
+      </div>
+
+      <!-- Card de Chamada do Dia Selecionado -->
+      <div class="cal-daily-sheet" id="cal-daily-sheet">
+        <div class="cal-daily-header">
+          <h3 class="cal-daily-title" id="cal-selected-day-title">
+            <i class="fa-solid fa-calendar-day" style="color: var(--shanti-forest);"></i>
+            <span>Carregando dia...</span>
+          </h3>
+          <div class="cal-daily-pills" id="cal-selected-day-pills">
+            <span class="cal-pill esperados" id="pill-esperados">0 esperados</span>
+            <span class="cal-pill presentes" id="pill-presentes">0 presentes</span>
+            <span class="cal-pill faltas" id="pill-faltas">0 faltas</span>
+            <span class="cal-pill pendentes" id="pill-pendentes">0 pendentes</span>
+          </div>
+        </div>
+
+        <div id="cal-turmas-chamada-list">
+          <!-- Turmas e alunos renderizados dinamicamente -->
+        </div>
+      </div>
+
+      <!-- Card de Retenção & Alunos Ausentes (14 dias) -->
+      <div class="cal-retencao-card" id="card-cal-retencao">
+        <div class="cal-retencao-header">
+          <div class="cal-retencao-title">
+            <i class="fa-solid fa-heart-pulse"></i>
+            <span>Retenção & Alunos Ausentes (Últimas 2 Semanas)</span>
+          </div>
+          <span class="wa-tab-badge danger" id="badge-cal-retencao" style="display: none;">0</span>
+        </div>
+        <p style="font-size: 12px; color: var(--shanti-charcoal); margin: 0 0 10px 0; line-height: 1.4;">
+          Alunos com <strong>2 ou mais faltas consecutivas</strong> explícitas registradas nas aulas previstas. O status <em>Pendente</em> nunca aciona ausência.
+        </p>
+        <div id="cal-retencao-list">
+          <div style="font-size: 12px; color: var(--shanti-stone); text-align: center; padding: 12px; background: #FFFFFF; border: 1px dashed var(--shanti-sand-border); border-radius: 10px;">
+            Nenhum aluno em risco de evasão no momento! 🙏
+          </div>
+        </div>
+      </div>
 
     </div>
   </section>
@@ -1506,6 +1599,39 @@
 </div>
 
 <!-- ======================================================================
+     MODAL: PAUSAR/RETOMAR ALERTA DE AUSÊNCIA (VIAGEM / CLÁUSULA 6)
+     ====================================================================== -->
+<div class="wa-modal-overlay" id="modal-pausa-alerta" style="display: none;">
+  <div class="wa-modal-sheet" style="max-width: 440px;">
+    <div class="wa-modal-header">
+      <h3 class="wa-modal-title" style="font-size: 16px; font-family: var(--font-brand);">
+        <i class="fa-solid fa-umbrella-beach" style="color: var(--shanti-terracotta);"></i> Pausa de Alerta de Ausência
+      </h3>
+      <button class="wa-modal-close" data-close-modal="modal-pausa-alerta">&times;</button>
+    </div>
+    <div style="padding: 12px 0;">
+      <p style="font-size: 13px; color: var(--shanti-charcoal); line-height: 1.5; margin-bottom: 12px;" id="modal-pausa-texto">
+        Defina o motivo para pausar os alertas acolhedores de ausência deste aluno (ex: viagem comunicada pela Cláusula 6 do contrato):
+      </p>
+      <input type="hidden" id="modal-pausa-aluno-id">
+      <input type="hidden" id="modal-pausa-acao">
+      <div class="wa-form-group" id="grupo-motivo-pausa" style="margin-bottom: 16px;">
+        <label class="wa-label" style="font-size: 12px; font-weight: 600; color: var(--shanti-forest);">Motivo da Pausa:</label>
+        <input type="text" id="modal-pausa-motivo" class="wa-form-control" placeholder="Ex: Viagem de 15 dias de férias">
+      </div>
+      <div style="display: flex; gap: 8px;">
+        <button type="button" class="wa-btn-primary" data-close-modal="modal-pausa-alerta" style="flex: 1; background: var(--shanti-sand-light); color: var(--shanti-charcoal); border: 1px solid var(--shanti-sand-border); box-shadow: none;">
+          Cancelar
+        </button>
+        <button type="button" class="wa-btn-primary" id="btn-confirmar-pausa-alerta" style="flex: 1; background: var(--shanti-terracotta); border: none;">
+          Confirmar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ======================================================================
      MODAL: COMO ATIVAR O MICROFONE
      ====================================================================== -->
 <div class="wa-modal-overlay" id="modal-mic-help">
@@ -1562,12 +1688,12 @@
 <div class="wa-toast" id="toast-msg">Notificação</div>
 
 <!-- JavaScript Principal -->
-<script src="/js/app.js?v=24"></script>
+<script src="/js/app.js?v=25"></script>
 
 <script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/service-worker.js?v=24').then(reg => {
+      navigator.serviceWorker.register('/service-worker.js?v=25').then(reg => {
         reg.update();
       }).catch(err => {
         console.log('SW reg:', err);

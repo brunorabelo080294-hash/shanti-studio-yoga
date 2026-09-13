@@ -19,7 +19,15 @@ const state = {
   currentContractFilter: 'todos',
   configuracoes: {},
   liveVoiceMode: false,
-  isSpeaking: false
+  isSpeaking: false,
+  calendario: {
+    ano: new Date().getFullYear(),
+    mes: new Date().getMonth() + 1,
+    diaSelecionado: new Date().toISOString().slice(0, 10),
+    dadosMes: null,
+    dadosDia: null,
+    retencao: []
+  }
 };
 
 // =============================================================================
@@ -46,6 +54,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     setupAudio();
     setupModals();
     setupSettings();
+    setupCalendario();
     
     // Pré-carregar vozes para síntese de fala
     if ('speechSynthesis' in window) {
@@ -76,6 +85,11 @@ async function atualizarTudo() {
   await carregarFinanceiro();
   await carregarEstudio();
   await carregarContratos();
+  await carregarRetencaoAusentes();
+  const screenCal = document.getElementById('screen-calendario');
+  if (screenCal && screenCal.classList.contains('active')) {
+    await carregarCalendario();
+  }
 }
 
 async function carregarTurmas() {
@@ -311,6 +325,7 @@ function setupNavigation() {
       if (targetScreen) targetScreen.classList.add('active');
 
       if (tab.dataset.tab === 'alunos') carregarAlunos();
+      if (tab.dataset.tab === 'calendario') carregarCalendario();
       if (tab.dataset.tab === 'financeiro') carregarFinanceiro();
       if (tab.dataset.tab === 'estudio') carregarEstudio();
       if (tab.dataset.tab === 'contratos') carregarContratos();
@@ -385,6 +400,7 @@ function navegarParaAba(nomeAba) {
     const targetScreen = document.getElementById(`screen-${nomeAba}`);
     if (targetScreen) targetScreen.classList.add('active');
     if (nomeAba === 'financeiro') carregarFinanceiro();
+    else if (nomeAba === 'calendario') carregarCalendario();
     else if (nomeAba === 'alunos') carregarAlunos();
     else if (nomeAba === 'estudio') carregarEstudio();
     else if (nomeAba === 'contratos') carregarContratos();
@@ -3597,3 +3613,539 @@ async function aprovarPagamentoMatricula(alunoId, alunoNome) {
     alert('Erro ao comunicar com o servidor.');
   }
 }
+
+// =============================================================================
+// MÓDULO CALENDÁRIO, CHAMADA & RETENÇÃO (FASE CALENDÁRIO)
+// =============================================================================
+
+function setupCalendario() {
+  const btnPrev = document.getElementById('btn-cal-prev');
+  const btnNext = document.getElementById('btn-cal-next');
+  const btnToday = document.getElementById('btn-cal-today');
+
+  if (btnPrev) {
+    btnPrev.addEventListener('click', () => mudarMesCalendario(-1));
+  }
+  if (btnNext) {
+    btnNext.addEventListener('click', () => mudarMesCalendario(1));
+  }
+  if (btnToday) {
+    btnToday.addEventListener('click', () => irParaHoje());
+  }
+
+  const btnConfirmarPausa = document.getElementById('btn-confirmar-pausa-alerta');
+  if (btnConfirmarPausa) {
+    btnConfirmarPausa.addEventListener('click', () => salvarPausaAlerta());
+  }
+}
+
+async function carregarCalendario() {
+  try {
+    const ano = state.calendario.ano;
+    const mes = state.calendario.mes;
+
+    const res = await fetch(`/api/calendario/mes?ano=${ano}&mes=${mes}`);
+    const dados = await res.json();
+    state.calendario.dadosMes = dados;
+
+    const mesesNomes = [
+      'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+      'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+    ];
+    const elTituloMes = document.getElementById('cal-month-name');
+    if (elTituloMes) {
+      elTituloMes.textContent = `${mesesNomes[mes - 1]} ${ano}`;
+    }
+
+    const elSummary = document.getElementById('cal-month-summary');
+    if (elSummary) {
+      const rm = dados.resumo_mes || {};
+      elSummary.textContent = `${rm.total_dias_com_aula || 0} dias com aula • ${rm.total_presencas || 0} presenças registradas`;
+    }
+
+    renderizarGradeCalendario(dados);
+
+    const hoje = new Date();
+    const hojeStr = hoje.toISOString().slice(0, 10);
+    const mesmoMes = (hoje.getFullYear() === ano && (hoje.getMonth() + 1) === mes);
+
+    if (mesmoMes) {
+      state.calendario.diaSelecionado = hojeStr;
+    } else if (!state.calendario.diaSelecionado || !state.calendario.diaSelecionado.startsWith(`${ano}-${String(mes).padStart(2, '0')}`)) {
+      if (dados.dias_com_aula && dados.dias_com_aula.length > 0) {
+        state.calendario.diaSelecionado = dados.dias_com_aula[0].data;
+      } else {
+        state.calendario.diaSelecionado = `${ano}-${String(mes).padStart(2, '0')}-01`;
+      }
+    }
+
+    await carregarChamadaDia(state.calendario.diaSelecionado);
+    await carregarRetencaoAusentes();
+
+  } catch (err) {
+    console.error('Erro ao carregar calendário:', err);
+  }
+}
+
+function renderizarGradeCalendario(dados) {
+  const container = document.getElementById('cal-days-container');
+  if (!container) return;
+
+  const ano = dados.ano;
+  const mes = dados.mes;
+
+  const mapaDiasComAula = {};
+  (dados.dias_com_aula || []).forEach(d => {
+    mapaDiasComAula[d.dia] = d;
+  });
+
+  const primeiroDiaDt = new Date(ano, mes - 1, 1);
+  let primeiroDiaSemana = primeiroDiaDt.getDay();
+  let offsetSegunda = (primeiroDiaSemana === 0) ? 6 : primeiroDiaSemana - 1;
+
+  const ultimoDiaDt = new Date(ano, mes, 0);
+  const totalDias = ultimoDiaDt.getDate();
+
+  let html = '';
+
+  for (let i = 0; i < offsetSegunda; i++) {
+    html += '<div class="cal-day-cell empty"></div>';
+  }
+
+  const hoje = new Date();
+  const hojeStr = hoje.toISOString().slice(0, 10);
+  const diaSel = state.calendario.diaSelecionado;
+
+  for (let d = 1; d <= totalDias; d++) {
+    const dataStr = `${ano}-${String(mes).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+    const ehHoje = (dataStr === hojeStr);
+    const ehSelecionado = (dataStr === diaSel);
+    const aulaInfo = mapaDiasComAula[d];
+
+    let classes = ['cal-day-cell'];
+    if (ehHoje) classes.push('today');
+    if (ehSelecionado) classes.push('selected');
+    if (aulaInfo) classes.push('has-class');
+
+    let indicadorHtml = '';
+    if (aulaInfo) {
+      let dotClass = 'pendente';
+      if (aulaInfo.status_dia === 'concluido') dotClass = 'concluido';
+      else if (aulaInfo.status_dia === 'parcial') dotClass = 'parcial';
+
+      indicadorHtml = `
+        <div class="cal-class-indicator">
+          <span class="cal-dot ${dotClass}" title="${aulaInfo.status_dia}"></span>
+        </div>
+        <span class="cal-class-badge">${aulaInfo.turmas_count} turma${aulaInfo.turmas_count > 1 ? 's' : ''}</span>
+      `;
+    }
+
+    html += `
+      <div class="${classes.join(' ')}" data-date="${dataStr}" onclick="selecionarDiaCalendario('${dataStr}')">
+        <span class="cal-day-num">${d}</span>
+        ${indicadorHtml}
+      </div>
+    `;
+  }
+
+  container.innerHTML = html;
+}
+
+function mudarMesCalendario(delta) {
+  let novoMes = state.calendario.mes + delta;
+  let novoAno = state.calendario.ano;
+
+  if (novoMes > 12) {
+    novoMes = 1;
+    novoAno++;
+  } else if (novoMes < 1) {
+    novoMes = 12;
+    novoAno--;
+  }
+
+  state.calendario.mes = novoMes;
+  state.calendario.ano = novoAno;
+  carregarCalendario();
+}
+
+function irParaHoje() {
+  const agora = new Date();
+  state.calendario.ano = agora.getFullYear();
+  state.calendario.mes = agora.getMonth() + 1;
+  state.calendario.diaSelecionado = agora.toISOString().slice(0, 10);
+  carregarCalendario();
+}
+
+async function selecionarDiaCalendario(dataStr) {
+  state.calendario.diaSelecionado = dataStr;
+
+  document.querySelectorAll('.cal-day-cell').forEach(cell => {
+    if (cell.dataset.date === dataStr) {
+      cell.classList.add('selected');
+    } else {
+      cell.classList.remove('selected');
+    }
+  });
+
+  await carregarChamadaDia(dataStr);
+}
+
+async function carregarChamadaDia(dataStr) {
+  try {
+    const res = await fetch(`/api/calendario/dia?data=${dataStr}`);
+    const chamada = await res.json();
+    state.calendario.dadosDia = chamada;
+
+    const elTitulo = document.getElementById('cal-selected-day-title');
+    if (elTitulo) {
+      const dtParts = dataStr.split('-');
+      const diaNum = parseInt(dtParts[2]);
+      const mesNum = parseInt(dtParts[1]);
+      const anoNum = dtParts[0];
+      const mesesExtenso = [
+        'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+        'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+      ];
+      const hojeTag = chamada.eh_hoje ? ' <span style="font-size:11px; font-weight:700; background:var(--shanti-terracotta); color:#fff; padding:2px 8px; border-radius:10px; margin-left:6px;">HOJE</span>' : '';
+      elTitulo.innerHTML = `<i class="fa-solid fa-calendar-day" style="color: var(--shanti-forest);"></i> ${chamada.dia_semana_nome}, ${diaNum} de ${mesesExtenso[mesNum - 1]} de ${anoNum}${hojeTag}`;
+    }
+
+    const t = chamada.totais || { esperados: 0, presentes: 0, faltas: 0, pendentes: 0 };
+    const pEsp = document.getElementById('pill-esperados');
+    const pPres = document.getElementById('pill-presentes');
+    const pFalt = document.getElementById('pill-faltas');
+    const pPend = document.getElementById('pill-pendentes');
+
+    if (pEsp) pEsp.textContent = `${t.esperados} esperado${t.esperados === 1 ? '' : 's'}`;
+    if (pPres) pPres.textContent = `${t.presentes} presente${t.presentes === 1 ? '' : 's'}`;
+    if (pFalt) pFalt.textContent = `${t.faltas} falta${t.faltas === 1 ? '' : 's'}`;
+    if (pPend) pPend.textContent = `${t.pendentes} pendente${t.pendentes === 1 ? '' : 's'}`;
+
+    renderizarTurmasChamada(chamada);
+
+  } catch (err) {
+    console.error('Erro ao carregar chamada do dia:', err);
+  }
+}
+
+function renderizarTurmasChamada(chamada) {
+  const container = document.getElementById('cal-turmas-chamada-list');
+  if (!container) return;
+
+  const turmas = chamada.turmas || [];
+  const dataStr = chamada.data;
+
+  if (turmas.length === 0) {
+    container.innerHTML = `
+      <div style="text-align: center; padding: 24px 16px; background: var(--shanti-sand-light); border: 1px dashed var(--shanti-sand-border); border-radius: 12px; color: var(--shanti-stone);">
+        <i class="fa-solid fa-mug-hot" style="font-size: 28px; margin-bottom: 8px; color: var(--shanti-sand);"></i>
+        <p style="margin: 0; font-size: 13.5px; font-weight: 500;">Nenhuma turma programada para este dia.</p>
+        <span style="font-size: 11.5px; color: var(--shanti-stone);">Aproveite para descansar ou planejar suas práticas! 🧘‍♀️</span>
+      </div>
+    `;
+    return;
+  }
+
+  let html = '';
+
+  turmas.forEach(t => {
+    const alunos = t.alunos || [];
+    let alunosHtml = '';
+
+    if (alunos.length === 0) {
+      alunosHtml = `
+        <div style="font-size: 12px; color: var(--shanti-stone); text-align: center; padding: 12px; background: #fff; border: 1px dashed var(--shanti-sand-border); border-radius: 10px;">
+          Nenhum aluno matriculado nesta turma ainda.
+        </div>
+      `;
+    } else {
+      alunosHtml = alunos.map(al => {
+        const st = al.status || 'pendente';
+        const isPausado = al.pausar_alerta_ausencia;
+
+        const badgePausaHtml = isPausado 
+          ? `<span style="font-size: 10.5px; font-weight: 600; color: #B45309; background: #FDF3E7; padding: 2px 6px; border-radius: 8px; border: 1px solid #F6D6B2;" title="Alertas de falta pausados: ${al.motivo_pausa_alerta || 'Viagem'}"><i class="fa-solid fa-umbrella-beach"></i> Viagem/Pausado</span>` 
+          : '';
+
+        return `
+          <div class="cal-aluno-item" id="aluno-row-${al.aluno_id}-${t.turma_id}">
+            <div class="cal-aluno-info">
+              <span class="cal-aluno-nome">
+                ${al.nome}
+                ${badgePausaHtml}
+              </span>
+              <span class="cal-aluno-detalhe">
+                ${al.plano}${al.dia_semana_1x ? ` • ${al.dia_semana_1x}` : ''}
+              </span>
+            </div>
+
+            <div class="cal-presence-toggle">
+              <button type="button" class="cal-toggle-btn ${st === 'pendente' ? 'active-pendente' : ''}" 
+                onclick="atualizarPresenca(${al.aluno_id}, ${t.turma_id}, '${dataStr}', 'pendente')"
+                title="Ainda não checado">
+                <i class="fa-solid fa-hourglass-start"></i> Pendente
+              </button>
+              <button type="button" class="cal-toggle-btn ${st === 'presente' ? 'active-presente' : ''}" 
+                onclick="atualizarPresenca(${al.aluno_id}, ${t.turma_id}, '${dataStr}', 'presente')"
+                title="Marcar como presente">
+                <i class="fa-solid fa-check"></i> Presente
+              </button>
+              <button type="button" class="cal-toggle-btn ${st === 'faltou' ? 'active-faltou' : ''}" 
+                onclick="atualizarPresenca(${al.aluno_id}, ${t.turma_id}, '${dataStr}', 'faltou')"
+                title="Marcar como falta">
+                <i class="fa-solid fa-xmark"></i> Faltou
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    html += `
+      <div class="cal-turma-card">
+        <div class="cal-turma-header">
+          <div class="cal-turma-info">
+            <span class="cal-turma-nome"><i class="fa-solid fa-om" style="color: var(--shanti-forest); margin-right: 4px;"></i> ${t.nome}</span>
+            <span class="cal-turma-sub"><i class="fa-solid fa-clock" style="font-size:11px;"></i> ${t.horario} • ${alunos.length}/${t.capacidade_vagas} alunos esperados</span>
+          </div>
+          ${alunos.length > 0 ? `
+            <button type="button" class="wa-btn-sm-primary" style="background: var(--shanti-forest); color: #fff; border: none; border-radius: 16px; padding: 5px 12px; font-size: 11.5px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; cursor: pointer;" onclick="marcarTodosPresentesTurma(${t.turma_id}, '${dataStr}')">
+              <i class="fa-solid fa-check-double"></i> Marcar Todos Presentes
+            </button>
+          ` : ''}
+        </div>
+        <div class="cal-turma-alunos-list">
+          ${alunosHtml}
+        </div>
+      </div>
+    `;
+  });
+
+  container.innerHTML = html;
+}
+
+async function atualizarPresenca(alunoId, turmaId, dataStr, novoStatus) {
+  try {
+    const rowEl = document.getElementById(`aluno-row-${alunoId}-${turmaId}`);
+    if (rowEl) {
+      const btns = rowEl.querySelectorAll('.cal-toggle-btn');
+      btns.forEach(b => {
+        b.classList.remove('active-pendente', 'active-presente', 'active-faltou');
+      });
+      if (novoStatus === 'pendente') btns[0]?.classList.add('active-pendente');
+      if (novoStatus === 'presente') btns[1]?.classList.add('active-presente');
+      if (novoStatus === 'faltou') btns[2]?.classList.add('active-faltou');
+    }
+
+    const res = await fetch('/api/calendario/presenca', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        aluno_id: alunoId,
+        turma_id: turmaId,
+        data: dataStr,
+        status: novoStatus
+      })
+    });
+
+    if (!res.ok) {
+      showToast('Erro ao salvar presença.');
+      return;
+    }
+
+    await carregarChamadaDia(dataStr);
+    await carregarRetencaoAusentes();
+
+    if (state.calendario.dadosMes) {
+      const resMes = await fetch(`/api/calendario/mes?ano=${state.calendario.ano}&mes=${state.calendario.mes}`);
+      const dadosMes = await resMes.json();
+      state.calendario.dadosMes = dadosMes;
+      renderizarGradeCalendario(dadosMes);
+    }
+
+  } catch (err) {
+    console.error('Erro ao atualizar presença:', err);
+    showToast('Erro ao atualizar presença.');
+  }
+}
+
+async function marcarTodosPresentesTurma(turmaId, dataStr) {
+  try {
+    showToast('Marcando todos como presentes...');
+    const res = await fetch('/api/calendario/turma-presenca-lote', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        turma_id: turmaId,
+        data: dataStr
+      })
+    });
+
+    const resultado = await res.json();
+    if (resultado.sucesso) {
+      showToast(`✅ ${resultado.total_marcados} alunos marcados como presentes!`);
+      await carregarChamadaDia(dataStr);
+      await carregarRetencaoAusentes();
+      if (state.calendario.dadosMes) {
+        const resMes = await fetch(`/api/calendario/mes?ano=${state.calendario.ano}&mes=${state.calendario.mes}`);
+        state.calendario.dadosMes = await resMes.json();
+        renderizarGradeCalendario(state.calendario.dadosMes);
+      }
+    }
+  } catch (err) {
+    console.error('Erro ao marcar lote:', err);
+    showToast('Erro ao marcar turma.');
+  }
+}
+
+async function carregarRetencaoAusentes() {
+  try {
+    const res = await fetch('/api/calendario/retencao?dias=14');
+    const ausentes = await res.json();
+    state.calendario.retencao = ausentes;
+
+    const ativosAusentes = ausentes.filter(a => !a.pausado);
+    const badgeCal = document.getElementById('badge-cal-retencao');
+    const badgeTab = document.getElementById('badge-calendario-alert');
+
+    if (badgeCal) {
+      badgeCal.textContent = ativosAusentes.length;
+      badgeCal.style.display = ativosAusentes.length > 0 ? 'inline-block' : 'none';
+    }
+    if (badgeTab) {
+      badgeTab.textContent = ativosAusentes.length;
+      badgeTab.style.display = ativosAusentes.length > 0 ? 'inline-block' : 'none';
+    }
+
+    const container = document.getElementById('cal-retencao-list');
+    if (!container) return;
+
+    if (ausentes.length === 0) {
+      container.innerHTML = `
+        <div style="font-size: 12px; color: var(--shanti-stone); text-align: center; padding: 12px; background: #FFFFFF; border: 1px dashed var(--shanti-sand-border); border-radius: 10px;">
+          Nenhum aluno em risco de evasão nas últimas 2 semanas! 🙏
+        </div>
+      `;
+      return;
+    }
+
+    container.innerHTML = ausentes.map(au => {
+      const isPausado = au.pausado;
+      const motivoPausa = au.motivo_pausa ? `<span style="font-size:11px; color:#B45309; display:block;"><i class="fa-solid fa-umbrella-beach"></i> Pausado: ${au.motivo_pausa}</span>` : '';
+
+      return `
+        <div class="cal-retencao-item" style="${isPausado ? 'opacity: 0.75; background: #fdfaf6;' : ''}">
+          <div style="flex: 1; min-width: 180px;">
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <strong style="font-size: 13.5px; color: var(--shanti-charcoal);">${au.nome}</strong>
+              ${isPausado ? '<span style="font-size:10px; background:#FDF3E7; color:#B45309; padding:2px 6px; border-radius:8px; border:1px solid #F6D6B2; font-weight:600;">Pausado</span>' : ''}
+            </div>
+            <div style="font-size: 11.5px; color: #B45309; font-weight: 600; margin-top: 2px;">
+              <i class="fa-solid fa-triangle-exclamation"></i> ${au.faltas_consecutivas} faltas consecutivas • ${au.plano}
+            </div>
+            <div style="font-size: 11px; color: var(--shanti-stone); margin-top: 2px;">
+              Última presença: ${au.ultima_presenca} • Turma: ${(au.turmas || []).join(', ')}
+            </div>
+            ${motivoPausa}
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+            ${!isPausado ? `
+              <a href="${au.link_whatsapp}" target="_blank" class="wa-btn-sm-whatsapp" style="padding: 6px 12px; font-size: 11.5px; border-radius: 12px; text-decoration: none;">
+                <i class="fa-brands fa-whatsapp"></i> Acolher Aluno
+              </a>
+            ` : ''}
+            <button type="button" class="wa-btn-secondary" style="padding: 6px 10px; font-size: 11px; border-radius: 12px;" onclick="abrirModalPausaAlerta(${au.aluno_id}, '${au.nome.replace(/'/g, "\'")}', ${isPausado}, '${(au.motivo_pausa || '').replace(/'/g, "\'")}')">
+              <i class="fa-solid ${isPausado ? 'fa-play' : 'fa-pause'}"></i> ${isPausado ? 'Retomar' : 'Pausar'}
+            </button>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+  } catch (err) {
+    console.error('Erro ao carregar retencao:', err);
+  }
+}
+
+function abrirModalPausaAlerta(alunoId, nomeAluno, estaPausado, motivoAtual) {
+  const modal = document.getElementById('modal-pausa-alerta');
+  const inputId = document.getElementById('modal-pausa-aluno-id');
+  const inputAcao = document.getElementById('modal-pausa-acao');
+  const inputMotivo = document.getElementById('modal-pausa-motivo');
+  const textoModal = document.getElementById('modal-pausa-texto');
+  const grupoMotivo = document.getElementById('grupo-motivo-pausa');
+  const btnConfirmar = document.getElementById('btn-confirmar-pausa-alerta');
+
+  if (!modal) return;
+
+  inputId.value = alunoId;
+  inputAcao.value = estaPausado ? 'retomar' : 'pausar';
+
+  if (estaPausado) {
+    textoModal.innerHTML = `Deseja <strong>reativar os alertas acolhedores</strong> para <strong>${nomeAluno}</strong>? Ele voltará a ser monitorado normalmente.`;
+    grupoMotivo.style.display = 'none';
+    btnConfirmar.textContent = 'Reativar Alertas';
+    btnConfirmar.style.background = 'var(--shanti-forest)';
+  } else {
+    textoModal.innerHTML = `Deseja <strong>pausar os alertas de falta</strong> para <strong>${nomeAluno}</strong>? Útil quando o aluno avisou viagem ou férias (Cláusula 6 do contrato).`;
+    grupoMotivo.style.display = 'block';
+    inputMotivo.value = motivoAtual || 'Viagem / Férias comunicadas';
+    btnConfirmar.textContent = 'Confirmar Pausa';
+    btnConfirmar.style.background = 'var(--shanti-terracotta)';
+  }
+
+  modal.style.display = 'flex';
+}
+
+function fecharModalPausaAlerta() {
+  const modal = document.getElementById('modal-pausa-alerta');
+  if (modal) modal.style.display = 'none';
+}
+
+async function salvarPausaAlerta() {
+  const inputId = document.getElementById('modal-pausa-aluno-id');
+  const inputAcao = document.getElementById('modal-pausa-acao');
+  const inputMotivo = document.getElementById('modal-pausa-motivo');
+
+  const alunoId = inputId.value;
+  const pausar = (inputAcao.value === 'pausar');
+  const motivo = inputMotivo.value;
+
+  try {
+    const res = await fetch(`/api/alunos/${alunoId}/pausar-alerta`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ pausar, motivo })
+    });
+
+    if (res.ok) {
+      fecharModalPausaAlerta();
+      showToast(pausar ? 'Alertas de ausência pausados!' : 'Alertas reativados com sucesso!');
+      await carregarRetencaoAusentes();
+      if (state.calendario.diaSelecionado) {
+        await carregarChamadaDia(state.calendario.diaSelecionado);
+      }
+    } else {
+      showToast('Erro ao atualizar pausa.');
+    }
+  } catch (err) {
+    console.error('Erro ao salvar pausa:', err);
+    showToast('Erro ao atualizar pausa.');
+  }
+}
+
+// Expor funções no escopo global window para chamadas inline HTML
+window.setupCalendario = setupCalendario;
+window.carregarCalendario = carregarCalendario;
+window.mudarMesCalendario = mudarMesCalendario;
+window.irParaHoje = irParaHoje;
+window.selecionarDiaCalendario = selecionarDiaCalendario;
+window.carregarChamadaDia = carregarChamadaDia;
+window.atualizarPresenca = atualizarPresenca;
+window.marcarTodosPresentesTurma = marcarTodosPresentesTurma;
+window.carregarRetencaoAusentes = carregarRetencaoAusentes;
+window.abrirModalPausaAlerta = abrirModalPausaAlerta;
+window.fecharModalPausaAlerta = fecharModalPausaAlerta;
+window.salvarPausaAlerta = salvarPausaAlerta;
