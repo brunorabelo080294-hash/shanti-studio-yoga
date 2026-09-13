@@ -2033,12 +2033,18 @@ function setupModals() {
 
 function abrirModal(id) {
   const modal = document.getElementById(id);
-  if (modal) modal.classList.add('active');
+  if (modal) {
+    modal.classList.add('active');
+    modal.style.display = 'flex';
+  }
 }
 
 function fecharModal(id) {
   const modal = document.getElementById(id);
-  if (modal) modal.classList.remove('active');
+  if (modal) {
+    modal.classList.remove('active');
+    modal.style.display = 'none';
+  }
 }
 
 // =============================================================================
@@ -4576,3 +4582,5 @@ window.fecharModalPausaAlerta = fecharModalPausaAlerta;
 window.salvarPausaAlerta = salvarPausaAlerta;
 window.abrirSeletorMesAno = abrirSeletorMesAno;
 window.selecionarMesAnoDireto = selecionarMesAnoDireto;
+window.abrirModal = abrirModal;
+window.fecharModal = fecharModal;

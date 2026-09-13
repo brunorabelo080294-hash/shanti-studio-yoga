@@ -1090,7 +1090,7 @@ body {
 }
 
 .wa-modal-overlay.active {
-  display: flex;
+  display: flex !important;
 }
 
 .wa-modal-sheet {

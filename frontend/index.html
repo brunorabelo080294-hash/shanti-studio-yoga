@@ -23,7 +23,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
   <!-- WhatsApp Luxe Theme Stylesheet -->
-  <link rel="stylesheet" href="/css/whatsapp-theme.css?v=29">
+  <link rel="stylesheet" href="/css/whatsapp-theme.css?v=33">
 </head>
 <body>
 
@@ -281,7 +281,7 @@
             <i class="fa-solid fa-chevron-left"></i>
           </button>
           <div style="text-align: center;">
-            <button type="button" class="cal-month-title-btn" id="btn-abrir-seletor-mes-ano" title="Toque para escolher Mês e Ano">
+            <button type="button" class="cal-month-title-btn" id="btn-abrir-seletor-mes-ano" onclick="abrirSeletorMesAno()" title="Toque para escolher Mês e Ano">
               <span class="cal-month-title" id="cal-month-name">Setembro 2026</span>
               <i class="fa-solid fa-caret-down cal-caret-icon"></i>
             </button>
@@ -1139,7 +1139,7 @@
 <!-- ======================================================================
      MODAL: SELETOR DIRETO DE MÊS E ANO DO CALENDÁRIO
      ====================================================================== -->
-<div class="wa-modal-overlay" id="modal-cal-picker" style="display: none;">
+<div class="wa-modal-overlay" id="modal-cal-picker">
   <div class="wa-modal-sheet" style="max-width: 360px; padding: 18px 20px;">
     <div class="wa-modal-header" style="margin-bottom: 14px;">
       <h3 class="wa-modal-title" style="font-size: 16px; color: var(--shanti-forest); display: flex; align-items: center; gap: 8px;">
@@ -1792,7 +1792,7 @@
 <!-- ======================================================================
      MODAL: PAUSAR/RETOMAR ALERTA DE AUSÊNCIA (VIAGEM / CLÁUSULA 6)
      ====================================================================== -->
-<div class="wa-modal-overlay" id="modal-pausa-alerta" style="display: none;">
+<div class="wa-modal-overlay" id="modal-pausa-alerta">
   <div class="wa-modal-sheet" style="max-width: 440px;">
     <div class="wa-modal-header">
       <h3 class="wa-modal-title" style="font-size: 16px; font-family: var(--font-brand);">
@@ -1879,12 +1879,12 @@
 <div class="wa-toast" id="toast-msg">Notificação</div>
 
 <!-- JavaScript Principal -->
-<script src="/js/app.js?v=32"></script>
+<script src="/js/app.js?v=33"></script>
 
 <script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/service-worker.js?v=32').then(reg => {
+      navigator.serviceWorker.register('/service-worker.js?v=33').then(reg => {
         reg.update();
       }).catch(err => {
         console.log('SW reg:', err);
