@@ -1866,27 +1866,26 @@ body {
 /* ==========================================================================
    MÓDULO CALENDÁRIO & CONTROLE DE PRESENÇA (STUDIO SHANTI)
    ========================================================================== */
-.cal-container {
-  padding: 12px 14px;
-  max-width: 800px;
-  margin: 0 auto;
+
+/* Card Superior: Calendário Mensal Compacto */
+.cal-month-card {
+  background: #FFFFFF;
+  border: 1px solid var(--shanti-sand-border);
+  border-radius: 18px;
+  padding: 16px;
+  box-shadow: var(--shadow-sm);
 }
 
-.cal-header-card {
-  background: var(--shanti-card-bg);
-  border: 1px solid var(--shanti-sand-border);
-  border-radius: 16px;
-  padding: 14px 18px;
-  margin-bottom: 12px;
-  box-shadow: var(--shadow-sm);
+.cal-compact-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  margin-bottom: 12px;
 }
 
 .cal-month-title {
   font-family: var(--font-brand);
-  font-size: 19px;
+  font-size: 16.5px;
   font-weight: 700;
   color: var(--shanti-forest);
   margin: 0;
@@ -1898,13 +1897,13 @@ body {
   border: 1px solid var(--shanti-sand-border);
   color: var(--shanti-charcoal);
   border-radius: 10px;
-  padding: 6px 12px;
-  font-size: 13px;
+  padding: 5px 11px;
+  font-size: 12.5px;
   font-weight: 600;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   transition: all 0.2s ease;
 }
 
@@ -1919,224 +1918,135 @@ body {
   color: var(--shanti-terracotta);
 }
 
-.cal-grid-card {
-  background: var(--shanti-card-bg);
-  border: 1px solid var(--shanti-sand-border);
-  border-radius: 16px;
-  padding: 14px;
-  margin-bottom: 14px;
-  box-shadow: var(--shadow-sm);
-}
-
 .cal-weekdays {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 4px;
   text-align: center;
   font-weight: 700;
-  font-size: 11.5px;
+  font-size: 11px;
   color: var(--shanti-stone);
   text-transform: uppercase;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   padding-bottom: 6px;
-  border-bottom: 1px solid var(--shanti-sand-border);
+  border-bottom: 1px solid #F1ECE3;
 }
 
 .cal-days-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 4px;
+  row-gap: 6px;
+  column-gap: 2px;
+  justify-items: center;
+  align-items: center;
 }
 
 .cal-day-cell {
-  min-height: 76px;
-  border-radius: 12px;
-  border: 1px solid #EAE6DF;
-  background: #FFFFFF;
+  width: 38px;
+  height: 44px;
   display: flex;
   flex-direction: column;
-  align-items: stretch;
-  justify-content: flex-start;
-  position: relative;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   user-select: none;
-  padding: 5px 4px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+  border-radius: 8px;
+  transition: all 0.15s ease;
+  position: relative;
 }
 
 .cal-day-cell.empty {
   cursor: default;
-  background: transparent;
-  border-color: transparent;
-  box-shadow: none;
+  visibility: hidden;
 }
 
-.cal-day-cell:not(.empty):hover {
-  background: #FAF8F5;
-  border-color: #B5D2BC;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.06);
-  transform: translateY(-1px);
-  z-index: 1;
-}
-
-.cal-day-cell.has-class {
-  background: #FCFDFB;
-  border-color: #C8E6C9;
-}
-
-.cal-day-header-row {
+.cal-day-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  padding: 0 2px;
-  margin-bottom: 3px;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: #1E293B;
+  transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1.5px solid transparent;
 }
 
-.cal-day-num {
-  font-size: 13.5px;
+.cal-day-cell:not(.empty):hover .cal-day-circle {
+  background: #F1EFE9;
+}
+
+/* Dias com Aula Programada (Círculo Verde Estilo Referência) */
+.cal-day-cell.has-class .cal-day-circle {
+  background: #E8F5E9;
+  color: #166534;
   font-weight: 700;
-  color: var(--shanti-charcoal);
-  line-height: 1;
+  border: 1.5px solid #86EFAC;
 }
 
-.cal-day-cell.today {
-  border-color: var(--shanti-terracotta-border);
-  background: #FFFBF8;
-}
-
-.cal-day-cell.today .cal-day-num {
+.cal-day-cell.today .cal-day-circle {
+  border: 2px solid var(--shanti-terracotta);
   color: var(--shanti-terracotta);
   font-weight: 800;
 }
 
-.cal-day-cell.selected {
-  border: 2px solid var(--shanti-forest) !important;
-  box-shadow: 0 0 0 3px rgba(45, 79, 62, 0.16), 0 4px 12px rgba(45, 79, 62, 0.08) !important;
-  background: #F4F8F5 !important;
-}
-
-.cal-day-cell.selected .cal-day-num {
-  color: var(--shanti-forest) !important;
+.cal-day-cell.selected .cal-day-circle {
+  background: var(--shanti-forest) !important;
+  color: #FFFFFF !important;
   font-weight: 800;
+  border-color: var(--shanti-forest) !important;
+  box-shadow: 0 3px 8px rgba(45, 79, 62, 0.35);
+  transform: scale(1.08);
 }
 
-.cal-class-indicator {
+.cal-dot-container {
+  height: 5px;
   display: flex;
   align-items: center;
-  gap: 3px;
+  justify-content: center;
+  margin-top: 1px;
 }
 
 .cal-dot {
-  width: 6px;
-  height: 6px;
+  width: 4px;
+  height: 4px;
   border-radius: 50%;
   display: inline-block;
-  flex-shrink: 0;
 }
 
 .cal-dot.pendente {
-  background: #CBD5E1;
+  background: #94A3B8;
 }
 
 .cal-dot.concluido {
   background: #16A34A;
-  box-shadow: 0 0 4px rgba(22, 163, 74, 0.4);
 }
 
 .cal-dot.parcial {
   background: #D97706;
 }
 
-/* Lista de Turmas dentro do dia do Calendário */
-.cal-turmas-list {
+.cal-legend-row {
   display: flex;
-  flex-direction: column;
-  gap: 3px;
-  width: 100%;
+  justify-content: center;
+  gap: 14px;
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid #F1ECE3;
+  font-size: 11px;
+  color: var(--shanti-stone);
+  flex-wrap: wrap;
 }
 
-/* Marcação Verde das Aulas de Yoga */
-.cal-turma-pill.verde {
-  background: #E8F5E9;
-  border: 1.5px solid #81C784;
-  color: #1B5E20;
-  border-radius: 7px;
-  padding: 2.5px 5px;
-  font-size: 10.5px;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  cursor: pointer;
-  transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  box-shadow: 0 1px 3px rgba(46, 125, 50, 0.12);
-  line-height: 1.2;
-}
-
-.cal-turma-pill.verde:hover {
-  background: #C8E6C9;
-  border-color: #388E3C;
-  transform: translateY(-1px) scale(1.03);
-  box-shadow: 0 3px 8px rgba(46, 125, 50, 0.28);
-  color: #0A3D12;
-  z-index: 2;
-}
-
-.cal-turma-pill.verde:active {
-  transform: scale(0.98);
-}
-
-.cal-turma-pill.verde .pill-dot {
-  width: 5px;
-  height: 5px;
-  min-width: 5px;
-  border-radius: 50%;
-  background: #2E7D32;
-  display: inline-block;
-}
-
-.cal-turma-pill.verde .pill-time {
-  font-weight: 800;
-  color: #1B5E20;
-  font-size: 10px;
-  letter-spacing: -0.2px;
-}
-
-.cal-turma-pill.verde .pill-name {
-  font-weight: 600;
-  color: #2E7D32;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: 10.5px;
-}
-
-.cal-turma-pill.mais {
-  background: #F1F5F9;
-  border: 1px solid #CBD5E1;
-  color: #475569;
-  border-radius: 5px;
-  padding: 1.5px 4px;
-  font-size: 9.5px;
-  font-weight: 700;
-  text-align: center;
-  line-height: 1.1;
-}
-
-/* Card de Chamada Diária */
-.cal-daily-sheet {
-  background: var(--shanti-card-bg);
-  border: 1.5px solid var(--shanti-sand-border);
+/* Card Inferior: Agenda de Turmas do Dia Selecionado */
+.cal-agenda-card {
+  background: #FFFFFF;
+  border: 1px solid var(--shanti-sand-border);
   border-radius: 18px;
-  padding: 18px;
-  margin-bottom: 16px;
+  padding: 16px;
   box-shadow: var(--shadow-sm);
-  scroll-margin-top: 16px;
 }
 
 .cal-daily-header {
@@ -2144,35 +2054,35 @@ body {
   align-items: center;
   justify-content: space-between;
   padding-bottom: 12px;
-  margin-bottom: 14px;
-  border-bottom: 1px solid var(--shanti-sand-border);
+  margin-bottom: 12px;
+  border-bottom: 1px solid #ECE7DE;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 8px;
 }
 
 .cal-daily-title {
   font-family: var(--font-brand);
-  font-size: 17px;
+  font-size: 15.5px;
   font-weight: 700;
   color: var(--shanti-forest);
   margin: 0;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 
 .cal-daily-pills {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   flex-wrap: wrap;
 }
 
 .cal-pill {
-  font-size: 11.5px;
+  font-size: 11px;
   font-weight: 600;
-  padding: 3px 9px;
-  border-radius: 12px;
+  padding: 2.5px 8px;
+  border-radius: 10px;
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -2202,89 +2112,106 @@ body {
   border: 1px solid #FDE68A;
 }
 
-/* Card Individual de Cada Turma com Horário e Alunos */
+/* Card Individual de Turma (Inspirado na imagem de referência) */
 .cal-turma-card {
-  background: #FAF9F6;
-  border: 1.5px solid var(--shanti-sand-border);
+  background: #FDFCFB;
+  border: 1px solid #EBE6DC;
   border-radius: 16px;
-  padding: 16px;
+  padding: 14px;
   margin-bottom: 14px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  scroll-margin-top: 20px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
+  transition: all 0.25s ease;
 }
 
-.cal-turma-card.focused {
-  border-color: #2E7D32 !important;
-  box-shadow: 0 0 0 4px rgba(46, 125, 50, 0.25), 0 8px 24px rgba(46, 125, 50, 0.15) !important;
-  background: #FFFFFF !important;
-  animation: pulse-turma-focus 1.8s ease-out;
-}
-
-@keyframes pulse-turma-focus {
-  0% { transform: scale(1); }
-  30% { transform: scale(1.015); }
-  100% { transform: scale(1); }
-}
-
-.cal-turma-header {
+.cal-turma-top-bar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  margin-bottom: 12px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid #E8E3D7;
-  flex-wrap: wrap;
-  gap: 10px;
+  gap: 12px;
+  margin-bottom: 10px;
 }
 
-.cal-turma-info {
+.cal-turma-dow-badge {
+  width: 56px;
+  min-width: 56px;
+  height: 56px;
+  background: #EBF3ED;
+  border: 1px solid #C4DEC9;
+  border-radius: 12px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
-}
-
-.cal-turma-nome {
-  font-family: var(--font-brand);
-  font-size: 15.5px;
-  font-weight: 700;
-  color: var(--shanti-forest);
-  display: flex;
   align-items: center;
-  gap: 6px;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
-.cal-turma-badges {
+.cal-turma-dow-name {
+  font-size: 10.5px;
+  font-weight: 800;
+  color: var(--shanti-forest);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  line-height: 1;
+}
+
+.cal-turma-dow-num {
+  font-size: 18px;
+  font-weight: 800;
+  color: #166534;
+  line-height: 1.1;
+}
+
+.cal-turma-meta {
+  flex: 1;
+  min-width: 0;
+}
+
+.cal-turma-tags {
   display: flex;
   align-items: center;
   gap: 6px;
   flex-wrap: wrap;
+  margin-bottom: 4px;
 }
 
-.cal-badge-horario {
-  background: #E8F5E9;
-  color: #1B5E20;
-  border: 1px solid #A5D6A7;
-  padding: 2.5px 8px;
-  border-radius: 8px;
+.cal-turma-time-tag {
+  font-size: 11px;
   font-weight: 700;
-  font-size: 11.5px;
+  color: #166534;
+  background: #DCFCE7;
+  padding: 2px 8px;
+  border-radius: 8px;
   display: inline-flex;
   align-items: center;
   gap: 4px;
 }
 
-.cal-badge-vagas {
+.cal-turma-cap-tag {
+  font-size: 11px;
+  color: #64748B;
   background: #F1F5F9;
-  color: #475569;
-  border: 1px solid #CBD5E1;
-  padding: 2.5px 8px;
+  padding: 2px 8px;
   border-radius: 8px;
   font-weight: 600;
-  font-size: 11px;
   display: inline-flex;
   align-items: center;
   gap: 4px;
+}
+
+.cal-turma-name-title {
+  font-family: var(--font-brand);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--shanti-charcoal);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cal-turma-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin: 8px 0 12px 0;
 }
 
 .cal-btn-marcar-todos {
@@ -2306,49 +2233,51 @@ body {
 .cal-btn-marcar-todos:hover {
   background: #1E372B;
   transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(45, 79, 62, 0.3);
+}
+
+.cal-turma-alunos-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .cal-aluno-item {
   background: #FFFFFF;
   border: 1px solid #ECE7DD;
   border-radius: 12px;
-  padding: 10px 12px;
-  margin-bottom: 8px;
+  padding: 9px 12px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 8px;
   transition: all 0.15s ease;
 }
 
 .cal-aluno-item:hover {
   border-color: #CBD5E1;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
 }
 
 .cal-aluno-left {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 9px;
   flex: 1;
-  min-width: 200px;
+  min-width: 180px;
 }
 
 .cal-aluno-avatar {
-  width: 36px;
-  height: 36px;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
   background: linear-gradient(135deg, #DCEEE2 0%, #B8DAC1 100%);
   color: #1B5E20;
   font-weight: 700;
-  font-size: 13px;
+  font-size: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
 .cal-aluno-info {
@@ -2358,7 +2287,7 @@ body {
 }
 
 .cal-aluno-nome {
-  font-size: 13.5px;
+  font-size: 13px;
   font-weight: 700;
   color: var(--shanti-charcoal);
   display: flex;
@@ -2368,17 +2297,17 @@ body {
 }
 
 .cal-aluno-detalhe {
-  font-size: 11.5px;
+  font-size: 11px;
   color: var(--shanti-stone);
 }
 
 .cal-aluno-pausa-badge {
-  font-size: 10.5px;
+  font-size: 10px;
   font-weight: 600;
   color: #B45309;
   background: #FDF3E7;
-  padding: 2px 7px;
-  border-radius: 8px;
+  padding: 1.5px 6px;
+  border-radius: 6px;
   border: 1px solid #F6D6B2;
   display: inline-flex;
   align-items: center;
@@ -2397,16 +2326,16 @@ body {
 .cal-toggle-btn {
   border: none;
   background: transparent;
-  font-size: 11.5px;
+  font-size: 11px;
   font-weight: 600;
-  padding: 5px 11px;
-  border-radius: 16px;
+  padding: 4px 9px;
+  border-radius: 14px;
   cursor: pointer;
   transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
   color: #64748B;
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
 }
 
 .cal-toggle-btn.active-pendente {
@@ -2430,12 +2359,12 @@ body {
   font-weight: 700;
 }
 
+/* Card 3: Retenção & Alunos Ausentes */
 .cal-retencao-card {
   background: #FFFBF6;
   border: 1px solid #F6D6B2;
-  border-radius: 16px;
+  border-radius: 18px;
   padding: 16px;
-  margin-bottom: 14px;
   box-shadow: var(--shadow-sm);
 }
 
@@ -2448,7 +2377,7 @@ body {
 
 .cal-retencao-title {
   font-family: var(--font-brand);
-  font-size: 15.5px;
+  font-size: 15px;
   font-weight: 700;
   color: #B45309;
   display: flex;

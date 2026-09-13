@@ -168,8 +168,8 @@ class TestCalendarioAPI(unittest.TestCase):
 
         res_css = self.client.get('/css/whatsapp-theme.css')
         self.assertEqual(res_css.status_code, 200)
-        self.assertIn('cal-container', res_css.text)
-        self.assertIn('cal-turma-pill.verde', res_css.text)
+        self.assertIn('cal-month-card', res_css.text)
+        self.assertIn('cal-day-circle', res_css.text)
 
         res_js = self.client.get('/js/app.js')
         self.assertEqual(res_js.status_code, 200)

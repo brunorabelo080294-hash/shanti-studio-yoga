@@ -21,7 +21,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
   <!-- WhatsApp Luxe Theme Stylesheet -->
-  <link rel="stylesheet" href="/css/whatsapp-theme.css?v=28">
+  <link rel="stylesheet" href="/css/whatsapp-theme.css?v=29">
 </head>
 <body>
 
@@ -250,29 +250,33 @@
        TELA CALENDÁRIO: FREQUÊNCIA, CHAMADA E RETENÇÃO POR TURMA
        ==================================================================== -->
   <section class="wa-screen" id="screen-calendario">
-    <div class="cal-container">
+    <div class="wa-reports-container" id="cal-main-container">
       
-      <!-- Card Superior: Navegador de Mês -->
-      <div class="cal-header-card">
-        <button class="cal-nav-btn" id="btn-cal-prev" title="Mês Anterior">
-          <i class="fa-solid fa-chevron-left"></i>
-        </button>
-        <div style="text-align: center;">
-          <h2 class="cal-month-title" id="cal-month-name">Setembro 2026</h2>
-          <span style="font-size: 11.5px; color: var(--shanti-stone);" id="cal-month-summary">Carregando grade de aulas...</span>
-        </div>
-        <div style="display: flex; gap: 6px; align-items: center;">
-          <button class="cal-nav-btn today" id="btn-cal-today" title="Ir para Hoje">
-            Hoje
+      <!-- Card Superior: Calendário Mensal Compacto (Padrão Referência) -->
+      <div class="wa-card cal-month-card">
+        <!-- Navegador de Mês -->
+        <div class="cal-compact-header">
+          <button class="cal-nav-btn" id="btn-cal-prev" title="Mês Anterior">
+            <i class="fa-solid fa-chevron-left"></i>
           </button>
-          <button class="cal-nav-btn" id="btn-cal-next" title="Próximo Mês">
-            <i class="fa-solid fa-chevron-right"></i>
-          </button>
+          <div style="text-align: center;">
+            <div style="display: flex; align-items: center; justify-content: center; gap: 6px;">
+              <h3 class="cal-month-title" id="cal-month-name">Setembro 2026</h3>
+              <i class="fa-solid fa-caret-down" style="font-size: 11px; color: var(--shanti-forest); opacity: 0.7;"></i>
+            </div>
+            <span style="font-size: 11px; color: var(--shanti-stone);" id="cal-month-summary">Carregando aulas...</span>
+          </div>
+          <div style="display: flex; gap: 6px; align-items: center;">
+            <button class="cal-nav-btn today" id="btn-cal-today" title="Ir para Hoje">
+              Hoje
+            </button>
+            <button class="cal-nav-btn" id="btn-cal-next" title="Próximo Mês">
+              <i class="fa-solid fa-chevron-right"></i>
+            </button>
+          </div>
         </div>
-      </div>
 
-      <!-- Card da Grade do Calendário -->
-      <div class="cal-grid-card">
+        <!-- Grade dos Dias da Semana -->
         <div class="cal-weekdays">
           <span>Seg</span>
           <span>Ter</span>
@@ -282,24 +286,27 @@
           <span>Sáb</span>
           <span>Dom</span>
         </div>
+
+        <!-- Grade dos Dias (Círculos Compactos) -->
         <div class="cal-days-grid" id="cal-days-container">
-          <!-- Células geradas via JavaScript -->
+          <!-- Células circulares geradas via JavaScript -->
         </div>
-        <!-- Legenda explicativa -->
-        <div style="display: flex; justify-content: center; gap: 14px; margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--shanti-sand-border); font-size: 11px; color: var(--shanti-stone); flex-wrap: wrap;">
-          <span style="display: flex; align-items: center; gap: 4px;"><span class="cal-dot pendente"></span> Aula Programada</span>
+
+        <!-- Legenda Compacta -->
+        <div class="cal-legend-row">
           <span style="display: flex; align-items: center; gap: 4px;"><span class="cal-dot concluido"></span> Check-in Feito</span>
+          <span style="display: flex; align-items: center; gap: 4px;"><span class="cal-dot pendente"></span> Aula Prevista</span>
           <span style="display: flex; align-items: center; gap: 4px;"><span class="cal-dot parcial"></span> Em Andamento</span>
         </div>
       </div>
 
-      <!-- Card de Chamada do Dia Selecionado -->
-      <div class="cal-daily-sheet" id="cal-daily-sheet">
+      <!-- Card Inferior: Agenda de Turmas & Chamada do Dia Selecionado -->
+      <div class="wa-card cal-agenda-card" id="cal-daily-sheet">
         <div class="cal-daily-header">
-          <h3 class="cal-daily-title" id="cal-selected-day-title">
+          <div class="cal-daily-title" id="cal-selected-day-title">
             <i class="fa-solid fa-calendar-day" style="color: var(--shanti-forest);"></i>
-            <span>Carregando dia...</span>
-          </h3>
+            <span>Selecione um dia...</span>
+          </div>
           <div class="cal-daily-pills" id="cal-selected-day-pills">
             <span class="cal-pill esperados" id="pill-esperados">0 esperados</span>
             <span class="cal-pill presentes" id="pill-presentes">0 presentes</span>
@@ -313,8 +320,8 @@
         </div>
       </div>
 
-      <!-- Card de Retenção & Alunos Ausentes (14 dias) -->
-      <div class="cal-retencao-card" id="card-cal-retencao">
+      <!-- Card 3: Retenção & Alunos Ausentes (14 dias) -->
+      <div class="wa-card cal-retencao-card" id="card-cal-retencao">
         <div class="cal-retencao-header">
           <div class="cal-retencao-title">
             <i class="fa-solid fa-heart-pulse"></i>
@@ -1688,12 +1695,12 @@
 <div class="wa-toast" id="toast-msg">Notificação</div>
 
 <!-- JavaScript Principal -->
-<script src="/js/app.js?v=26"></script>
+<script src="/js/app.js?v=27"></script>
 
 <script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/service-worker.js?v=26').then(reg => {
+      navigator.serviceWorker.register('/service-worker.js?v=27').then(reg => {
         reg.update();
       }).catch(err => {
         console.log('SW reg:', err);

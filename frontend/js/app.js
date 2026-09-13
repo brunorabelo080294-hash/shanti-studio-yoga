@@ -3727,64 +3727,18 @@ function renderizarGradeCalendario(dados) {
     if (ehSelecionado) classes.push('selected');
     if (aulaInfo) classes.push('has-class');
 
-    let turmasPillsHtml = '';
-    if (aulaInfo && aulaInfo.turmas_detalhes && aulaInfo.turmas_detalhes.length > 0) {
-      const turmas = aulaInfo.turmas_detalhes;
-      const maxVisiveis = 2;
-      const visiveis = turmas.slice(0, maxVisiveis);
-      const restantes = turmas.length - maxVisiveis;
-
-      const pills = visiveis.map(td => {
-        const nomeCurto = td.nome.replace(/^turma\s+/i, '');
-        return `
-          <div class="cal-turma-pill verde" 
-               onclick="event.stopPropagation(); selecionarDiaCalendario('${dataStr}', ${td.id});" 
-               title="Aula: ${td.nome} às ${td.horario} (${td.total_matriculados} alunos). Clique para abrir a lista!">
-            <span class="pill-dot"></span>
-            <span class="pill-time">${td.horario}</span>
-            <span class="pill-name">${nomeCurto}</span>
-          </div>
-        `;
-      }).join('');
-
-      const maisTag = restantes > 0 ? `
-        <div class="cal-turma-pill mais" title="${restantes} outra(s) turma(s) neste dia">
-          +${restantes} aula${restantes > 1 ? 's' : ''}
-        </div>
-      ` : '';
-
-      turmasPillsHtml = `
-        <div class="cal-turmas-list">
-          ${pills}
-          ${maisTag}
-        </div>
-      `;
-    } else if (aulaInfo && aulaInfo.turmas_count > 0) {
-      turmasPillsHtml = `
-        <div class="cal-turmas-list">
-          <div class="cal-turma-pill verde" onclick="event.stopPropagation(); selecionarDiaCalendario('${dataStr}');">
-            <span class="pill-dot"></span>
-            <span class="pill-name">${aulaInfo.turmas_count} turma${aulaInfo.turmas_count > 1 ? 's' : ''}</span>
-          </div>
-        </div>
-      `;
-    }
-
     let dotStatusHtml = '';
     if (aulaInfo) {
       let dotClass = 'pendente';
       if (aulaInfo.status_dia === 'concluido') dotClass = 'concluido';
       else if (aulaInfo.status_dia === 'parcial') dotClass = 'parcial';
-      dotStatusHtml = `<span class="cal-dot ${dotClass}" title="Status da chamada: ${aulaInfo.status_dia}"></span>`;
+      dotStatusHtml = `<span class="cal-dot ${dotClass}" title="${aulaInfo.turmas_count} turma(s) • ${aulaInfo.status_dia}"></span>`;
     }
 
     html += `
-      <div class="${classes.join(' ')}" data-date="${dataStr}" onclick="selecionarDiaCalendario('${dataStr}')" title="Dia ${d}">
-        <div class="cal-day-header-row">
-          <span class="cal-day-num">${d}</span>
-          ${dotStatusHtml}
-        </div>
-        ${turmasPillsHtml}
+      <div class="${classes.join(' ')}" data-date="${dataStr}" onclick="selecionarDiaCalendario('${dataStr}')" title="Dia ${d}${aulaInfo ? ` (${aulaInfo.turmas_count} turma(s) - toque para ver)` : ''}">
+        <span class="cal-day-circle">${d}</span>
+        <div class="cal-dot-container">${dotStatusHtml}</div>
       </div>
     `;
   }
@@ -3906,12 +3860,17 @@ function renderizarTurmasChamada(chamada, turmaIdFocus = null) {
     container.innerHTML = `
       <div style="text-align: center; padding: 28px 16px; background: var(--shanti-sand-light); border: 1px dashed var(--shanti-sand-border); border-radius: 14px; color: var(--shanti-stone);">
         <i class="fa-solid fa-mug-hot" style="font-size: 32px; margin-bottom: 10px; color: var(--shanti-sand);"></i>
-        <p style="margin: 0; font-size: 14px; font-weight: 600; color: var(--shanti-charcoal);">Nenhuma turma programada para este dia.</p>
-        <span style="font-size: 12px; color: var(--shanti-stone);">Aproveite para descansar ou planejar suas próximas práticas! 🧘‍♀️</span>
+        <p style="margin: 0; font-size: 14px; font-weight: 700; color: var(--shanti-charcoal);">Nenhuma turma programada para este dia.</p>
+        <span style="font-size: 12px; color: var(--shanti-stone);">Toque em qualquer dia com bolinha verde no calendário acima para ver as turmas e alunos! 🧘‍♀️</span>
       </div>
     `;
     return;
   }
+
+  // Extrair dia da semana curto e dia do mês para o card estilo referência
+  const dtParts = (dataStr || '').split('-');
+  const diaNum = dtParts[2] ? parseInt(dtParts[2]) : '';
+  const dowAbrev = (chamada.dia_semana_nome ? chamada.dia_semana_nome.slice(0, 3).toUpperCase() : 'AULA');
 
   let html = '';
 
@@ -3946,7 +3905,7 @@ function renderizarTurmasChamada(chamada, turmaIdFocus = null) {
                   ${badgePausaHtml}
                 </div>
                 <div class="cal-aluno-detalhe">
-                  <i class="fa-solid fa-id-badge" style="font-size: 10.5px; opacity: 0.7;"></i> ${al.plano}${al.dia_semana_1x ? ` • ${al.dia_semana_1x}` : ''}
+                  <i class="fa-solid fa-id-badge" style="font-size: 10px; opacity: 0.7;"></i> ${al.plano}${al.dia_semana_1x ? ` • ${al.dia_semana_1x}` : ''}
                 </div>
               </div>
             </div>
@@ -3977,27 +3936,36 @@ function renderizarTurmasChamada(chamada, turmaIdFocus = null) {
 
     html += `
       <div class="cal-turma-card ${isThisFocused ? 'focused' : ''}" id="cal-turma-${t.turma_id}">
-        <div class="cal-turma-header">
-          <div class="cal-turma-info">
-            <div class="cal-turma-nome">
-              <i class="fa-solid fa-om" style="color: var(--shanti-forest);"></i>
-              <span>${t.nome}</span>
-            </div>
-            <div class="cal-turma-badges">
-              <span class="cal-badge-horario">
+        <!-- Top bar estilo card da referência visual -->
+        <div class="cal-turma-top-bar">
+          <div class="cal-turma-dow-badge">
+            <span class="cal-turma-dow-name">${dowAbrev}</span>
+            <span class="cal-turma-dow-num">${diaNum}</span>
+          </div>
+
+          <div class="cal-turma-meta">
+            <div class="cal-turma-tags">
+              <span class="cal-turma-time-tag">
                 <i class="fa-regular fa-clock"></i> ${t.horario}
               </span>
-              <span class="cal-badge-vagas">
-                <i class="fa-solid fa-users"></i> ${alunos.length}/${t.capacidade_vagas} alunos esperados
+              <span class="cal-turma-cap-tag">
+                <i class="fa-solid fa-users"></i> ${alunos.length}/${t.capacidade_vagas} alunos
               </span>
             </div>
+            <h4 class="cal-turma-name-title">
+              <i class="fa-solid fa-om" style="color: var(--shanti-forest);"></i> ${t.nome}
+            </h4>
           </div>
-          ${alunos.length > 0 ? `
+        </div>
+
+        ${alunos.length > 0 ? `
+          <div class="cal-turma-actions">
             <button type="button" class="cal-btn-marcar-todos" onclick="marcarTodosPresentesTurma(${t.turma_id}, '${dataStr}')">
               <i class="fa-solid fa-check-double"></i> Marcar Todos Presentes
             </button>
-          ` : ''}
-        </div>
+          </div>
+        ` : ''}
+
         <div class="cal-turma-alunos-list">
           ${alunosHtml}
         </div>
