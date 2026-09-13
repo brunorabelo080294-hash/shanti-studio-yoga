@@ -157,5 +157,15 @@ class TestCalendarioAPI(unittest.TestCase):
         self.assertEqual(res_js.status_code, 200)
         self.assertIn('carregarCalendario', res_js.text)
 
+    @classmethod
+    def tearDownClass(cls):
+        conn = db.get_connection()
+        c = conn.cursor()
+        c.execute('DELETE FROM historico_presenca')
+        c.execute('DELETE FROM frequencias WHERE observacao LIKE ?', ('%Calend%',))
+        c.execute('UPDATE alunos SET pausar_alerta_ausencia = 0, motivo_pausa_alerta = NULL')
+        conn.commit()
+        conn.close()
+
 if __name__ == '__main__':
     unittest.main()
