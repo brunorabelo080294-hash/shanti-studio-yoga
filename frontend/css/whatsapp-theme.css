@@ -1186,44 +1186,48 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 12px;
-  background: #fdfbf7;
-  border: 1px solid var(--wa-border);
-  border-radius: 10px;
+  padding: 10px 14px;
+  background: var(--shanti-sand-light);
+  border: 1px solid var(--shanti-sand-border);
+  border-radius: 12px;
   font-size: 13px;
+  transition: all 0.2s ease;
 }
 
 .wa-report-item-info {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
 }
 
 .wa-report-item-title {
-  font-weight: 700;
-  color: var(--shanti-primary);
+  font-weight: 600;
+  color: var(--shanti-charcoal);
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .wa-report-item-sub {
   font-size: 11.5px;
-  color: var(--wa-text-secondary);
+  color: var(--shanti-stone);
 }
 
 .wa-btn-sm-whatsapp {
-  background: #25d366;
+  background: var(--shanti-whatsapp-green);
   color: #ffffff;
   border: none;
-  border-radius: 16px;
-  padding: 4px 10px;
+  border-radius: 20px;
+  padding: 5px 12px;
   font-size: 11.5px;
-  font-weight: 700;
+  font-weight: 600;
   text-decoration: none;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
   cursor: pointer;
-  box-shadow: 0 1px 4px rgba(37, 211, 102, 0.3);
-  transition: transform 0.15s;
+  box-shadow: 0 2px 8px rgba(37, 211, 102, 0.25);
+  transition: all 0.15s ease;
 }
 
 .wa-btn-sm-whatsapp:active {

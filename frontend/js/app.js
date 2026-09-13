@@ -2159,19 +2159,21 @@ async function carregarEstudio() {
     if (badgeTurmas) {
       const lotadas = turmas.filter(t => (t.total_matriculados || 0) >= (t.capacidade_vagas || 16));
       if (lotadas.length > 0) {
-        badgeTurmas.style.background = '#fee2e2';
-        badgeTurmas.style.color = '#b91c1c';
-        badgeTurmas.textContent = `⚠️ ${lotadas.length} Turma(s) Lotada(s)`;
+        badgeTurmas.style.background = 'var(--shanti-terracotta-light)';
+        badgeTurmas.style.border = '1px solid var(--shanti-terracotta-border)';
+        badgeTurmas.style.color = 'var(--shanti-terracotta)';
+        badgeTurmas.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> ${lotadas.length} Turma(s) Lotada(s)`;
       } else {
-        badgeTurmas.style.background = '#e8f0eb';
-        badgeTurmas.style.color = 'var(--shanti-primary)';
-        badgeTurmas.textContent = `${turmas.length} Turmas Ativas`;
+        badgeTurmas.style.background = 'var(--shanti-sage-light)';
+        badgeTurmas.style.border = '1px solid var(--shanti-sage-border)';
+        badgeTurmas.style.color = '#3F4E3A';
+        badgeTurmas.innerHTML = `<i class="fa-solid fa-circle-check"></i> ${turmas.length} Turmas Ativas`;
       }
     }
 
     if (containerTurmas) {
       if (!turmas || turmas.length === 0) {
-        containerTurmas.innerHTML = '<div style="font-size:12px; color:var(--wa-text-secondary); text-align:center; padding:12px;">Nenhuma turma cadastrada.</div>';
+        containerTurmas.innerHTML = '<div style="font-size:12px; color:var(--shanti-stone); text-align:center; padding:16px; background:var(--shanti-sand-light); border:1px dashed var(--shanti-sand-border); border-radius:12px;">Nenhuma turma cadastrada.</div>';
       } else {
         containerTurmas.innerHTML = turmas.map(t => {
           const cap = t.capacidade_vagas || 16;
@@ -2180,21 +2182,21 @@ async function carregarEstudio() {
           const isQuaseLotada = total === cap - 1;
           const percent = Math.min(100, Math.round((total / cap) * 100));
 
-          let barColor = 'var(--shanti-primary)';
-          let statusBadge = `<span style="font-size:11px; font-weight:700; color:var(--wa-success);">${t.vagas_disponiveis} vagas livres</span>`;
+          let barColor = 'var(--shanti-forest)';
+          let statusBadge = `<span style="font-size:11px; font-weight:600; color:#3F4E3A; background:var(--shanti-sage-light); border:1px solid var(--shanti-sage-border); padding:2px 8px; border-radius:10px;">${t.vagas_disponiveis} vagas livres</span>`;
 
           if (isLotada) {
-            barColor = '#dc2626';
-            statusBadge = `<span style="background:#fee2e2; color:#b91c1c; font-weight:700; font-size:10.5px; padding:2px 7px; border-radius:6px; border:0.5px solid #fca5a5;">⚠️ LOTADA (16/16)</span>`;
+            barColor = 'var(--shanti-terracotta)';
+            statusBadge = `<span style="background:var(--shanti-terracotta-light); color:var(--shanti-terracotta); font-weight:600; font-size:10.5px; padding:2px 8px; border-radius:10px; border:1px solid var(--shanti-terracotta-border);"><i class="fa-solid fa-triangle-exclamation"></i> Lotada (${total}/${cap})</span>`;
           } else if (isQuaseLotada) {
-            barColor = '#f59e0b';
-            statusBadge = `<span style="background:#fef3c7; color:#b45309; font-weight:700; font-size:10.5px; padding:2px 7px; border-radius:6px; border:0.5px solid #fde68a;">⚡ Resta 1 vaga</span>`;
+            barColor = '#C98A4B';
+            statusBadge = `<span style="background:#FDF3E7; color:#B45309; font-weight:600; font-size:10.5px; padding:2px 8px; border-radius:10px; border:1px solid #F6D6B2;"><i class="fa-solid fa-bolt"></i> Resta 1 vaga</span>`;
           }
 
           let alunosHtml = '';
           if (!t.alunos || t.alunos.length === 0) {
             alunosHtml = `
-              <div style="font-size:12px; color:var(--wa-text-secondary); font-style:italic; padding:6px 0;">
+              <div style="font-size:12px; color:var(--shanti-stone); font-style:italic; padding:6px 0;">
                 Nenhum aluno matriculado nesta turma ainda.
               </div>
             `;
@@ -2207,28 +2209,28 @@ async function carregarEstudio() {
               let badgePlano = '';
               if (al.plano && al.plano.includes('1x')) {
                 const diaEscolhido = al.dia_semana_1x ? al.dia_semana_1x : 'Dia a definir';
-                badgePlano = `<span style="font-size:11px; background:#f0fdf4; color:#15803d; padding:2px 7px; border-radius:5px; font-weight:700; border:0.5px solid #86efac; display:inline-flex; align-items:center; gap:4px;" title="Comparece 1x na semana"><i class="fa-regular fa-calendar-check" style="color:#16a34a;"></i> 1x na semana (${diaEscolhido})</span>`;
+                badgePlano = `<span style="font-size:10.5px; background:var(--shanti-sage-light); color:#3F4E3A; padding:2px 7px; border-radius:8px; font-weight:600; border:1px solid var(--shanti-sage-border); display:inline-flex; align-items:center; gap:4px;" title="Comparece 1x na semana"><i class="fa-regular fa-calendar-check" style="color:var(--shanti-sage);"></i> 1x na semana (${diaEscolhido})</span>`;
               } else {
-                badgePlano = `<span style="font-size:10.5px; background:#e8f0eb; color:var(--shanti-primary); padding:2px 6px; border-radius:4px; font-weight:600; border:0.5px solid #cbd5e1;">2x na semana</span>`;
+                badgePlano = `<span style="font-size:10.5px; background:var(--shanti-sand-light); color:var(--shanti-charcoal); padding:2px 7px; border-radius:8px; font-weight:500; border:1px solid var(--shanti-sand-border);">2x na semana</span>`;
               }
 
               let statusAluno = '';
               if (al.status === 'inativo') {
-                statusAluno = `<span style="font-size:10px; background:#f1f5f9; color:#64748b; padding:1px 5px; border-radius:4px;">Inativo</span>`;
+                statusAluno = `<span style="font-size:10px; background:var(--shanti-sand-light); color:var(--shanti-stone); padding:1px 6px; border-radius:6px; border:1px solid var(--shanti-sand-border);">Inativo</span>`;
               } else if (al.inadimplente) {
-                statusAluno = `<span style="font-size:10px; background:#fee2e2; color:#b91c1c; padding:1px 5px; border-radius:4px; font-weight:700;">Mensalidade Pendente</span>`;
+                statusAluno = `<span style="font-size:10px; background:var(--shanti-terracotta-light); color:var(--shanti-terracotta); padding:1px 6px; border-radius:6px; font-weight:600; border:1px solid var(--shanti-terracotta-border);">Mensalidade Pendente</span>`;
               }
 
               return `
-                <div style="display:flex; justify-content:space-between; align-items:center; padding:5px 0; border-bottom:0.5px dashed rgba(0,0,0,0.06); font-size:12.5px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px dashed var(--shanti-sand-border); font-size:12.5px;">
                   <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
-                    <i class="fa-regular fa-user" style="color:var(--shanti-primary); font-size:11px;"></i>
-                    <span style="font-weight:600; color:var(--wa-text-primary); cursor:pointer;" class="link-aluno-detalhes" data-aluno-id="${al.id}">${al.nome}</span>
+                    <i class="fa-regular fa-user" style="color:var(--shanti-forest); font-size:11px;"></i>
+                    <span style="font-weight:600; color:var(--shanti-charcoal); cursor:pointer;" class="link-aluno-detalhes" data-aluno-id="${al.id}">${al.nome}</span>
                     ${badgePlano}
                     ${statusAluno}
                   </div>
                   ${tel ? `
-                    <a href="${waLink}" target="_blank" title="Conversar no WhatsApp" style="color:#25d366; font-size:14px; padding:2px 6px;">
+                    <a href="${waLink}" target="_blank" title="Conversar no WhatsApp" style="color:var(--shanti-whatsapp-green); font-size:15px; padding:2px 6px; display:inline-flex; align-items:center;">
                       <i class="fa-brands fa-whatsapp"></i>
                     </a>
                   ` : ''}
@@ -2238,26 +2240,26 @@ async function carregarEstudio() {
           }
 
           return `
-            <div style="background:var(--shanti-sand); padding:12px 14px; border-radius:10px; border:0.5px solid var(--wa-border);">
-              <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px;">
+            <div style="background:var(--shanti-sand-light); padding:14px 16px; border-radius:14px; border:1px solid var(--shanti-sand-border); box-shadow:var(--shadow-sm); transition:all 0.2s ease;">
+              <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
                 <div>
-                  <div style="font-weight:700; font-size:14px; color:var(--wa-text-primary);">${t.nome}</div>
-                  <div style="font-size:12px; color:var(--wa-text-secondary);"><i class="fa-regular fa-clock"></i> ${t.dias_semana} às ${t.horario}</div>
+                  <div style="font-weight:700; font-size:14.5px; color:var(--shanti-charcoal); font-family:var(--font-brand);">${t.nome}</div>
+                  <div style="font-size:12px; color:var(--shanti-stone); margin-top:2px;"><i class="fa-regular fa-clock"></i> ${t.dias_semana} às ${t.horario}</div>
                 </div>
                 <div>${statusBadge}</div>
               </div>
 
-              <div style="background:#e2e8f0; border-radius:999px; height:8px; width:100%; overflow:hidden; margin:8px 0 6px 0;">
+              <div style="background:#E8E0D5; border-radius:999px; height:7px; width:100%; overflow:hidden; margin:10px 0 6px 0;">
                 <div style="background:${barColor}; width:${percent}%; height:100%; border-radius:999px; transition:width 0.4s ease;"></div>
               </div>
-              <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--wa-text-secondary); margin-bottom:10px;">
+              <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--shanti-stone); margin-bottom:12px;">
                 <span><b>${total}</b> de <b>${cap}</b> alunos matriculados</span>
                 <span style="font-weight:600;">${percent}% ocupada</span>
               </div>
 
-              <div style="margin-top:8px; padding-top:6px; border-top:1px solid rgba(0,0,0,0.06);">
-                <div style="font-size:11.5px; font-weight:700; color:var(--shanti-primary); margin-bottom:4px; display:flex; align-items:center; gap:5px;">
-                  <i class="fa-solid fa-users"></i> Alunos Matriculados (${total}):
+              <div style="margin-top:10px; padding-top:8px; border-top:1px solid var(--shanti-sand-border);">
+                <div style="font-size:11.5px; font-weight:600; color:var(--shanti-forest); margin-bottom:6px; display:flex; align-items:center; gap:5px;">
+                  <i class="fa-solid fa-users" style="font-size:11px;"></i> Alunos Matriculados (${total}):
                 </div>
                 <div>${alunosHtml}</div>
               </div>
@@ -2280,22 +2282,22 @@ async function carregarEstudio() {
     if (badgeAniv) badgeAniv.textContent = (aniversariantes && aniversariantes.length) || 0;
     if (listAniv) {
       if (!aniversariantes || aniversariantes.length === 0) {
-        listAniv.innerHTML = '<div style="font-size: 12px; color: var(--wa-text-secondary); text-align: center; padding: 8px;">Nenhum aniversariante neste mês 🎂</div>';
+        listAniv.innerHTML = '<div style="font-size: 12px; color: var(--shanti-stone); text-align: center; padding: 12px; background: var(--shanti-sand-light); border: 1px dashed var(--shanti-sand-border); border-radius: 10px;">Nenhum aniversariante neste mês.</div>';
       } else {
         listAniv.innerHTML = aniversariantes.map(a => {
           let tel = (a.telefone || '').replace(/\D/g, '');
           if (!tel.startsWith('55') && tel) tel = '55' + tel;
           const msgParabens = encodeURIComponent(`Olá, ${a.nome}! 🎉🎂 Passando para te desejar um Feliz Aniversário repleto de paz, luz e harmonia! Muita gratidão por fazer parte da família Studio Shanti. Namastê! 🙏✨`);
           const waLink = a.link_whatsapp || `https://wa.me/${tel}?text=${msgParabens}`;
-          const ehHojeBadge = a.e_hoje ? `<span style="background:#fdf2f8; color:#db2777; border:1px solid #f472b6; font-size:10.5px; font-weight:800; padding:2px 7px; border-radius:10px; margin-left:6px;">🎉 É HOJE!</span>` : '';
+          const ehHojeBadge = a.e_hoje ? `<span style="background:var(--shanti-terracotta-light); color:var(--shanti-terracotta); border:1px solid var(--shanti-terracotta-border); font-size:10px; font-weight:700; padding:2px 7px; border-radius:10px; margin-left:6px;"><i class="fa-solid fa-cake-candles"></i> É HOJE!</span>` : '';
 
           return `
-            <div class="wa-report-item" style="${a.e_hoje ? 'background:#fff1f2; border:1px solid #fda4af;' : ''}">
+            <div class="wa-report-item" style="${a.e_hoje ? 'background:var(--shanti-terracotta-light); border:1px solid var(--shanti-terracotta-border);' : ''}">
               <div class="wa-report-item-info">
-                <span class="wa-report-item-title">🎂 ${a.nome} ${ehHojeBadge}</span>
+                <span class="wa-report-item-title"><i class="fa-solid fa-cake-candles" style="color:var(--shanti-terracotta); font-size:12px;"></i> ${a.nome} ${ehHojeBadge}</span>
                 <span class="wa-report-item-sub">Dia ${a.dia} (${a.data_nascimento ? formatarDataBR(a.data_nascimento) : ''}) • ${a.plano || 'Yoga Regular'}</span>
               </div>
-              <a href="${waLink}" target="_blank" class="wa-btn-sm-whatsapp" style="background: linear-gradient(135deg, #ec4899, #db2777);">
+              <a href="${waLink}" target="_blank" class="wa-btn-sm-whatsapp">
                 <i class="fa-brands fa-whatsapp"></i> Parabéns
               </a>
             </div>
@@ -2310,7 +2312,7 @@ async function carregarEstudio() {
     if (badgeAus) badgeAus.textContent = (ausentes && ausentes.length) || 0;
     if (listAus) {
       if (!ausentes || ausentes.length === 0) {
-        listAus.innerHTML = '<div style="font-size: 12px; color: var(--wa-text-secondary); text-align: center; padding: 8px;">Todos os alunos ativos estão frequentando! 🧘‍♀️</div>';
+        listAus.innerHTML = '<div style="font-size: 12px; color: var(--shanti-stone); text-align: center; padding: 12px; background: var(--shanti-sand-light); border: 1px dashed var(--shanti-sand-border); border-radius: 10px;">Todos os alunos ativos estão frequentando!</div>';
       } else {
         listAus.innerHTML = ausentes.map(au => {
           let tel = au.telefone.replace(/\D/g, '');
@@ -2322,9 +2324,9 @@ async function carregarEstudio() {
             <div class="wa-report-item">
               <div class="wa-report-item-info">
                 <span class="wa-report-item-title">${au.nome}</span>
-                <span class="wa-report-item-sub" style="color: #b45309; font-weight:600;">⚠️ ${au.dias_ausente} dias sem praticar • ${au.plano}</span>
+                <span class="wa-report-item-sub" style="color: #B45309; font-weight:600;"><i class="fa-solid fa-clock-rotate-left" style="font-size:11px;"></i> ${au.dias_ausente} dias sem praticar • ${au.plano}</span>
               </div>
-              <a href="${waLink}" target="_blank" class="wa-btn-sm-whatsapp" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+              <a href="${waLink}" target="_blank" class="wa-btn-sm-whatsapp">
                 <i class="fa-brands fa-whatsapp"></i> Convidar
               </a>
             </div>
