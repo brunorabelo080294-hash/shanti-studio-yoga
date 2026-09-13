@@ -3502,7 +3502,7 @@ function renderizarContratos() {
         <div style="display: flex; gap: 6px; flex-wrap: wrap;">
           ${!estaEmDia && !temAutentique ? `
             <button type="button" class="wa-btn-primary" style="flex: 1; min-width: 130px; padding: 7px 12px; font-size: 12px; background: var(--shanti-forest); color: #FFFFFF; border: none; border-radius: 20px; font-weight: 600; box-shadow: var(--shadow-sm);" onclick="abrirModalEnviarAutentique(${c.id}, '${c.nome.replace(/'/g, "\\'")}', '${(c.plano || '').replace(/'/g, "\\'")}', '${c.telefone || ''}', '${c.email || ''}')">
-              <i class="fa-solid fa-file-signature"></i> Assinar Autentique
+              <i class="fa-solid fa-paper-plane"></i> Enviar p/ Autentique
             </button>
           ` : ''}
 

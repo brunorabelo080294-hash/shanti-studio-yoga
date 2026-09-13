@@ -176,6 +176,9 @@ def criar_documento_contrato(aluno_id: int, sandbox: Optional[bool] = None) -> D
     tel_aluno_e164 = formatar_telefone_e164(aluno.get("telefone", ""))
     email_aluno = (aluno.get("email") or "").strip()
 
+    if tel_natalia_e164 and tel_aluno_e164 == tel_natalia_e164:
+        raise ValueError("A professora Natália é a Contratada do estúdio. Selecione o cadastro de um aluno para emitir o contrato.")
+
     signatario_aluno: Dict[str, Any] = {
         "name": nome_aluno,
         "action": "SIGN",
