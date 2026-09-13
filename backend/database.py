@@ -21,6 +21,17 @@ except ImportError:
 DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "yoga_studio.db")
 DATABASE_URL = os.getenv("DATABASE_URL")
 
+class DictAndIndexRow(dict):
+    """Permite acesso tanto por nome da coluna row['nome'] quanto por indice numerico row[0], identico ao sqlite3.Row"""
+    def __init__(self, mapping, keys):
+        super().__init__(mapping)
+        self._keys = keys
+
+    def __getitem__(self, item):
+        if isinstance(item, int):
+            return self[self._keys[item]]
+        return super().__getitem__(item)
+
 class PgCursorWrapper:
     def __init__(self, cur):
         self._cur = cur
@@ -38,8 +49,8 @@ class PgCursorWrapper:
                 else:
                     self._cur.execute(query_with_returning)
                 row = self._cur.fetchone()
-                if row and 'id' in row:
-                    self.lastrowid = row['id']
+                if row and len(row) > 0:
+                    self.lastrowid = row[0]
                 return self
             except Exception:
                 pass
@@ -72,18 +83,33 @@ class PgCursorWrapper:
                 q += " ON CONFLICT DO NOTHING"
         return q
 
+    def _wrap_row(self, row):
+        if row is None:
+            return None
+        if isinstance(row, DictAndIndexRow):
+            return row
+        keys = [d[0] for d in self._cur.description]
+        mapping = dict(zip(keys, row))
+        return DictAndIndexRow(mapping, keys)
+
     def fetchone(self):
-        return self._cur.fetchone()
+        row = self._cur.fetchone()
+        return self._wrap_row(row)
 
     def fetchall(self):
-        return self._cur.fetchall()
+        rows = self._cur.fetchall()
+        return [self._wrap_row(r) for r in rows]
 
     def __iter__(self):
-        return iter(self._cur)
+        for row in self._cur:
+            yield self._wrap_row(row)
 
     @property
-    def description(self):
-        return self._cur.description
+    def rowcount(self):
+        return self._cur.rowcount
+
+    def __getattr__(self, name):
+        return getattr(self._cur, name)
 
     def close(self):
         self._cur.close()
@@ -93,7 +119,7 @@ class PgConnectionWrapper:
         self._conn = pg_conn
 
     def cursor(self):
-        return PgCursorWrapper(self._conn.cursor(cursor_factory=RealDictCursor))
+        return PgCursorWrapper(self._conn.cursor())
 
     def commit(self):
         self._conn.commit()
@@ -126,6 +152,10 @@ def get_connection():
 def init_db():
     """Inicializa as tabelas do banco de dados e dados padrão se vazio."""
     conn = get_connection()
+    if isinstance(conn, PgConnectionWrapper):
+        # No Supabase PostgreSQL as tabelas já foram criadas e migradas
+        conn.close()
+        return
     cursor = conn.cursor()
 
     # Tabela de configurações do Studio

@@ -1,4 +1,4 @@
-﻿services:
+services:
   - type: web
     name: shanti-studio-yoga
     runtime: python
@@ -7,3 +7,5 @@
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.9
+      - key: DATABASE_URL
+        sync: false
