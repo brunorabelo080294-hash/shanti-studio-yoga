@@ -108,6 +108,8 @@ class AlunoUpdate(BaseModel):
     autoriza_imagem: Optional[int] = None
     turma_ids: Optional[List[int]] = None
     aprovacao_pagamento: Optional[str] = None
+    pausar_alerta_ausencia: Optional[int] = None
+    motivo_pausa_alerta: Optional[str] = None
 
 class TurmaMatriculaRequest(BaseModel):
     turma_id: int
@@ -128,6 +130,21 @@ class PresencaCreate(BaseModel):
     horario: Optional[str] = None
     modalidade: Optional[str] = "Yoga Regular"
     observacao: Optional[str] = ""
+
+class CalendarioPresencaRequest(BaseModel):
+    aluno_id: int
+    turma_id: int
+    data: str
+    status: str = "pendente"
+    justificativa: Optional[str] = ""
+
+class CalendarioLoteRequest(BaseModel):
+    turma_id: int
+    data: str
+
+class PausarAlertaRequest(BaseModel):
+    pausar: bool = True
+    motivo: Optional[str] = ""
 
 class DespesaCreate(BaseModel):
     descricao: str
@@ -473,6 +490,55 @@ def api_registrar_frequencia(dados: PresencaCreate):
 @app.get("/api/frequencias/ausentes")
 def api_obter_alunos_ausentes(dias: int = 10):
     return db.obter_alunos_ausentes(dias_sem_aula=dias)
+
+# --- Rotas do Calendário, Check-in & Retenção de Presença ---
+
+@app.get("/api/calendario/mes")
+def api_obter_calendario_mes(ano: Optional[int] = None, mes: Optional[int] = None):
+    hoje = datetime.date.today()
+    if not ano:
+        ano = hoje.year
+    if not mes:
+        mes = hoje.month
+    return db.obter_grade_calendario_mes(ano, mes)
+
+@app.get("/api/calendario/dia")
+def api_obter_calendario_dia(data: Optional[str] = None):
+    if not data:
+        data = datetime.date.today().strftime("%Y-%m-%d")
+    return db.obter_chamada_dia(data)
+
+@app.post("/api/calendario/presenca")
+def api_salvar_calendario_presenca(dados: CalendarioPresencaRequest):
+    return db.salvar_status_presenca(
+        aluno_id=dados.aluno_id,
+        turma_id=dados.turma_id,
+        data_str=dados.data,
+        status=dados.status,
+        justificativa=dados.justificativa or ""
+    )
+
+@app.post("/api/calendario/turma-presenca-lote")
+def api_marcar_todos_presentes_turma(dados: CalendarioLoteRequest):
+    return db.marcar_todos_presentes_turma(
+        turma_id=dados.turma_id,
+        data_str=dados.data
+    )
+
+@app.get("/api/calendario/retencao")
+def api_obter_retencao_ausentes(dias: int = 14):
+    return db.obter_alunos_retencao_ausentes(dias_janela=dias)
+
+@app.post("/api/alunos/{aluno_id}/pausar-alerta")
+def api_pausar_alerta_aluno(aluno_id: int, dados: PausarAlertaRequest):
+    ok = db.alternar_pausa_alerta(
+        aluno_id=aluno_id,
+        pausar=dados.pausar,
+        motivo=dados.motivo or ""
+    )
+    if not ok:
+        raise HTTPException(status_code=404, detail="Aluno não encontrado")
+    return {"sucesso": True, "aluno_id": aluno_id, "pausado": dados.pausar, "motivo": dados.motivo}
 
 @app.get("/api/despesas")
 def api_listar_despesas(mes_ano: Optional[str] = None):

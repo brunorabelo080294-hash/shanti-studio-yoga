@@ -5,6 +5,7 @@ Gerencia alunos, pagamentos, inadimplência e geração de cobranças WhatsApp.
 import sqlite3
 import os
 import datetime
+import calendar
 import urllib.parse
 from typing import List, Dict, Any, Optional
 
@@ -84,7 +85,9 @@ def init_db():
         ("autentique_status", "TEXT"),
         ("autentique_link", "TEXT"),
         ("autentique_link_natalia", "TEXT"),
-        ("autentique_enviado_em", "TEXT")
+        ("autentique_enviado_em", "TEXT"),
+        ("pausar_alerta_ausencia", "INTEGER DEFAULT 0"),
+        ("motivo_pausa_alerta", "TEXT")
     ]:
         try:
             cursor.execute(f"ALTER TABLE alunos ADD COLUMN {col_def[0]} {col_def[1]}")
@@ -132,6 +135,22 @@ def init_db():
         FOREIGN KEY (aluno_id) REFERENCES alunos (id) ON DELETE CASCADE,
         FOREIGN KEY (turma_id) REFERENCES turmas (id) ON DELETE CASCADE,
         UNIQUE(aluno_id, turma_id)
+    )
+    """)
+
+    # Tabela de Histórico de Presença das Turmas (Calendário & Check-in)
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS historico_presenca (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        aluno_id INTEGER NOT NULL,
+        turma_id INTEGER NOT NULL,
+        data TEXT NOT NULL, -- 'YYYY-MM-DD'
+        status TEXT NOT NULL DEFAULT 'pendente', -- 'pendente', 'presente', 'faltou'
+        justificativa TEXT,
+        atualizado_em TEXT DEFAULT (datetime('now', 'localtime')),
+        FOREIGN KEY (aluno_id) REFERENCES alunos (id) ON DELETE CASCADE,
+        FOREIGN KEY (turma_id) REFERENCES turmas (id) ON DELETE CASCADE,
+        UNIQUE(aluno_id, turma_id, data)
     )
     """)
 
@@ -946,6 +965,10 @@ def obter_alunos_ausentes(dias_sem_aula: int = 10, dias: Optional[int] = None) -
     """
     Identifica alunos ativos que não comparecem a nenhuma aula há mais de X dias,
     gerando mensagem carinhosa de acolhimento para o WhatsApp.
+    Unificado com o módulo Calendário:
+    - Respeita alunos com alerta pausado (pausar_alerta_ausencia = 1).
+    - Considera presenças de ambas as tabelas (frequencias e historico_presenca com status='presente').
+    - Status 'Pendente' NUNCA é contado como falta.
     """
     if dias is not None:
         dias_sem_aula = dias
@@ -958,24 +981,34 @@ def obter_alunos_ausentes(dias_sem_aula: int = 10, dias: Optional[int] = None) -
 
     ausentes = []
     for al in alunos:
-        cursor.execute("SELECT MAX(data) as ultima_data FROM frequencias WHERE aluno_id = ?", (al["id"],))
+        # Pular alunos com alerta pausado (ex: viagem comunicada)
+        if al.get("pausar_alerta_ausencia"):
+            continue
+
+        cursor.execute("""
+            SELECT MAX(d) as ultima_data FROM (
+                SELECT data as d FROM frequencias WHERE aluno_id = ?
+                UNION
+                SELECT data as d FROM historico_presenca WHERE aluno_id = ? AND status = 'presente'
+            )
+        """, (al["id"], al["id"]))
         row = cursor.fetchone()
         ultima_data_str = row["ultima_data"] if row else None
 
         if ultima_data_str:
             try:
                 dt_ult = datetime.date.fromisoformat(ultima_data_str)
-                dias = (hoje - dt_ult).days
+                dias_calculados = (hoje - dt_ult).days
             except:
-                dias = 0
+                dias_calculados = 0
         else:
             try:
                 dt_mat = datetime.date.fromisoformat(al["data_matricula"])
-                dias = (hoje - dt_mat).days
+                dias_calculados = (hoje - dt_mat).days
             except:
-                dias = 15
+                dias_calculados = 15
 
-        if dias >= dias_sem_aula:
+        if dias_calculados >= dias_sem_aula:
             msg = (
                 f"Olá, {al['nome']}! 🌸 Sentimos sua falta em nossas práticas no {studio_nome}! "
                 f"Como você está? Está tudo bem por aí?\n\n"
@@ -993,7 +1026,7 @@ def obter_alunos_ausentes(dias_sem_aula: int = 10, dias: Optional[int] = None) -
                 "nome": al["nome"],
                 "telefone": al["telefone"],
                 "plano": al["plano"],
-                "dias_ausente": dias,
+                "dias_ausente": dias_calculados,
                 "ultima_presenca": ultima_data_str or "Nenhuma registrada",
                 "mensagem": msg,
                 "link_whatsapp": link_whatsapp
@@ -1001,6 +1034,473 @@ def obter_alunos_ausentes(dias_sem_aula: int = 10, dias: Optional[int] = None) -
 
     conn.close()
     return sorted(ausentes, key=lambda x: x["dias_ausente"], reverse=True)
+
+# --- Módulo Calendário, Check-in de Turmas & Retenção Acolhedora ---
+
+def parse_dias_semana(dias_str: Optional[str]) -> List[int]:
+    """
+    Converte texto de dias da semana em índices inteiros (0=Segunda ... 6=Domingo).
+    Ex: 'Segunda e Quarta' -> [0, 2]; 'Terça e Quinta' -> [1, 3].
+    """
+    if not dias_str:
+        return []
+    texto = dias_str.lower()
+    dias = set()
+    mapeamento = [
+        (0, ["segunda", "seg"]),
+        (1, ["terça", "terca", "ter"]),
+        (2, ["quarta", "qua"]),
+        (3, ["quinta", "qui"]),
+        (4, ["sexta", "sex"]),
+        (5, ["sábado", "sabado", "sab"]),
+        (6, ["domingo", "dom"])
+    ]
+    for dia_idx, termos in mapeamento:
+        for termo in termos:
+            if termo in texto:
+                dias.add(dia_idx)
+                break
+    return sorted(list(dias))
+
+def obter_grade_calendario_mes(ano: int, mes: int) -> Dict[str, Any]:
+    """
+    Calcula a grade do calendário para o mês/ano fornecido.
+    Identifica quais dias possuem turmas ativas programadas e o status consolidado de presenças.
+    """
+    num_dias = calendar.monthrange(ano, mes)[1]
+    turmas_ativas = listar_turmas(ativas_somente=True)
+
+    turmas_com_dias = []
+    for t in turmas_ativas:
+        t_dias = parse_dias_semana(t.get("dias_semana"))
+        turmas_com_dias.append({
+            "id": t["id"],
+            "nome": t["nome"],
+            "horario": t["horario"],
+            "capacidade": t["capacidade_vagas"],
+            "total_matriculados": t["total_matriculados"],
+            "dias_indices": t_dias
+        })
+
+    prefixo_mes = f"{ano:04d}-{mes:02d}-%"
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT data, status, COUNT(*) as qtd
+        FROM historico_presenca
+        WHERE data LIKE ?
+        GROUP BY data, status
+    """, (prefixo_mes,))
+    
+    stats_por_data = {}
+    for r in cursor.fetchall():
+        d_str = r["data"]
+        st = r["status"]
+        if d_str not in stats_por_data:
+            stats_por_data[d_str] = {"presente": 0, "faltou": 0, "pendente": 0}
+        stats_por_data[d_str][st] = r["qtd"]
+    conn.close()
+
+    dias_com_aula = []
+    total_aulas_mes = 0
+    total_presencas_mes = 0
+    total_faltas_mes = 0
+
+    hoje_str = datetime.date.today().strftime("%Y-%m-%d")
+
+    for dia in range(1, num_dias + 1):
+        dt = datetime.date(ano, mes, dia)
+        w = dt.weekday()
+        dt_str = dt.strftime("%Y-%m-%d")
+
+        turmas_do_dia = [t for t in turmas_com_dias if w in t["dias_indices"]]
+        if turmas_do_dia:
+            total_aulas_mes += len(turmas_do_dia)
+            total_esperados = sum(t["total_matriculados"] for t in turmas_do_dia)
+            
+            p_count = stats_por_data.get(dt_str, {}).get("presente", 0)
+            f_count = stats_por_data.get(dt_str, {}).get("faltou", 0)
+            
+            total_presencas_mes += p_count
+            total_faltas_mes += f_count
+
+            checado = p_count + f_count
+            if checado == 0:
+                status_dia = "pendente"
+            elif total_esperados > 0 and checado >= total_esperados:
+                status_dia = "concluido"
+            else:
+                status_dia = "parcial"
+
+            dias_com_aula.append({
+                "data": dt_str,
+                "dia": dia,
+                "dia_semana_idx": w,
+                "turmas_count": len(turmas_do_dia),
+                "turmas_nomes": [t["nome"] for t in turmas_do_dia],
+                "total_esperados": total_esperados,
+                "presentes": p_count,
+                "faltas": f_count,
+                "pendentes": max(0, total_esperados - checado),
+                "status_dia": status_dia,
+                "eh_hoje": (dt_str == hoje_str)
+            })
+
+    return {
+        "ano": ano,
+        "mes": mes,
+        "dias_com_aula": dias_com_aula,
+        "turmas": turmas_ativas,
+        "resumo_mes": {
+            "total_dias_com_aula": len(dias_com_aula),
+            "total_aulas": total_aulas_mes,
+            "total_presencas": total_presencas_mes,
+            "total_faltas": total_faltas_mes
+        }
+    }
+
+def obter_chamada_dia(data_str: str) -> Dict[str, Any]:
+    """
+    Retorna a lista de chamada para uma data específica.
+    Agrupa por turma ativa que tenha aula naquele dia da semana.
+    Cada aluno traz seu status ('pendente', 'presente', 'faltou').
+    """
+    try:
+        dt = datetime.date.fromisoformat(data_str)
+    except Exception:
+        dt = datetime.date.today()
+        data_str = dt.strftime("%Y-%m-%d")
+
+    w = dt.weekday()
+    dias_semana_nomes = [
+        "Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira",
+        "Sexta-feira", "Sábado", "Domingo"
+    ]
+    dia_semana_nome = dias_semana_nomes[w]
+
+    turmas_ativas = listar_turmas(ativas_somente=True)
+    turmas_do_dia = [t for t in turmas_ativas if w in parse_dias_semana(t.get("dias_semana"))]
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT aluno_id, turma_id, status, justificativa, atualizado_em
+        FROM historico_presenca
+        WHERE data = ?
+    """, (data_str,))
+    presencas_map = {}
+    for r in cursor.fetchall():
+        presencas_map[(r["aluno_id"], r["turma_id"])] = dict(r)
+
+    resultado_turmas = []
+    total_esperados = 0
+    total_presentes = 0
+    total_faltas = 0
+    total_pendentes = 0
+
+    for t in turmas_do_dia:
+        tid = t["id"]
+        cursor.execute("""
+            SELECT a.id, a.nome, a.telefone, a.plano, a.dia_semana_1x,
+                   COALESCE(a.pausar_alerta_ausencia, 0) as pausar_alerta_ausencia,
+                   COALESCE(a.motivo_pausa_alerta, '') as motivo_pausa_alerta,
+                   mt.data_matricula
+            FROM alunos a
+            JOIN matriculas_turmas mt ON mt.aluno_id = a.id
+            WHERE mt.turma_id = ? AND a.status = 'ativo'
+            ORDER BY a.nome ASC
+        """, (tid,))
+        alunos_brutos = [dict(r) for r in cursor.fetchall()]
+
+        alunos_turma = []
+        for al in alunos_brutos:
+            dias_1x = parse_dias_semana(al.get("dia_semana_1x")) if al.get("dia_semana_1x") else []
+            if dias_1x and (w not in dias_1x):
+                continue
+
+            reg = presencas_map.get((al["id"], tid))
+            st = reg["status"] if reg else "pendente"
+            just = reg["justificativa"] if reg else ""
+
+            if st == "presente":
+                total_presentes += 1
+            elif st == "faltou":
+                total_faltas += 1
+            else:
+                total_pendentes += 1
+            total_esperados += 1
+
+            alunos_turma.append({
+                "aluno_id": al["id"],
+                "nome": al["nome"],
+                "telefone": al["telefone"],
+                "plano": al["plano"],
+                "dia_semana_1x": al.get("dia_semana_1x") or "",
+                "status": st,
+                "justificativa": just,
+                "pausar_alerta_ausencia": bool(al["pausar_alerta_ausencia"]),
+                "motivo_pausa_alerta": al["motivo_pausa_alerta"]
+            })
+
+        t_presentes = sum(1 for a in alunos_turma if a["status"] == "presente")
+        t_faltas = sum(1 for a in alunos_turma if a["status"] == "faltou")
+        t_pendentes = sum(1 for a in alunos_turma if a["status"] == "pendente")
+
+        resultado_turmas.append({
+            "turma_id": t["id"],
+            "nome": t["nome"],
+            "horario": t["horario"],
+            "capacidade_vagas": t["capacidade_vagas"],
+            "total_matriculados": len(alunos_turma),
+            "presentes": t_presentes,
+            "faltas": t_faltas,
+            "pendentes": t_pendentes,
+            "alunos": alunos_turma
+        })
+
+    conn.close()
+
+    return {
+        "data": data_str,
+        "dia_semana_nome": dia_semana_nome,
+        "eh_hoje": (data_str == datetime.date.today().strftime("%Y-%m-%d")),
+        "turmas": resultado_turmas,
+        "totais": {
+            "esperados": total_esperados,
+            "presentes": total_presentes,
+            "faltas": total_faltas,
+            "pendentes": total_pendentes
+        }
+    }
+
+def salvar_status_presenca(aluno_id: int, turma_id: int, data_str: str, status: str, justificativa: str = "") -> Dict[str, Any]:
+    """
+    Grava ou atualiza o status de presença ('pendente', 'presente', 'faltou') de um aluno em uma turma e data.
+    Mantém compatibilidade com a tabela legada 'frequencias' quando status='presente'.
+    """
+    if status not in ("pendente", "presente", "faltou"):
+        status = "pendente"
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        INSERT INTO historico_presenca (aluno_id, turma_id, data, status, justificativa, atualizado_em)
+        VALUES (?, ?, ?, ?, ?, datetime('now', 'localtime'))
+        ON CONFLICT(aluno_id, turma_id, data) DO UPDATE SET
+            status = excluded.status,
+            justificativa = excluded.justificativa,
+            atualizado_em = datetime('now', 'localtime')
+    """, (aluno_id, turma_id, data_str, status, justificativa))
+
+    # Sincronizar compatibilidade com tabela legada 'frequencias'
+    if status == "presente":
+        cursor.execute("SELECT id FROM frequencias WHERE aluno_id = ? AND data = ?", (aluno_id, data_str))
+        if not cursor.fetchone():
+            cursor.execute("""
+                INSERT INTO frequencias (aluno_id, data, horario, modalidade, observacao)
+                VALUES (?, ?, (SELECT horario FROM turmas WHERE id = ?), (SELECT nome FROM turmas WHERE id = ?), 'Check-in Calendário')
+            """, (aluno_id, data_str, turma_id, turma_id))
+    else:
+        cursor.execute("""
+            DELETE FROM frequencias 
+            WHERE aluno_id = ? AND data = ? AND observacao = 'Check-in Calendário'
+        """, (aluno_id, data_str))
+
+    conn.commit()
+    conn.close()
+
+    return {
+        "sucesso": True,
+        "aluno_id": aluno_id,
+        "turma_id": turma_id,
+        "data": data_str,
+        "status": status,
+        "justificativa": justificativa
+    }
+
+def marcar_todos_presentes_turma(turma_id: int, data_str: str) -> Dict[str, Any]:
+    """
+    Ação rápida: marca todos os alunos esperados daquela turma naquele dia como 'presente'.
+    """
+    chamada = obter_chamada_dia(data_str)
+    turma_selecionada = None
+    for t in chamada.get("turmas", []):
+        if t["turma_id"] == turma_id:
+            turma_selecionada = t
+            break
+
+    if not turma_selecionada:
+        return {"sucesso": False, "mensagem": "Turma não encontrada para este dia."}
+
+    qtd = 0
+    for al in turma_selecionada.get("alunos", []):
+        salvar_status_presenca(al["aluno_id"], turma_id, data_str, "presente")
+        qtd += 1
+
+    return {"sucesso": True, "total_marcados": qtd, "turma_id": turma_id, "data": data_str}
+
+def alternar_pausa_alerta(aluno_id: int, pausar: bool, motivo: str = "") -> bool:
+    """
+    Ativa ou desativa a pausa de alertas de ausência para um aluno específico (ex: aviso de viagem/férias).
+    """
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        UPDATE alunos
+        SET pausar_alerta_ausencia = ?,
+            motivo_pausa_alerta = ?
+        WHERE id = ?
+    """, (1 if pausar else 0, motivo, aluno_id))
+    ok = cursor.rowcount > 0
+    conn.commit()
+    conn.close()
+    return ok
+
+def obter_alunos_retencao_ausentes(dias_janela: int = 14) -> List[Dict[str, Any]]:
+    """
+    Identifica alunos em risco de evasão baseado em FALTAS EXPLÍCITAS nas aulas programadas.
+    
+    REGRA MANDATÓRIA:
+    - 'Pendente' NUNCA conta como falta.
+    - Gatilho: 2 ou mais faltas explícitas registradas nas aulas previstas nos últimos 14 dias E zero presenças.
+    - Se o aluno avisou viagem/férias (pausar_alerta_ausencia = 1), o alerta é marcado como pausado.
+    """
+    conn = get_connection()
+    cursor = conn.cursor()
+    hoje = datetime.date.today()
+    data_limite = hoje - datetime.timedelta(days=dias_janela)
+    data_limite_str = data_limite.strftime("%Y-%m-%d")
+    hoje_str = hoje.strftime("%Y-%m-%d")
+
+    cursor.execute("""
+        SELECT a.id, a.nome, a.telefone, a.plano, a.dia_semana_1x,
+               COALESCE(a.pausar_alerta_ausencia, 0) as pausar_alerta_ausencia,
+               COALESCE(a.motivo_pausa_alerta, '') as motivo_pausa_alerta,
+               a.data_matricula
+        FROM alunos a 
+        WHERE a.status = 'ativo'
+        ORDER BY a.nome ASC
+    """)
+    alunos = [dict(r) for r in cursor.fetchall()]
+
+    cursor.execute("""
+        SELECT mt.aluno_id, t.id as turma_id, t.nome, t.horario, t.dias_semana
+        FROM matriculas_turmas mt
+        JOIN turmas t ON t.id = mt.turma_id
+        WHERE t.ativo = 1
+    """)
+    aluno_turmas_map = {}
+    for r in cursor.fetchall():
+        aid = r["aluno_id"]
+        if aid not in aluno_turmas_map:
+            aluno_turmas_map[aid] = []
+        aluno_turmas_map[aid].append(dict(r))
+
+    cursor.execute("""
+        SELECT aluno_id, turma_id, data, status
+        FROM historico_presenca
+        WHERE data >= ? AND data <= ?
+    """, (data_limite_str, hoje_str))
+    presencas_map = {}
+    for r in cursor.fetchall():
+        presencas_map[(r["aluno_id"], r["data"])] = r["status"]
+
+    cursor.execute("""
+        SELECT aluno_id, data FROM frequencias
+        WHERE data >= ? AND data <= ?
+    """, (data_limite_str, hoje_str))
+    frequencias_periodo = {(r["aluno_id"], r["data"]) for r in cursor.fetchall()}
+
+    resultado = []
+
+    for al in alunos:
+        aid = al["id"]
+        turmas_aluno = aluno_turmas_map.get(aid, [])
+        if not turmas_aluno:
+            continue
+
+        dias_aulas_previstas = []
+        dias_1x = parse_dias_semana(al.get("dia_semana_1x")) if al.get("dia_semana_1x") else []
+
+        for delta in range(dias_janela, 0, -1):
+            d = hoje - datetime.timedelta(days=delta)
+            w = d.weekday()
+            tem_aula = False
+            for t in turmas_aluno:
+                dias_t = parse_dias_semana(t["dias_semana"])
+                if w in dias_t:
+                    if dias_1x:
+                        if w in dias_1x:
+                            tem_aula = True
+                            break
+                    else:
+                        tem_aula = True
+                        break
+            if tem_aula:
+                dias_aulas_previstas.append(d.strftime("%Y-%m-%d"))
+
+        if not dias_aulas_previstas:
+            continue
+
+        faltas_explicitas = 0
+        presencas = 0
+        datas_faltas = []
+
+        for dt_str in dias_aulas_previstas:
+            st = presencas_map.get((aid, dt_str))
+            if not st and (aid, dt_str) in frequencias_periodo:
+                st = "presente"
+
+            if st == "presente":
+                presencas += 1
+            elif st == "faltou":
+                faltas_explicitas += 1
+                datas_faltas.append(dt_str)
+
+        if presencas == 0 and faltas_explicitas >= 2:
+            cursor.execute("""
+                SELECT MAX(d) as ult_data FROM (
+                    SELECT data as d FROM historico_presenca WHERE aluno_id = ? AND status = 'presente'
+                    UNION
+                    SELECT data as d FROM frequencias WHERE aluno_id = ?
+                )
+            """, (aid, aid))
+            ult_row = cursor.fetchone()
+            ult_presenca_str = ult_row["ult_data"] if ult_row and ult_row["ult_data"] else "Nenhuma registrada"
+
+            pausado = bool(al["pausar_alerta_ausencia"])
+
+            msg = (
+                f"Oi {al['nome']}, tudo bem? 🧘‍♀️ "
+                f"Sentimos sua falta nas aulas aqui no estúdio nas últimas semanas! Está tudo bem com você? "
+                f"Quando puder, me avisa se precisa reagendar seus dias para não perder o ritmo da sua prática. Namastê! 🙏"
+            )
+            telefone_limpo = "".join(filter(str.isdigit, al.get("telefone", "")))
+            if telefone_limpo and not telefone_limpo.startswith("55"):
+                telefone_limpo = "55" + telefone_limpo
+
+            link_whatsapp = f"https://wa.me/{telefone_limpo}?text={urllib.parse.quote(msg)}"
+
+            resultado.append({
+                "aluno_id": aid,
+                "nome": al["nome"],
+                "telefone": al["telefone"],
+                "plano": al["plano"],
+                "turmas": [t["nome"] for t in turmas_aluno],
+                "faltas_consecutivas": faltas_explicitas,
+                "aulas_previstas": len(dias_aulas_previstas),
+                "datas_faltas": datas_faltas,
+                "ultima_presenca": ult_presenca_str,
+                "pausado": pausado,
+                "motivo_pausa": al["motivo_pausa_alerta"] or "",
+                "mensagem": msg,
+                "link_whatsapp": link_whatsapp
+            })
+
+    conn.close()
+    return sorted(resultado, key=lambda x: (x["pausado"], -x["faltas_consecutivas"]))
 
 # --- Gestão de Despesas do Estúdio ---
 
