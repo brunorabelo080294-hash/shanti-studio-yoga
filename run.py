@@ -42,14 +42,9 @@ def main():
     print("=" * 65)
     print("\nIniciando servidores HTTP e HTTPS... Pressione Ctrl+C para encerrar.\n")
 
-    # Iniciar HTTP em uma thread secundária
-    def start_http():
-        uvicorn.run("backend.app:app", host="0.0.0.0", port=port_http, log_level="warning")
-
-    threading.Thread(target=start_http, daemon=True).start()
-
-    # Iniciar HTTPS na thread principal (se certificados existirem)
+    # Iniciar HTTPS se certificados existirem, ou HTTP diretamente
     if os.path.exists("key.pem") and os.path.exists("cert.pem"):
+        threading.Thread(target=lambda: uvicorn.run("backend.app:app", host="0.0.0.0", port=port_http, log_level="warning"), daemon=True).start()
         uvicorn.run("backend.app:app", host="0.0.0.0", port=port_https, ssl_keyfile="key.pem", ssl_certfile="cert.pem", log_level="info")
     else:
         uvicorn.run("backend.app:app", host="0.0.0.0", port=port_http, log_level="info")
