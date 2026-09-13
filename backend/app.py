@@ -705,6 +705,17 @@ def api_verificar_status_autentique(aluno_id: int):
     
     try:
         info = autentique_service.consultar_status_documento(doc_id)
+        # Atualiza a etapa e links no banco de dados
+        if info.get("etapa"):
+            db.atualizar_status_autentique(aluno_id, info["etapa"])
+        dados_atualizacao = {}
+        if info.get("link_natalia"):
+            dados_atualizacao["autentique_link_natalia"] = info["link_natalia"]
+        if info.get("link_aluno"):
+            dados_atualizacao["autentique_link"] = info["link_aluno"]
+        if dados_atualizacao:
+            db.atualizar_aluno(aluno_id, dados_atualizacao)
+
         # Se foi finalizado e ainda não foi baixado localmente
         if info.get("finalizado") and aluno.get("status_contrato") != "em_dia":
             url_assinado = info.get("url_assinado")
@@ -754,7 +765,7 @@ async def api_webhook_autentique(request: Request):
             except Exception as e:
                 return {"status": "error", "erro": str(e)}
     elif event_type == "signature.rejected":
-        db.atualizar_status_autentique(doc_id, "rejeitado")
+        db.atualizar_status_autentique(aluno_id, "rejeitado")
         return {"status": "success", "acao": "marcado_rejeitado"}
     
     return {"status": "success", "event_type": event_type}

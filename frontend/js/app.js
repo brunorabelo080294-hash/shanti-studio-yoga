@@ -2455,13 +2455,24 @@ function setupSettings() {
     formEnvioAutentique.addEventListener('submit', confirmarEnvioAutentique);
   }
 
+  const btnCopiarLinkNatalia = document.getElementById('btn-copiar-link-natalia');
+  if (btnCopiarLinkNatalia) {
+    btnCopiarLinkNatalia.addEventListener('click', () => {
+      const input = document.getElementById('links-autentique-natalia-url');
+      if (input && input.value) {
+        navigator.clipboard.writeText(input.value);
+        showToast('Link da Natália copiado!');
+      }
+    });
+  }
+
   const btnCopiarLinkAluno = document.getElementById('btn-copiar-link-aluno');
   if (btnCopiarLinkAluno) {
     btnCopiarLinkAluno.addEventListener('click', () => {
       const input = document.getElementById('links-autentique-aluno-url');
       if (input && input.value) {
         navigator.clipboard.writeText(input.value);
-        showToast('Link de assinatura copiado!');
+        showToast('Link de assinatura do aluno copiado!');
       }
     });
   }
@@ -2470,7 +2481,7 @@ function setupSettings() {
   if (btnSincronizarAutentique) {
     btnSincronizarAutentique.addEventListener('click', async () => {
       const alunoId = document.getElementById('links-autentique-aluno-id')?.value;
-      if (alunoId) await verificarStatusAutentique(alunoId);
+      if (alunoId) await verificarStatusAutentique(alunoId, true);
     });
   }
 
@@ -2926,9 +2937,9 @@ async function confirmarEnvioAutentique(e) {
     showToast('Contrato enviado com sucesso para assinatura no Autentique!');
     await carregarContratos();
     
-    if (data.link_aluno) {
+    if (data.link_aluno || data.link_natalia) {
       const aluno = (state.contratos || []).find(c => c.id == alunoId) || {};
-      abrirModalLinksAutentique(alunoId, aluno.nome || 'Aluno', data.document_id, data.link_aluno, aluno.telefone);
+      abrirModalLinksAutentique(alunoId, aluno.nome || 'Aluno', data.document_id, data.link_aluno, aluno.telefone, data.link_natalia);
     }
   } catch (err) {
     const msg = err.message || '';
@@ -2954,31 +2965,80 @@ async function confirmarEnvioAutentique(e) {
   }
 }
 
-function abrirModalLinksAutentique(alunoId, alunoNome, docId, linkAluno, telefone) {
+function abrirModalLinksAutentique(alunoId, alunoNome, docId, linkAluno, telefone, linkNatalia) {
   document.getElementById('links-autentique-aluno-id').value = alunoId;
   document.getElementById('links-autentique-aluno-nome').textContent = alunoNome;
   document.getElementById('links-autentique-doc-id').textContent = `Doc ID: ${docId || 'Não informado'}`;
   
-  const inputUrl = document.getElementById('links-autentique-aluno-url');
-  if (inputUrl) inputUrl.value = linkAluno || 'Link gerado via WhatsApp';
+  // Etapa 1: Natália (Contratada)
+  const inputNatalia = document.getElementById('links-autentique-natalia-url');
+  if (inputNatalia) inputNatalia.value = linkNatalia || '';
   
-  let telLimpo = (telefone || '').replace(/\D/g, '');
-  if (telLimpo && !telLimpo.startsWith('55')) telLimpo = '55' + telLimpo;
+  const btnAbrirNatalia = document.getElementById('btn-abrir-link-natalia');
+  if (btnAbrirNatalia) {
+    if (linkNatalia) {
+      btnAbrirNatalia.href = linkNatalia;
+      btnAbrirNatalia.style.pointerEvents = 'auto';
+      btnAbrirNatalia.style.opacity = '1';
+    } else {
+      btnAbrirNatalia.href = '#';
+    }
+  }
+
+  const btnWaNatalia = document.getElementById('btn-wa-link-natalia');
+  if (btnWaNatalia) {
+    const telNataliaRaw = (state.configuracoes?.telefone_studio || '22988423287').replace(/\D/g, '');
+    const telNatalia = telNataliaRaw.startsWith('55') ? telNataliaRaw : ('55' + telNataliaRaw);
+    const msgNatalia = encodeURIComponent(
+      `Olá, Natália! 🧘‍♀️ Segue o link para você assinar o contrato de ${alunoNome} como Contratada (Studio Shanti):\n\n` +
+      `👉 ${linkNatalia || ''}\n\n` +
+      `Assim que você assinar na tela, o sistema liberará automaticamente o envio para o aluno assinar! ✨`
+    );
+    btnWaNatalia.href = `https://wa.me/${telNatalia}?text=${msgNatalia}`;
+  }
+
+  // Etapa 2: Aluno (Contratante)
+  const inputAluno = document.getElementById('links-autentique-aluno-url');
+  if (inputAluno) inputAluno.value = linkAluno || '';
   
-  const btnWa = document.getElementById('btn-wa-link-aluno');
-  if (btnWa) {
-    const msg = encodeURIComponent(
-      `Olá, ${alunoNome}! 🧘‍♀️ Segue o link seguro para assinatura eletrônica do seu Contrato com o Studio Shanti:\n\n` +
-      `👉 ${linkAluno}\n\n` +
+  let telAluno = (telefone || '').replace(/\D/g, '');
+  if (telAluno && !telAluno.startsWith('55')) telAluno = '55' + telAluno;
+  
+  const btnWaAluno = document.getElementById('btn-wa-link-aluno');
+  if (btnWaAluno) {
+    const msgAluno = encodeURIComponent(
+      `Olá, ${alunoNome}! 🧘‍♀️ Segue o link seguro para assinatura eletrônica do seu Contrato com o Studio Shanti (já assinado pela professora Natália):\n\n` +
+      `👉 ${linkAluno || ''}\n\n` +
       `Basta tocar no link e assinar direto na tela do celular! Namastê. 🙏`
     );
-    btnWa.href = `https://wa.me/${telLimpo}?text=${msg}`;
+    btnWaAluno.href = `https://wa.me/${telAluno}?text=${msgAluno}`;
   }
   
+  // Estado padrão visual
+  const etapaBadge = document.getElementById('links-autentique-etapa-badge');
+  if (etapaBadge) {
+    etapaBadge.className = 'wa-badge';
+    etapaBadge.style.background = '#fffbeb';
+    etapaBadge.style.color = '#b45309';
+    etapaBadge.style.border = '1px solid #fde68a';
+    etapaBadge.textContent = '1ª Etapa: Natália';
+  }
+
+  const box = document.getElementById('links-autentique-status-box');
+  if (box) {
+    box.style.background = '#f8fcf9';
+    box.style.borderColor = '#dcfce7';
+    box.style.color = 'var(--shanti-charcoal)';
+    box.innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="color:var(--shanti-sage);"></i> Consultando status atualizado...';
+  }
+
   abrirModal('modal-links-autentique');
+
+  // Consulta em background para sincronizar badges e destravar envio ao aluno se Natália já assinou
+  verificarStatusAutentique(alunoId, false);
 }
 
-async function verificarStatusAutentique(alunoId) {
+async function verificarStatusAutentique(alunoId, showToastAlert = true) {
   const btnSinc = document.getElementById('btn-sincronizar-autentique');
   if (btnSinc) {
     btnSinc.disabled = true;
@@ -2992,29 +3052,133 @@ async function verificarStatusAutentique(alunoId) {
       throw new Error(data.detail || 'Erro ao consultar status no Autentique.');
     }
     
+    // Atualizar inputs e links caso tenham sido preenchidos na resposta
+    if (data.link_natalia) {
+      const inputNatalia = document.getElementById('links-autentique-natalia-url');
+      if (inputNatalia) inputNatalia.value = data.link_natalia;
+      const btnAbrirNat = document.getElementById('btn-abrir-link-natalia');
+      if (btnAbrirNat) btnAbrirNat.href = data.link_natalia;
+    }
+    if (data.link_aluno) {
+      const inputAluno = document.getElementById('links-autentique-aluno-url');
+      if (inputAluno) inputAluno.value = data.link_aluno;
+    }
+
+    const badgeNatalia = document.getElementById('status-natalia-badge');
+    const badgeAluno = document.getElementById('status-aluno-badge');
+    const avisoBloqueado = document.getElementById('aviso-aluno-bloqueado');
+    const areaAluno = document.getElementById('area-envio-aluno');
+    const etapaBadge = document.getElementById('links-autentique-etapa-badge');
     const box = document.getElementById('links-autentique-status-box');
-    if (box) {
-      if (data.finalizado) {
+    const btnAbrirNat = document.getElementById('btn-abrir-link-natalia');
+
+    const nataliaAssinou = Boolean(data.natalia_assinou);
+    const alunoAssinou = Boolean(data.aluno_assinou);
+    const finalizado = Boolean(data.finalizado);
+
+    // 1. Atualizar card da Natália
+    if (nataliaAssinou) {
+      if (badgeNatalia) {
+        badgeNatalia.style.background = '#dcfce7';
+        badgeNatalia.style.color = '#15803d';
+        badgeNatalia.innerHTML = '<i class="fa-solid fa-check"></i> Assinado';
+      }
+      if (btnAbrirNat) {
+        btnAbrirNat.style.background = '#e2e8f0';
+        btnAbrirNat.style.color = '#64748b';
+        btnAbrirNat.innerHTML = '<i class="fa-solid fa-check"></i> Já Assinado';
+        btnAbrirNat.style.pointerEvents = 'none';
+      }
+    } else {
+      if (badgeNatalia) {
+        badgeNatalia.style.background = '#fffbeb';
+        badgeNatalia.style.color = '#b45309';
+        badgeNatalia.innerHTML = '⏳ Pendente';
+      }
+      if (btnAbrirNat) {
+        btnAbrirNat.style.background = 'var(--shanti-forest)';
+        btnAbrirNat.style.color = '#fff';
+        btnAbrirNat.innerHTML = '<i class="fa-solid fa-pen-nib"></i> Assinar Agora';
+        btnAbrirNat.style.pointerEvents = 'auto';
+      }
+    }
+
+    // 2. Atualizar card do Aluno
+    if (nataliaAssinou) {
+      if (avisoBloqueado) avisoBloqueado.style.display = 'none';
+      if (areaAluno) areaAluno.style.display = 'block';
+
+      if (alunoAssinou) {
+        if (badgeAluno) {
+          badgeAluno.style.background = '#dcfce7';
+          badgeAluno.style.color = '#15803d';
+          badgeAluno.innerHTML = '<i class="fa-solid fa-check"></i> Assinado';
+        }
+      } else {
+        if (badgeAluno) {
+          badgeAluno.style.background = '#eff6ff';
+          badgeAluno.style.color = '#1e40af';
+          badgeAluno.innerHTML = '⏳ Pronto p/ Envio';
+        }
+      }
+    } else {
+      if (avisoBloqueado) avisoBloqueado.style.display = 'block';
+      if (areaAluno) areaAluno.style.display = 'none';
+      if (badgeAluno) {
+        badgeAluno.style.background = '#f3f4f6';
+        badgeAluno.style.color = '#6b7280';
+        badgeAluno.innerHTML = 'Aguardando Natália';
+      }
+    }
+
+    // 3. Atualizar Status Box e Etapa Badge
+    if (finalizado) {
+      if (etapaBadge) {
+        etapaBadge.style.background = '#dcfce7';
+        etapaBadge.style.color = '#15803d';
+        etapaBadge.style.border = '1px solid #86efac';
+        etapaBadge.innerHTML = 'Concluído';
+      }
+      if (box) {
         box.style.background = '#f0fdf4';
         box.style.borderColor = '#bbf7d0';
         box.style.color = '#15803d';
-        box.innerHTML = '<i class="fa-solid fa-circle-check"></i> <b>Contrato totalmente assinado!</b> O documento foi validado como "Em Dia" com 1 ano de vigência.';
-      } else {
+        box.innerHTML = '<i class="fa-solid fa-circle-check"></i> <b>Contrato totalmente assinado!</b> Validado como "Em Dia" com 1 ano de vigência.';
+      }
+      if (showToastAlert) showToast('Contrato assinado e atualizado para "Em Dia"!');
+      await carregarContratos();
+    } else if (!nataliaAssinou) {
+      if (etapaBadge) {
+        etapaBadge.style.background = '#fffbeb';
+        etapaBadge.style.color = '#b45309';
+        etapaBadge.style.border = '1px solid #fde68a';
+        etapaBadge.innerHTML = '1ª Etapa: Natália';
+      }
+      if (box) {
+        box.style.background = '#fffbeb';
+        box.style.borderColor = '#fde68a';
+        box.style.color = '#92400e';
+        box.innerHTML = '<i class="fa-solid fa-hourglass-start"></i> <b>Etapa 1 de 2:</b> Aguardando assinatura da Natália para liberar envio ao aluno.';
+      }
+      if (showToastAlert) showToast('Aguardando assinatura da Professora Natália.');
+    } else {
+      // Natália assinou, aguardando aluno
+      if (etapaBadge) {
+        etapaBadge.style.background = '#eff6ff';
+        etapaBadge.style.color = '#1e40af';
+        etapaBadge.style.border = '1px solid #bfdbfe';
+        etapaBadge.innerHTML = '2ª Etapa: Aluno';
+      }
+      if (box) {
         box.style.background = '#eff6ff';
         box.style.borderColor = '#bfdbfe';
         box.style.color = '#1e40af';
-        box.innerHTML = `<i class="fa-solid fa-clock-rotate-left"></i> Assinados: ${data.total_assinados || 0} de ${data.total_signatarios || 2} signatários.`;
+        box.innerHTML = '<i class="fa-solid fa-paper-plane"></i> <b>Etapa 2 de 2:</b> Natália já assinou! Envie o link acima ao aluno pelo WhatsApp.';
       }
-    }
-    
-    if (data.finalizado) {
-      showToast('Contrato assinado e atualizado para "Em Dia"!');
-      await carregarContratos();
-    } else {
-      showToast(`Status: ${data.total_assinados || 0} de ${data.total_signatarios || 2} assinado(s).`);
+      if (showToastAlert) showToast('Natália já assinou! Envio ao aluno liberado.');
     }
   } catch (err) {
-    alert(`Erro ao sincronizar: ${err.message}`);
+    if (showToastAlert) alert(`Erro ao sincronizar: ${err.message}`);
   } finally {
     if (btnSinc) {
       btnSinc.disabled = false;
@@ -3132,7 +3296,7 @@ function renderizarContratos() {
     let badgeIcon = 'fa-solid fa-hourglass-half';
 
     const temArquivo = Boolean(c.contrato_assinado_arquivo);
-    const enviadoAutentique = Boolean(c.autentique_doc_id) && c.autentique_status === 'aguardando_assinaturas';
+    const enviadoAutentique = Boolean(c.autentique_doc_id) && c.autentique_status !== 'assinado';
 
     if (c.status_contrato === 'em_dia') {
       badgeClass = 'badge-contrato-em-dia';
@@ -3148,8 +3312,16 @@ function renderizarContratos() {
       badgeIcon = 'fa-solid fa-circle-exclamation';
     } else if (enviadoAutentique) {
       badgeClass = 'badge-contrato-a-vencer';
-      badgeTexto = 'Autentique: Aguardando';
-      badgeIcon = 'fa-solid fa-clock-rotate-left';
+      if (c.autentique_status === 'aguardando_natalia') {
+        badgeTexto = 'Autentique: 1ª Etapa (Natália)';
+        badgeIcon = 'fa-solid fa-pen-nib';
+      } else if (c.autentique_status === 'aguardando_aluno') {
+        badgeTexto = 'Autentique: 2ª Etapa (Aluno)';
+        badgeIcon = 'fa-solid fa-paper-plane';
+      } else {
+        badgeTexto = 'Autentique: Aguardando';
+        badgeIcon = 'fa-solid fa-clock-rotate-left';
+      }
     }
 
     let vigenciaTexto = 'Aguardando documento assinado por ambas as partes';
@@ -3157,7 +3329,13 @@ function renderizarContratos() {
       const diasRest = c.dias_restantes != null ? `(${c.dias_restantes} dias restantes)` : '';
       vigenciaTexto = `Vigência até ${formatarDataBR(c.data_vigencia_contrato)} ${diasRest}`;
     } else if (enviadoAutentique) {
-      vigenciaTexto = 'Enviado para assinatura digital no Autentique (WhatsApp/E-mail)';
+      if (c.autentique_status === 'aguardando_natalia') {
+        vigenciaTexto = 'Autentique: Aguardando assinatura da Natália (Etapa 1)';
+      } else if (c.autentique_status === 'aguardando_aluno') {
+        vigenciaTexto = 'Autentique: Natália assinou! Pronto para envio ao aluno (Etapa 2)';
+      } else {
+        vigenciaTexto = 'Enviado para assinatura digital no Autentique (WhatsApp)';
+      }
     }
 
     let tel = (c.telefone || '').replace(/\D/g, '');
@@ -3200,6 +3378,10 @@ function renderizarContratos() {
               <b>Assinatura Digital:</b> 
               ${c.autentique_status === 'assinado'
                 ? '<span style="color:#3F4E3A; font-weight:600;"><i class="fa-solid fa-shield-check"></i> Assinado via Autentique</span>'
+                : c.autentique_status === 'aguardando_natalia'
+                ? '<span style="color:#b45309; font-weight:600;"><i class="fa-solid fa-hourglass-start"></i> Autentique (Etapa 1: Natália pendente)</span>'
+                : c.autentique_status === 'aguardando_aluno'
+                ? '<span style="color:#1e40af; font-weight:600;"><i class="fa-solid fa-paper-plane"></i> Autentique (Etapa 2: Liberado p/ Aluno)</span>'
                 : `<span style="color:var(--shanti-forest); font-weight:600;"><i class="fa-solid fa-clock-rotate-left"></i> Autentique (${c.autentique_status || 'Aguardando'})</span>`
               }
             </div>
@@ -3214,10 +3396,10 @@ function renderizarContratos() {
           ` : ''}
 
           ${enviadoAutentique ? `
-            <button type="button" class="wa-btn-primary" style="flex: 1; min-width: 115px; padding: 7px 12px; font-size: 12px; background: var(--shanti-sage); color: #FFFFFF; border: none; border-radius: 20px; font-weight: 600;" onclick="abrirModalLinksAutentique(${c.id}, '${c.nome.replace(/'/g, "\\'")}', '${c.autentique_doc_id}', '${c.autentique_link}', '${c.telefone || ''}')">
+            <button type="button" class="wa-btn-primary" style="flex: 1; min-width: 115px; padding: 7px 12px; font-size: 12px; background: var(--shanti-sage); color: #FFFFFF; border: none; border-radius: 20px; font-weight: 600;" onclick="abrirModalLinksAutentique(${c.id}, '${c.nome.replace(/'/g, "\\'")}', '${c.autentique_doc_id}', '${c.autentique_link || ''}', '${c.telefone || ''}', '${c.autentique_link_natalia || ''}')">
               <i class="fa-solid fa-link"></i> Links / WA
             </button>
-            <button type="button" class="wa-btn-primary" style="flex: 1; min-width: 100px; padding: 7px 12px; font-size: 12px; background: #FFFFFF; color: var(--shanti-forest); border: 1px solid var(--shanti-sand-border); border-radius: 20px; font-weight: 600;" onclick="verificarStatusAutentique(${c.id})" title="Consultar status no Autentique">
+            <button type="button" class="wa-btn-primary" style="flex: 1; min-width: 100px; padding: 7px 12px; font-size: 12px; background: #FFFFFF; color: var(--shanti-forest); border: 1px solid var(--shanti-sand-border); border-radius: 20px; font-weight: 600;" onclick="verificarStatusAutentique(${c.id}, true)" title="Consultar status no Autentique">
               <i class="fa-solid fa-rotate"></i> Sincronizar
             </button>
           ` : ''}

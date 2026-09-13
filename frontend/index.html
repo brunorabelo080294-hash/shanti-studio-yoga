@@ -1377,51 +1377,109 @@
 </div>
 
 <!-- ======================================================================
-     MODAL: ACOMPANHAMENTO E LINKS DE ASSINATURA AUTENTIQUE
+     MODAL: ACOMPANHAMENTO E LINKS DE ASSINATURA AUTENTIQUE (FLUXO 2 ETAPAS)
      ====================================================================== -->
 <div class="wa-modal-overlay" id="modal-links-autentique">
-  <div class="wa-modal-sheet">
+  <div class="wa-modal-sheet" style="max-width: 500px;">
     <div class="wa-modal-header">
-      <h3 class="wa-modal-title"><i class="fa-solid fa-signature" style="color:var(--shanti-forest);"></i> Acompanhamento Autentique</h3>
+      <h3 class="wa-modal-title"><i class="fa-solid fa-file-signature" style="color:var(--shanti-forest);"></i> Assinatura Digital em 2 Etapas</h3>
       <button class="wa-modal-close" data-close-modal="modal-links-autentique">&times;</button>
     </div>
 
     <input type="hidden" id="links-autentique-aluno-id">
 
-    <div style="background: var(--shanti-sand-light); border: 1px solid var(--shanti-sand-border); border-radius: 12px; padding: 12px 14px; margin-bottom: 14px;">
-      <div style="font-size: 14px; font-weight: 700; color: var(--shanti-charcoal); margin-bottom: 2px;" id="links-autentique-aluno-nome">
-        Nome do Aluno
+    <div style="background: var(--shanti-sand-light); border: 1px solid var(--shanti-sand-border); border-radius: 12px; padding: 12px 14px; margin-bottom: 12px;">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div style="font-size: 14px; font-weight: 700; color: var(--shanti-charcoal);" id="links-autentique-aluno-nome">
+          Nome do Aluno
+        </div>
+        <span id="links-autentique-etapa-badge" class="wa-badge" style="background: #fffbeb; color: #b45309; border: 1px solid #fde68a; font-size: 11px; padding: 3px 8px; border-radius: 12px; font-weight: 600;">
+          1ª Etapa: Natália
+        </span>
       </div>
-      <div style="font-size: 11.5px; color: var(--shanti-stone);" id="links-autentique-doc-id">
+      <div style="font-size: 11px; color: var(--shanti-stone); margin-top: 3px;" id="links-autentique-doc-id">
         Doc ID: -
       </div>
     </div>
 
     <!-- Status Atual do Autentique -->
-    <div id="links-autentique-status-box" style="background: var(--shanti-sand-light); border: 1px solid var(--shanti-sand-border); border-radius: 10px; padding: 10px 14px; margin-bottom: 14px; font-size: 12px; color: var(--shanti-charcoal);">
-      <i class="fa-solid fa-circle-info" style="color:var(--shanti-sage);"></i> Aguardando assinaturas eletrônicas.
+    <div id="links-autentique-status-box" style="background: #f8fcf9; border: 1px solid #dcfce7; border-radius: 10px; padding: 10px 14px; margin-bottom: 12px; font-size: 12px; color: var(--shanti-charcoal);">
+      <i class="fa-solid fa-circle-info" style="color:var(--shanti-sage);"></i> Carregando status do documento...
     </div>
 
-    <!-- Link do Aluno -->
-    <div class="wa-form-group" style="margin-bottom: 12px;">
-      <label style="font-size: 12px;">Link de Assinatura do Aluno</label>
-      <div style="display: flex; gap: 6px;">
-        <input type="text" readonly id="links-autentique-aluno-url" class="wa-form-control" style="font-size: 11.5px; font-family: monospace; background: #fff;">
-        <button type="button" class="wa-btn-primary" id="btn-copiar-link-aluno" style="padding: 6px 12px; background: #ffffff; color: var(--shanti-forest); border: 1px solid var(--shanti-sand-border); border-radius: 10px;" title="Copiar Link">
+    <!-- ETAPA 1: ASSINATURA DA PROFESSORA NATÁLIA (ESTÚDIO) -->
+    <div id="box-etapa-natalia" style="background: #ffffff; border: 1px solid var(--shanti-sand-border); border-radius: 12px; padding: 12px 14px; margin-bottom: 12px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+        <span style="font-size: 12.5px; font-weight: 700; color: var(--shanti-forest);">
+          <span style="background: var(--shanti-forest); color: #fff; width: 18px; height: 18px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 10px; margin-right: 4px;">1</span>
+          Assinatura da Professora Natália
+        </span>
+        <span id="status-natalia-badge" style="font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 10px; background: #fffbeb; color: #b45309;">
+          ⏳ Pendente
+        </span>
+      </div>
+      <p style="font-size: 11.5px; color: var(--shanti-stone); margin: 0 0 8px 0; line-height: 1.4;">
+        A Natália deve assinar primeiro como Contratada.
+      </p>
+      
+      <div style="display: flex; gap: 6px; margin-bottom: 8px;">
+        <input type="text" readonly id="links-autentique-natalia-url" class="wa-form-control" style="font-size: 11.5px; font-family: monospace; background: #fff;" placeholder="Link da Natália">
+        <button type="button" class="wa-btn-primary" id="btn-copiar-link-natalia" style="padding: 6px 12px; background: #ffffff; color: var(--shanti-forest); border: 1px solid var(--shanti-sand-border); border-radius: 10px;" title="Copiar Link da Natália">
           <i class="fa-solid fa-copy"></i>
         </button>
-        <a id="btn-wa-link-aluno" href="#" target="_blank" class="wa-btn-primary" style="padding: 6px 12px; background: var(--shanti-whatsapp-green); color: #fff; text-decoration: none; border: none; border-radius: 10px; display: inline-flex; align-items: center;" title="Enviar via WhatsApp">
-          <i class="fa-brands fa-whatsapp"></i>
+      </div>
+
+      <div style="display: flex; gap: 6px;">
+        <a id="btn-wa-link-natalia" href="#" target="_blank" class="wa-btn-primary" style="flex: 1; padding: 7px 10px; font-size: 11.5px; background: var(--shanti-whatsapp-green); color: #fff; text-decoration: none; border: none; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; gap: 5px; font-weight: 600;" title="Enviar WhatsApp para Natália">
+          <i class="fa-brands fa-whatsapp"></i> Enviar p/ Natália (WhatsApp)
+        </a>
+        <a id="btn-abrir-link-natalia" href="#" target="_blank" class="wa-btn-primary" style="flex: 1; padding: 7px 10px; font-size: 11.5px; background: var(--shanti-forest); color: #fff; text-decoration: none; border: none; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; gap: 5px; font-weight: 600;" title="Assinar Agora">
+          <i class="fa-solid fa-pen-nib"></i> Assinar Agora
+        </a>
+      </div>
+    </div>
+
+    <!-- ETAPA 2: ASSINATURA DO ALUNO (LIBERADA APÓS NATÁLIA ASSINAR) -->
+    <div id="box-etapa-aluno" style="background: #ffffff; border: 1px solid var(--shanti-sand-border); border-radius: 12px; padding: 12px 14px; margin-bottom: 14px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+        <span style="font-size: 12.5px; font-weight: 700; color: var(--shanti-charcoal);">
+          <span style="background: var(--shanti-sage); color: #fff; width: 18px; height: 18px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 10px; margin-right: 4px;">2</span>
+          Assinatura do Aluno
+        </span>
+        <span id="status-aluno-badge" style="font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 10px; background: #f3f4f6; color: #6b7280;">
+          Aguardando Natália
+        </span>
+      </div>
+
+      <!-- Aviso se Natália ainda não assinou -->
+      <div id="aviso-aluno-bloqueado" style="background: #fdf8f6; border: 1px dashed #fcd34d; border-radius: 8px; padding: 8px 10px; font-size: 11px; color: #92400e; margin-bottom: 8px; line-height: 1.4;">
+        <i class="fa-solid fa-lock" style="margin-right: 4px;"></i>
+        O envio ao aluno será liberado assim que a Natália concluir sua assinatura.
+      </div>
+
+      <!-- Área liberada para envio ao aluno -->
+      <div id="area-envio-aluno" style="display: none;">
+        <p style="font-size: 11.5px; color: var(--shanti-stone); margin: 0 0 8px 0; line-height: 1.4;">
+          A Natália já assinou! Envie agora o contrato para o aluno assinar pelo WhatsApp:
+        </p>
+        <div style="display: flex; gap: 6px; margin-bottom: 8px;">
+          <input type="text" readonly id="links-autentique-aluno-url" class="wa-form-control" style="font-size: 11.5px; font-family: monospace; background: #fff;" placeholder="Link do Aluno">
+          <button type="button" class="wa-btn-primary" id="btn-copiar-link-aluno" style="padding: 6px 12px; background: #ffffff; color: var(--shanti-forest); border: 1px solid var(--shanti-sand-border); border-radius: 10px;" title="Copiar Link do Aluno">
+            <i class="fa-solid fa-copy"></i>
+          </button>
+        </div>
+        <a id="btn-wa-link-aluno" href="#" target="_blank" class="wa-btn-primary" style="width: 100%; padding: 9px 12px; background: var(--shanti-whatsapp-green); color: #fff; text-decoration: none; border: none; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-weight: 600;" title="Enviar via WhatsApp ao Aluno">
+          <i class="fa-brands fa-whatsapp" style="font-size: 16px;"></i> Enviar Contrato ao Aluno (WhatsApp)
         </a>
       </div>
     </div>
 
     <!-- Ações de Sincronização -->
-    <div style="display: flex; gap: 8px; margin-top: 16px;">
-      <button type="button" class="wa-btn-primary" id="btn-sincronizar-autentique" style="flex: 1; padding: 9px; font-size: 12.5px; background: var(--shanti-forest); color: #fff; border: none; border-radius: 20px; font-weight: 600;">
+    <div style="display: flex; gap: 8px;">
+      <button type="button" class="wa-btn-primary" id="btn-sincronizar-autentique" style="flex: 1; padding: 10px; font-size: 12.5px; background: var(--shanti-forest); color: #fff; border: none; border-radius: 20px; font-weight: 600;">
         <i class="fa-solid fa-rotate"></i> Sincronizar Status
       </button>
-      <button type="button" class="wa-btn-primary" data-close-modal="modal-links-autentique" style="flex: 1; padding: 9px; font-size: 12.5px; background: var(--shanti-sand-light); color: var(--shanti-charcoal); border: 1px solid var(--shanti-sand-border); border-radius: 20px; font-weight: 500; box-shadow: none;">
+      <button type="button" class="wa-btn-primary" data-close-modal="modal-links-autentique" style="flex: 1; padding: 10px; font-size: 12.5px; background: var(--shanti-sand-light); color: var(--shanti-charcoal); border: 1px solid var(--shanti-sand-border); border-radius: 20px; font-weight: 500; box-shadow: none;">
         Fechar
       </button>
     </div>

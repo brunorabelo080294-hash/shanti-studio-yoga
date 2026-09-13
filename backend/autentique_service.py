@@ -225,6 +225,7 @@ def criar_documento_contrato(aluno_id: int, sandbox: Optional[bool] = None) -> D
             "document": {
                 "name": doc_name,
                 "message": f"Olá! Este é o seu Contrato de Prestação de Serviços com o {nome_studio}. Por favor, assine digitalmente.",
+                "sortable": True,
                 "whatsapp_template": "STANDARD"
             },
             "signers": signers_list,
@@ -316,6 +317,9 @@ def criar_documento_contrato(aluno_id: int, sandbox: Optional[bool] = None) -> D
         "sandbox": modo_sandbox,
         "link_aluno": link_aluno,
         "link_natalia": link_natalia,
+        "etapa": "aguardando_natalia",
+        "natalia_assinou": False,
+        "aluno_assinou": False,
         "signers": signatures,
         "mensagem": f"Contrato enviado com sucesso para assinatura no Autentique! ({'Modo Sandbox' if modo_sandbox else 'Produção'})"
     }
@@ -395,8 +399,36 @@ def consultar_status_documento(doc_id: str) -> Dict[str, Any]:
     assinados = sum(1 for s in signers_para_calculo if s.get("signed") is not None)
     rejeitados = sum(1 for s in signers_para_calculo if s.get("rejected") is not None)
 
-    totalmente_assinado = (total_signers > 0 and assinados == total_signers)
+    natalia_sig = None
+    aluno_sig = None
+
+    for s in signatures:
+        s_name = (s.get("name") or "").lower()
+        if "natalia" in s_name:
+            natalia_sig = s
+        elif s.get("action"):
+            aluno_sig = s
+
+    if not natalia_sig and len(signatarios_reais) > 0:
+        natalia_sig = signatarios_reais[0]
+    if not aluno_sig and len(signatarios_reais) > 1:
+        aluno_sig = signatarios_reais[1]
+
+    natalia_assinou = bool(natalia_sig and natalia_sig.get("signed") is not None)
+    aluno_assinou = bool(aluno_sig and aluno_sig.get("signed") is not None)
+
+    link_natalia = (natalia_sig.get("link") or {}).get("short_link") if natalia_sig else ""
+    link_aluno = (aluno_sig.get("link") or {}).get("short_link") if aluno_sig else ""
+
+    totalmente_assinado = (total_signers > 0 and assinados >= total_signers)
     url_assinado = doc.get("files", {}).get("signed")
+
+    if totalmente_assinado:
+        etapa = "concluido"
+    elif natalia_assinou:
+        etapa = "aguardando_aluno"
+    else:
+        etapa = "aguardando_natalia"
 
     return {
         "encontrado": True,
@@ -405,6 +437,11 @@ def consultar_status_documento(doc_id: str) -> Dict[str, Any]:
         "total_signatarios": total_signers,
         "total_assinados": assinados,
         "total_rejeitados": rejeitados,
+        "natalia_assinou": natalia_assinou,
+        "aluno_assinou": aluno_assinou,
+        "link_natalia": link_natalia,
+        "link_aluno": link_aluno,
+        "etapa": etapa,
         "finalizado": totalmente_assinado,
         "url_assinado": url_assinado,
         "signatures": signatures

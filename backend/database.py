@@ -83,6 +83,7 @@ def init_db():
         ("autentique_doc_id", "TEXT"),
         ("autentique_status", "TEXT"),
         ("autentique_link", "TEXT"),
+        ("autentique_link_natalia", "TEXT"),
         ("autentique_enviado_em", "TEXT")
     ]:
         try:
@@ -1470,6 +1471,7 @@ def listar_contratos(filtro: Optional[str] = None) -> List[Dict[str, Any]]:
             "autentique_doc_id": al.get("autentique_doc_id") or "",
             "autentique_status": al.get("autentique_status") or "",
             "autentique_link": al.get("autentique_link") or "",
+            "autentique_link_natalia": al.get("autentique_link_natalia") or "",
             "autentique_enviado_em": al.get("autentique_enviado_em") or ""
         }
 
@@ -1561,8 +1563,9 @@ def registrar_disparo_autentique(
     agora_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     atualizar_aluno(aluno_id, {
         "autentique_doc_id": doc_id,
-        "autentique_status": "aguardando_assinaturas",
+        "autentique_status": "aguardando_natalia",
         "autentique_link": link_aluno,
+        "autentique_link_natalia": link_natalia,
         "autentique_enviado_em": agora_str
     })
 
@@ -1612,13 +1615,22 @@ def concluir_contrato_autentique(aluno_id: int, doc_id: str, caminho_arquivo: st
     conn.close()
     return True
 
-def atualizar_status_autentique(doc_id: str, status: str) -> bool:
-    """Atualiza o status de um documento Autentique (ex: 'rejeitado', 'aguardando_assinaturas')."""
+def atualizar_status_autentique(identificador: Any, status: str) -> bool:
+    """
+    Atualiza o status/etapa do contrato Autentique.
+    Aceita tanto aluno_id (int ou numérico) quanto autentique_doc_id (hash ou string).
+    """
     agora_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     conn = get_connection()
     cursor = conn.cursor()
-    cursor.execute("UPDATE alunos SET autentique_status = ? WHERE autentique_doc_id = ?", (status, doc_id))
-    cursor.execute("UPDATE contratos_autentique SET status = ?, atualizado_em = ? WHERE autentique_doc_id = ?", (status, agora_str, doc_id))
+    if isinstance(identificador, int) or (isinstance(identificador, str) and identificador.isdigit()):
+        aluno_id = int(identificador)
+        cursor.execute("UPDATE alunos SET autentique_status = ? WHERE id = ?", (status, aluno_id))
+        cursor.execute("UPDATE contratos_autentique SET status = ?, atualizado_em = ? WHERE aluno_id = ?", (status, agora_str, aluno_id))
+    else:
+        doc_id = str(identificador)
+        cursor.execute("UPDATE alunos SET autentique_status = ? WHERE autentique_doc_id = ?", (status, doc_id))
+        cursor.execute("UPDATE contratos_autentique SET status = ?, atualizado_em = ? WHERE autentique_doc_id = ?", (status, agora_str, doc_id))
     conn.commit()
     conn.close()
     return True
