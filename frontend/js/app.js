@@ -367,6 +367,31 @@ function voltarDaTelaAjustes() {
   }
 }
 
+function navegarParaAba(nomeAba) {
+  // Se estiver na tela de Ajustes, fecha e desativa primeiro
+  const screenAjustes = document.getElementById('screen-ajustes');
+  if (screenAjustes && screenAjustes.classList.contains('active')) {
+    screenAjustes.classList.remove('active');
+  }
+
+  // Tenta clicar no botão da aba correspondente
+  const tabBtn = document.querySelector(`.wa-tab-btn[data-tab="${nomeAba}"]`);
+  if (tabBtn) {
+    tabBtn.click();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  } else {
+    document.querySelectorAll('.wa-screen').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.wa-tab-btn').forEach(t => t.classList.remove('active'));
+    const targetScreen = document.getElementById(`screen-${nomeAba}`);
+    if (targetScreen) targetScreen.classList.add('active');
+    if (nomeAba === 'financeiro') carregarFinanceiro();
+    else if (nomeAba === 'alunos') carregarAlunos();
+    else if (nomeAba === 'estudio') carregarEstudio();
+    else if (nomeAba === 'contratos') carregarContratos();
+  }
+}
+window.navegarParaAba = navegarParaAba;
+
 // =============================================================================
 // CHAT COM A ASSISTENTE IA (COM AVATAR DO LOGO)
 // =============================================================================
@@ -532,37 +557,55 @@ function adicionarMensagem(texto, remetente = 'bot', dadosExtras = null, element
       });
       htmlInner += `</div>`;
     }
-    // 4. Lista de Despesas e Contas do Estúdio (Fase 3 & Correção de Bugs)
-    else if (Array.isArray(dadosExtras) && dadosExtras.length > 0 && (dadosExtras[0].descricao !== undefined || dadosExtras[0].categoria !== undefined)) {
+    // 4. Lista de Despesas e Contas do Estúdio (Fase 3 & Atalho Despesas & Saldo)
+    else if (Array.isArray(dadosExtras) && dadosExtras.length > 0 && (dadosExtras[0].descricao !== undefined || dadosExtras[0].categoria !== undefined || dadosExtras[0].vazio !== undefined)) {
       htmlInner += `<div style="margin-top: 10px; display: flex; flex-direction: column; gap: 8px;">`;
-      dadosExtras.forEach(d => {
-        const isPaga = d.status === 'pago';
-        const stLabel = isPaga ? '<span style="color:#10b981; font-weight:700;">✓ Paga</span>' : '<span style="color:#ef4444; font-weight:700;">⚠️ Vencimento Pendente</span>';
-        const vencStr = d.data_vencimento || d.data || '';
-        const dtFmt = vencStr ? formatarDataBR(vencStr.split(' ')[0]) : '';
-        htmlInner += `
-          <div class="wa-action-card" style="border-left-color: ${isPaga ? '#10b981' : '#ef4444'};">
-            <div class="wa-action-card-header">
-              <span class="wa-action-card-name">💸 ${d.descricao || 'Despesa'}</span>
-              <span class="wa-action-card-val" style="color: ${isPaga ? '#10b981' : '#ef4444'};">R$ ${(d.valor || 0).toFixed(2)}</span>
-            </div>
-            <div class="wa-action-card-sub" style="color: var(--wa-text-secondary);">
-              • Categoria: ${d.categoria || 'Geral'} • Vencimento: ${dtFmt} • ${stLabel}
-            </div>
-            <div style="display: flex; gap: 6px; margin-top: 8px;">
-              ${!isPaga ? `
-                <button type="button" class="wa-action-btn-whatsapp" onclick="marcarDespesaPagaChat(${d.id})" style="background: linear-gradient(135deg, #10b981, #059669); flex: 1; border: none; cursor: pointer;">
-                  <i class="fa-solid fa-check"></i> Marcar como Paga
+      const despesasReais = dadosExtras.filter(d => !d.vazio && d.descricao);
+      if (despesasReais.length > 0) {
+        despesasReais.forEach(d => {
+          const isPaga = d.status === 'pago';
+          const stLabel = isPaga ? '<span style="color:#10b981; font-weight:700;">✓ Paga</span>' : '<span style="color:#ef4444; font-weight:700;">⚠️ Vencimento Pendente</span>';
+          const vencStr = d.data_vencimento || d.data || '';
+          const dtFmt = vencStr ? formatarDataBR(vencStr.split(' ')[0]) : '';
+          htmlInner += `
+            <div class="wa-action-card" style="border-left-color: ${isPaga ? '#10b981' : '#ef4444'};">
+              <div class="wa-action-card-header">
+                <span class="wa-action-card-name">💸 ${d.descricao || 'Despesa'}</span>
+                <span class="wa-action-card-val" style="color: ${isPaga ? '#10b981' : '#ef4444'};">R$ ${(d.valor || 0).toFixed(2)}</span>
+              </div>
+              <div class="wa-action-card-sub" style="color: var(--wa-text-secondary);">
+                • Categoria: ${d.categoria || 'Geral'} • Vencimento: ${dtFmt} • ${stLabel}
+              </div>
+              <div style="display: flex; gap: 6px; margin-top: 8px;">
+                ${!isPaga ? `
+                  <button type="button" class="wa-action-btn-whatsapp" onclick="marcarDespesaPagaChat(${d.id})" style="background: linear-gradient(135deg, #10b981, #059669); flex: 1; border: none; cursor: pointer;">
+                    <i class="fa-solid fa-check"></i> Marcar Paga
+                  </button>
+                ` : ''}
+                <button type="button" class="wa-action-btn-whatsapp" onclick="navegarParaAba('financeiro')" style="background: #233930; border: 1px solid var(--shanti-gold); color: var(--shanti-gold); flex: 1; cursor: pointer;">
+                  <i class="fa-solid fa-wallet"></i> Ver no Financeiro
                 </button>
-              ` : ''}
-              <button type="button" class="wa-action-btn-whatsapp" onclick="navegarParaAba('financeiro')" style="background: #233930; border: 1px solid var(--shanti-gold); color: var(--shanti-gold); flex: 1; cursor: pointer;">
-                <i class="fa-solid fa-wallet"></i> Ver no Financeiro
-              </button>
+              </div>
             </div>
-          </div>
-        `;
-      });
-      htmlInner += `</div>`;
+          `;
+        });
+      }
+      // Botão geral para abrir a aba Financeiro
+      htmlInner += `
+        <button type="button" class="wa-action-btn-whatsapp" onclick="navegarParaAba('financeiro')" style="background: var(--shanti-primary); border: 1px solid var(--shanti-gold); color: #ffffff; width: 100%; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 14px; border-radius: 8px; font-weight: 700;">
+          <i class="fa-solid fa-wallet" style="color: var(--shanti-gold);"></i> Abrir Painel Financeiro
+        </button>
+      </div>`;
+    }
+    // 4b. Relatório / Balanço Financeiro Geral
+    else if (!Array.isArray(dadosExtras) && (dadosExtras.faturamento_realizado !== undefined || dadosExtras.total_despesas !== undefined)) {
+      htmlInner += `
+        <div style="margin-top: 10px;">
+          <button type="button" class="wa-action-btn-whatsapp" onclick="navegarParaAba('financeiro')" style="background: var(--shanti-primary); border: 1px solid var(--shanti-gold); color: #ffffff; width: 100%; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 14px; border-radius: 8px; font-weight: 700;">
+            <i class="fa-solid fa-wallet" style="color: var(--shanti-gold);"></i> Abrir Painel Financeiro Completo
+          </button>
+        </div>
+      `;
     }
     // 5. Lista de Matrículas Pendentes de Aprovação / Pagamento ("Entrou, Pagou")
     else if (Array.isArray(dadosExtras) && dadosExtras.length > 0 && (dadosExtras[0].aprovacao_pagamento === 'pendente' || (dadosExtras[0].plano && dadosExtras[0].valor_mensalidade && !dadosExtras[0].dias_atraso))) {

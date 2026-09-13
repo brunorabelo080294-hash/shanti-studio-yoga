@@ -129,42 +129,47 @@ def processar_comando_local(texto: str) -> Dict[str, Any]:
             "dados": relatorio
         }
 
-    # Consulta Detalhada de Despesas & Contas a Pagar (Fase 3)
-    if any(p in texto_lower for p in ["despesa", "despesas", "gastei", "quanto gastou", "contas a pagar", "contas a vencer", "vencimento de conta", "detalhe das contas", "contas pendentes"]):
+    # Consulta Detalhada de Despesas & Saldo / Contas a Pagar (Fase 3 & Atalho Despesas & Saldo)
+    if any(p in texto_lower for p in ["despesa", "despesas", "gastei", "quanto gastou", "contas a pagar", "contas a vencer", "vencimento de conta", "detalhe das contas", "contas pendentes", "despesas e saldo", "saldo do mês", "saldo do mes", "saldo atual", "consultar saldo"]):
         hoje = datetime.date.today()
         mes_atual = hoje.strftime("%Y-%m")
         despesas = db.listar_despesas(mes_atual)
         alertas = db.obter_alertas_despesas()
+        relatorio = db.obter_relatorio_mensal(mes_atual)
 
-        if not despesas:
-            return {
-                "resposta": "💸 Nenhuma despesa registrada para o mês atual.",
-                "tipo": "despesas",
-                "dados": []
-            }
+        total_desp = relatorio.get("total_despesas", 0.0)
+        fat_real = relatorio.get("faturamento_realizado", 0.0)
+        saldo_real = relatorio.get("lucro_liquido_real", 0.0)
 
-        total_desp = sum(d.get("valor", 0.0) for d in despesas)
-        resposta = f"💸 *Despesas Detalhadas do Mês ({mes_atual})*\n"
-        resposta += f"• Total de Lançamentos: {len(despesas)}\n"
-        resposta += f"• Valor Total das Despesas: R$ {total_desp:.2f}\n\n"
+        resposta = f"📊 *Despesas & Saldo do Studio ({mes_atual})*\n\n"
+        resposta += f"• *Faturamento Recebido:* R$ {fat_real:.2f}\n"
+        resposta += f"• *Total de Despesas:* R$ {total_desp:.2f}\n"
+        resposta += f"• *Saldo Líquido Atual:* R$ {saldo_real:.2f}\n"
 
         if alertas["total_vencidas"] > 0:
-            resposta += f"⚠️ *ATENÇÃO:* Há {alertas['total_vencidas']} conta(s) VENCIDA(S) pendente(s) de pagamento!\n"
+            resposta += f"\n⚠️ *ATENÇÃO:* Há {alertas['total_vencidas']} conta(s) VENCIDA(S) pendente(s) de pagamento!"
         if alertas["total_vence_hoje"] > 0:
-            resposta += f"⚡ *ALERTA:* Há {alertas['total_vence_hoje']} conta(s) VENCENDO HOJE!\n"
+            resposta += f"\n⚡ *ALERTA:* Há {alertas['total_vence_hoje']} conta(s) VENCENDO HOJE!"
 
-        resposta += "\n*Relação de Despesas:*\n"
-        for idx, d in enumerate(despesas, 1):
-            st = "Paga" if d.get("status") == "pago" else "⚠️ PENDENTE"
-            dt_venc = d.get("data_vencimento") or d.get("data")
-            p = dt_venc.split("-")
-            dt_fmt = f"{p[2]}/{p[1]}/{p[0]}" if len(p) == 3 else dt_venc
-            resposta += f"{idx}. *{d['descricao']}* — R$ {d['valor']:.2f}\n   • Categoria: {d.get('categoria', 'Geral')} | Vencimento: {dt_fmt} | Status: {st}\n"
+        if not despesas:
+            resposta += "\n\n💸 _Nenhuma despesa lançada para este mês ainda._"
+            dados_retorno = [{"vazio": True, "faturamento": fat_real, "despesas": total_desp, "saldo": saldo_real}]
+        else:
+            resposta += f"\n\n*Relação de Despesas ({len(despesas)}):*\n"
+            for idx, d in enumerate(despesas, 1):
+                st = "Paga" if d.get("status") == "pago" else "⚠️ PENDENTE"
+                dt_venc = d.get("data_vencimento") or d.get("data")
+                p = dt_venc.split("-")
+                dt_fmt = f"{p[2]}/{p[1]}/{p[0]}" if len(p) == 3 else dt_venc
+                resposta += f"{idx}. *{d['descricao']}* — R$ {d['valor']:.2f} ({st})\n   • Categoria: {d.get('categoria', 'Geral')} | Venc: {dt_fmt}\n"
+            dados_retorno = despesas
+
+        resposta += "\n💡 *Dica:* Toque no botão abaixo para abrir o painel financeiro ou cadastrar novas contas."
 
         return {
             "resposta": resposta.strip(),
             "tipo": "despesas",
-            "dados": despesas
+            "dados": dados_retorno
         }
 
     # Gestão de Contratos Digitais (Fase 4)
