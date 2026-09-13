@@ -922,55 +922,76 @@ async def api_chat_audio(audio: UploadFile = File(...), texto_transcrito: Option
     texto = (texto_transcrito or "").strip()
     if not texto:
         conteudo = await audio.read()
-        api_key = ai.get_api_key()
-        if api_key and len(conteudo) > 500:
+        raw_mime = (audio.content_type or "audio/webm").lower()
+        if "mp4" in raw_mime or "m4a" in raw_mime or "aac" in raw_mime:
+            mime_type = "audio/mp4"
+            ext = "m4a"
+        elif "ogg" in raw_mime:
+            mime_type = "audio/ogg"
+            ext = "ogg"
+        elif "wav" in raw_mime:
+            mime_type = "audio/wav"
+            ext = "wav"
+        else:
+            mime_type = "audio/webm"
+            ext = "webm"
+
+        # 1. Tentar Groq Whisper (Ultra-rápido ~400ms)
+        groq_key = ai.get_groq_api_key()
+        if groq_key and len(conteudo) > 300:
             try:
-                from google import genai
-                from google.genai import types
-                client = genai.Client(api_key=api_key)
-
-                raw_mime = (audio.content_type or "audio/webm").lower()
-                if "mp4" in raw_mime or "m4a" in raw_mime or "aac" in raw_mime:
-                    mime_type = "audio/mp4"
-                elif "ogg" in raw_mime:
-                    mime_type = "audio/ogg"
-                elif "wav" in raw_mime:
-                    mime_type = "audio/wav"
-                else:
-                    mime_type = "audio/webm"
-
-                candidate_models = [
-                    "gemini-3.5-flash-lite",
-                    "gemini-3.1-flash-lite",
-                    "gemini-flash-latest"
-                ]
-                for modelo in candidate_models:
-                    try:
-                        response = await asyncio.wait_for(
-                            asyncio.to_thread(
-                                client.models.generate_content,
-                                model=modelo,
-                                contents=[
-                                    types.Part.from_bytes(data=conteudo, mime_type=mime_type),
-                                    "Você é um assistente do estúdio de yoga. Transcreva com fidelidade absoluta o que foi falado neste áudio em português do Brasil (pt-BR). Retorne APENAS o texto transcrito, sem aspas, sem pontuações extras e sem explicações. Se houver apenas silêncio ou ruído inaudível, responda SILENCIO."
-                                ]
-                            ),
-                            timeout=15.0
-                        )
-                        texto_resp = (response.text or "").strip()
-                        texto_resp = re.sub(r'^["\'\s]+|["\'\s]+$', '', texto_resp)
-                        if any(texto_resp.lower().startswith(x) for x in ["silêncio", "silencio", "sem fala", "inaudível", "inaudivel", "ruído", "ruido", "nenhum som"]):
-                            texto = ""
-                            break
-                        if texto_resp:
-                            texto = texto_resp
-                            break
-                    except Exception as err_m:
-                        print(f"Modelo áudio {modelo} falhou ou expirou: {err_m}. Tentando próximo...")
-                        continue
-            except Exception as e:
-                print(f"Erro ao transcrever áudio com Gemini: {e}")
+                texto = await ai.transcrever_audio_groq(
+                    audio_bytes=conteudo,
+                    filename=f"audio.{ext}",
+                    mime_type=mime_type,
+                    api_key=groq_key
+                )
+            except Exception as eg:
+                print(f"Erro ao transcrever com Groq Whisper: {eg}. Tentando Gemini como fallback...")
                 texto = ""
+
+        # 2. Fallback para Google Gemini Multimodal
+        if not texto and len(conteudo) > 500:
+            gemini_key = ai.get_gemini_api_key()
+            if gemini_key:
+                try:
+                    from google import genai
+                    from google.genai import types
+                    client = genai.Client(api_key=gemini_key)
+
+                    candidate_models = [
+                        "gemini-3.5-flash-lite",
+                        "gemini-3.1-flash-lite",
+                        "gemini-flash-latest"
+                    ]
+                    for modelo in candidate_models:
+                        try:
+                            response = await asyncio.wait_for(
+                                asyncio.to_thread(
+                                    client.models.generate_content,
+                                    model=modelo,
+                                    contents=[
+                                        types.Part.from_bytes(data=conteudo, mime_type=mime_type),
+                                        "Você é um assistente do estúdio de yoga. Transcreva com fidelidade absoluta o que foi falado neste áudio em português do Brasil (pt-BR). Retorne APENAS o texto transcrito, sem aspas, sem pontuações extras e sem explicações. Se houver apenas silêncio ou ruído inaudível, responda SILENCIO."
+                                    ]
+                                ),
+                                timeout=15.0
+                            )
+                            texto_resp = (response.text or "").strip()
+                            texto_resp = re.sub(r'^["\'\s]+|["\'\s]+$', '', texto_resp)
+                            if any(texto_resp.lower().startswith(x) for x in ["silêncio", "silencio", "sem fala", "inaudível", "inaudivel", "ruído", "ruido", "nenhum som"]):
+                                texto = ""
+                                break
+                            if texto_resp:
+                                texto = texto_resp
+                                break
+                        except Exception as err_m:
+                            print(f"Modelo áudio {modelo} falhou ou expirou: {err_m}. Tentando próximo...")
+                            continue
+                except Exception as e:
+                    print(f"Erro ao transcrever áudio com Gemini: {e}")
+                    texto = ""
+
 
     if not texto:
         tempo_total_ms = max(1, int((time.perf_counter() - t0) * 1000))

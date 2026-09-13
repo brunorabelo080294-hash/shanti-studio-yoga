@@ -55,6 +55,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     setupModals();
     setupSettings();
     setupCalendario();
+    setupPWAInstall();
     
     // Pré-carregar vozes para síntese de fala
     if ('speechSynthesis' in window) {
@@ -775,7 +776,7 @@ function criarIndicadorDigitacao(msgInicial = 'Consultando o estúdio... 🧘‍
     if (seconds >= 12) {
       textEl.innerHTML = '⏳ O servidor está acordando no Render... Quase pronto... 🧘‍♀️';
     } else if (seconds >= 6) {
-      textEl.innerHTML = '✨ Processando com a IA Gemini... 🧘‍♀️';
+      textEl.innerHTML = '✨ Processando com a IA Groq (Llama / Qwen)... 🧘‍♀️';
     }
   }, 3000);
 
@@ -880,7 +881,7 @@ function setupAudio() {
       const userMsgId = 'voice-msg-' + Date.now();
       adicionarMensagem('🎙️ <i>Mensagem de voz enviada...</i>', 'user', null, userMsgId);
 
-      const indicador = criarIndicadorDigitacao('Ouvindo o seu áudio com a IA Gemini... 🧘‍♀️');
+      const indicador = criarIndicadorDigitacao('Ouvindo o seu áudio com Groq Whisper... 🧘‍♀️');
 
       const formData = new FormData();
       formData.append('audio', file);
@@ -898,7 +899,7 @@ function setupAudio() {
           if (userMsg) {
             const contentEl = userMsg.querySelector('.wa-message-content');
             if (contentEl) {
-              contentEl.innerHTML = `🎙️ <b>"${data.transcricao}"</b><div style="font-size:10px; color:#5c786f; margin-top:3px;">✨ Transcrito pela IA Gemini</div>`;
+              contentEl.innerHTML = `🎙️ <b>"${data.transcricao}"</b><div style="font-size:10px; color:#5c786f; margin-top:3px;">✨ Transcrito por Groq Whisper</div>`;
             }
           }
         }
@@ -1009,7 +1010,7 @@ function setupAudio() {
         const userMsgId = 'voice-msg-' + Date.now();
         adicionarMensagem(textoPrevia ? `🎙️ <i>"${textoPrevia}"</i>` : `🎙️ <i>Mensagem de voz enviada...</i>`, 'user', null, userMsgId);
 
-        const indicador = criarIndicadorDigitacao('Ouvindo o seu áudio com a IA Gemini... 🧘‍♀️');
+        const indicador = criarIndicadorDigitacao('Ouvindo o seu áudio com Groq Whisper... 🧘‍♀️');
 
         const formData = new FormData();
         formData.append('audio', audioBlob, 'audio.webm');
@@ -1031,7 +1032,7 @@ function setupAudio() {
             if (userMsg) {
               const contentEl = userMsg.querySelector('.wa-message-content');
               if (contentEl) {
-                contentEl.innerHTML = `🎙️ <b>"${data.transcricao}"</b><div style="font-size:10px; color:#5c786f; margin-top:3px;">✨ Transcrito pela IA Gemini</div>`;
+                contentEl.innerHTML = `🎙️ <b>"${data.transcricao}"</b><div style="font-size:10px; color:#5c786f; margin-top:3px;">✨ Transcrito por Groq Whisper</div>`;
               }
             }
           }
@@ -2384,8 +2385,13 @@ async function carregarConfiguracoes() {
     if (state.configuracoes.tipo_chave_pix) {
       document.getElementById('cfg-tipo-pix').value = state.configuracoes.tipo_chave_pix;
     }
+    if (state.configuracoes.groq_api_key) {
+      const elGroq = document.getElementById('cfg-groq-key');
+      if (elGroq) elGroq.value = state.configuracoes.groq_api_key;
+    }
     if (state.configuracoes.gemini_api_key) {
-      document.getElementById('cfg-gemini-key').value = state.configuracoes.gemini_api_key;
+      const elGemini = document.getElementById('cfg-gemini-key');
+      if (elGemini) elGemini.value = state.configuracoes.gemini_api_key;
     }
     if (state.configuracoes.valor_plano_1x) {
       const el1x = document.getElementById('cfg-valor-plano-1x');
@@ -2542,13 +2548,31 @@ function setupSettings() {
     });
   }
 
+  // Controle de Visualização da Chave Groq
+  const btnToggleGroq = document.getElementById('btn-toggle-groq-key');
+  if (btnToggleGroq) {
+    btnToggleGroq.addEventListener('click', () => {
+      const input = document.getElementById('cfg-groq-key');
+      if (!input) return;
+      if (input.type === 'password') {
+        input.type = 'text';
+        btnToggleGroq.innerHTML = '<i class="fa-solid fa-eye-slash"></i>';
+      } else {
+        input.type = 'password';
+        btnToggleGroq.innerHTML = '<i class="fa-solid fa-eye"></i>';
+      }
+    });
+  }
+
   // 1. Salvar Configurações Gerais
   document.getElementById('btn-salvar-configuracoes').addEventListener('click', async () => {
     const configs = {
       nome_studio: document.getElementById('cfg-nome-studio').value.trim() || 'Studio Shanti',
       chave_pix: document.getElementById('cfg-chave-pix').value.trim(),
       tipo_chave_pix: document.getElementById('cfg-tipo-pix').value,
-      gemini_api_key: document.getElementById('cfg-gemini-key').value.trim(),
+      groq_api_key: document.getElementById('cfg-groq-key')?.value.trim() || '',
+      ai_provider: 'groq',
+      gemini_api_key: document.getElementById('cfg-gemini-key')?.value.trim() || '',
       valor_plano_1x: document.getElementById('cfg-valor-plano-1x')?.value.trim() || '120.00',
       valor_plano_2x: document.getElementById('cfg-valor-plano-2x')?.value.trim() || '150.00'
     };
@@ -2782,7 +2806,7 @@ async function executarDiagnosticoManual() {
   if (!btn) return;
   const originalHtml = btn.innerHTML;
   btn.disabled = true;
-  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> <span>Testando Servidor e IA Gemini...</span>';
+  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> <span>Testando Servidor e IA Groq...</span>';
 
   try {
     // 1. Executar testes isolados em paralelo
@@ -2852,10 +2876,88 @@ async function executarDiagnosticoManual() {
 }
 
 // =============================================================================
+// INSTALAÇÃO DO PWA (WEBAPK NATIVO SEM SÍMBOLO DO CHROME NO ANDROID)
+// =============================================================================
+let deferredPwaPrompt = null;
+
+function setupPWAInstall() {
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPwaPrompt = e;
+    
+    if (!isStandalone) {
+      const banner = document.getElementById('pwa-install-banner');
+      if (banner) banner.style.display = 'flex';
+      const headerBtn = document.getElementById('btn-header-install');
+      if (headerBtn) headerBtn.style.display = 'inline-flex';
+    }
+  });
+
+  window.addEventListener('appinstalled', () => {
+    deferredPwaPrompt = null;
+    const banner = document.getElementById('pwa-install-banner');
+    if (banner) banner.style.display = 'none';
+    const headerBtn = document.getElementById('btn-header-install');
+    if (headerBtn) headerBtn.style.display = 'none';
+    const badgeStatus = document.getElementById('badge-pwa-status');
+    if (badgeStatus) {
+      badgeStatus.textContent = 'Instalado (WebAPK)';
+      badgeStatus.style.background = 'var(--shanti-sage-light)';
+    }
+    showToast('✨ Studio Shanti instalado com sucesso!');
+  });
+
+  const acionarInstalacao = async () => {
+    if (deferredPwaPrompt) {
+      deferredPwaPrompt.prompt();
+      const choice = await deferredPwaPrompt.userChoice;
+      if (choice && choice.outcome === 'accepted') {
+        showToast('Instalando Studio Shanti nativo...');
+        const banner = document.getElementById('pwa-install-banner');
+        if (banner) banner.style.display = 'none';
+        const headerBtn = document.getElementById('btn-header-install');
+        if (headerBtn) headerBtn.style.display = 'none';
+      }
+      deferredPwaPrompt = null;
+    } else {
+      if (isStandalone) {
+        showToast('O aplicativo já está instalado no seu celular!');
+      } else {
+        alert(
+          'Para instalar o aplicativo nativo oficial sem o símbolo do Chrome:\n\n' +
+          '1. Toque nos 3 pontinhos do Google Chrome (no canto superior direito).\n' +
+          '2. Selecione "Instalar aplicativo" (ou "Adicionar à tela inicial").\n' +
+          '3. Toque em "Instalar" na janela de confirmação.\n\n' +
+          'O Android gerará o aplicativo oficial sem a marca d\'água do navegador!'
+        );
+      }
+    }
+  };
+
+  const btnHeader = document.getElementById('btn-header-install');
+  if (btnHeader) btnHeader.addEventListener('click', acionarInstalacao);
+
+  const btnBannerNow = document.getElementById('btn-pwa-install-now');
+  if (btnBannerNow) btnBannerNow.addEventListener('click', acionarInstalacao);
+
+  const btnBannerDismiss = document.getElementById('btn-pwa-install-dismiss');
+  if (btnBannerDismiss) {
+    btnBannerDismiss.addEventListener('click', () => {
+      const banner = document.getElementById('pwa-install-banner');
+      if (banner) banner.style.display = 'none';
+    });
+  }
+
+  const btnAjustes = document.getElementById('btn-instalar-app-ajustes');
+  if (btnAjustes) btnAjustes.addEventListener('click', acionarInstalacao);
+}
 
 // =============================================================================
 // FUNÇÕES DE INTEGRAÇÃO COM AUTENTIQUE (ASSINATURAS DIGITAIS)
 // =============================================================================
+
 
 async function testarConexaoAutentique() {
   const resBox = document.getElementById('resultado-teste-autentique');

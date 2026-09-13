@@ -1,6 +1,6 @@
 """
 Módulo de Inteligência Artificial para o Studio de Yoga.
-Suporta Google Gemini API (google-genai) com Function Calling e fallback inteligente.
+Suporta Groq AI (Llama 3.3 / Qwen / Whisper) de altíssima velocidade e Google Gemini como fallback.
 """
 import os
 import re
@@ -12,16 +12,48 @@ import asyncio
 import datetime
 import time
 from typing import Dict, Any, List, Optional
+import httpx
+from dotenv import load_dotenv
+load_dotenv()
 import backend.database as db
 
-def get_api_key() -> str:
-    # 1. Tentar pegar do banco de dados
+def get_groq_api_key() -> str:
+    configs = db.obter_configuracoes()
+    db_key = configs.get("groq_api_key", "").strip()
+    if db_key:
+        return db_key
+    return os.environ.get("GROQ_API_KEY", "").strip()
+
+def get_gemini_api_key() -> str:
     configs = db.obter_configuracoes()
     db_key = configs.get("gemini_api_key", "").strip()
     if db_key:
         return db_key
-    # 2. Tentar variável de ambiente
     return os.environ.get("GEMINI_API_KEY", "").strip()
+
+def get_ai_provider() -> str:
+    configs = db.obter_configuracoes()
+    p = configs.get("ai_provider", "").strip().lower()
+    if p in ["groq", "gemini"]:
+        return p
+    return os.environ.get("AI_PROVIDER", "groq").strip().lower()
+
+def get_groq_model() -> str:
+    configs = db.obter_configuracoes()
+    m = configs.get("groq_model", "").strip()
+    if m:
+        return m
+    return os.environ.get("GROQ_MODEL", "qwen/qwen3.8-27b").strip()
+
+def get_api_key() -> str:
+    """Retorna a chave da IA ativa para compatibilidade."""
+    prov = get_ai_provider()
+    if prov == "groq":
+        k = get_groq_api_key()
+        if k:
+            return k
+    return get_gemini_api_key()
+
 
 def processar_comando_local(texto: str) -> Dict[str, Any]:
     """
@@ -458,10 +490,173 @@ def processar_comando_local(texto: str) -> Dict[str, Any]:
         "dados": {}
     }
 
+def build_system_instruction() -> str:
+    """Monta a instrução de sistema atualizada com o contexto em tempo real do Studio Shanti."""
+    quantitativo = db.obter_quantitativo()
+    relatorio = db.obter_relatorio_mensal()
+    inadimplentes = db.obter_inadimplentes()
+    ausentes = db.obter_alunos_ausentes()
+    aniversariantes = db.obter_aniversariantes_mes()
+    turmas = db.listar_turmas(ativas_somente=True)
+    configs = db.obter_configuracoes()
+    despesas_mes = db.listar_despesas(datetime.date.today().strftime("%Y-%m"))
+    alertas_despesas = db.obter_alertas_despesas()
+    alertas_contratos = db.obter_alertas_contratos()
+
+    return f"""
+    Você é a Assistente Virtual e Gerente de IA do '{configs.get('nome_studio', 'Studio Shanti')}'.
+    Você conversa diretamente com o proprietário(a) ou recepcionista do estúdio de yoga.
+    O seu estilo de comunicação é calmo, acolhedor, objetivo e profissional, no tom 'Namastê' do universo do Yoga.
+    
+    DADOS ATUAIS EM TEMPO REAL DO STUDIO:
+    - Turmas e Horários Ativos ({len(turmas)}): {[t['nome'] + ' (' + t['dias_semana'] + ' às ' + t['horario'] + ' - ' + str(t['total_matriculados']) + '/' + str(t['capacidade_vagas']) + ' ocupadas, ' + str(t['vagas_disponiveis']) + ' vagas livres)' for t in turmas]}
+    - Planos Oficiais: 1x na semana (R$ {configs.get('valor_plano_1x', '120.00')}) e 2x na semana (R$ {configs.get('valor_plano_2x', '150.00')})
+    - Alunos Ativos: {quantitativo['alunos_ativos']}
+    - Alunos Inativos: {quantitativo['alunos_inativos']}
+    - Total de Alunos: {quantitativo['total_alunos']}
+    - Inadimplentes Atuais ({len(inadimplentes)}): {[a['nome'] + ' (venceu dia ' + str(a['dia_vencimento']) + ', R$ ' + str(a['valor_mensalidade']) + ')' for a in inadimplentes]}
+    - Faturamento Previsto: R$ {relatorio['faturamento_previsto']:.2f}
+    - Faturamento Recebido: R$ {relatorio['faturamento_realizado']:.2f}
+    - Total Pendente: R$ {relatorio['total_pendente_ou_atrasado']:.2f}
+    - Total de Despesas do Mês: R$ {relatorio.get('total_despesas', 0):.2f}
+    - Despesas Lançadas ({len(despesas_mes)}): {[d['descricao'] + ' (R$ ' + str(d['valor']) + ', Venc: ' + str(d.get('data_vencimento', d.get('data'))) + ', ' + str(d.get('status', 'pago')) + ')' for d in despesas_mes]}
+    - Alertas de Vencimento de Despesas: {alertas_despesas['total_vencidas']} conta(s) vencida(s), {alertas_despesas['total_vence_hoje']} vencendo hoje
+    - Lucro Líquido Real do Mês: R$ {relatorio.get('lucro_liquido_real', 0):.2f}
+    - Contratos Digitais: {alertas_contratos['total_em_dia']} em dia, {alertas_contratos['total_a_vencer']} a vencer nos próximos 30 dias ({[c['nome'] + ' (vence em ' + str(c['dias_restantes']) + ' dias)' for c in alertas_contratos['alunos_a_vencer']]}), {alertas_contratos['total_pendentes']} pendentes de assinatura
+    - Alunos Ausentes / Sem Praticar há mais de 10 dias ({len(ausentes)}): {[a['nome'] + ' (' + str(a['dias_ausente']) + ' dias sem vir)' for a in ausentes]}
+    - Aniversariantes do Mês ({len(aniversariantes)}): {[a['nome'] + ' (dia ' + str(a['dia']) + ')' for a in aniversariantes]}
+    - Chave PIX: {configs.get('chave_pix')} ({configs.get('tipo_chave_pix')})
+
+    Regras:
+    1. Formate suas mensagens em texto limpo e direto (use *negrito* para destaque, NUNCA use itálico). Use no máximo 1 emoji por mensagem, e NUNCA use emojis em mensagens contendo dados numéricos, relatórios ou valores financeiros.
+    2. Seja clara e precisa com valores em reais (R$), turmas, vagas livres, lucro líquido e métricas financeiras.
+    3. Se o usuário pedir para cobrar atrasados, parabenizar aniversariantes ou acolher alunos ausentes, informe que os botões com links prontos do WhatsApp estão disponíveis na tela.
+    4. Mantenha respostas concisas para facilitar a leitura no celular e para poder ser ouvida em voz alta com naturalidade.
+    5. Se o usuário fizer perguntas gerais, históricas, curiosidades ou bater papo (ex: 'Quem foi Dom Pedro?', 'Qual a capital do Brasil?'), responda com clareza, riqueza de detalhes e sabedoria, mantendo sempre o tom acolhedor e atencioso.
+    6. Capacidade Máxima das Turmas: O estúdio adota rigorosamente o teto de 16 alunos por turma. Sempre que perguntado sobre turmas, informe a ocupação (X/16) e alerte com destaque caso alguma turma atinja 16 alunos (turma lotada) ou 15 alunos (última vaga).
+    7. Despesas e Contas do Estúdio: Ao ser perguntado sobre despesas, contas a pagar ou vencimentos, informe os detalhes das contas lançadas e avise com urgência sobre contas vencidas ou vencendo hoje.
+    8. Contratos Digitais: Ao ser perguntada sobre contratos, informe a situação dos contratos vigentes, alerte expressamente caso haja contratos a vencer em até 30 dias ou pendentes de assinatura e indique que a Natália pode gerenciar tudo na aba Contratos.
+    """
+
+GROQ_CANDIDATE_MODELS = [
+    "qwen/qwen3.8-27b",
+    "openai/gpt-oss-120b",
+    "openai/gpt-oss-20b",
+    "groq/compound-mini",
+    "llama-3.3-70b-versatile",
+    "llama-3.1-8b-instant"
+]
+
+async def chamar_groq_chat(texto: str, system_prompt: str, api_key: str, model: Optional[str] = None) -> str:
+    """Chama a API OpenAI-compatible do Groq com rotação inteligente de modelos candidatos."""
+    url = "https://api.groq.com/openai/v1/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json"
+    }
+    model_preferido = model or get_groq_model()
+    modelos_para_tentar = [model_preferido] + [m for m in GROQ_CANDIDATE_MODELS if m != model_preferido]
+    
+    ultimo_erro = None
+    async with httpx.AsyncClient(timeout=12.0) as client:
+        for m in modelos_para_tentar:
+            try:
+                payload = {
+                    "model": m,
+                    "messages": [
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": texto}
+                    ],
+                    "temperature": 0.3,
+                    "max_tokens": 800
+                }
+                resp = await client.post(url, headers=headers, json=payload)
+                if resp.status_code == 200:
+                    data = resp.json()
+                    choices = data.get("choices", [])
+                    if choices:
+                        msg = choices[0].get("message", {})
+                        content = (msg.get("content") or "").strip()
+                        if content:
+                            return content
+                elif resp.status_code == 404:
+                    continue
+                else:
+                    ultimo_erro = Exception(f"Groq HTTP {resp.status_code}: {resp.text[:120]}")
+            except Exception as ex:
+                ultimo_erro = ex
+                continue
+
+    if ultimo_erro:
+        raise ultimo_erro
+    raise Exception("Nenhum modelo do Groq retornou resposta válida.")
+
+async def transcrever_audio_groq(audio_bytes: bytes, filename: str = "audio.wav", mime_type: str = "audio/wav", api_key: Optional[str] = None) -> str:
+    """Transcreve áudio com o modelo whisper-large-v3-turbo da Groq em menos de 500ms."""
+    key = api_key or get_groq_api_key()
+    if not key or len(audio_bytes) < 300:
+        return ""
+    
+    url = "https://api.groq.com/openai/v1/audio/transcriptions"
+    headers = {"Authorization": f"Bearer {key}"}
+    files = {"file": (filename, audio_bytes, mime_type)}
+    data = {
+        "model": "whisper-large-v3-turbo",
+        "language": "pt",
+        "response_format": "json"
+    }
+    
+    async with httpx.AsyncClient(timeout=15.0) as client:
+        resp = await client.post(url, headers=headers, files=files, data=data)
+        if resp.status_code == 200:
+            res_json = resp.json()
+            txt = res_json.get("text", "").strip()
+            txt = re.sub(r'^["\'\s]+|["\'\s]+$', '', txt)
+            if any(txt.lower().startswith(x) for x in ["silêncio", "silencio", "sem fala", "inaudível", "inaudivel", "ruído", "ruido", "nenhum som"]):
+                return ""
+            return txt
+        else:
+            raise Exception(f"Groq Whisper HTTP {resp.status_code}: {resp.text[:120]}")
+
+async def chamar_gemini_chat(texto: str, system_prompt: str, api_key: str) -> str:
+    """Chama a API do Google Gemini como fallback/alternativa."""
+    from google import genai
+    from google.genai import types
+
+    client = genai.Client(api_key=api_key)
+    candidate_models = [
+        "gemini-3.5-flash-lite",
+        "gemini-3.1-flash-lite",
+        "gemini-flash-latest"
+    ]
+    ultimo_erro = None
+    for modelo in candidate_models:
+        try:
+            response = await asyncio.wait_for(
+                client.aio.models.generate_content(
+                    model=modelo,
+                    contents=texto,
+                    config=types.GenerateContentConfig(
+                        system_instruction=system_prompt,
+                        temperature=0.3
+                    )
+                ),
+                timeout=6.0
+            )
+            resp_txt = (response.text or "").strip()
+            if resp_txt:
+                return resp_txt
+        except Exception as ex:
+            ultimo_erro = ex
+            continue
+    if ultimo_erro:
+        raise ultimo_erro
+    raise Exception("Nenhum modelo Gemini retornou resposta.")
+
 async def processar_mensagem_ia(texto: str) -> Dict[str, Any]:
     """
     Processa a mensagem com fast-path instantâneo para comandos do estúdio (0.005s)
-    e Gemini Flash Lite otimizado com timeout para conversas abertas.
+    e Groq AI (Llama 3.3 / Qwen) com fallback para Gemini e Modo Local offline.
     """
     texto_lower = texto.lower()
 
@@ -485,131 +680,72 @@ async def processar_mensagem_ia(texto: str) -> Dict[str, Any]:
     if any(t in texto_lower for t in termos_estudio):
         return processar_comando_local(texto)
 
-    api_key = get_api_key()
+    groq_key = get_groq_api_key()
+    gemini_key = get_gemini_api_key()
+    provider = get_ai_provider()
 
-    if not api_key:
+    if not groq_key and not gemini_key:
         return processar_comando_local(texto)
 
-    # Se tiver API Key, usar o Google GenAI SDK
-    try:
-        from google import genai
-        from google.genai import types
+    system_instruction = build_system_instruction()
+    resposta_texto = ""
 
-        client = genai.Client(api_key=api_key)
+    # Tentativa com Groq (Padrão ou configurado)
+    if (provider == "groq" or not gemini_key) and groq_key:
+        try:
+            resposta_texto = await chamar_groq_chat(texto, system_instruction, groq_key)
+        except Exception as eg:
+            print(f"Erro no Groq: {eg}. Tentando Gemini como fallback...")
+            if gemini_key:
+                try:
+                    resposta_texto = await chamar_gemini_chat(texto, system_instruction, gemini_key)
+                except Exception as ege:
+                    print(f"Erro no fallback Gemini: {ege}")
+    elif gemini_key:
+        # Modo Gemini configurado explicitamente
+        try:
+            resposta_texto = await chamar_gemini_chat(texto, system_instruction, gemini_key)
+        except Exception as ege:
+            print(f"Erro no Gemini: {ege}. Tentando Groq como fallback...")
+            if groq_key:
+                try:
+                    resposta_texto = await chamar_groq_chat(texto, system_instruction, groq_key)
+                except Exception as eg:
+                    print(f"Erro no fallback Groq: {eg}")
 
-        # Buscar contexto completo do estúdio
-        quantitativo = db.obter_quantitativo()
-        relatorio = db.obter_relatorio_mensal()
-        inadimplentes = db.obter_inadimplentes()
-        ausentes = db.obter_alunos_ausentes()
-        aniversariantes = db.obter_aniversariantes_mes()
-        turmas = db.listar_turmas(ativas_somente=True)
-        configs = db.obter_configuracoes()
-        despesas_mes = db.listar_despesas(datetime.date.today().strftime("%Y-%m"))
-        alertas_despesas = db.obter_alertas_despesas()
-        alertas_contratos = db.obter_alertas_contratos()
-
-        system_instruction = f"""
-        Você é a Assistente Virtual e Gerente de IA do '{configs.get('nome_studio', 'Studio Shanti')}'.
-        Você conversa diretamente com o proprietário(a) ou recepcionista do estúdio de yoga.
-        O seu estilo de comunicação é calmo, acolhedor, objetivo e profissional, no tom 'Namastê' do universo do Yoga.
-        
-        DADOS ATUAIS EM TEMPO REAL DO STUDIO:
-        - Turmas e Horários Ativos ({len(turmas)}): {[t['nome'] + ' (' + t['dias_semana'] + ' às ' + t['horario'] + ' - ' + str(t['total_matriculados']) + '/' + str(t['capacidade_vagas']) + ' ocupadas, ' + str(t['vagas_disponiveis']) + ' vagas livres)' for t in turmas]}
-        - Planos Oficiais: 1x na semana (R$ {configs.get('valor_plano_1x', '120.00')}) e 2x na semana (R$ {configs.get('valor_plano_2x', '150.00')})
-        - Alunos Ativos: {quantitativo['alunos_ativos']}
-        - Alunos Inativos: {quantitativo['alunos_inativos']}
-        - Total de Alunos: {quantitativo['total_alunos']}
-        - Inadimplentes Atuais ({len(inadimplentes)}): {[a['nome'] + ' (venceu dia ' + str(a['dia_vencimento']) + ', R$ ' + str(a['valor_mensalidade']) + ')' for a in inadimplentes]}
-        - Faturamento Previsto: R$ {relatorio['faturamento_previsto']:.2f}
-        - Faturamento Recebido: R$ {relatorio['faturamento_realizado']:.2f}
-        - Total Pendente: R$ {relatorio['total_pendente_ou_atrasado']:.2f}
-        - Total de Despesas do Mês: R$ {relatorio.get('total_despesas', 0):.2f}
-        - Despesas Lançadas ({len(despesas_mes)}): {[d['descricao'] + ' (R$ ' + str(d['valor']) + ', Venc: ' + str(d.get('data_vencimento', d.get('data'))) + ', ' + str(d.get('status', 'pago')) + ')' for d in despesas_mes]}
-        - Alertas de Vencimento de Despesas: {alertas_despesas['total_vencidas']} conta(s) vencida(s), {alertas_despesas['total_vence_hoje']} vencendo hoje
-        - Lucro Líquido Real do Mês: R$ {relatorio.get('lucro_liquido_real', 0):.2f}
-        - Contratos Digitais: {alertas_contratos['total_em_dia']} em dia, {alertas_contratos['total_a_vencer']} a vencer nos próximos 30 dias ({[c['nome'] + ' (vence em ' + str(c['dias_restantes']) + ' dias)' for c in alertas_contratos['alunos_a_vencer']]}), {alertas_contratos['total_pendentes']} pendentes de assinatura
-        - Alunos Ausentes / Sem Praticar há mais de 10 dias ({len(ausentes)}): {[a['nome'] + ' (' + str(a['dias_ausente']) + ' dias sem vir)' for a in ausentes]}
-        - Aniversariantes do Mês ({len(aniversariantes)}): {[a['nome'] + ' (dia ' + str(a['dia']) + ')' for a in aniversariantes]}
-        - Chave PIX: {configs.get('chave_pix')} ({configs.get('tipo_chave_pix')})
-
-        Regras:
-        1. Formate suas mensagens em texto limpo e direto (use *negrito* para destaque, NUNCA use itálico). Use no máximo 1 emoji por mensagem, e NUNCA use emojis em mensagens contendo dados numéricos, relatórios ou valores financeiros.
-        2. Seja clara e precisa com valores em reais (R$), turmas, vagas livres, lucro líquido e métricas financeiras.
-        3. Se o usuário pedir para cobrar atrasados, parabenizar aniversariantes ou acolher alunos ausentes, informe que os botões com links prontos do WhatsApp estão disponíveis na tela.
-        4. Mantenha respostas concisas para facilitar a leitura no celular e para poder ser ouvida em voz alta com naturalidade.
-        5. Se o usuário fizer perguntas gerais, históricas, curiosidades ou bater papo (ex: 'Quem foi Dom Pedro?', 'Qual a capital do Brasil?'), responda com clareza, riqueza de detalhes e sabedoria, mantendo sempre o tom acolhedor e atencioso.
-        6. Capacidade Máxima das Turmas: O estúdio adota rigorosamente o teto de 16 alunos por turma. Sempre que perguntado sobre turmas, informe a ocupação (X/16) e alerte com destaque caso alguma turma atinja 16 alunos (turma lotada) ou 15 alunos (última vaga).
-        7. Despesas e Contas do Estúdio: Ao ser perguntado sobre despesas, contas a pagar ou vencimentos, informe os detalhes das contas lançadas e avise com urgência sobre contas vencidas ou vencendo hoje.
-        8. Contratos Digitais: Ao ser perguntada sobre contratos, informe a situação dos contratos vigentes, alerte expressamente caso haja contratos a vencer em até 30 dias ou pendentes de assinatura e indique que a Natália pode gerenciar tudo na aba Contratos.
-        """
-
-        candidate_models = [
-            "gemini-3.5-flash-lite",
-            "gemini-3.1-flash-lite",
-            "gemini-flash-latest"
-        ]
-
-        resposta_texto = ""
-        ultimo_erro = None
-
-        for modelo in candidate_models:
-            try:
-                response = await asyncio.wait_for(
-                    client.aio.models.generate_content(
-                        model=modelo,
-                        contents=texto,
-                        config=types.GenerateContentConfig(
-                            system_instruction=system_instruction,
-                            temperature=0.3
-                        )
-                    ),
-                    timeout=5.0
-                )
-                resposta_texto = (response.text or "").strip()
-                if resposta_texto:
-                    break
-            except Exception as ex:
-                ultimo_erro = ex
-                print(f"Modelo {modelo} falhou ou expirou: {ex}. Tentando próximo modelo...")
-                continue
-
-        if not resposta_texto and ultimo_erro:
-            raise ultimo_erro
-        
-        # Verificar dados adicionais anexos
-        dados_extras = []
-        tipo = "chat"
-
-        if any(p in texto_lower for p in ["atraso", "atrasada", "atrasados", "cobrança", "cobrar", "devedor", "lembrete"]):
-            dados_extras = db.gerar_mensagens_cobranca(tipo="atrasados")
-            tipo = "inadimplencia" if "quem" in texto_lower else "cobranca"
-        elif any(p in texto_lower for p in ["quem já pagou", "quem pagou", "já pagou este mês", "pagamentos confirmados", "quem está em dia"]):
-            pagos = db.listar_pagamentos_mes(datetime.date.today().strftime("%Y-%m"))
-            dados_extras = [db.gerar_comprovante_pagamento(p["id"]) for p in pagos if db.gerar_comprovante_pagamento(p["id"])]
-            tipo = "pagamentos_mes"
-        elif any(p in texto_lower for p in ["aniversariante", "aniversario", "aniversário"]):
-            dados_extras = db.obter_aniversariantes_mes()
-            tipo = "aniversariantes"
-        elif any(p in texto_lower for p in ["ausente", "ausentes", "sumido", "sumidos", "faltou", "faltas"]):
-            dados_extras = db.obter_alunos_ausentes()
-            tipo = "ausentes"
-        elif any(p in texto_lower for p in ["contrato", "contratos", "vigência", "vigencia", "30 dias"]):
-            dados_extras = db.obter_alertas_contratos()
-            tipo = "contratos"
-        elif any(p in texto_lower for p in ["despesa", "despesas", "gastei", "contas a pagar"]):
-            dados_extras = db.listar_despesas(datetime.date.today().strftime("%Y-%m"))
-            tipo = "despesas"
-
-        return {
-            "resposta": resposta_texto,
-            "tipo": tipo,
-            "dados": dados_extras
-        }
-
-    except Exception as e:
-        print(f"Erro na chamada Gemini: {e}. Usando motor local de fallback.")
+    if not resposta_texto:
         return processar_comando_local(texto)
+
+    # Verificar dados adicionais anexos
+    dados_extras = []
+    tipo = "chat"
+
+    if any(p in texto_lower for p in ["atraso", "atrasada", "atrasados", "cobrança", "cobrar", "devedor", "lembrete"]):
+        dados_extras = db.gerar_mensagens_cobranca(tipo="atrasados")
+        tipo = "inadimplencia" if "quem" in texto_lower else "cobranca"
+    elif any(p in texto_lower for p in ["quem já pagou", "quem pagou", "já pagou este mês", "pagamentos confirmados", "quem está em dia"]):
+        pagos = db.listar_pagamentos_mes(datetime.date.today().strftime("%Y-%m"))
+        dados_extras = [db.gerar_comprovante_pagamento(p["id"]) for p in pagos if db.gerar_comprovante_pagamento(p["id"])]
+        tipo = "pagamentos_mes"
+    elif any(p in texto_lower for p in ["aniversariante", "aniversario", "aniversário"]):
+        dados_extras = db.obter_aniversariantes_mes()
+        tipo = "aniversariantes"
+    elif any(p in texto_lower for p in ["ausente", "ausentes", "sumido", "sumidos", "faltou", "faltas"]):
+        dados_extras = db.obter_alunos_ausentes()
+        tipo = "ausentes"
+    elif any(p in texto_lower for p in ["contrato", "contratos", "vigência", "vigencia", "30 dias"]):
+        dados_extras = db.obter_alertas_contratos()
+        tipo = "contratos"
+    elif any(p in texto_lower for p in ["despesa", "despesas", "gastei", "contas a pagar"]):
+        dados_extras = db.listar_despesas(datetime.date.today().strftime("%Y-%m"))
+        tipo = "despesas"
+
+    return {
+        "resposta": resposta_texto,
+        "tipo": tipo,
+        "dados": dados_extras
+    }
+
 
 def pcm_to_wav_base64(pcm_data: bytes, sample_rate: int = 24000, channels: int = 1, sampwidth: int = 2) -> str:
     """Converte bytes PCM brutos (24kHz 16-bit mono) em arquivo RIFF WAV codificado em Base64."""
@@ -795,17 +931,24 @@ async def gerar_audio_gemini(texto: str, voz: str = "Aoede") -> Optional[str]:
         print(f"Erro em gerar_audio_gemini: {e}")
         return None
 
-async def testar_conexao_gemini_isolada() -> Dict[str, Any]:
+async def testar_conexao_ia_isolada() -> Dict[str, Any]:
     """
-    Testa de forma isolada e minimalista a comunicação com os servidores do Google Gemini.
+    Testa de forma isolada e minimalista a comunicação com a IA ativa (Groq ou Gemini).
     Mede a latência exata da resposta e traduz qualquer falha para explicações claras e simplificadas.
     Nunca expõe chaves de API.
     """
-    api_key = get_api_key()
-    if not api_key:
+    prov = get_ai_provider()
+    groq_key = get_groq_api_key()
+    gemini_key = get_gemini_api_key()
+
+    usar_groq = (prov == "groq" or not gemini_key) and bool(groq_key)
+    usar_gemini = (prov == "gemini" or not groq_key) and bool(gemini_key)
+
+    if not usar_groq and not usar_gemini:
         return {
             "status_ia": "chave_ausente",
             "latencia_ms": 0,
+            "provedor": "local",
             "modelo": "motor_local_integrado",
             "mensagem": "Nenhuma chave de API configurada no estúdio. O app está operando perfeitamente com o motor local integrado (respostas instantâneas a atalhos e comandos).",
             "detalhes": None,
@@ -813,11 +956,101 @@ async def testar_conexao_gemini_isolada() -> Dict[str, Any]:
         }
 
     t0 = time.perf_counter()
+
+    if usar_groq:
+        try:
+            url = "https://api.groq.com/openai/v1/chat/completions"
+            headers = {
+                "Authorization": f"Bearer {groq_key}",
+                "Content-Type": "application/json"
+            }
+            model_preferido = get_groq_model()
+            modelos_para_tentar = [model_preferido] + [m for m in GROQ_CANDIDATE_MODELS if m != model_preferido]
+            
+            resposta_texto = ""
+            modelo_usado = model_preferido
+            ultimo_erro = None
+
+            async with httpx.AsyncClient(timeout=6.0) as client:
+                for mod in modelos_para_tentar:
+                    try:
+                        modelo_usado = mod
+                        payload = {
+                            "model": mod,
+                            "messages": [{"role": "user", "content": "Responda apenas: OK"}],
+                            "temperature": 0.0,
+                            "max_tokens": 10
+                        }
+                        resp = await client.post(url, headers=headers, json=payload)
+                        if resp.status_code == 200:
+                            data = resp.json()
+                            choices = data.get("choices", [])
+                            if choices:
+                                resposta_texto = choices[0].get("message", {}).get("content", "").strip()
+                                if resposta_texto:
+                                    break
+                        elif resp.status_code == 404:
+                            continue
+                        else:
+                            ultimo_erro = Exception(f"Groq HTTP {resp.status_code}: {resp.text[:100]}")
+                    except Exception as ex_m:
+                        ultimo_erro = ex_m
+                        continue
+
+            latencia_ms = max(1, int((time.perf_counter() - t0) * 1000))
+            if not resposta_texto and ultimo_erro:
+                raise ultimo_erro
+
+            status_ia = "lento" if latencia_ms > 3000 else "ok"
+            msg = (
+                f"Groq IA ({modelo_usado}) conectado e operando em alta velocidade ({latencia_ms}ms)."
+                if status_ia == "ok"
+                else f"Groq IA conectado, porém com latência elevada ({latencia_ms}ms)."
+            )
+
+            return {
+                "status_ia": status_ia,
+                "provedor": "groq",
+                "latencia_ms": latencia_ms,
+                "modelo": modelo_usado,
+                "mensagem": msg,
+                "detalhes": f"Resposta: '{resposta_texto[:30]}'",
+                "sucesso": True
+            }
+
+        except Exception as e:
+            latencia_ms = max(1, int((time.perf_counter() - t0) * 1000))
+            err_str = str(e)
+            err_lower = err_str.lower()
+
+            if "429" in err_str or "rate_limit" in err_lower or "quota" in err_lower:
+                motivo = "Limite de requisições gratuitas do Groq atingido. O app utiliza o motor local até renovação."
+            elif any(x in err_str for x in ["401", "403"]) or "invalid_api_key" in err_lower or "permission" in err_lower:
+                motivo = "Chave de API do Groq inválida. Verifique a chave inserida na aba Ajustes."
+            elif "timeout" in err_lower or isinstance(e, asyncio.TimeoutError):
+                motivo = "Tempo limite esgotado: os servidores da Groq demoraram mais de 6 segundos para responder."
+            elif "connect" in err_lower or "network" in err_lower or "dns" in err_lower or "gaierror" in err_lower:
+                motivo = "Falha de conexão com os servidores da Groq (DNS ou rede temporariamente inacessível)."
+            else:
+                motivo = f"Erro de comunicação com Groq: {err_str[:120]}"
+
+            detalhes_seguros = err_str.replace(groq_key, "***CHAVE_OCULTA***") if groq_key else err_str
+            return {
+                "status_ia": "erro",
+                "provedor": "groq",
+                "latencia_ms": latencia_ms,
+                "modelo": "desconhecido",
+                "mensagem": motivo,
+                "detalhes": detalhes_seguros[:200],
+                "sucesso": False
+            }
+
+    # Testar Gemini se for o provedor ativo
     try:
         from google import genai
         from google.genai import types
 
-        client = genai.Client(api_key=api_key)
+        client = genai.Client(api_key=gemini_key)
         candidate_models = [
             "gemini-3.5-flash-lite",
             "gemini-3.1-flash-lite",
@@ -850,7 +1083,6 @@ async def testar_conexao_gemini_isolada() -> Dict[str, Any]:
                 continue
 
         latencia_ms = max(1, int((time.perf_counter() - t0) * 1000))
-
         if not resposta_texto and ultimo_erro:
             raise ultimo_erro
 
@@ -863,6 +1095,7 @@ async def testar_conexao_gemini_isolada() -> Dict[str, Any]:
 
         return {
             "status_ia": status_ia,
+            "provedor": "gemini",
             "latencia_ms": latencia_ms,
             "modelo": modelo_usado,
             "mensagem": msg,
@@ -875,7 +1108,6 @@ async def testar_conexao_gemini_isolada() -> Dict[str, Any]:
         err_str = str(e)
         err_lower = err_str.lower()
 
-        # Mapeamento explicativo para leigos
         if "429" in err_str or "resource_exhausted" in err_lower or "quota" in err_lower:
             motivo = "Cota de requisições gratuitas da IA excedida (limite diário ou por minuto do Google atingido). O app utiliza o motor local até a renovação da cota."
         elif any(x in err_str for x in ["400", "401", "403"]) or "api_key_invalid" in err_lower or "permission" in err_lower or "unauthenticated" in err_lower:
@@ -887,15 +1119,18 @@ async def testar_conexao_gemini_isolada() -> Dict[str, Any]:
         else:
             motivo = f"Erro de comunicação com a IA: {err_str[:120]}"
 
-        # Proteção estrita: nunca vazar a chave nos detalhes técnicos
-        detalhes_seguros = err_str.replace(api_key, "***CHAVE_OCULTA***") if api_key else err_str
+        detalhes_seguros = err_str.replace(gemini_key, "***CHAVE_OCULTA***") if gemini_key else err_str
 
         return {
             "status_ia": "erro",
+            "provedor": "gemini",
             "latencia_ms": latencia_ms,
             "modelo": "desconhecido",
             "mensagem": motivo,
             "detalhes": detalhes_seguros[:200],
             "sucesso": False
         }
+
+testar_conexao_gemini_isolada = testar_conexao_ia_isolada
+
 

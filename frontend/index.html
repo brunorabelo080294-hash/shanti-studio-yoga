@@ -6,13 +6,15 @@
   <title>Studio Shanti - Painel de Gestão</title>
 
   <!-- Favicon & PWA Meta Tags -->
-  <link rel="icon" type="image/png" href="/favicon.png?v=20">
-  <link rel="manifest" href="/manifest.json?v=20">
+  <link rel="icon" type="image/png" href="/favicon.png?v=30">
+  <link rel="manifest" href="/manifest.json">
   <meta name="theme-color" content="#3F4E3A">
+  <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Studio Shanti">
-  <link rel="apple-touch-icon" href="/icons/icon-192.png?v=20">
+  <meta name="application-name" content="Studio Shanti">
+  <link rel="apple-touch-icon" href="/icons/icon-192.png?v=30">
 
   <!-- Fontes Google & Ícones FontAwesome -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -66,6 +68,9 @@
       </div>
     </div>
     <div class="wa-header-actions">
+      <button class="wa-icon-btn" id="btn-header-install" title="Instalar Aplicativo Nativo (Sem ícone do Chrome)" style="display:none; color: var(--shanti-gold);">
+        <i class="fa-solid fa-download"></i>
+      </button>
       <button class="wa-icon-btn" id="btn-header-action" title="Atualizar dados">
         <i class="fa-solid fa-arrows-rotate"></i>
       </button>
@@ -74,6 +79,22 @@
       </button>
     </div>
   </header>
+
+  <!-- Banner de Instalação Nativa WebAPK (Sem Símbolo do Chrome) -->
+  <div id="pwa-install-banner" style="display:none; background: linear-gradient(135deg, var(--shanti-forest), #283624); color: #ffffff; padding: 10px 14px; border-radius: 14px; margin: 8px 12px 4px 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); align-items: center; justify-content: space-between; gap: 10px;">
+    <div style="display: flex; align-items: center; gap: 10px; flex: 1;">
+      <img src="/icons/icon-192.png?v=30" alt="Studio Shanti" style="width: 36px; height: 36px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.25);">
+      <div style="line-height: 1.25;">
+        <div style="font-weight: 700; font-size: 12.5px;">Instalar App Studio Shanti</div>
+        <div style="font-size: 11px; opacity: 0.88;">WebAPK nativo sem o símbolo do Chrome</div>
+      </div>
+    </div>
+    <div style="display: flex; align-items: center; gap: 6px;">
+      <button id="btn-pwa-install-now" style="background: #ffffff; color: var(--shanti-forest); border: none; font-weight: 700; font-size: 11.5px; padding: 6px 12px; border-radius: 8px; cursor: pointer;">Instalar</button>
+      <button id="btn-pwa-install-dismiss" style="background: transparent; border: none; color: #ffffff; opacity: 0.7; font-size: 13px; padding: 4px; cursor: pointer;" title="Fechar"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+  </div>
+
 
   <!-- Abas de Navegação -->
   <nav class="wa-nav-tabs">
@@ -743,25 +764,82 @@
         </small>
       </div>
 
-      <div class="wa-card">
-        <div class="wa-card-title" style="margin-bottom: 14px;">
-          <i class="fa-solid fa-brain" style="color: var(--shanti-terracotta);"></i>
-          <span>Inteligência Artificial (Gemini)</span>
+      <!-- ==================================================================
+           CARD: INSTALAÇÃO DO APLICATIVO NO CELULAR (SEM ÍCONE DO CHROME)
+           ================================================================== -->
+      <div class="wa-card" id="card-pwa-instalacao" style="border: 1px solid var(--shanti-sand-border); background: #ffffff;">
+        <div class="wa-card-title" style="margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-mobile-screen-button" style="color: var(--shanti-terracotta);"></i>
+            <span style="font-weight: 700; color: var(--shanti-forest);">Aplicativo no Celular (WebAPK Nativo)</span>
+          </div>
+          <span id="badge-pwa-status" style="font-size: 10.5px; font-weight: 700; padding: 2px 8px; border-radius: 12px; background: var(--shanti-sage-light); color: var(--shanti-forest);">
+            Ícone Oficial
+          </span>
+        </div>
+        <p style="font-size: 12px; color: var(--shanti-stone); line-height: 1.45; margin-bottom: 10px;">
+          Se ao adicionar à tela inicial o ícone ficou com o <b>símbolo pequeno do Chrome no canto</b>, remova aquele atalho antigo e toque no botão abaixo para instalar como aplicativo nativo (WebAPK):
+        </p>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 6px;">
+          <button type="button" id="btn-instalar-app-ajustes" class="wa-btn-primary" style="background: var(--shanti-forest); color: #ffffff; border: none; border-radius: 12px; font-weight: 600; padding: 10px 16px; display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-download"></i> <span>Instalar Aplicativo Oficial</span>
+          </button>
+        </div>
+        <small style="font-size: 11px; color: var(--shanti-stone); display: block; line-height: 1.35;">
+          💡 No menu do Google Chrome (3 pontinhos), escolha <b>"Instalar aplicativo"</b> (evite a opção "Adicionar atalho").
+        </small>
+      </div>
+
+      <!-- ==================================================================
+           CARD: INTELIGÊNCIA ARTIFICIAL (GROQ - LLAMA 3.3 / QWEN & WHISPER)
+           ================================================================== -->
+      <div class="wa-card" style="border: 1px solid var(--shanti-sand-border); background: #ffffff;">
+        <div class="wa-card-title" style="margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-bolt" style="color: var(--shanti-terracotta);"></i>
+            <span style="font-weight: 700; color: var(--shanti-forest); font-size: 15px;">Inteligência Artificial (Groq AI)</span>
+          </div>
+          <span style="font-size: 10.5px; font-weight: 700; padding: 2px 8px; border-radius: 12px; background: var(--shanti-sage-light); color: var(--shanti-forest);">
+            Ultra Rápido (~250ms)
+          </span>
         </div>
 
+        <p style="font-size: 12px; color: var(--shanti-stone); margin-bottom: 12px; line-height: 1.4;">
+          O Groq processa mensagens de texto e áudio (Whisper) em milissegundos com plano 100% gratuito. O app também funciona offline pelo motor local integrado.
+        </p>
+
         <div class="wa-form-group">
-          <label>Chave de API do Google Gemini (Opcional)</label>
-          <input type="password" class="wa-form-control" id="cfg-gemini-key" placeholder="Cole sua chave AIzaSy...">
+          <label style="font-weight: 600; color: var(--shanti-forest);">Chave de API Groq (Recomendado)</label>
+          <div style="position: relative;">
+            <input type="password" class="wa-form-control" id="cfg-groq-key" placeholder="Cole sua chave gsk_..." style="padding-right: 40px;">
+            <button type="button" id="btn-toggle-groq-key" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--shanti-stone); cursor: pointer;" title="Mostrar/Ocultar Chave">
+              <i class="fa-solid fa-eye"></i>
+            </button>
+          </div>
           <small style="font-size: 11.5px; color: var(--shanti-stone); display: block; margin-top: 5px; line-height: 1.4;">
-            O app já funciona perfeitamente com a IA local integrada. Se desejar usar o Gemini 2.5 avançado do Google, pegue sua chave gratuita no
-            <a href="https://aistudio.google.com/" target="_blank" style="color: var(--shanti-terracotta); font-weight: 600;">Google AI Studio</a>.
+            Obtenha sua chave gratuita em <a href="https://console.groq.com/keys" target="_blank" style="color: var(--shanti-terracotta); font-weight: 600;">console.groq.com</a> (sem necessidade de cartão de crédito).
           </small>
         </div>
+
+        <!-- Provedor Fallback Opcional: Gemini -->
+        <details style="margin-bottom: 14px; background: var(--shanti-sand-light); border-radius: 10px; padding: 8px 12px; border: 1px solid var(--shanti-sand-border);">
+          <summary style="cursor: pointer; font-size: 12px; font-weight: 600; color: var(--shanti-forest);">
+            <i class="fa-brands fa-google" style="color: var(--shanti-terracotta); margin-right: 4px;"></i> Provedor Alternativo: Google Gemini (Opcional)
+          </summary>
+          <div style="margin-top: 10px;">
+            <label style="font-size: 11.5px; font-weight: 600; color: var(--shanti-charcoal);">Chave Google Gemini</label>
+            <input type="password" class="wa-form-control" id="cfg-gemini-key" placeholder="Cole sua chave AIzaSy..." style="margin-top: 4px;">
+            <small style="font-size: 11px; color: var(--shanti-stone); display: block; margin-top: 4px;">
+              Usado como fallback automático caso a chave do Groq não esteja presente.
+            </small>
+          </div>
+        </details>
 
         <button class="wa-btn-primary" id="btn-salvar-configuracoes" style="background: var(--shanti-forest); color: #ffffff; border: none; border-radius: 12px; font-weight: 600; padding: 10px 16px;">
           <i class="fa-solid fa-floppy-disk"></i> Salvar Configurações
         </button>
       </div>
+
 
       <!-- ==================================================================
            CARD: ASSINATURA DIGITAL (AUTENTIQUE)
@@ -835,7 +913,7 @@
       </div>
 
       <!-- ==================================================================
-           CARD: DIAGNÓSTICO DO SISTEMA & OBSERVABILIDADE (RENDER VS. GEMINI)
+           CARD: DIAGNÓSTICO DO SISTEMA & OBSERVABILIDADE (RENDER VS. GROQ IA)
            ================================================================== -->
       <div class="wa-card" id="card-diagnostico-sistema" style="border: 1px solid var(--shanti-sand-border); background: #ffffff;">
         <div class="wa-card-title" style="margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
@@ -849,7 +927,7 @@
         </div>
 
         <p style="font-size: 12px; color: var(--shanti-stone); margin-bottom: 14px; line-height: 1.4;">
-          Monitore o desempenho do servidor Render (hibernação e pings keep-alive) e a resposta da IA Gemini de forma 100% isolada e transparente.
+          Monitore o desempenho do servidor Render (hibernação e pings keep-alive) e a resposta da IA Groq (Llama / Qwen) de forma 100% isolada e transparente.
         </p>
 
         <!-- Grade com 2 Blocos de Status: Servidor e IA -->
@@ -880,11 +958,11 @@
             </div>
           </div>
 
-          <!-- Bloco IA (Gemini) -->
+          <!-- Bloco IA (Groq) -->
           <div style="background: var(--shanti-sand-light); border: 1px solid var(--shanti-sand-border); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; justify-content: space-between;">
             <div>
               <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
-                <span style="font-size: 11.5px; font-weight: 700; color: var(--shanti-forest);"><i class="fa-solid fa-microchip" style="color: var(--shanti-terracotta);"></i> IA (Gemini)</span>
+                <span style="font-size: 11.5px; font-weight: 700; color: var(--shanti-forest);"><i class="fa-solid fa-bolt" style="color: var(--shanti-terracotta);"></i> IA (Groq)</span>
                 <span id="badge-diag-ia" style="font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 6px; background: var(--shanti-sage-light); color: var(--shanti-forest);">
                   Operando
                 </span>
@@ -921,8 +999,9 @@
             <span style="font-size: 12px; font-weight: 700; color: var(--shanti-forest);">
               <i class="fa-solid fa-list-check" style="color: var(--shanti-terracotta);"></i> Histórico Recente de Atividades
             </span>
-            <span style="font-size: 10.5px; color: var(--shanti-stone);">Render vs. Gemini</span>
+            <span style="font-size: 10.5px; color: var(--shanti-stone);">Render vs. Groq IA</span>
           </div>
+
 
           <div id="lista-logs-diagnostico" style="display: flex; flex-direction: column; gap: 6px; max-height: 240px; overflow-y: auto; padding-right: 4px;">
             <div style="text-align: center; padding: 14px; font-size: 12px; color: var(--shanti-stone);">
@@ -1695,12 +1774,12 @@
 <div class="wa-toast" id="toast-msg">Notificação</div>
 
 <!-- JavaScript Principal -->
-<script src="/js/app.js?v=27"></script>
+<script src="/js/app.js?v=30"></script>
 
 <script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/service-worker.js?v=27').then(reg => {
+      navigator.serviceWorker.register('/service-worker.js?v=30').then(reg => {
         reg.update();
       }).catch(err => {
         console.log('SW reg:', err);
