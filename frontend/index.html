@@ -1879,12 +1879,12 @@
 <div class="wa-toast" id="toast-msg">Notificação</div>
 
 <!-- JavaScript Principal -->
-<script src="/js/app.js?v=31"></script>
+<script src="/js/app.js?v=32"></script>
 
 <script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/service-worker.js?v=31').then(reg => {
+      navigator.serviceWorker.register('/service-worker.js?v=32').then(reg => {
         reg.update();
       }).catch(err => {
         console.log('SW reg:', err);

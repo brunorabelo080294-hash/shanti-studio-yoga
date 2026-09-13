@@ -73,6 +73,22 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Carregar dados
     await carregarConfiguracoes();
     await atualizarTudo();
+
+    // Sincronização automática em tempo real entre celulares (Bruno e Natália)
+    window.addEventListener('focus', () => {
+      atualizarTudo();
+    });
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') {
+        atualizarTudo();
+      }
+    });
+    // Polling contínuo em segundo plano a cada 30 segundos enquanto o app estiver aberto
+    setInterval(() => {
+      if (document.visibilityState === 'visible') {
+        atualizarTudo();
+      }
+    }, 30000);
   } catch (err) {
     console.error('Erro na inicialização do app:', err);
   } finally {
