@@ -202,6 +202,8 @@ def init_db():
         ("valor_plano_2x", "150.00"),
         ("autentique_api_token", "fc2c3926514c154c5f25a5baa6dc32a95455135b0fcd52b278599ce6c4a36f6c"),
         ("autentique_sandbox", "true"),
+        ("telefone_natalia", "22988423287"),
+        ("email_natalia", "nataliagarufeyoga@gmail.com"),
         ("mensagem_cobranca_padrao", 
          "Olá, {nome}! 🧘‍♀️ Passando para lembrar com carinho que sua mensalidade do {studio} venceu no dia {dia_vencimento}/{mes_atual} no valor de R$ {valor:.2f}.\n\nPara facilitar, segue nossa chave PIX ({tipo_chave}): {chave_pix}\n\nQualquer dúvida estamos à disposição! Namastê. 🙏")
     ]

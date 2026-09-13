@@ -2869,8 +2869,8 @@ async function salvarConfigAutentique() {
 function abrirModalEnviarAutentique(alunoId, alunoNome, alunoPlano, alunoTelefone, alunoEmail) {
   document.getElementById('autentique-envio-aluno-id').value = alunoId;
   document.getElementById('autentique-envio-aluno-nome').textContent = alunoNome;
-  document.getElementById('autentique-envio-aluno-info').textContent = `${alunoPlano || 'Plano de Yoga'} • ${alunoEmail || 'Sem e-mail'}`;
-  document.getElementById('autentique-envio-aluno-wa').textContent = alunoTelefone || 'WhatsApp não informado';
+  const contatoAluno = alunoTelefone ? `${alunoTelefone} (Telefone)` : (alunoEmail ? `${alunoEmail} (E-mail)` : 'Contato não informado');
+  document.getElementById('autentique-envio-aluno-wa').textContent = contatoAluno;
   
   const sbCheck = document.getElementById('autentique-envio-sandbox');
   if (sbCheck) {

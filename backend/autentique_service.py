@@ -155,7 +155,7 @@ def criar_documento_contrato(aluno_id: int, sandbox: Optional[bool] = None) -> D
     # 2. Montar signatários
     nome_studio = configs.get("nome_studio", "Studio Shanti")
     email_natalia = configs.get("email_natalia", "nataliagarufeyoga@gmail.com")
-    tel_natalia = configs.get("telefone_natalia", "32999999999")
+    tel_natalia = configs.get("telefone_natalia", "22988423287")
     tel_natalia_e164 = formatar_telefone_e164(tel_natalia)
 
     signatario_natalia: Dict[str, Any] = {
@@ -163,27 +163,27 @@ def criar_documento_contrato(aluno_id: int, sandbox: Optional[bool] = None) -> D
         "action": "SIGN",
         "delivery_method": "DELIVERY_METHOD_LINK"
     }
-    # Autentique v2: Apenas UM meio de contato permitido por signatário (email OU phone, nunca ambos)
-    if email_natalia and "@" in email_natalia:
-        signatario_natalia["email"] = email_natalia.strip()
-    elif tel_natalia_e164:
+    # Regra: Contato por signatário deve ser exclusivamente por telefone; caso não tenha, por e-mail.
+    if tel_natalia_e164:
         signatario_natalia["phone"] = tel_natalia_e164
+    elif email_natalia and "@" in email_natalia:
+        signatario_natalia["email"] = email_natalia.strip()
 
     # Signatário 2: Aluno
     nome_aluno = (aluno.get("nome") or "Aluno").strip()
-    email_aluno = (aluno.get("email") or "").strip()
     tel_aluno_e164 = formatar_telefone_e164(aluno.get("telefone", ""))
+    email_aluno = (aluno.get("email") or "").strip()
 
     signatario_aluno: Dict[str, Any] = {
         "name": nome_aluno,
         "action": "SIGN",
         "delivery_method": "DELIVERY_METHOD_LINK"
     }
-    # Autentique v2: Apenas UM meio de contato permitido por signatário (email OU phone, nunca ambos)
-    if email_aluno and "@" in email_aluno:
-        signatario_aluno["email"] = email_aluno
-    elif tel_aluno_e164:
+    # Regra: Contato por signatário deve ser exclusivamente por telefone; caso não tenha, por e-mail.
+    if tel_aluno_e164:
         signatario_aluno["phone"] = tel_aluno_e164
+    elif email_aluno and "@" in email_aluno:
+        signatario_aluno["email"] = email_aluno
 
     signers_list = [signatario_natalia, signatario_aluno]
 
