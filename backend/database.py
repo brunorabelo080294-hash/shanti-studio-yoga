@@ -11,9 +11,114 @@ import re
 import urllib.parse
 from typing import List, Dict, Any, Optional
 
+try:
+    import psycopg2
+    from psycopg2.extras import RealDictCursor
+    HAS_PSYCOPG2 = True
+except ImportError:
+    HAS_PSYCOPG2 = False
+
 DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "yoga_studio.db")
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+class PgCursorWrapper:
+    def __init__(self, cur):
+        self._cur = cur
+        self.lastrowid = None
+
+    def execute(self, query, params=None):
+        query = self._adapt_query(query)
+        # Se for INSERT e não tiver RETURNING, adiciona RETURNING id para popular lastrowid
+        is_insert = query.strip().upper().startswith("INSERT")
+        if is_insert and "RETURNING" not in query.upper():
+            query_with_returning = query + " RETURNING id"
+            try:
+                if params:
+                    self._cur.execute(query_with_returning, params)
+                else:
+                    self._cur.execute(query_with_returning)
+                row = self._cur.fetchone()
+                if row and 'id' in row:
+                    self.lastrowid = row['id']
+                return self
+            except Exception:
+                pass
+
+        if params:
+            self._cur.execute(query, params)
+        else:
+            self._cur.execute(query)
+        return self
+
+    def _adapt_query(self, query: str) -> str:
+        q = query.replace('?', '%s')
+        if "INSERT OR IGNORE INTO configuracoes" in q:
+            q = q.replace(
+                "INSERT OR IGNORE INTO configuracoes (chave, valor) VALUES (%s, %s)",
+                "INSERT INTO configuracoes (chave, valor) VALUES (%s, %s) ON CONFLICT (chave) DO NOTHING"
+            )
+        elif "INSERT OR IGNORE INTO matriculas_turmas" in q:
+            q = q.replace(
+                "INSERT OR IGNORE INTO matriculas_turmas (aluno_id, turma_id) VALUES (%s, %s)",
+                "INSERT INTO matriculas_turmas (aluno_id, turma_id) VALUES (%s, %s) ON CONFLICT (aluno_id, turma_id) DO NOTHING"
+            )
+        elif "INSERT OR IGNORE INTO historico_presenca" in q:
+            q = q.replace("INSERT OR IGNORE INTO historico_presenca", "INSERT INTO historico_presenca")
+            if "ON CONFLICT" not in q:
+                q += " ON CONFLICT (aluno_id, turma_id, data) DO NOTHING"
+        elif "INSERT OR IGNORE INTO" in q:
+            q = q.replace("INSERT OR IGNORE INTO", "INSERT INTO")
+            if "ON CONFLICT" not in q:
+                q += " ON CONFLICT DO NOTHING"
+        return q
+
+    def fetchone(self):
+        return self._cur.fetchone()
+
+    def fetchall(self):
+        return self._cur.fetchall()
+
+    def __iter__(self):
+        return iter(self._cur)
+
+    @property
+    def description(self):
+        return self._cur.description
+
+    def close(self):
+        self._cur.close()
+
+class PgConnectionWrapper:
+    def __init__(self, pg_conn):
+        self._conn = pg_conn
+
+    def cursor(self):
+        return PgCursorWrapper(self._conn.cursor(cursor_factory=RealDictCursor))
+
+    def commit(self):
+        self._conn.commit()
+
+    def rollback(self):
+        self._conn.rollback()
+
+    def close(self):
+        self._conn.close()
+
+    def execute(self, query, params=None):
+        cur = self.cursor()
+        cur.execute(query, params)
+        return cur
 
 def get_connection():
+    db_url = os.getenv("DATABASE_URL")
+    if db_url and HAS_PSYCOPG2:
+        try:
+            # Conexão direta com Supabase PostgreSQL
+            pg_conn = psycopg2.connect(db_url)
+            return PgConnectionWrapper(pg_conn)
+        except Exception as e:
+            print(f"⚠️ Erro ao conectar no PostgreSQL Supabase: {e}. Utilizando SQLite local como fallback.")
+
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     return conn
