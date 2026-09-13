@@ -8,4 +8,4 @@ services:
       - key: PYTHON_VERSION
         value: 3.11.9
       - key: DATABASE_URL
-        sync: false
+        value: postgresql://postgres.bzvpruczqkwnilwflrgo:-3yWeW3%3FrvG%23_6D@aws-0-us-west-2.pooler.supabase.com:5432/postgres

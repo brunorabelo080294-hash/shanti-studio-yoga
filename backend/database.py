@@ -19,7 +19,8 @@ except ImportError:
     HAS_PSYCOPG2 = False
 
 DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "yoga_studio.db")
-DATABASE_URL = os.getenv("DATABASE_URL")
+DEFAULT_SUPABASE_URL = "postgresql://postgres.bzvpruczqkwnilwflrgo:-3yWeW3%3FrvG%23_6D@aws-0-us-west-2.pooler.supabase.com:5432/postgres"
+DATABASE_URL = os.getenv("DATABASE_URL") or DEFAULT_SUPABASE_URL
 
 class DictAndIndexRow(dict):
     """Permite acesso tanto por nome da coluna row['nome'] quanto por indice numerico row[0], identico ao sqlite3.Row"""
