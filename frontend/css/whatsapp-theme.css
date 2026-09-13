@@ -1651,7 +1651,7 @@ body {
 .pwa-splash-screen {
   position: fixed;
   inset: 0;
-  background-color: #1C2B24;
+  background-color: var(--shanti-forest);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1677,27 +1677,27 @@ body {
 .pwa-splash-logo {
   width: 120px;
   height: 120px;
-  border-radius: 24px;
-  border: 1.5px solid var(--shanti-gold);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+  border-radius: 26px;
+  border: 1.5px solid var(--shanti-sand-border);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.22);
   margin-bottom: 16px;
   object-fit: contain;
 }
 
 .pwa-splash-title {
   font-family: var(--font-brand);
-  font-size: 26px;
-  font-weight: 500;
+  font-size: 28px;
+  font-weight: 600;
   letter-spacing: 0.8px;
-  color: var(--shanti-gold);
+  color: var(--shanti-sand-light);
   margin-bottom: 4px;
 }
 
 .pwa-splash-subtitle {
-  font-size: 13px;
-  color: var(--shanti-text-muted);
+  font-size: 13.5px;
+  color: var(--shanti-sand);
   font-family: var(--font-family);
-  font-weight: 400;
+  font-weight: 500;
   letter-spacing: 0.5px;
 }
 

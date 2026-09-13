@@ -990,8 +990,8 @@ async def api_salvar_icone(
         escala_val = max(0.40, min(float(escala), 1.0))
         offset_val = max(-0.25, min(float(offset_y), 0.25))
 
-        # Canvas 512x512 no verde escuro da marca (#1C2B24)
-        bg_color = (28, 43, 36, 255)
+        # Canvas 512x512 no verde floresta da marca boutique (#3F4E3A)
+        bg_color = (63, 78, 58, 255)
         canvas = Image.new("RGBA", (512, 512), bg_color)
 
         w, h = img.size
