@@ -2477,6 +2477,17 @@ function setupSettings() {
     });
   }
 
+  const btnCopiarLinkPdf = document.getElementById('btn-copiar-link-pdf-assinado');
+  if (btnCopiarLinkPdf) {
+    btnCopiarLinkPdf.addEventListener('click', () => {
+      const input = document.getElementById('links-autentique-pdf-assinado-url');
+      if (input && input.value) {
+        navigator.clipboard.writeText(input.value);
+        showToast('Link do contrato assinado copiado!');
+      }
+    });
+  }
+
   const btnSincronizarAutentique = document.getElementById('btn-sincronizar-autentique');
   if (btnSincronizarAutentique) {
     btnSincronizarAutentique.addEventListener('click', async () => {
@@ -3001,9 +3012,6 @@ function abrirModalLinksAutentique(alunoId, alunoNome, docId, linkAluno, telefon
   document.getElementById('links-autentique-doc-id').textContent = `Doc ID: ${docId || 'Não informado'}`;
   
   // Etapa 1: Natália (Contratada)
-  const inputNatalia = document.getElementById('links-autentique-natalia-url');
-  if (inputNatalia) inputNatalia.value = linkNatalia || '';
-  
   const btnAbrirNatalia = document.getElementById('btn-abrir-link-natalia');
   if (btnAbrirNatalia) {
     if (linkNatalia) {
@@ -3013,18 +3021,6 @@ function abrirModalLinksAutentique(alunoId, alunoNome, docId, linkAluno, telefon
     } else {
       btnAbrirNatalia.href = '#';
     }
-  }
-
-  const btnWaNatalia = document.getElementById('btn-wa-link-natalia');
-  if (btnWaNatalia) {
-    const telNataliaRaw = (state.configuracoes?.telefone_natalia || state.configuracoes?.telefone_studio || '22988423287').replace(/\D/g, '');
-    const telNatalia = telNataliaRaw.startsWith('55') ? telNataliaRaw : ('55' + telNataliaRaw);
-    const msgNatalia = encodeURIComponent(
-      `Olá, Natália! 🧘‍♀️ Segue o link para você assinar o contrato de ${alunoNome} como Contratada (Studio Shanti):\n\n` +
-      `👉 ${linkNatalia || ''}\n\n` +
-      `Assim que você assinar na tela, o sistema liberará automaticamente o envio para o aluno assinar! ✨`
-    );
-    btnWaNatalia.href = `https://wa.me/${telNatalia}?text=${msgNatalia}`;
   }
 
   // Etapa 2: Aluno (Contratante)
@@ -3037,14 +3033,36 @@ function abrirModalLinksAutentique(alunoId, alunoNome, docId, linkAluno, telefon
   const btnWaAluno = document.getElementById('btn-wa-link-aluno');
   if (btnWaAluno) {
     const msgAluno = encodeURIComponent(
-      `Olá, ${alunoNome}! 🧘‍♀️ Segue o link seguro para assinatura eletrônica do seu Contrato com o Studio Shanti (já assinado pela professora Natália):\n\n` +
+      `Olá, ${alunoNome}! 🧘‍♀️ Segue o link seguro para assinatura digital do seu Contrato com o Studio Shanti (já assinado pela professora Natália):\n\n` +
       `👉 ${linkAluno || ''}\n\n` +
-      `Basta tocar no link e assinar direto na tela do celular! Namastê. 🙏`
+      `Basta tocar no link e assinar direto na tela do seu celular! Namastê. 🙏`
     );
     btnWaAluno.href = `https://wa.me/${telAluno}?text=${msgAluno}`;
   }
+
+  // URL do PDF Assinado
+  const urlAssinadoPadrao = docId ? `https://api.autentique.com.br/documentos/${docId}/assinado.pdf` : '';
+  const inputPdfAssinado = document.getElementById('links-autentique-pdf-assinado-url');
+  if (inputPdfAssinado) inputPdfAssinado.value = urlAssinadoPadrao;
+
+  const btnAbrirPdf = document.getElementById('btn-abrir-pdf-assinado');
+  if (btnAbrirPdf) btnAbrirPdf.href = urlAssinadoPadrao || '#';
+
+  const btnWaPdf = document.getElementById('btn-wa-pdf-assinado');
+  if (btnWaPdf && urlAssinadoPadrao) {
+    const msgFinal = encodeURIComponent(
+      `📜 *CONTRATO DE MATRÍCULA ASSINADO - Studio Shanti* 🧘‍♀️✨\n\n` +
+      `Olá, *${alunoNome}*!\n\n` +
+      `O seu Contrato de Prestação de Serviços com o Studio Shanti foi *concluído e assinado digitalmente por ambas as partes* (Professora Natália e Aluno)!\n\n` +
+      `📄 *Acesse e baixe a sua via oficial assinada (PDF):*\n` +
+      `👉 ${urlAssinadoPadrao}\n\n` +
+      `Este documento possui certificação digital e plena validade jurídica. Guarde-o com você para seu arquivo pessoal!\n\n` +
+      `Seja muito bem-vindo(a) e tenha ótimas práticas! Namastê. 🙏🌿`
+    );
+    btnWaPdf.href = `https://wa.me/${telAluno}?text=${msgFinal}`;
+  }
   
-  // Estado padrão visual
+  // Estado inicial visual
   const etapaBadge = document.getElementById('links-autentique-etapa-badge');
   if (etapaBadge) {
     etapaBadge.className = 'wa-badge';
@@ -3064,7 +3082,7 @@ function abrirModalLinksAutentique(alunoId, alunoNome, docId, linkAluno, telefon
 
   abrirModal('modal-links-autentique');
 
-  // Consulta em background para sincronizar badges e destravar envio ao aluno se Natália já assinou
+  // Consulta em tempo real para sincronizar status atual do documento
   verificarStatusAutentique(alunoId, false);
 }
 
@@ -3082,12 +3100,10 @@ async function verificarStatusAutentique(alunoId, showToastAlert = true) {
       throw new Error(data.detail || 'Erro ao consultar status no Autentique.');
     }
     
-    // Atualizar inputs e links caso tenham sido preenchidos na resposta
-    if (data.link_natalia) {
-      const inputNatalia = document.getElementById('links-autentique-natalia-url');
-      if (inputNatalia) inputNatalia.value = data.link_natalia;
-      const btnAbrirNat = document.getElementById('btn-abrir-link-natalia');
-      if (btnAbrirNat) btnAbrirNat.href = data.link_natalia;
+    // Atualizar links da Natália e do Aluno se vierem na resposta
+    const btnAbrirNat = document.getElementById('btn-abrir-link-natalia');
+    if (data.link_natalia && btnAbrirNat) {
+      btnAbrirNat.href = data.link_natalia;
     }
     if (data.link_aluno) {
       const inputAluno = document.getElementById('links-autentique-aluno-url');
@@ -3097,67 +3113,108 @@ async function verificarStatusAutentique(alunoId, showToastAlert = true) {
     const badgeNatalia = document.getElementById('status-natalia-badge');
     const badgeAluno = document.getElementById('status-aluno-badge');
     const avisoBloqueado = document.getElementById('aviso-aluno-bloqueado');
-    const areaAluno = document.getElementById('area-envio-aluno');
+    const areaEnvioAluno = document.getElementById('area-envio-aluno');
+    const areaFinalizado = document.getElementById('area-contrato-finalizado');
     const etapaBadge = document.getElementById('links-autentique-etapa-badge');
     const box = document.getElementById('links-autentique-status-box');
-    const btnAbrirNat = document.getElementById('btn-abrir-link-natalia');
 
     const nataliaAssinou = Boolean(data.natalia_assinou);
     const alunoAssinou = Boolean(data.aluno_assinou);
-    const finalizado = Boolean(data.finalizado);
+    const finalizado = Boolean(data.finalizado) || (nataliaAssinou && alunoAssinou);
+    const urlAssinado = data.url_assinado || (data.document_id ? `https://api.autentique.com.br/documentos/${data.document_id}/assinado.pdf` : '');
+
+    const alunoObj = (state.contratos || []).find(c => c.id == alunoId) || {};
+    const alunoNome = alunoObj.nome || document.getElementById('links-autentique-aluno-nome')?.textContent || 'Aluno';
+    let telAluno = (alunoObj.telefone || '').replace(/\D/g, '');
+    if (telAluno && !telAluno.startsWith('55')) telAluno = '55' + telAluno;
 
     // 1. Atualizar card da Natália
+    const areaAcaoNatPendente = document.getElementById('area-acao-natalia-pendente');
+    const areaAcaoNatAssinado = document.getElementById('area-acao-natalia-assinado');
     if (nataliaAssinou) {
       if (badgeNatalia) {
         badgeNatalia.style.background = '#dcfce7';
         badgeNatalia.style.color = '#15803d';
         badgeNatalia.innerHTML = '<i class="fa-solid fa-check"></i> Assinado';
       }
-      if (btnAbrirNat) {
-        btnAbrirNat.style.background = '#e2e8f0';
-        btnAbrirNat.style.color = '#64748b';
-        btnAbrirNat.innerHTML = '<i class="fa-solid fa-check"></i> Já Assinado';
-        btnAbrirNat.style.pointerEvents = 'none';
-      }
+      if (areaAcaoNatPendente) areaAcaoNatPendente.style.display = 'none';
+      if (areaAcaoNatAssinado) areaAcaoNatAssinado.style.display = 'flex';
     } else {
       if (badgeNatalia) {
         badgeNatalia.style.background = '#fffbeb';
         badgeNatalia.style.color = '#b45309';
         badgeNatalia.innerHTML = '⏳ Pendente';
       }
-      if (btnAbrirNat) {
-        btnAbrirNat.style.background = 'var(--shanti-forest)';
-        btnAbrirNat.style.color = '#fff';
-        btnAbrirNat.innerHTML = '<i class="fa-solid fa-pen-nib"></i> Assinar Agora';
-        btnAbrirNat.style.pointerEvents = 'auto';
+      if (areaAcaoNatPendente) areaAcaoNatPendente.style.display = 'block';
+      if (areaAcaoNatAssinado) areaAcaoNatAssinado.style.display = 'none';
+      if (btnAbrirNat && data.link_natalia) {
+        btnAbrirNat.href = data.link_natalia;
       }
     }
 
     // 2. Atualizar card do Aluno
-    if (nataliaAssinou) {
-      if (avisoBloqueado) avisoBloqueado.style.display = 'none';
-      if (areaAluno) areaAluno.style.display = 'block';
-
-      if (alunoAssinou) {
-        if (badgeAluno) {
-          badgeAluno.style.background = '#dcfce7';
-          badgeAluno.style.color = '#15803d';
-          badgeAluno.innerHTML = '<i class="fa-solid fa-check"></i> Assinado';
-        }
-      } else {
-        if (badgeAluno) {
-          badgeAluno.style.background = '#eff6ff';
-          badgeAluno.style.color = '#1e40af';
-          badgeAluno.innerHTML = '⏳ Pronto p/ Envio';
-        }
-      }
-    } else {
+    if (!nataliaAssinou) {
       if (avisoBloqueado) avisoBloqueado.style.display = 'block';
-      if (areaAluno) areaAluno.style.display = 'none';
+      if (areaEnvioAluno) areaEnvioAluno.style.display = 'none';
+      if (areaFinalizado) areaFinalizado.style.display = 'none';
       if (badgeAluno) {
         badgeAluno.style.background = '#f3f4f6';
         badgeAluno.style.color = '#6b7280';
         badgeAluno.innerHTML = 'Aguardando Natália';
+      }
+    } else if (finalizado) {
+      if (avisoBloqueado) avisoBloqueado.style.display = 'none';
+      if (areaEnvioAluno) areaEnvioAluno.style.display = 'none';
+      if (areaFinalizado) areaFinalizado.style.display = 'block';
+      if (badgeAluno) {
+        badgeAluno.style.background = '#dcfce7';
+        badgeAluno.style.color = '#15803d';
+        badgeAluno.innerHTML = '<i class="fa-solid fa-check"></i> Assinado';
+      }
+
+      // Preencher URL do PDF Assinado
+      const inputPdfAssinado = document.getElementById('links-autentique-pdf-assinado-url');
+      if (inputPdfAssinado && urlAssinado) inputPdfAssinado.value = urlAssinado;
+
+      const btnAbrirPdf = document.getElementById('btn-abrir-pdf-assinado');
+      if (btnAbrirPdf && urlAssinado) btnAbrirPdf.href = urlAssinado;
+
+      const btnWaPdf = document.getElementById('btn-wa-pdf-assinado');
+      if (btnWaPdf && urlAssinado) {
+        const msgFinal = encodeURIComponent(
+          `📜 *CONTRATO DE MATRÍCULA ASSINADO - Studio Shanti* 🧘‍♀️✨\n\n` +
+          `Olá, *${alunoNome}*!\n\n` +
+          `O seu Contrato de Prestação de Serviços com o Studio Shanti foi *concluído e assinado digitalmente por ambas as partes* (Professora Natália e Aluno)!\n\n` +
+          `📄 *Acesse e baixe a sua via oficial assinada (PDF):*\n` +
+          `👉 ${urlAssinado}\n\n` +
+          `Este documento possui certificação digital e plena validade jurídica. Guarde-o com você para seu arquivo pessoal!\n\n` +
+          `Seja muito bem-vindo(a) e tenha ótimas práticas! Namastê. 🙏🌿`
+        );
+        btnWaPdf.href = `https://wa.me/${telAluno}?text=${msgFinal}`;
+      }
+    } else {
+      // Natália assinou, aluno pendente de assinar
+      if (avisoBloqueado) avisoBloqueado.style.display = 'none';
+      if (areaEnvioAluno) areaEnvioAluno.style.display = 'block';
+      if (areaFinalizado) areaFinalizado.style.display = 'none';
+      if (badgeAluno) {
+        badgeAluno.style.background = '#eff6ff';
+        badgeAluno.style.color = '#1e40af';
+        badgeAluno.innerHTML = '⏳ Pronto p/ Envio';
+      }
+
+      const inputAluno = document.getElementById('links-autentique-aluno-url');
+      if (inputAluno && data.link_aluno) inputAluno.value = data.link_aluno;
+
+      const btnWaAluno = document.getElementById('btn-wa-link-aluno');
+      if (btnWaAluno) {
+        const linkAlunoReal = data.link_aluno || inputAluno?.value || '';
+        const msgAssinatura = encodeURIComponent(
+          `Olá, ${alunoNome}! 🧘‍♀️ Segue o link seguro para assinatura digital do seu Contrato com o Studio Shanti (já assinado pela professora Natália):\n\n` +
+          `👉 ${linkAlunoReal}\n\n` +
+          `Basta tocar no link e assinar direto na tela do seu celular! Assim que concluir, o sistema confirmará automaticamente. Namastê. 🙏`
+        );
+        btnWaAluno.href = `https://wa.me/${telAluno}?text=${msgAssinatura}`;
       }
     }
 
@@ -3167,13 +3224,13 @@ async function verificarStatusAutentique(alunoId, showToastAlert = true) {
         etapaBadge.style.background = '#dcfce7';
         etapaBadge.style.color = '#15803d';
         etapaBadge.style.border = '1px solid #86efac';
-        etapaBadge.innerHTML = 'Concluído';
+        etapaBadge.innerHTML = '✓ Concluído';
       }
       if (box) {
         box.style.background = '#f0fdf4';
         box.style.borderColor = '#bbf7d0';
         box.style.color = '#15803d';
-        box.innerHTML = '<i class="fa-solid fa-circle-check"></i> <b>Contrato totalmente assinado!</b> Validado como "Em Dia" com 1 ano de vigência.';
+        box.innerHTML = '<i class="fa-solid fa-circle-check"></i> <b>Contrato 100% Assinado!</b> Ambas as partes assinaram com sucesso. Documento validado com 1 ano de vigência.';
       }
       if (showToastAlert) showToast('Contrato assinado e atualizado para "Em Dia"!');
       await carregarContratos();
@@ -3192,7 +3249,6 @@ async function verificarStatusAutentique(alunoId, showToastAlert = true) {
       }
       if (showToastAlert) showToast('Aguardando assinatura da Professora Natália.');
     } else {
-      // Natália assinou, aguardando aluno
       if (etapaBadge) {
         etapaBadge.style.background = '#eff6ff';
         etapaBadge.style.color = '#1e40af';
@@ -3326,7 +3382,8 @@ function renderizarContratos() {
     let badgeIcon = 'fa-solid fa-hourglass-half';
 
     const temArquivo = Boolean(c.contrato_assinado_arquivo);
-    const enviadoAutentique = Boolean(c.autentique_doc_id) && c.autentique_status !== 'assinado';
+    const temAutentique = Boolean(c.autentique_doc_id);
+    const estaEmDia = c.status_contrato === 'em_dia' || temArquivo;
 
     if (c.status_contrato === 'em_dia') {
       badgeClass = 'badge-contrato-em-dia';
@@ -3340,7 +3397,7 @@ function renderizarContratos() {
       badgeClass = 'badge-contrato-vencido';
       badgeTexto = 'Contrato Vencido';
       badgeIcon = 'fa-solid fa-circle-exclamation';
-    } else if (enviadoAutentique) {
+    } else if (temAutentique) {
       badgeClass = 'badge-contrato-a-vencer';
       if (c.autentique_status === 'aguardando_natalia') {
         badgeTexto = 'Autentique: 1ª Etapa (Natália)';
@@ -3348,6 +3405,9 @@ function renderizarContratos() {
       } else if (c.autentique_status === 'aguardando_aluno') {
         badgeTexto = 'Autentique: 2ª Etapa (Aluno)';
         badgeIcon = 'fa-solid fa-paper-plane';
+      } else if (c.autentique_status === 'assinado' || c.autentique_status === 'concluido') {
+        badgeTexto = 'Autentique: Concluído';
+        badgeIcon = 'fa-solid fa-circle-check';
       } else {
         badgeTexto = 'Autentique: Aguardando';
         badgeIcon = 'fa-solid fa-clock-rotate-left';
@@ -3358,7 +3418,7 @@ function renderizarContratos() {
     if (c.data_vigencia_contrato) {
       const diasRest = c.dias_restantes != null ? `(${c.dias_restantes} dias restantes)` : '';
       vigenciaTexto = `Vigência até ${formatarDataBR(c.data_vigencia_contrato)} ${diasRest}`;
-    } else if (enviadoAutentique) {
+    } else if (temAutentique) {
       if (c.autentique_status === 'aguardando_natalia') {
         vigenciaTexto = 'Autentique: Aguardando assinatura da Natália (Etapa 1)';
       } else if (c.autentique_status === 'aguardando_aluno') {
@@ -3371,13 +3431,34 @@ function renderizarContratos() {
     let tel = (c.telefone || '').replace(/\D/g, '');
     if (tel && !tel.startsWith('55')) tel = '55' + tel;
 
-    const msgWa = encodeURIComponent(
-      `Olá, ${c.nome}! 🧘‍♀️ Aqui é do Studio Shanti de Yoga.\n\n` +
-      `Estamos enviando a minuta do seu Contrato de Prestação de Serviços de Yoga (${c.plano}).\n\n` +
-      `Você pode conferir a minuta no link:\n` +
-      `${window.location.origin}/api/alunos/${c.id}/contrato/pdf\n\n` +
-      `Assim que estiver assinado por você e pela professora Natália, arquivamos a via mútua no estúdio.\n\nNamastê! 🙏`
-    );
+    let msgWa;
+    let btnWaTexto = 'WhatsApp';
+    let btnWaIcon = 'fa-brands fa-whatsapp';
+
+    if (estaEmDia) {
+      const linkPdfAssinado = c.autentique_doc_id
+        ? `https://api.autentique.com.br/documentos/${c.autentique_doc_id}/assinado.pdf`
+        : `${window.location.origin}/api/alunos/${c.id}/contrato/arquivo`;
+      msgWa = encodeURIComponent(
+        `📜 *CONTRATO DE MATRÍCULA ASSINADO - Studio Shanti* 🧘‍♀️✨\n\n` +
+        `Olá, *${c.nome}*!\n\n` +
+        `O seu Contrato de Prestação de Serviços com o Studio Shanti foi *concluído e assinado digitalmente por ambas as partes* (Professora Natália e Aluno)!\n\n` +
+        `📄 *Acesse e baixe a sua via oficial assinada (PDF):*\n` +
+        `👉 ${linkPdfAssinado}\n\n` +
+        `Este documento possui certificação digital e plena validade jurídica. Guarde-o com você para seu arquivo pessoal!\n\n` +
+        `Seja muito bem-vindo(a) e tenha ótimas práticas! Namastê. 🙏🌿`
+      );
+      btnWaTexto = 'Enviar Via Assinada';
+    } else {
+      msgWa = encodeURIComponent(
+        `Olá, ${c.nome}! 🧘‍♀️ Aqui é do Studio Shanti de Yoga.\n\n` +
+        `Estamos enviando a minuta do seu Contrato de Prestação de Serviços de Yoga (${c.plano}).\n\n` +
+        `Você pode conferir a minuta no link:\n` +
+        `${window.location.origin}/api/alunos/${c.id}/contrato/pdf\n\n` +
+        `Assim que estiver assinado por você e pela professora Natália, arquivamos a via mútua no estúdio.\n\nNamastê! 🙏`
+      );
+      btnWaTexto = 'WhatsApp (Minuta)';
+    }
     const linkWa = `https://wa.me/${tel}?text=${msgWa}`;
 
     return `
@@ -3419,32 +3500,32 @@ function renderizarContratos() {
         </div>
 
         <div style="display: flex; gap: 6px; flex-wrap: wrap;">
-          ${!temArquivo && !enviadoAutentique ? `
+          ${!estaEmDia && !temAutentique ? `
             <button type="button" class="wa-btn-primary" style="flex: 1; min-width: 130px; padding: 7px 12px; font-size: 12px; background: var(--shanti-forest); color: #FFFFFF; border: none; border-radius: 20px; font-weight: 600; box-shadow: var(--shadow-sm);" onclick="abrirModalEnviarAutentique(${c.id}, '${c.nome.replace(/'/g, "\\'")}', '${(c.plano || '').replace(/'/g, "\\'")}', '${c.telefone || ''}', '${c.email || ''}')">
               <i class="fa-solid fa-file-signature"></i> Assinar Autentique
             </button>
           ` : ''}
 
-          ${enviadoAutentique ? `
-            <button type="button" class="wa-btn-primary" style="flex: 1; min-width: 115px; padding: 7px 12px; font-size: 12px; background: var(--shanti-sage); color: #FFFFFF; border: none; border-radius: 20px; font-weight: 600;" onclick="abrirModalLinksAutentique(${c.id}, '${c.nome.replace(/'/g, "\\'")}', '${c.autentique_doc_id}', '${c.autentique_link || ''}', '${c.telefone || ''}', '${c.autentique_link_natalia || ''}')">
-              <i class="fa-solid fa-link"></i> Links / WA
+          ${temAutentique ? `
+            <button type="button" class="wa-btn-primary" style="flex: 1; min-width: 110px; padding: 7px 12px; font-size: 12px; background: ${estaEmDia ? 'var(--shanti-forest)' : 'var(--shanti-sage)'}; color: #FFFFFF; border: none; border-radius: 20px; font-weight: 600;" onclick="abrirModalLinksAutentique(${c.id}, '${c.nome.replace(/'/g, "\\'")}', '${c.autentique_doc_id}', '${c.autentique_link || ''}', '${c.telefone || ''}', '${c.autentique_link_natalia || ''}')">
+              <i class="fa-solid ${estaEmDia ? 'fa-file-circle-check' : 'fa-link'}"></i> ${estaEmDia ? 'Autentique' : 'Links / WA'}
             </button>
-            <button type="button" class="wa-btn-primary" style="flex: 1; min-width: 100px; padding: 7px 12px; font-size: 12px; background: #FFFFFF; color: var(--shanti-forest); border: 1px solid var(--shanti-sand-border); border-radius: 20px; font-weight: 600;" onclick="verificarStatusAutentique(${c.id}, true)" title="Consultar status no Autentique">
+            <button type="button" class="wa-btn-primary" style="flex: 1; min-width: 95px; padding: 7px 12px; font-size: 12px; background: #FFFFFF; color: var(--shanti-forest); border: 1px solid var(--shanti-sand-border); border-radius: 20px; font-weight: 600;" onclick="verificarStatusAutentique(${c.id}, true)" title="Consultar status no Autentique">
               <i class="fa-solid fa-rotate"></i> Sincronizar
             </button>
           ` : ''}
 
-          <a href="/api/alunos/${c.id}/contrato/pdf" target="_blank" class="wa-btn-primary" style="flex: 1; min-width: 90px; padding: 7px 12px; font-size: 12px; background: var(--shanti-sand-light); color: var(--shanti-charcoal); border: 1px solid var(--shanti-sand-border); border-radius: 20px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 5px;">
-            <i class="fa-solid fa-file-pdf" style="color: var(--shanti-terracotta);"></i> Minuta
-          </a>
-
-          ${!enviadoAutentique ? `
-            <a href="${linkWa}" target="_blank" class="wa-btn-primary" style="flex: 1; min-width: 90px; padding: 7px 12px; font-size: 12px; background: var(--shanti-whatsapp-green); color: #FFFFFF; border: none; border-radius: 20px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 5px; box-shadow: 0 2px 8px rgba(37, 211, 102, 0.25);">
-              <i class="fa-brands fa-whatsapp"></i> WhatsApp
+          ${!estaEmDia ? `
+            <a href="/api/alunos/${c.id}/contrato/pdf" target="_blank" class="wa-btn-primary" style="flex: 1; min-width: 80px; padding: 7px 12px; font-size: 12px; background: var(--shanti-sand-light); color: var(--shanti-charcoal); border: 1px solid var(--shanti-sand-border); border-radius: 20px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 5px;">
+              <i class="fa-solid fa-file-pdf" style="color: var(--shanti-terracotta);"></i> Minuta
             </a>
           ` : ''}
 
-          <button type="button" class="wa-btn-primary" style="flex: 1; min-width: 115px; padding: 7px 12px; font-size: 12px; background: var(--shanti-terracotta); color: #FFFFFF; border: none; border-radius: 20px; font-weight: 600; box-shadow: var(--shadow-sm);" onclick="abrirModalUploadContrato(${c.id}, '${c.nome.replace(/'/g, "\\'")}', '${(c.plano || '').replace(/'/g, "\\'")}')">
+          <a href="${linkWa}" target="_blank" class="wa-btn-primary" style="flex: 1; min-width: 125px; padding: 7px 12px; font-size: 12px; background: var(--shanti-whatsapp-green); color: #FFFFFF; border: none; border-radius: 20px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 5px; box-shadow: 0 2px 8px rgba(37, 211, 102, 0.25);">
+            <i class="${btnWaIcon}"></i> ${btnWaTexto}
+          </a>
+
+          <button type="button" class="wa-btn-primary" style="flex: 1; min-width: 110px; padding: 7px 12px; font-size: 12px; background: var(--shanti-terracotta); color: #FFFFFF; border: none; border-radius: 20px; font-weight: 600; box-shadow: var(--shadow-sm);" onclick="abrirModalUploadContrato(${c.id}, '${c.nome.replace(/'/g, "\\'")}', '${(c.plano || '').replace(/'/g, "\\'")}')">
             <i class="fa-solid fa-cloud-arrow-up"></i> ${temArquivo ? 'Substituir' : 'Upload Manual'}
           </button>
 

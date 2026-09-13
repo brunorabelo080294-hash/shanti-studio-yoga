@@ -1382,7 +1382,7 @@
 <div class="wa-modal-overlay" id="modal-links-autentique">
   <div class="wa-modal-sheet" style="max-width: 500px;">
     <div class="wa-modal-header">
-      <h3 class="wa-modal-title"><i class="fa-solid fa-file-signature" style="color:var(--shanti-forest);"></i> Assinatura Digital em 2 Etapas</h3>
+      <h3 class="wa-modal-title"><i class="fa-solid fa-file-signature" style="color:var(--shanti-forest);"></i> Assinatura Digital do Contrato</h3>
       <button class="wa-modal-close" data-close-modal="modal-links-autentique">&times;</button>
     </div>
 
@@ -1408,7 +1408,7 @@
     </div>
 
     <!-- ETAPA 1: ASSINATURA DA PROFESSORA NATÁLIA (ESTÚDIO) -->
-    <div id="box-etapa-natalia" style="background: #ffffff; border: 1px solid var(--shanti-sand-border); border-radius: 12px; padding: 12px 14px; margin-bottom: 12px;">
+    <div id="box-etapa-natalia" style="background: #ffffff; border: 1px solid var(--shanti-sand-border); border-radius: 12px; padding: 14px; margin-bottom: 12px;">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
         <span style="font-size: 12.5px; font-weight: 700; color: var(--shanti-forest);">
           <span style="background: var(--shanti-forest); color: #fff; width: 18px; height: 18px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 10px; margin-right: 4px;">1</span>
@@ -1418,33 +1418,30 @@
           ⏳ Pendente
         </span>
       </div>
-      <p style="font-size: 11.5px; color: var(--shanti-stone); margin: 0 0 8px 0; line-height: 1.4;">
-        A Natália deve assinar primeiro como Contratada.
+      <p style="font-size: 11.5px; color: var(--shanti-stone); margin: 0 0 10px 0; line-height: 1.4;">
+        A professora Natália assina diretamente aqui no aplicativo como Contratada.
       </p>
       
-      <div style="display: flex; gap: 6px; margin-bottom: 8px;">
-        <input type="text" readonly id="links-autentique-natalia-url" class="wa-form-control" style="font-size: 11.5px; font-family: monospace; background: #fff;" placeholder="Link da Natália">
-        <button type="button" class="wa-btn-primary" id="btn-copiar-link-natalia" style="padding: 6px 12px; background: #ffffff; color: var(--shanti-forest); border: 1px solid var(--shanti-sand-border); border-radius: 10px;" title="Copiar Link da Natália">
-          <i class="fa-solid fa-copy"></i>
-        </button>
+      <!-- Bloco quando pendente -->
+      <div id="area-acao-natalia-pendente">
+        <a id="btn-abrir-link-natalia" href="#" target="_blank" class="wa-btn-primary" style="width: 100%; padding: 10px 14px; font-size: 12.5px; background: var(--shanti-forest); color: #fff; text-decoration: none; border: none; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-weight: 600; box-shadow: var(--shadow-sm);" title="Assinar Agora">
+          <i class="fa-solid fa-pen-nib"></i> Assinar Contrato Agora
+        </a>
       </div>
 
-      <div style="display: flex; gap: 6px;">
-        <a id="btn-wa-link-natalia" href="#" target="_blank" class="wa-btn-primary" style="flex: 1; padding: 7px 10px; font-size: 11.5px; background: var(--shanti-whatsapp-green); color: #fff; text-decoration: none; border: none; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; gap: 5px; font-weight: 600;" title="Enviar WhatsApp para Natália">
-          <i class="fa-brands fa-whatsapp"></i> Enviar p/ Natália (WhatsApp)
-        </a>
-        <a id="btn-abrir-link-natalia" href="#" target="_blank" class="wa-btn-primary" style="flex: 1; padding: 7px 10px; font-size: 11.5px; background: var(--shanti-forest); color: #fff; text-decoration: none; border: none; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; gap: 5px; font-weight: 600;" title="Assinar Agora">
-          <i class="fa-solid fa-pen-nib"></i> Assinar Agora
-        </a>
+      <!-- Bloco quando já assinado -->
+      <div id="area-acao-natalia-assinado" style="display: none; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; padding: 9px 12px; font-size: 12px; color: #15803d; font-weight: 600; align-items: center; gap: 8px;">
+        <i class="fa-solid fa-circle-check" style="font-size: 16px;"></i>
+        <span>Você já assinou este contrato como Contratada.</span>
       </div>
     </div>
 
-    <!-- ETAPA 2: ASSINATURA DO ALUNO (LIBERADA APÓS NATÁLIA ASSINAR) -->
-    <div id="box-etapa-aluno" style="background: #ffffff; border: 1px solid var(--shanti-sand-border); border-radius: 12px; padding: 12px 14px; margin-bottom: 14px;">
+    <!-- ETAPA 2: ASSINATURA E ENVIO AO ALUNO -->
+    <div id="box-etapa-aluno" style="background: #ffffff; border: 1px solid var(--shanti-sand-border); border-radius: 12px; padding: 14px; margin-bottom: 14px;">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
         <span style="font-size: 12.5px; font-weight: 700; color: var(--shanti-charcoal);">
           <span style="background: var(--shanti-sage); color: #fff; width: 18px; height: 18px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 10px; margin-right: 4px;">2</span>
-          Assinatura do Aluno
+          Assinatura e Envio ao Aluno
         </span>
         <span id="status-aluno-badge" style="font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 10px; background: #f3f4f6; color: #6b7280;">
           Aguardando Natália
@@ -1452,15 +1449,15 @@
       </div>
 
       <!-- Aviso se Natália ainda não assinou -->
-      <div id="aviso-aluno-bloqueado" style="background: #fdf8f6; border: 1px dashed #fcd34d; border-radius: 8px; padding: 8px 10px; font-size: 11px; color: #92400e; margin-bottom: 8px; line-height: 1.4;">
+      <div id="aviso-aluno-bloqueado" style="background: #fdf8f6; border: 1px dashed #fcd34d; border-radius: 8px; padding: 10px 12px; font-size: 11.5px; color: #92400e; margin-bottom: 0; line-height: 1.4;">
         <i class="fa-solid fa-lock" style="margin-right: 4px;"></i>
-        O envio ao aluno será liberado assim que a Natália concluir sua assinatura.
+        O envio ao aluno será liberado assim que a Natália concluir sua assinatura acima.
       </div>
 
-      <!-- Área liberada para envio ao aluno -->
+      <!-- Área liberada para envio ao aluno (Quando Natália já assinou, mas aluno ainda não) -->
       <div id="area-envio-aluno" style="display: none;">
         <p style="font-size: 11.5px; color: var(--shanti-stone); margin: 0 0 8px 0; line-height: 1.4;">
-          A Natália já assinou! Envie agora o contrato para o aluno assinar pelo WhatsApp:
+          A Natália já assinou! Envie o link seguro abaixo para o aluno assinar pelo WhatsApp:
         </p>
         <div style="display: flex; gap: 6px; margin-bottom: 8px;">
           <input type="text" readonly id="links-autentique-aluno-url" class="wa-form-control" style="font-size: 11.5px; font-family: monospace; background: #fff;" placeholder="Link do Aluno">
@@ -1468,8 +1465,27 @@
             <i class="fa-solid fa-copy"></i>
           </button>
         </div>
-        <a id="btn-wa-link-aluno" href="#" target="_blank" class="wa-btn-primary" style="width: 100%; padding: 9px 12px; background: var(--shanti-whatsapp-green); color: #fff; text-decoration: none; border: none; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-weight: 600;" title="Enviar via WhatsApp ao Aluno">
-          <i class="fa-brands fa-whatsapp" style="font-size: 16px;"></i> Enviar Contrato ao Aluno (WhatsApp)
+        <a id="btn-wa-link-aluno" href="#" target="_blank" class="wa-btn-primary" style="width: 100%; padding: 10px 12px; background: var(--shanti-whatsapp-green); color: #fff; text-decoration: none; border: none; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-weight: 600; font-size: 12.5px; box-shadow: 0 2px 8px rgba(37, 211, 102, 0.25);" title="Enviar Link de Assinatura via WhatsApp ao Aluno">
+          <i class="fa-brands fa-whatsapp" style="font-size: 16px;"></i> Enviar Link de Assinatura ao Aluno (WhatsApp)
+        </a>
+      </div>
+
+      <!-- Área liberada após ambas as partes assinarem (Contrato 100% Concluído) -->
+      <div id="area-contrato-finalizado" style="display: none;">
+        <p style="font-size: 11.5px; color: #15803d; font-weight: 600; margin: 0 0 8px 0; line-height: 1.4;">
+          <i class="fa-solid fa-circle-check"></i> Contrato 100% assinado por ambas as partes! Envie a via oficial assinada para o WhatsApp do aluno guardar:
+        </p>
+        <div style="display: flex; gap: 6px; margin-bottom: 8px;">
+          <input type="text" readonly id="links-autentique-pdf-assinado-url" class="wa-form-control" style="font-size: 11.5px; font-family: monospace; background: #fff;" placeholder="Link do Contrato Assinado (PDF)">
+          <button type="button" class="wa-btn-primary" id="btn-copiar-link-pdf-assinado" style="padding: 6px 12px; background: #ffffff; color: var(--shanti-forest); border: 1px solid var(--shanti-sand-border); border-radius: 10px;" title="Copiar Link do PDF Assinado">
+            <i class="fa-solid fa-copy"></i>
+          </button>
+        </div>
+        <a id="btn-wa-pdf-assinado" href="#" target="_blank" class="wa-btn-primary" style="width: 100%; padding: 10px 12px; background: var(--shanti-whatsapp-green); color: #fff; text-decoration: none; border: none; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-weight: 600; font-size: 12.5px; margin-bottom: 8px; box-shadow: 0 2px 8px rgba(37, 211, 102, 0.25);" title="Enviar Contrato Assinado ao Aluno">
+          <i class="fa-brands fa-whatsapp" style="font-size: 16px;"></i> Enviar Cópia Assinada ao Aluno (WhatsApp)
+        </a>
+        <a id="btn-abrir-pdf-assinado" href="#" target="_blank" class="wa-btn-primary" style="width: 100%; padding: 9px 12px; background: #ffffff; color: var(--shanti-forest); text-decoration: none; border: 1px solid var(--shanti-sand-border); border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-weight: 600; font-size: 12px;" title="Visualizar / Baixar Contrato Assinado">
+          <i class="fa-solid fa-file-pdf" style="color: var(--shanti-terracotta);"></i> Visualizar / Baixar PDF Assinado
         </a>
       </div>
     </div>
