@@ -297,28 +297,39 @@ body {
 }
 
 .badge-contrato-em-dia {
-  background: #ecfdf5;
-  color: #059669;
-  border: 1px solid #a7f3d0;
+  background: var(--shanti-sage-light);
+  color: #3F4E3A;
+  border: 1px solid var(--shanti-sage-border);
+  font-weight: 600;
+  border-radius: 12px;
+  padding: 3px 9px;
 }
 
 .badge-contrato-a-vencer {
-  background: #fffbeb;
-  color: #d97706;
-  border: 1px solid #fcd34d;
-  animation: pulse-border 2s infinite;
+  background: #FDF3E7;
+  color: #B45309;
+  border: 1px solid #F6D6B2;
+  font-weight: 600;
+  border-radius: 12px;
+  padding: 3px 9px;
 }
 
 .badge-contrato-pendente {
-  background: #eff6ff;
-  color: #2563eb;
-  border: 1px solid #bfdbfe;
+  background: var(--shanti-sand-light);
+  color: var(--shanti-charcoal);
+  border: 1px solid var(--shanti-sand-border);
+  font-weight: 600;
+  border-radius: 12px;
+  padding: 3px 9px;
 }
 
 .badge-contrato-vencido {
-  background: #fef2f2;
-  color: #dc2626;
-  border: 1px solid #fecaca;
+  background: var(--shanti-terracotta-light);
+  color: var(--shanti-terracotta);
+  border: 1px solid var(--shanti-terracotta-border);
+  font-weight: 600;
+  border-radius: 12px;
+  padding: 3px 9px;
 }
 
 @keyframes pulse-border {

@@ -3079,10 +3079,10 @@ function renderizarContratos() {
 
   if (lista.length === 0) {
     container.innerHTML = `
-      <div style="padding: 40px 20px; text-align: center; color: #8c9c94; background: #ffffff; border-radius: 12px; border: 1px dashed var(--wa-border);">
-        <i class="fa-solid fa-file-circle-question" style="font-size: 36px; color: var(--shanti-gold); margin-bottom: 10px; display:block;"></i>
-        <p style="font-size: 14px; font-weight: 600; margin-bottom: 4px;">Nenhum contrato encontrado</p>
-        <p style="font-size: 12.5px; margin: 0;">Altere o filtro selecionado ou faça uma nova busca por nome ou CPF.</p>
+      <div style="padding: 40px 20px; text-align: center; color: var(--shanti-stone); background: #ffffff; border-radius: 16px; border: 1px dashed var(--shanti-sand-border);">
+        <i class="fa-solid fa-file-circle-question" style="font-size: 36px; color: var(--shanti-sand); margin-bottom: 10px; display:block;"></i>
+        <p style="font-size: 14px; font-weight: 600; margin-bottom: 4px; color: var(--shanti-charcoal);">Nenhum contrato encontrado</p>
+        <p style="font-size: 12.5px; margin: 0; color: var(--shanti-stone);">Altere o filtro selecionado ou faça uma nova busca por nome ou CPF.</p>
       </div>
     `;
     return;
@@ -3135,16 +3135,16 @@ function renderizarContratos() {
     const linkWa = `https://wa.me/${tel}?text=${msgWa}`;
 
     return `
-      <div class="wa-card" style="margin-bottom: 0; border: 1px solid var(--wa-border);">
-        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 8px;">
+      <div class="wa-card" style="margin-bottom: 0; border: 1px solid var(--shanti-sand-border); border-radius: 16px; box-shadow: var(--shadow-sm); padding: 16px;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 10px;">
           <div>
-            <div style="font-size: 15px; font-weight: 700; color: var(--shanti-primary); display: flex; align-items: center; gap: 6px;">
+            <div style="font-size: 15px; font-weight: 700; color: var(--shanti-charcoal); display: flex; align-items: center; gap: 6px; font-family: var(--font-brand);">
               ${c.nome}
               ${c.aprovacao_pagamento === 'pendente' ? `
-                <span class="wa-student-badge" style="background:#fef3c7; color:#b45309; font-size:10.5px;">Matrícula Pendente</span>
+                <span class="wa-student-badge" style="background:#FDF3E7; color:#B45309; border:1px solid #F6D6B2; font-size:10.5px;">Matrícula Pendente</span>
               ` : ''}
             </div>
-            <div style="font-size: 12px; color: var(--wa-text-secondary); margin-top: 2px;">
+            <div style="font-size: 12px; color: var(--shanti-stone); margin-top: 2px;">
               CPF: <b>${c.cpf || 'Não informado'}</b> • WhatsApp: <b>${c.telefone}</b>
             </div>
           </div>
@@ -3153,16 +3153,16 @@ function renderizarContratos() {
           </span>
         </div>
 
-        <div style="background: var(--shanti-sand); border-radius: 8px; padding: 8px 12px; font-size: 12px; color: var(--wa-text-secondary); margin-bottom: 12px; line-height: 1.5;">
+        <div style="background: var(--shanti-sand-light); border: 1px solid var(--shanti-sand-border); border-radius: 12px; padding: 10px 14px; font-size: 12px; color: var(--shanti-charcoal); margin-bottom: 12px; line-height: 1.5;">
           <div><b>Plano:</b> ${c.plano} • <b>Turma:</b> ${c.turmas && c.turmas.length ? c.turmas.map(t => t.nome).join(', ') : 'Nenhuma turma'}</div>
-          <div><b>Status Vigência:</b> <span style="color: var(--shanti-primary); font-weight: 600;">${vigenciaTexto}</span></div>
-          <div><b>Arquivo Assinado:</b> ${temArquivo ? '<span style="color:#15803d; font-weight:600;"><i class="fa-solid fa-check-circle"></i> Anexado (mútuo)</span>' : '<span style="color:#b45309;">Nenhum arquivo enviado</span>'}</div>
+          <div><b>Status Vigência:</b> <span style="color: var(--shanti-forest); font-weight: 600;">${vigenciaTexto}</span></div>
+          <div><b>Arquivo Assinado:</b> ${temArquivo ? '<span style="color:#3F4E3A; font-weight:600;"><i class="fa-solid fa-check-circle"></i> Anexado (mútuo)</span>' : '<span style="color:var(--shanti-terracotta);">Nenhum arquivo enviado</span>'}</div>
           ${c.autentique_doc_id ? `
             <div style="margin-top: 2px;">
               <b>Assinatura Digital:</b> 
               ${c.autentique_status === 'assinado'
-                ? '<span style="color:#15803d; font-weight:600;"><i class="fa-solid fa-shield-check"></i> Assinado via Autentique</span>'
-                : `<span style="color:#2563eb; font-weight:600;"><i class="fa-solid fa-clock-rotate-left"></i> Autentique (${c.autentique_status || 'Aguardando'})</span>`
+                ? '<span style="color:#3F4E3A; font-weight:600;"><i class="fa-solid fa-shield-check"></i> Assinado via Autentique</span>'
+                : `<span style="color:var(--shanti-forest); font-weight:600;"><i class="fa-solid fa-clock-rotate-left"></i> Autentique (${c.autentique_status || 'Aguardando'})</span>`
               }
             </div>
           ` : ''}
@@ -3170,39 +3170,39 @@ function renderizarContratos() {
 
         <div style="display: flex; gap: 6px; flex-wrap: wrap;">
           ${!temArquivo && !enviadoAutentique ? `
-            <button type="button" class="wa-btn-primary" style="flex: 1; min-width: 130px; padding: 7px 10px; font-size: 12px; background: linear-gradient(135deg, #0c3b2e, #1b4d3e); color: #fff; border: 1px solid var(--shanti-gold);" onclick="abrirModalEnviarAutentique(${c.id}, '${c.nome.replace(/'/g, "\\'")}', '${(c.plano || '').replace(/'/g, "\\'")}', '${c.telefone || ''}', '${c.email || ''}')">
-              <i class="fa-solid fa-file-signature" style="color:var(--shanti-gold);"></i> Assinar Autentique
+            <button type="button" class="wa-btn-primary" style="flex: 1; min-width: 130px; padding: 7px 12px; font-size: 12px; background: var(--shanti-forest); color: #FFFFFF; border: none; border-radius: 20px; font-weight: 600; box-shadow: var(--shadow-sm);" onclick="abrirModalEnviarAutentique(${c.id}, '${c.nome.replace(/'/g, "\\'")}', '${(c.plano || '').replace(/'/g, "\\'")}', '${c.telefone || ''}', '${c.email || ''}')">
+              <i class="fa-solid fa-file-signature"></i> Assinar Autentique
             </button>
           ` : ''}
 
           ${enviadoAutentique ? `
-            <button type="button" class="wa-btn-primary" style="flex: 1; min-width: 115px; padding: 7px 10px; font-size: 12px; background: #2563eb; color: #fff; border: none;" onclick="abrirModalLinksAutentique(${c.id}, '${c.nome.replace(/'/g, "\\'")}', '${c.autentique_doc_id}', '${c.autentique_link}', '${c.telefone || ''}')">
+            <button type="button" class="wa-btn-primary" style="flex: 1; min-width: 115px; padding: 7px 12px; font-size: 12px; background: var(--shanti-sage); color: #FFFFFF; border: none; border-radius: 20px; font-weight: 600;" onclick="abrirModalLinksAutentique(${c.id}, '${c.nome.replace(/'/g, "\\'")}', '${c.autentique_doc_id}', '${c.autentique_link}', '${c.telefone || ''}')">
               <i class="fa-solid fa-link"></i> Links / WA
             </button>
-            <button type="button" class="wa-btn-primary" style="flex: 1; min-width: 100px; padding: 7px 10px; font-size: 12px; background: #ffffff; color: var(--shanti-primary); border: 1.5px solid var(--shanti-gold);" onclick="verificarStatusAutentique(${c.id})" title="Consultar status no Autentique">
+            <button type="button" class="wa-btn-primary" style="flex: 1; min-width: 100px; padding: 7px 12px; font-size: 12px; background: #FFFFFF; color: var(--shanti-forest); border: 1px solid var(--shanti-sand-border); border-radius: 20px; font-weight: 600;" onclick="verificarStatusAutentique(${c.id})" title="Consultar status no Autentique">
               <i class="fa-solid fa-rotate"></i> Sincronizar
             </button>
           ` : ''}
 
-          <a href="/api/alunos/${c.id}/contrato/pdf" target="_blank" class="wa-btn-primary" style="flex: 1; min-width: 90px; padding: 7px 10px; font-size: 12px; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 5px;">
-            <i class="fa-solid fa-file-pdf"></i> Minuta
+          <a href="/api/alunos/${c.id}/contrato/pdf" target="_blank" class="wa-btn-primary" style="flex: 1; min-width: 90px; padding: 7px 12px; font-size: 12px; background: var(--shanti-sand-light); color: var(--shanti-charcoal); border: 1px solid var(--shanti-sand-border); border-radius: 20px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 5px;">
+            <i class="fa-solid fa-file-pdf" style="color: var(--shanti-terracotta);"></i> Minuta
           </a>
 
           ${!enviadoAutentique ? `
-            <a href="${linkWa}" target="_blank" class="wa-btn-primary" style="flex: 1; min-width: 90px; padding: 7px 10px; font-size: 12px; background: #25D366; color: #fff; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 5px; border-color: #22c55e;">
+            <a href="${linkWa}" target="_blank" class="wa-btn-primary" style="flex: 1; min-width: 90px; padding: 7px 12px; font-size: 12px; background: var(--shanti-whatsapp-green); color: #FFFFFF; border: none; border-radius: 20px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 5px; box-shadow: 0 2px 8px rgba(37, 211, 102, 0.25);">
               <i class="fa-brands fa-whatsapp"></i> WhatsApp
             </a>
           ` : ''}
 
-          <button type="button" class="wa-btn-primary" style="flex: 1; min-width: 115px; padding: 7px 10px; font-size: 12px; background: var(--shanti-gold); color: #0c3b2e; border: none;" onclick="abrirModalUploadContrato(${c.id}, '${c.nome.replace(/'/g, "\\'")}', '${(c.plano || '').replace(/'/g, "\\'")}')">
+          <button type="button" class="wa-btn-primary" style="flex: 1; min-width: 115px; padding: 7px 12px; font-size: 12px; background: var(--shanti-terracotta); color: #FFFFFF; border: none; border-radius: 20px; font-weight: 600; box-shadow: var(--shadow-sm);" onclick="abrirModalUploadContrato(${c.id}, '${c.nome.replace(/'/g, "\\'")}', '${(c.plano || '').replace(/'/g, "\\'")}')">
             <i class="fa-solid fa-cloud-arrow-up"></i> ${temArquivo ? 'Substituir' : 'Upload Manual'}
           </button>
 
           ${temArquivo ? `
-            <a href="/api/alunos/${c.id}/contrato/arquivo" target="_blank" class="wa-btn-primary" style="padding: 7px 10px; font-size: 12px; background: #3b82f6; color: #fff; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 5px; border-color: #2563eb;" title="Visualizar documento assinado">
+            <a href="/api/alunos/${c.id}/contrato/arquivo" target="_blank" class="wa-btn-primary" style="padding: 7px 12px; font-size: 12px; background: #FFFFFF; color: var(--shanti-forest); border: 1px solid var(--shanti-sand-border); border-radius: 20px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 5px;" title="Visualizar documento assinado">
               <i class="fa-solid fa-eye"></i> Ver
             </a>
-            <button type="button" class="wa-btn-primary" style="padding: 7px 10px; font-size: 12px; background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5;" onclick="removerContratoAssinado(${c.id}, '${c.nome.replace(/'/g, "\\'")}')" title="Excluir arquivo de contrato">
+            <button type="button" class="wa-btn-primary" style="padding: 7px 12px; font-size: 12px; background: #FFFFFF; color: var(--shanti-terracotta); border: 1px solid var(--shanti-terracotta-border); border-radius: 20px;" onclick="removerContratoAssinado(${c.id}, '${c.nome.replace(/'/g, "\\'")}')" title="Excluir arquivo de contrato">
               <i class="fa-solid fa-trash-can"></i>
             </button>
           ` : ''}

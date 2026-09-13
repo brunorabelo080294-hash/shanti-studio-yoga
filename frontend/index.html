@@ -444,48 +444,48 @@
     <div class="wa-reports-container">
       
       <!-- Banner de Alerta de Contratos Vencendo (30 dias) -->
-      <div id="banner-alerta-contratos" style="display: none; background: #fffbeb; border: 1.5px solid #f59e0b; border-radius: 12px; padding: 14px 16px; margin-bottom: 14px; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.12);">
+      <div id="banner-alerta-contratos" style="display: none; background: #FDF3E7; border: 1px solid #F6D6B2; border-radius: 14px; padding: 14px 16px; margin-bottom: 14px; box-shadow: var(--shadow-sm);">
         <div style="display: flex; align-items: flex-start; gap: 12px;">
-          <i class="fa-solid fa-bell" style="color: #d97706; font-size: 20px; margin-top: 2px;"></i>
+          <i class="fa-solid fa-bell" style="color: #B45309; font-size: 20px; margin-top: 2px;"></i>
           <div style="flex: 1;">
-            <strong style="color: #92400e; font-size: 14px; display: block; margin-bottom: 2px;" id="banner-alerta-titulo">Contratos Próximos do Vencimento!</strong>
-            <p style="color: #b45309; font-size: 12.5px; margin: 0; line-height: 1.4;" id="banner-alerta-desc">Existem contratos que expiram em menos de 30 dias. Entre em contato com os alunos para a renovação anual.</p>
+            <strong style="color: #B45309; font-size: 14px; display: block; margin-bottom: 2px;" id="banner-alerta-titulo">Contratos Próximos do Vencimento!</strong>
+            <p style="color: var(--shanti-charcoal); font-size: 12.5px; margin: 0; line-height: 1.4;" id="banner-alerta-desc">Existem contratos que expiram em menos de 30 dias. Entre em contato com os alunos para a renovação anual.</p>
           </div>
         </div>
       </div>
 
       <!-- Card de Estatísticas de Contratos -->
-      <div class="wa-card" style="padding: 14px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-bottom: 14px;">
-        <div class="wa-card-header" style="display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 0.5px solid var(--wa-border);">
-          <div class="wa-card-title" style="font-size: 15.5px; font-weight: 700; color: var(--shanti-primary); display: flex; align-items: center; gap: 8px; margin: 0;">
-            <i class="fa-solid fa-file-contract" style="color: var(--shanti-gold); font-size: 17px;"></i>
+      <div class="wa-card" style="padding: 16px; border-radius: 16px; box-shadow: var(--shadow-sm); margin-bottom: 14px; border: 1px solid var(--shanti-sand-border);">
+        <div class="wa-card-header" style="display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid var(--shanti-sand-border);">
+          <div class="wa-card-title" style="font-size: 15.5px; font-weight: 600; color: var(--shanti-charcoal); display: flex; align-items: center; gap: 8px; margin: 0; font-family: var(--font-brand);">
+            <i class="fa-solid fa-file-contract" style="color: var(--shanti-forest); font-size: 17px;"></i>
             <span>Contratos Digitais</span>
           </div>
-          <a href="/matricula" target="_blank" class="wa-btn-primary" style="width: auto; padding: 6px 12px; font-size: 11.5px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; text-decoration: none; border-radius: 8px; white-space: nowrap; box-shadow: 0 2px 6px rgba(0,0,0,0.1);">
-            <i class="fa-solid fa-user-plus" style="color: var(--shanti-gold);"></i> Link Matrícula
+          <a href="/matricula" target="_blank" class="wa-btn-primary" style="width: auto; padding: 6px 14px; font-size: 11.5px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; text-decoration: none; border-radius: 20px; white-space: nowrap; background: var(--shanti-terracotta); color: #ffffff; border: none; box-shadow: var(--shadow-sm);">
+            <i class="fa-solid fa-user-plus"></i> Link Matrícula
           </a>
         </div>
-        <p style="font-size: 12px; color: var(--wa-text-secondary); margin-bottom: 12px; line-height: 1.4;">
+        <p style="font-size: 12px; color: var(--shanti-stone); margin-bottom: 12px; line-height: 1.5;">
           Controle da vigência anual (365 dias), envio de contrato pelo WhatsApp e upload do documento assinado por ambas as partes (Studio Shanti / Natália e Aluno).
         </p>
 
         <!-- Grade Responsiva 2x2 sem cortes no celular -->
         <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;">
-          <div class="wa-stat-box" style="cursor: pointer; padding: 10px 8px; border-radius: 8px; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #f0fdf4; border: 1px solid #bbf7d0; transition: transform 0.15s;" onclick="filtrarContratos('em_dia')">
-            <span class="wa-stat-value success" id="stat-contratos-em-dia" style="font-size: 22px; font-weight: 800; color: #16a34a; line-height: 1.1;">0</span>
-            <span class="wa-stat-label" style="font-size: 11px; font-weight: 700; color: #15803d; margin-top: 4px; letter-spacing: 0.2px;">Em Dia</span>
+          <div class="wa-stat-box" style="cursor: pointer; padding: 12px 10px; border-radius: 12px; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; background: var(--shanti-sand-light); border: 1px solid var(--shanti-sand-border); transition: transform 0.15s;" onclick="filtrarContratos('em_dia')">
+            <span class="wa-stat-value success" id="stat-contratos-em-dia" style="font-size: 22px; font-weight: 700; color: #3F4E3A; line-height: 1.1;">0</span>
+            <span class="wa-stat-label" style="font-size: 11px; font-weight: 600; color: #3F4E3A; margin-top: 4px; letter-spacing: 0.2px;">Em Dia</span>
           </div>
-          <div class="wa-stat-box" style="cursor: pointer; padding: 10px 8px; border-radius: 8px; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #fffbeb; border: 1px solid #fde68a; transition: transform 0.15s;" onclick="filtrarContratos('a_vencer')">
-            <span class="wa-stat-value" id="stat-contratos-a-vencer" style="font-size: 22px; font-weight: 800; color: #d97706; line-height: 1.1;">0</span>
-            <span class="wa-stat-label" style="font-size: 11px; font-weight: 700; color: #b45309; margin-top: 4px; letter-spacing: 0.2px;">A Vencer (≤30d)</span>
+          <div class="wa-stat-box" style="cursor: pointer; padding: 12px 10px; border-radius: 12px; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #FDF3E7; border: 1px solid #F6D6B2; transition: transform 0.15s;" onclick="filtrarContratos('a_vencer')">
+            <span class="wa-stat-value" id="stat-contratos-a-vencer" style="font-size: 22px; font-weight: 700; color: #B45309; line-height: 1.1;">0</span>
+            <span class="wa-stat-label" style="font-size: 11px; font-weight: 600; color: #B45309; margin-top: 4px; letter-spacing: 0.2px;">A Vencer (≤30d)</span>
           </div>
-          <div class="wa-stat-box" style="cursor: pointer; padding: 10px 8px; border-radius: 8px; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #eef2ff; border: 1px solid #c7d2fe; transition: transform 0.15s;" onclick="filtrarContratos('pendente')">
-            <span class="wa-stat-value" id="stat-contratos-pendentes" style="font-size: 22px; font-weight: 800; color: #4f46e5; line-height: 1.1;">0</span>
-            <span class="wa-stat-label" style="font-size: 11px; font-weight: 700; color: #4338ca; margin-top: 4px; letter-spacing: 0.2px;">Pendentes</span>
+          <div class="wa-stat-box" style="cursor: pointer; padding: 12px 10px; border-radius: 12px; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; background: var(--shanti-sand-light); border: 1px solid var(--shanti-sand-border); transition: transform 0.15s;" onclick="filtrarContratos('pendente')">
+            <span class="wa-stat-value" id="stat-contratos-pendentes" style="font-size: 22px; font-weight: 700; color: var(--shanti-charcoal); line-height: 1.1;">0</span>
+            <span class="wa-stat-label" style="font-size: 11px; font-weight: 600; color: var(--shanti-stone); margin-top: 4px; letter-spacing: 0.2px;">Pendentes</span>
           </div>
-          <div class="wa-stat-box" style="cursor: pointer; padding: 10px 8px; border-radius: 8px; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #fef2f2; border: 1px solid #fecaca; transition: transform 0.15s;" onclick="filtrarContratos('vencido')">
-            <span class="wa-stat-value danger" id="stat-contratos-vencidos" style="font-size: 22px; font-weight: 800; color: #dc2626; line-height: 1.1;">0</span>
-            <span class="wa-stat-label" style="font-size: 11px; font-weight: 700; color: #b91c1c; margin-top: 4px; letter-spacing: 0.2px;">Vencidos</span>
+          <div class="wa-stat-box" style="cursor: pointer; padding: 12px 10px; border-radius: 12px; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; background: var(--shanti-terracotta-light); border: 1px solid var(--shanti-terracotta-border); transition: transform 0.15s;" onclick="filtrarContratos('vencido')">
+            <span class="wa-stat-value danger" id="stat-contratos-vencidos" style="font-size: 22px; font-weight: 700; color: var(--shanti-terracotta); line-height: 1.1;">0</span>
+            <span class="wa-stat-label" style="font-size: 11px; font-weight: 600; color: var(--shanti-terracotta); margin-top: 4px; letter-spacing: 0.2px;">Vencidos</span>
           </div>
         </div>
       </div>
@@ -493,8 +493,8 @@
       <!-- Barra de Filtros e Busca -->
       <div style="display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; align-items: center;">
         <div style="flex: 1; min-width: 200px; position: relative;">
-          <input type="text" id="input-busca-contrato" placeholder="Buscar aluno por nome ou CPF..." style="width: 100%; padding: 8px 12px 8px 34px; border-radius: 8px; border: 1px solid var(--wa-border); background: var(--wa-bg-card); color: var(--wa-text-primary); font-size: 13px;" oninput="filtrarContratosTexto(this.value)">
-          <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--wa-text-secondary); font-size: 13px;"></i>
+          <input type="text" id="input-busca-contrato" placeholder="Buscar aluno por nome ou CPF..." style="width: 100%; padding: 10px 14px 10px 36px; border-radius: 12px; border: 1px solid var(--shanti-sand-border); background: #FFFFFF; color: var(--shanti-charcoal); font-size: 13px;" oninput="filtrarContratosTexto(this.value)">
+          <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 13px; top: 50%; transform: translateY(-50%); color: var(--shanti-stone); font-size: 13px;"></i>
         </div>
         <div class="wa-filter-chips" style="display: flex; gap: 6px; flex-wrap: wrap;">
           <button class="wa-filter-chip active" id="chip-contrato-todos" onclick="filtrarContratos('todos')">Todos</button>
@@ -507,8 +507,8 @@
 
       <!-- Lista de Cards de Contratos -->
       <div id="lista-contratos-container" style="display: flex; flex-direction: column; gap: 12px;">
-        <div style="text-align: center; padding: 24px; color: var(--wa-text-secondary);">
-          <i class="fa-solid fa-spinner fa-spin" style="font-size: 20px; color: var(--shanti-gold);"></i>
+        <div style="text-align: center; padding: 24px; color: var(--shanti-stone);">
+          <i class="fa-solid fa-spinner fa-spin" style="font-size: 20px; color: var(--shanti-terracotta);"></i>
           <p style="margin-top: 8px; font-size: 13px;">Carregando contratos...</p>
         </div>
       </div>
@@ -1262,40 +1262,40 @@
 <div class="wa-modal-overlay" id="modal-upload-contrato">
   <div class="wa-modal-sheet">
     <div class="wa-modal-header">
-      <h3 class="wa-modal-title"><i class="fa-solid fa-file-arrow-up" style="color:var(--shanti-gold);"></i> Upload Contrato Assinado</h3>
+      <h3 class="wa-modal-title"><i class="fa-solid fa-file-arrow-up" style="color:var(--shanti-forest);"></i> Upload Contrato Assinado</h3>
       <button class="wa-modal-close" data-close-modal="modal-upload-contrato">&times;</button>
     </div>
 
     <form id="form-upload-contrato">
       <input type="hidden" id="upload-contrato-aluno-id">
 
-      <div style="background: var(--shanti-sand); border: 1px solid var(--wa-border); border-radius: 10px; padding: 12px; margin-bottom: 14px;">
-        <div style="font-size: 14px; font-weight: 700; color: var(--shanti-primary); margin-bottom: 4px;" id="upload-contrato-aluno-nome">
+      <div style="background: var(--shanti-sand-light); border: 1px solid var(--shanti-sand-border); border-radius: 12px; padding: 12px 14px; margin-bottom: 14px;">
+        <div style="font-size: 14px; font-weight: 700; color: var(--shanti-charcoal); margin-bottom: 4px;" id="upload-contrato-aluno-nome">
           Nome do Aluno
         </div>
-        <div style="font-size: 12px; color: var(--wa-text-secondary);" id="upload-contrato-aluno-info">
+        <div style="font-size: 12px; color: var(--shanti-stone);" id="upload-contrato-aluno-info">
           Plano / Turma
         </div>
       </div>
 
-      <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 10px; padding: 12px; margin-bottom: 14px; font-size: 12.5px; color: #1e40af; line-height: 1.45;">
-        <i class="fa-solid fa-circle-check" style="color: #2563eb; margin-right: 4px;"></i>
+      <div style="background: var(--shanti-sage-light); border: 1px solid var(--shanti-sage-border); border-radius: 12px; padding: 12px 14px; margin-bottom: 14px; font-size: 12.5px; color: #3F4E3A; line-height: 1.5;">
+        <i class="fa-solid fa-circle-check" style="color: #3F4E3A; margin-right: 4px;"></i>
         <b>Regra de Assinatura Oficial:</b> Este documento deve conter <u>ambas as assinaturas</u> (Studio Shanti / Natália de Carvalho Garufe e Aluno). Ao enviar o arquivo, o contrato é automaticamente validado como <b>Em Dia</b> com vigência de <b>1 ano (365 dias)</b>.
       </div>
 
       <div class="wa-form-group">
         <label>Arquivo Digitalizado / Foto do Contrato (PDF, JPG, PNG) *</label>
         <input type="file" class="wa-form-control" id="upload-contrato-arquivo" accept=".pdf,.jpg,.jpeg,.png" required style="padding: 8px;">
-        <small style="color: var(--wa-text-secondary); font-size: 11.5px; display: block; margin-top: 4px;">
+        <small style="color: var(--shanti-stone); font-size: 11.5px; display: block; margin-top: 4px;">
           Formatos suportados: PDF, JPG, JPEG, PNG. Limite de 10 MB.
         </small>
       </div>
 
       <div style="display: flex; gap: 8px; margin-top: 16px;">
-        <button type="button" class="wa-btn-primary" data-close-modal="modal-upload-contrato" style="flex: 1; background: #e5e7eb; color: #374151; border: none; box-shadow: none;">
+        <button type="button" class="wa-btn-primary" data-close-modal="modal-upload-contrato" style="flex: 1; background: var(--shanti-sand-light); color: var(--shanti-charcoal); border: 1px solid var(--shanti-sand-border); border-radius: 20px; font-weight: 500; box-shadow: none;">
           Cancelar
         </button>
-        <button type="submit" class="wa-btn-primary" id="btn-submit-upload-contrato" style="flex: 2; background: linear-gradient(135deg, var(--shanti-gold), #b8934b); color: #0c3b2e; font-weight: 700;">
+        <button type="submit" class="wa-btn-primary" id="btn-submit-upload-contrato" style="flex: 2; background: var(--shanti-terracotta); color: #ffffff; border: none; border-radius: 20px; font-weight: 600; box-shadow: var(--shadow-sm);">
           <i class="fa-solid fa-cloud-arrow-up"></i> Salvar Contrato
         </button>
       </div>
@@ -1310,24 +1310,24 @@
 <div class="wa-modal-overlay" id="modal-enviar-autentique">
   <div class="wa-modal-sheet">
     <div class="wa-modal-header">
-      <h3 class="wa-modal-title"><i class="fa-solid fa-file-signature" style="color:var(--shanti-gold);"></i> Assinatura Digital Autentique</h3>
+      <h3 class="wa-modal-title"><i class="fa-solid fa-file-signature" style="color:var(--shanti-forest);"></i> Assinatura Digital Autentique</h3>
       <button class="wa-modal-close" data-close-modal="modal-enviar-autentique">&times;</button>
     </div>
 
     <form id="form-enviar-autentique">
       <input type="hidden" id="autentique-envio-aluno-id">
 
-      <div style="background: var(--shanti-sand); border: 1px solid var(--wa-border); border-radius: 10px; padding: 12px; margin-bottom: 14px;">
-        <div style="font-size: 14px; font-weight: 700; color: var(--shanti-primary); margin-bottom: 4px;" id="autentique-envio-aluno-nome">
+      <div style="background: var(--shanti-sand-light); border: 1px solid var(--shanti-sand-border); border-radius: 12px; padding: 12px 14px; margin-bottom: 14px;">
+        <div style="font-size: 14px; font-weight: 700; color: var(--shanti-charcoal); margin-bottom: 4px;" id="autentique-envio-aluno-nome">
           Nome do Aluno
         </div>
-        <div style="font-size: 12px; color: var(--wa-text-secondary);" id="autentique-envio-aluno-info">
+        <div style="font-size: 12px; color: var(--shanti-stone);" id="autentique-envio-aluno-info">
           Plano / CPF
         </div>
       </div>
 
-      <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 10px; padding: 12px; margin-bottom: 14px; font-size: 12.5px; color: #1e40af; line-height: 1.45;">
-        <i class="fa-solid fa-wand-magic-sparkles" style="color: #2563eb; margin-right: 4px;"></i>
+      <div style="background: var(--shanti-sage-light); border: 1px solid var(--shanti-sage-border); border-radius: 12px; padding: 12px 14px; margin-bottom: 14px; font-size: 12.5px; color: #3F4E3A; line-height: 1.5;">
+        <i class="fa-solid fa-wand-magic-sparkles" style="color: var(--shanti-forest); margin-right: 4px;"></i>
         <b>Como Funciona a Assinatura:</b>
         <ul style="margin: 6px 0 0 16px; padding: 0;">
           <li>O contrato é gerado com as <b>cláusulas 1 a 13 oficiais congeladas</b>.</li>
@@ -1337,20 +1337,20 @@
       </div>
 
       <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; font-size: 12px;">
-        <div style="display: flex; justify-content: space-between; padding: 8px 10px; background: #f8fafc; border-radius: 6px; border: 1px solid #e2e8f0;">
+        <div style="display: flex; justify-content: space-between; padding: 8px 12px; background: #FFFFFF; border-radius: 8px; border: 1px solid var(--shanti-sand-border);">
           <span><b>Signatária 1 (Estúdio):</b></span>
-          <span style="color: #334155;">Natália de Carvalho Garufe (WhatsApp)</span>
+          <span style="color: var(--shanti-charcoal);">Natália de Carvalho Garufe (WhatsApp)</span>
         </div>
-        <div style="display: flex; justify-content: space-between; padding: 8px 10px; background: #f8fafc; border-radius: 6px; border: 1px solid #e2e8f0;">
+        <div style="display: flex; justify-content: space-between; padding: 8px 12px; background: #FFFFFF; border-radius: 8px; border: 1px solid var(--shanti-sand-border);">
           <span><b>Signatário 2 (Aluno):</b></span>
-          <span id="autentique-envio-aluno-wa" style="color: #334155;">-</span>
+          <span id="autentique-envio-aluno-wa" style="color: var(--shanti-charcoal);">-</span>
         </div>
       </div>
 
-      <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; background: #fefce8; border-radius: 8px; margin-bottom: 16px; border: 1px solid #fef08a;">
+      <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: #FDF3E7; border-radius: 12px; margin-bottom: 16px; border: 1px solid #F6D6B2;">
         <div>
-          <span style="font-size: 12.5px; font-weight: 600; color: #854d0e; display: block;">Modo Sandbox (Testes)</span>
-          <small style="font-size: 11px; color: #a16207;">Recomendado para testar o envio sem gastar créditos do mês.</small>
+          <span style="font-size: 12.5px; font-weight: 600; color: #B45309; display: block;">Modo Sandbox (Testes)</span>
+          <small style="font-size: 11px; color: var(--shanti-charcoal);">Recomendado para testar o envio sem gastar créditos do mês.</small>
         </div>
         <label class="wa-switch">
           <input type="checkbox" id="autentique-envio-sandbox" checked>
@@ -1359,10 +1359,10 @@
       </div>
 
       <div style="display: flex; gap: 8px;">
-        <button type="button" class="wa-btn-primary" data-close-modal="modal-enviar-autentique" style="flex: 1; background: #e5e7eb; color: #374151; border: none; box-shadow: none;">
+        <button type="button" class="wa-btn-primary" data-close-modal="modal-enviar-autentique" style="flex: 1; background: var(--shanti-sand-light); color: var(--shanti-charcoal); border: 1px solid var(--shanti-sand-border); border-radius: 20px; font-weight: 500; box-shadow: none;">
           Cancelar
         </button>
-        <button type="submit" class="wa-btn-primary" id="btn-submit-enviar-autentique" style="flex: 2; background: linear-gradient(135deg, var(--shanti-gold), #b8934b); color: #0c3b2e; font-weight: 700;">
+        <button type="submit" class="wa-btn-primary" id="btn-submit-enviar-autentique" style="flex: 2; background: var(--shanti-forest); color: #ffffff; border: none; border-radius: 20px; font-weight: 600; box-shadow: var(--shadow-sm);">
           <i class="fa-solid fa-paper-plane"></i> Enviar p/ Autentique
         </button>
       </div>
@@ -1376,24 +1376,24 @@
 <div class="wa-modal-overlay" id="modal-links-autentique">
   <div class="wa-modal-sheet">
     <div class="wa-modal-header">
-      <h3 class="wa-modal-title"><i class="fa-solid fa-signature" style="color:var(--shanti-gold);"></i> Acompanhamento Autentique</h3>
+      <h3 class="wa-modal-title"><i class="fa-solid fa-signature" style="color:var(--shanti-forest);"></i> Acompanhamento Autentique</h3>
       <button class="wa-modal-close" data-close-modal="modal-links-autentique">&times;</button>
     </div>
 
     <input type="hidden" id="links-autentique-aluno-id">
 
-    <div style="background: var(--shanti-sand); border: 1px solid var(--wa-border); border-radius: 10px; padding: 12px; margin-bottom: 14px;">
-      <div style="font-size: 14px; font-weight: 700; color: var(--shanti-primary); margin-bottom: 2px;" id="links-autentique-aluno-nome">
+    <div style="background: var(--shanti-sand-light); border: 1px solid var(--shanti-sand-border); border-radius: 12px; padding: 12px 14px; margin-bottom: 14px;">
+      <div style="font-size: 14px; font-weight: 700; color: var(--shanti-charcoal); margin-bottom: 2px;" id="links-autentique-aluno-nome">
         Nome do Aluno
       </div>
-      <div style="font-size: 11.5px; color: var(--wa-text-secondary);" id="links-autentique-doc-id">
+      <div style="font-size: 11.5px; color: var(--shanti-stone);" id="links-autentique-doc-id">
         Doc ID: -
       </div>
     </div>
 
     <!-- Status Atual do Autentique -->
-    <div id="links-autentique-status-box" style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 10px 12px; margin-bottom: 14px; font-size: 12px; color: #1e40af;">
-      <i class="fa-solid fa-circle-info"></i> Aguardando assinaturas eletrônicas.
+    <div id="links-autentique-status-box" style="background: var(--shanti-sand-light); border: 1px solid var(--shanti-sand-border); border-radius: 10px; padding: 10px 14px; margin-bottom: 14px; font-size: 12px; color: var(--shanti-charcoal);">
+      <i class="fa-solid fa-circle-info" style="color:var(--shanti-sage);"></i> Aguardando assinaturas eletrônicas.
     </div>
 
     <!-- Link do Aluno -->
@@ -1401,10 +1401,10 @@
       <label style="font-size: 12px;">Link de Assinatura do Aluno</label>
       <div style="display: flex; gap: 6px;">
         <input type="text" readonly id="links-autentique-aluno-url" class="wa-form-control" style="font-size: 11.5px; font-family: monospace; background: #fff;">
-        <button type="button" class="wa-btn-primary" id="btn-copiar-link-aluno" style="padding: 6px 10px; background: #ffffff; color: var(--shanti-primary); border: 1px solid var(--shanti-gold);" title="Copiar Link">
+        <button type="button" class="wa-btn-primary" id="btn-copiar-link-aluno" style="padding: 6px 12px; background: #ffffff; color: var(--shanti-forest); border: 1px solid var(--shanti-sand-border); border-radius: 10px;" title="Copiar Link">
           <i class="fa-solid fa-copy"></i>
         </button>
-        <a id="btn-wa-link-aluno" href="#" target="_blank" class="wa-btn-primary" style="padding: 6px 10px; background: #25D366; color: #fff; text-decoration: none; border-color: #22c55e; display: inline-flex; align-items: center;" title="Enviar via WhatsApp">
+        <a id="btn-wa-link-aluno" href="#" target="_blank" class="wa-btn-primary" style="padding: 6px 12px; background: var(--shanti-whatsapp-green); color: #fff; text-decoration: none; border: none; border-radius: 10px; display: inline-flex; align-items: center;" title="Enviar via WhatsApp">
           <i class="fa-brands fa-whatsapp"></i>
         </a>
       </div>
@@ -1412,10 +1412,10 @@
 
     <!-- Ações de Sincronização -->
     <div style="display: flex; gap: 8px; margin-top: 16px;">
-      <button type="button" class="wa-btn-primary" id="btn-sincronizar-autentique" style="flex: 1; padding: 9px; font-size: 12.5px; background: var(--shanti-primary); color: #fff;">
+      <button type="button" class="wa-btn-primary" id="btn-sincronizar-autentique" style="flex: 1; padding: 9px; font-size: 12.5px; background: var(--shanti-forest); color: #fff; border: none; border-radius: 20px; font-weight: 600;">
         <i class="fa-solid fa-rotate"></i> Sincronizar Status
       </button>
-      <button type="button" class="wa-btn-primary" data-close-modal="modal-links-autentique" style="flex: 1; padding: 9px; font-size: 12.5px; background: #e5e7eb; color: #374151; border: none; box-shadow: none;">
+      <button type="button" class="wa-btn-primary" data-close-modal="modal-links-autentique" style="flex: 1; padding: 9px; font-size: 12.5px; background: var(--shanti-sand-light); color: var(--shanti-charcoal); border: 1px solid var(--shanti-sand-border); border-radius: 20px; font-weight: 500; box-shadow: none;">
         Fechar
       </button>
     </div>
