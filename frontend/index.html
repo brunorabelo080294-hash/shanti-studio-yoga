@@ -21,7 +21,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
   <!-- WhatsApp Luxe Theme Stylesheet -->
-  <link rel="stylesheet" href="/css/whatsapp-theme.css?v=18">
+  <link rel="stylesheet" href="/css/whatsapp-theme.css?v=24">
 </head>
 <body>
 
@@ -664,6 +664,77 @@
       </div>
 
       <!-- ==================================================================
+           CARD: ASSINATURA DIGITAL (AUTENTIQUE)
+           ================================================================== -->
+      <div class="wa-card" id="card-autentique-config" style="border: 1px solid var(--shanti-gold); background: #ffffff;">
+        <div class="wa-card-title" style="margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-file-signature" style="color: var(--shanti-gold); font-size: 16px;"></i>
+            <span style="font-weight: 700; color: var(--shanti-primary); font-size: 15px;">Assinatura Digital (Autentique)</span>
+          </div>
+          <span id="badge-autentique-status" style="font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 12px; background: #eff6ff; color: #1d4ed8; border: 0.5px solid #bfdbfe;">
+            Disponível
+          </span>
+        </div>
+        <p style="font-size: 12.5px; color: var(--wa-text-secondary); margin-bottom: 12px; line-height: 1.4;">
+          Integração oficial com a plataforma <b>Autentique</b>. Os contratos gerados são enviados automaticamente para assinatura eletrônica com validade jurídica pelo celular (WhatsApp/E-mail).
+        </p>
+
+        <div class="wa-form-group">
+          <label>Token da API do Autentique</label>
+          <div style="position: relative;">
+            <input type="password" class="wa-form-control" id="cfg-autentique-token" placeholder="Cole seu token gerado no painel do Autentique..." style="padding-right: 40px;">
+            <button type="button" id="btn-toggle-autentique-token" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--wa-text-secondary); cursor: pointer;" title="Mostrar/Ocultar Token">
+              <i class="fa-solid fa-eye"></i>
+            </button>
+          </div>
+          <small style="font-size: 11.5px; color: var(--wa-text-secondary); display: block; margin-top: 4px; line-height: 1.4;">
+            Obtenha seu token gratuito no menu <i>Configurações > API / Tokens</i> em <a href="https://painel.autentique.com.br" target="_blank" style="color: var(--shanti-primary); font-weight: 600;">painel.autentique.com.br</a>.
+          </small>
+        </div>
+
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; background: var(--shanti-sand); border-radius: 8px; margin-bottom: 14px; border: 1px solid var(--wa-border);">
+          <div>
+            <span style="font-size: 13px; font-weight: 600; color: var(--shanti-primary); display: block;">Modo Sandbox (Testes Gratuitos)</span>
+            <small style="font-size: 11px; color: var(--wa-text-secondary);">Não consome sua cota de 20 documentos mensais gratuitos do Autentique.</small>
+          </div>
+          <label class="wa-switch">
+            <input type="checkbox" id="cfg-autentique-sandbox" checked>
+            <span class="wa-switch-slider"></span>
+          </label>
+        </div>
+
+        <!-- Webhook URL Box -->
+        <div style="background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 8px; padding: 10px 12px; margin-bottom: 14px;">
+          <span style="font-size: 11.5px; font-weight: 600; color: #475569; display: block; margin-bottom: 4px;">
+            <i class="fa-solid fa-link"></i> URL do Webhook do Estúdio (cadastrar no Autentique):
+          </span>
+          <div style="display: flex; gap: 6px; align-items: center;">
+            <input type="text" readonly id="cfg-autentique-webhook-url" value="https://shanti-studio-yoga.onrender.com/api/webhooks/autentique" style="flex: 1; font-size: 11px; padding: 6px 8px; border: 1px solid #cbd5e1; border-radius: 6px; background: #ffffff; color: #334155; font-family: monospace;">
+            <button type="button" class="wa-btn-primary" id="btn-copiar-webhook-url" style="padding: 6px 10px; font-size: 11.5px; background: var(--shanti-secondary); border: 1px solid var(--shanti-gold); color: var(--shanti-gold);" title="Copiar URL">
+              <i class="fa-solid fa-copy"></i>
+            </button>
+          </div>
+          <small style="font-size: 11px; color: #64748b; display: block; margin-top: 4px;">
+            No painel do Autentique, acesse <i>Configurações > Webhooks</i>, cadastre esta URL e selecione o evento <b>document.finished</b>.
+          </small>
+        </div>
+
+        <!-- Botões de Ação do Card -->
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+          <button type="button" class="wa-btn-primary" id="btn-testar-autentique" style="flex: 1; min-width: 140px; padding: 8px 12px; font-size: 12.5px; background: #ffffff; color: var(--shanti-primary); border: 1.5px solid var(--shanti-gold);">
+            <i class="fa-solid fa-plug"></i> Testar Conexão
+          </button>
+          <button type="button" class="wa-btn-primary" id="btn-salvar-autentique" style="flex: 1; min-width: 140px; padding: 8px 12px; font-size: 12.5px; background: var(--shanti-primary); color: #ffffff;">
+            <i class="fa-solid fa-floppy-disk"></i> Salvar Autentique
+          </button>
+        </div>
+
+        <!-- Resultado do Teste -->
+        <div id="resultado-teste-autentique" style="display: none; margin-top: 12px; padding: 10px 12px; border-radius: 8px; font-size: 12px; line-height: 1.45;"></div>
+      </div>
+
+      <!-- ==================================================================
            CARD: DIAGNÓSTICO DO SISTEMA & OBSERVABILIDADE (RENDER VS. GEMINI)
            ================================================================== -->
       <div class="wa-card" id="card-diagnostico-sistema" style="border: 1px solid var(--shanti-gold); background: #ffffff;">
@@ -1232,6 +1303,125 @@
   </div>
 </div>
 
+
+<!-- ======================================================================
+     MODAL: ENVIAR CONTRATO PARA ASSINATURA DIGITAL (AUTENTIQUE)
+     ====================================================================== -->
+<div class="wa-modal-overlay" id="modal-enviar-autentique">
+  <div class="wa-modal-sheet">
+    <div class="wa-modal-header">
+      <h3 class="wa-modal-title"><i class="fa-solid fa-file-signature" style="color:var(--shanti-gold);"></i> Assinatura Digital Autentique</h3>
+      <button class="wa-modal-close" data-close-modal="modal-enviar-autentique">&times;</button>
+    </div>
+
+    <form id="form-enviar-autentique">
+      <input type="hidden" id="autentique-envio-aluno-id">
+
+      <div style="background: var(--shanti-sand); border: 1px solid var(--wa-border); border-radius: 10px; padding: 12px; margin-bottom: 14px;">
+        <div style="font-size: 14px; font-weight: 700; color: var(--shanti-primary); margin-bottom: 4px;" id="autentique-envio-aluno-nome">
+          Nome do Aluno
+        </div>
+        <div style="font-size: 12px; color: var(--wa-text-secondary);" id="autentique-envio-aluno-info">
+          Plano / CPF
+        </div>
+      </div>
+
+      <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 10px; padding: 12px; margin-bottom: 14px; font-size: 12.5px; color: #1e40af; line-height: 1.45;">
+        <i class="fa-solid fa-wand-magic-sparkles" style="color: #2563eb; margin-right: 4px;"></i>
+        <b>Como Funciona a Assinatura:</b>
+        <ul style="margin: 6px 0 0 16px; padding: 0;">
+          <li>O contrato é gerado com as <b>cláusulas 1 a 13 oficiais congeladas</b>.</li>
+          <li>O Autentique enviará o link para assinatura via <b>WhatsApp</b> para Natália de Carvalho Garufe e para o aluno.</li>
+          <li>Após ambas as assinaturas pelo celular, o estúdio é notificado e o contrato é arquivado como <b>Em Dia</b> com 1 ano de vigência.</li>
+        </ul>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; font-size: 12px;">
+        <div style="display: flex; justify-content: space-between; padding: 8px 10px; background: #f8fafc; border-radius: 6px; border: 1px solid #e2e8f0;">
+          <span><b>Signatária 1 (Estúdio):</b></span>
+          <span style="color: #334155;">Natália de Carvalho Garufe (WhatsApp)</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; padding: 8px 10px; background: #f8fafc; border-radius: 6px; border: 1px solid #e2e8f0;">
+          <span><b>Signatário 2 (Aluno):</b></span>
+          <span id="autentique-envio-aluno-wa" style="color: #334155;">-</span>
+        </div>
+      </div>
+
+      <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; background: #fefce8; border-radius: 8px; margin-bottom: 16px; border: 1px solid #fef08a;">
+        <div>
+          <span style="font-size: 12.5px; font-weight: 600; color: #854d0e; display: block;">Modo Sandbox (Testes)</span>
+          <small style="font-size: 11px; color: #a16207;">Recomendado para testar o envio sem gastar créditos do mês.</small>
+        </div>
+        <label class="wa-switch">
+          <input type="checkbox" id="autentique-envio-sandbox" checked>
+          <span class="wa-switch-slider"></span>
+        </label>
+      </div>
+
+      <div style="display: flex; gap: 8px;">
+        <button type="button" class="wa-btn-primary" data-close-modal="modal-enviar-autentique" style="flex: 1; background: #e5e7eb; color: #374151; border: none; box-shadow: none;">
+          Cancelar
+        </button>
+        <button type="submit" class="wa-btn-primary" id="btn-submit-enviar-autentique" style="flex: 2; background: linear-gradient(135deg, var(--shanti-gold), #b8934b); color: #0c3b2e; font-weight: 700;">
+          <i class="fa-solid fa-paper-plane"></i> Enviar p/ Autentique
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ======================================================================
+     MODAL: ACOMPANHAMENTO E LINKS DE ASSINATURA AUTENTIQUE
+     ====================================================================== -->
+<div class="wa-modal-overlay" id="modal-links-autentique">
+  <div class="wa-modal-sheet">
+    <div class="wa-modal-header">
+      <h3 class="wa-modal-title"><i class="fa-solid fa-signature" style="color:var(--shanti-gold);"></i> Acompanhamento Autentique</h3>
+      <button class="wa-modal-close" data-close-modal="modal-links-autentique">&times;</button>
+    </div>
+
+    <input type="hidden" id="links-autentique-aluno-id">
+
+    <div style="background: var(--shanti-sand); border: 1px solid var(--wa-border); border-radius: 10px; padding: 12px; margin-bottom: 14px;">
+      <div style="font-size: 14px; font-weight: 700; color: var(--shanti-primary); margin-bottom: 2px;" id="links-autentique-aluno-nome">
+        Nome do Aluno
+      </div>
+      <div style="font-size: 11.5px; color: var(--wa-text-secondary);" id="links-autentique-doc-id">
+        Doc ID: -
+      </div>
+    </div>
+
+    <!-- Status Atual do Autentique -->
+    <div id="links-autentique-status-box" style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 10px 12px; margin-bottom: 14px; font-size: 12px; color: #1e40af;">
+      <i class="fa-solid fa-circle-info"></i> Aguardando assinaturas eletrônicas.
+    </div>
+
+    <!-- Link do Aluno -->
+    <div class="wa-form-group" style="margin-bottom: 12px;">
+      <label style="font-size: 12px;">Link de Assinatura do Aluno</label>
+      <div style="display: flex; gap: 6px;">
+        <input type="text" readonly id="links-autentique-aluno-url" class="wa-form-control" style="font-size: 11.5px; font-family: monospace; background: #fff;">
+        <button type="button" class="wa-btn-primary" id="btn-copiar-link-aluno" style="padding: 6px 10px; background: #ffffff; color: var(--shanti-primary); border: 1px solid var(--shanti-gold);" title="Copiar Link">
+          <i class="fa-solid fa-copy"></i>
+        </button>
+        <a id="btn-wa-link-aluno" href="#" target="_blank" class="wa-btn-primary" style="padding: 6px 10px; background: #25D366; color: #fff; text-decoration: none; border-color: #22c55e; display: inline-flex; align-items: center;" title="Enviar via WhatsApp">
+          <i class="fa-brands fa-whatsapp"></i>
+        </a>
+      </div>
+    </div>
+
+    <!-- Ações de Sincronização -->
+    <div style="display: flex; gap: 8px; margin-top: 16px;">
+      <button type="button" class="wa-btn-primary" id="btn-sincronizar-autentique" style="flex: 1; padding: 9px; font-size: 12.5px; background: var(--shanti-primary); color: #fff;">
+        <i class="fa-solid fa-rotate"></i> Sincronizar Status
+      </button>
+      <button type="button" class="wa-btn-primary" data-close-modal="modal-links-autentique" style="flex: 1; padding: 9px; font-size: 12.5px; background: #e5e7eb; color: #374151; border: none; box-shadow: none;">
+        Fechar
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- ======================================================================
      MODAL: COMO ATIVAR O MICROFONE
      ====================================================================== -->
@@ -1289,12 +1479,12 @@
 <div class="wa-toast" id="toast-msg">Notificação</div>
 
 <!-- JavaScript Principal -->
-<script src="/js/app.js?v=23"></script>
+<script src="/js/app.js?v=24"></script>
 
 <script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/service-worker.js?v=23').then(reg => {
+      navigator.serviceWorker.register('/service-worker.js?v=24').then(reg => {
         reg.update();
       }).catch(err => {
         console.log('SW reg:', err);

@@ -79,12 +79,33 @@ def init_db():
         ("contrato_assinado_arquivo", "TEXT"),
         ("data_assinatura_contrato", "TEXT"),
         ("data_vigencia_contrato", "TEXT"),
-        ("status_contrato", "TEXT DEFAULT 'pendente'")
+        ("status_contrato", "TEXT DEFAULT 'pendente'"),
+        ("autentique_doc_id", "TEXT"),
+        ("autentique_status", "TEXT"),
+        ("autentique_link", "TEXT"),
+        ("autentique_enviado_em", "TEXT")
     ]:
         try:
             cursor.execute(f"ALTER TABLE alunos ADD COLUMN {col_def[0]} {col_def[1]}")
         except sqlite3.OperationalError:
             pass
+
+    # Tabela de Histórico e Auditoria de Contratos Autentique
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS contratos_autentique (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        aluno_id INTEGER NOT NULL,
+        autentique_doc_id TEXT UNIQUE,
+        status TEXT DEFAULT 'aguardando_assinaturas',
+        link_aluno TEXT,
+        link_natalia TEXT,
+        sandbox INTEGER DEFAULT 1,
+        arquivo_local TEXT,
+        criado_em TEXT,
+        atualizado_em TEXT,
+        FOREIGN KEY (aluno_id) REFERENCES alunos (id) ON DELETE CASCADE
+    )
+    """)
 
     # Tabela de Turmas do Studio Shanti
     cursor.execute("""
@@ -1441,7 +1462,11 @@ def listar_contratos(filtro: Optional[str] = None) -> List[Dict[str, Any]]:
             "tem_arquivo_assinado": tem_arquivo,
             "arquivo_assinado": assinado_arquivo,
             "contrato_assinado_arquivo": assinado_arquivo,
-            "aprovacao_pagamento": al.get("aprovacao_pagamento") or "aprovado"
+            "aprovacao_pagamento": al.get("aprovacao_pagamento") or "aprovado",
+            "autentique_doc_id": al.get("autentique_doc_id") or "",
+            "autentique_status": al.get("autentique_status") or "",
+            "autentique_link": al.get("autentique_link") or "",
+            "autentique_enviado_em": al.get("autentique_enviado_em") or ""
         }
 
         if not filtro or filtro == "todos" or status == filtro:
@@ -1499,6 +1524,99 @@ def remover_contrato_assinado(aluno_id: int) -> bool:
         "contrato_assinado_arquivo": "",
         "status_contrato": "pendente"
     })
+    return True
+
+# --- Funções de Gestão de Contratos Autentique ---
+
+def obter_aluno_por_autentique_doc_id(doc_id: str) -> Optional[Dict[str, Any]]:
+    """Localiza o aluno associado a um document_id do Autentique."""
+    if not doc_id:
+        return None
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM alunos WHERE autentique_doc_id = ?", (doc_id,))
+    row = cursor.fetchone()
+    if not row:
+        # Tentar pela tabela de histórico
+        cursor.execute("SELECT aluno_id FROM contratos_autentique WHERE autentique_doc_id = ? ORDER BY id DESC LIMIT 1", (doc_id,))
+        row_hist = cursor.fetchone()
+        if row_hist:
+            cursor.execute("SELECT * FROM alunos WHERE id = ?", (row_hist["aluno_id"],))
+            row = cursor.fetchone()
+    conn.close()
+    return dict(row) if row else None
+
+def registrar_disparo_autentique(
+    aluno_id: int,
+    doc_id: str,
+    link_aluno: str = "",
+    link_natalia: str = "",
+    sandbox: bool = True
+) -> bool:
+    """Registra o envio do contrato no Autentique na tabela alunos e no histórico de contratos."""
+    agora_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    atualizar_aluno(aluno_id, {
+        "autentique_doc_id": doc_id,
+        "autentique_status": "aguardando_assinaturas",
+        "autentique_link": link_aluno,
+        "autentique_enviado_em": agora_str
+    })
+
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        INSERT INTO contratos_autentique (aluno_id, autentique_doc_id, status, link_aluno, link_natalia, sandbox, criado_em, atualizado_em)
+        VALUES (?, ?, 'aguardando_assinaturas', ?, ?, ?, ?, ?)
+        ON CONFLICT(autentique_doc_id) DO UPDATE SET
+            status = excluded.status,
+            link_aluno = excluded.link_aluno,
+            link_natalia = excluded.link_natalia,
+            atualizado_em = excluded.atualizado_em
+    """, (aluno_id, doc_id, link_aluno, link_natalia, 1 if sandbox else 0, agora_str, agora_str))
+    conn.commit()
+    conn.close()
+    return True
+
+def concluir_contrato_autentique(aluno_id: int, doc_id: str, caminho_arquivo: str) -> bool:
+    """
+    Conclui o fluxo do Autentique:
+    - Vincula o PDF assinado oficial
+    - Define vigência de 1 ano e status 'em_dia'
+    - Atualiza autentique_status para 'assinado'
+    """
+    hoje = datetime.date.today()
+    hoje_str = hoje.strftime("%Y-%m-%d")
+    vigencia_str = (hoje + datetime.timedelta(days=365)).strftime("%Y-%m-%d")
+    agora_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    atualizar_aluno(aluno_id, {
+        "contrato_assinado_arquivo": caminho_arquivo,
+        "data_assinatura_contrato": hoje_str,
+        "data_vigencia_contrato": vigencia_str,
+        "status_contrato": "em_dia",
+        "autentique_status": "assinado"
+    })
+
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        UPDATE contratos_autentique
+        SET status = 'assinado', arquivo_local = ?, atualizado_em = ?
+        WHERE autentique_doc_id = ?
+    """, (caminho_arquivo, agora_str, doc_id))
+    conn.commit()
+    conn.close()
+    return True
+
+def atualizar_status_autentique(doc_id: str, status: str) -> bool:
+    """Atualiza o status de um documento Autentique (ex: 'rejeitado', 'aguardando_assinaturas')."""
+    agora_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("UPDATE alunos SET autentique_status = ? WHERE autentique_doc_id = ?", (status, doc_id))
+    cursor.execute("UPDATE contratos_autentique SET status = ?, atualizado_em = ? WHERE autentique_doc_id = ?", (status, agora_str, doc_id))
+    conn.commit()
+    conn.close()
     return True
 
 # =============================================================================

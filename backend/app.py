@@ -10,7 +10,7 @@ import asyncio
 import re
 import time
 from typing import Optional, Dict, Any, List
-from fastapi import FastAPI, HTTPException, UploadFile, File, Form, Response
+from fastapi import FastAPI, HTTPException, UploadFile, File, Form, Response, Request
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
@@ -22,6 +22,7 @@ import backend.database as db
 import backend.ai_service as ai
 import backend.pdf_service as pdf_service
 import backend.contract_service as contract_service
+import backend.autentique_service as autentique_service
 
 app = FastAPI(title="Yoga Studio - WhatsApp AI Assistant")
 
@@ -663,6 +664,118 @@ def api_remover_arquivo_contrato_assinado(aluno_id: int):
         raise HTTPException(status_code=404, detail="Aluno não encontrado")
     db.remover_contrato_assinado(aluno_id)
     return {"sucesso": True, "mensagem": "Contrato assinado removido com sucesso. Status retornado para pendente."}
+
+# --- FASE 6: Assinaturas Digitais Autentique (API v2 GraphQL & Webhooks) ---
+
+class EnviarAutentiqueRequest(BaseModel):
+    sandbox: Optional[bool] = None
+
+class ConfigAutentiqueRequest(BaseModel):
+    token: Optional[str] = None
+    sandbox: Optional[bool] = True
+
+@app.post("/api/alunos/{aluno_id}/contrato/autentique/enviar")
+async def api_enviar_contrato_autentique(aluno_id: int, req: Optional[EnviarAutentiqueRequest] = None):
+    """Gera o contrato com cláusulas 1 a 13 e envia para assinatura via Autentique."""
+    aluno = db.obter_aluno(aluno_id)
+    if not aluno:
+        raise HTTPException(status_code=404, detail="Aluno não encontrado.")
+    
+    sandbox_param = req.sandbox if req else None
+    try:
+        resultado = autentique_service.criar_documento_contrato(aluno_id, sandbox=sandbox_param)
+        return resultado
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.get("/api/alunos/{aluno_id}/contrato/autentique/status")
+def api_verificar_status_autentique(aluno_id: int):
+    """Consulta em tempo real o status do contrato do aluno no Autentique."""
+    aluno = db.obter_aluno(aluno_id)
+    if not aluno:
+        raise HTTPException(status_code=404, detail="Aluno não encontrado.")
+    
+    doc_id = aluno.get("autentique_doc_id")
+    if not doc_id:
+        return {
+            "enviado": False,
+            "status": aluno.get("status_contrato", "pendente"),
+            "mensagem": "Nenhum contrato foi enviado ao Autentique para este aluno."
+        }
+    
+    try:
+        info = autentique_service.consultar_status_documento(doc_id)
+        # Se foi finalizado e ainda não foi baixado localmente
+        if info.get("finalizado") and aluno.get("status_contrato") != "em_dia":
+            url_assinado = info.get("url_assinado")
+            if url_assinado:
+                caminho_local = autentique_service.baixar_e_salvar_contrato_assinado(aluno_id, doc_id, url_assinado)
+                info["arquivo_baixado"] = caminho_local
+                info["status_atualizado"] = "em_dia"
+        return info
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.post("/api/webhooks/autentique")
+async def api_webhook_autentique(request: Request):
+    """
+    Webhook público para notificações de eventos do Autentique.
+    Quando o documento é concluído ('document.finished'), baixa o PDF assinado
+    e atualiza a vigência do contrato para 'em_dia'.
+    """
+    try:
+        payload = await request.json()
+    except Exception:
+        return {"status": "error", "mensagem": "Invalid JSON payload"}
+    
+    event = payload.get("event", {})
+    event_type = event.get("type", "")
+    event_data = event.get("data", {})
+    event_object = event_data.get("object", {})
+    
+    doc_id = event_object.get("id") or event_data.get("id") or ""
+    
+    if not doc_id:
+        return {"status": "ignored", "mensagem": "Sem document_id no payload"}
+    
+    aluno = db.obter_aluno_por_autentique_doc_id(doc_id)
+    if not aluno:
+        return {"status": "ignored", "mensagem": f"Nenhum aluno vinculado ao doc_id {doc_id}"}
+    
+    aluno_id = aluno["id"]
+    
+    if event_type == "document.finished":
+        files = event_object.get("files", {})
+        url_assinado = files.get("signed") or files.get("certified") or files.get("pades")
+        if url_assinado:
+            try:
+                autentique_service.baixar_e_salvar_contrato_assinado(aluno_id, doc_id, url_assinado)
+                return {"status": "success", "acao": "contrato_concluido", "aluno_id": aluno_id}
+            except Exception as e:
+                return {"status": "error", "erro": str(e)}
+    elif event_type == "signature.rejected":
+        db.atualizar_status_autentique(doc_id, "rejeitado")
+        return {"status": "success", "acao": "marcado_rejeitado"}
+    
+    return {"status": "success", "event_type": event_type}
+
+@app.get("/api/configuracoes/autentique/testar")
+def api_testar_conexao_autentique():
+    """Testa a conexão e credenciais com a API do Autentique."""
+    return autentique_service.testar_conexao()
+
+@app.post("/api/configuracoes/autentique/salvar")
+def api_salvar_config_autentique(req: ConfigAutentiqueRequest):
+    """Salva token e modo sandbox do Autentique nas configurações."""
+    if req.token is not None and req.token.strip():
+        # Não sobrescrever com máscara se o usuário não alterou
+        if not req.token.startswith("••••"):
+            db.salvar_configuracao("autentique_api_token", req.token.strip())
+    
+    if req.sandbox is not None:
+        db.salvar_configuracao("autentique_sandbox", "true" if req.sandbox else "false")
+    
+    return autentique_service.testar_conexao()
 
 @app.get("/api/aniversariantes")
 def api_obter_aniversariantes(mes: Optional[int] = None):
