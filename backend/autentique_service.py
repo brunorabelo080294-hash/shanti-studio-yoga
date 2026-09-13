@@ -331,7 +331,7 @@ def consultar_status_documento(doc_id: str) -> Dict[str, Any]:
         raise ValueError("Token da API Autentique não configurado.")
 
     query = """
-    query GetDoc($id: String!) {
+    query GetDoc($id: UUID!) {
       document(id: $id) {
         id
         name
@@ -387,9 +387,13 @@ def consultar_status_documento(doc_id: str) -> Dict[str, Any]:
         return {"encontrado": False, "mensagem": "Documento não encontrado no Autentique."}
 
     signatures = doc.get("signatures", [])
-    total_signers = len(signatures)
-    assinados = sum(1 for s in signatures if s.get("signed") is not None)
-    rejeitados = sum(1 for s in signatures if s.get("rejected") is not None)
+    # Filtra signatários com action (exclui a conta dona do token que entra apenas como watcher com action=null)
+    signatarios_reais = [s for s in signatures if s.get("action")]
+    signers_para_calculo = signatarios_reais if signatarios_reais else signatures
+
+    total_signers = len(signers_para_calculo)
+    assinados = sum(1 for s in signers_para_calculo if s.get("signed") is not None)
+    rejeitados = sum(1 for s in signers_para_calculo if s.get("rejected") is not None)
 
     totalmente_assinado = (total_signers > 0 and assinados == total_signers)
     url_assinado = doc.get("files", {}).get("signed")
