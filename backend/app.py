@@ -154,6 +154,10 @@ class DespesaCreate(BaseModel):
     data_vencimento: Optional[str] = None
     status: Optional[str] = "pago"
     observacao: Optional[str] = ""
+    parcelado: Optional[bool] = False
+    total_parcelas: Optional[int] = 1
+    tipo_calculo_parcela: Optional[str] = "total"
+    primeira_parcela_paga: Optional[bool] = False
 
 class DespesaUpdate(BaseModel):
     descricao: Optional[str] = None
@@ -557,16 +561,36 @@ def api_obter_despesa(despesa_id: int):
 
 @app.post("/api/despesas")
 def api_cadastrar_despesa(dados: DespesaCreate):
-    did = db.registrar_despesa(
-        descricao=dados.descricao,
-        valor=dados.valor,
-        categoria=dados.categoria or "Geral",
-        data=dados.data,
-        data_vencimento=dados.data_vencimento,
-        status=dados.status or "pago",
-        observacao=dados.observacao or ""
-    )
-    return {"status": "ok", "id": did, "mensagem": "Despesa registrada com sucesso!"}
+    if dados.parcelado and (dados.total_parcelas or 1) > 1:
+        ids = db.registrar_despesa_parcelada(
+            descricao=dados.descricao,
+            valor=dados.valor,
+            categoria=dados.categoria or "Geral",
+            data=dados.data,
+            data_vencimento=dados.data_vencimento,
+            total_parcelas=dados.total_parcelas or 2,
+            tipo_calculo_parcela=dados.tipo_calculo_parcela or "total",
+            primeira_parcela_paga=bool(dados.primeira_parcela_paga),
+            observacao=dados.observacao or ""
+        )
+        return {
+            "status": "ok",
+            "parcelado": True,
+            "ids": ids,
+            "total_parcelas": len(ids),
+            "mensagem": f"Despesa parcelada em {len(ids)}x registrada com sucesso!"
+        }
+    else:
+        did = db.registrar_despesa(
+            descricao=dados.descricao,
+            valor=dados.valor,
+            categoria=dados.categoria or "Geral",
+            data=dados.data,
+            data_vencimento=dados.data_vencimento,
+            status=dados.status or "pago",
+            observacao=dados.observacao or ""
+        )
+        return {"status": "ok", "parcelado": False, "id": did, "mensagem": "Despesa registrada com sucesso!"}
 
 @app.put("/api/despesas/{despesa_id}")
 def api_atualizar_despesa(despesa_id: int, dados: DespesaUpdate):
@@ -578,11 +602,12 @@ def api_atualizar_despesa(despesa_id: int, dados: DespesaUpdate):
     return {"status": "ok", "sucesso": True, "mensagem": "Despesa atualizada com sucesso!", "despesa": desp_atualizada, **(desp_atualizada or {})}
 
 @app.delete("/api/despesas/{despesa_id}")
-def api_excluir_despesa(despesa_id: int):
-    sucesso = db.excluir_despesa(despesa_id)
+def api_excluir_despesa(despesa_id: int, excluir_grupo: bool = False):
+    sucesso = db.excluir_despesa(despesa_id, excluir_grupo=excluir_grupo)
     if not sucesso:
         raise HTTPException(status_code=404, detail="Despesa não encontrada")
-    return {"status": "ok", "sucesso": True, "mensagem": "Despesa excluída com sucesso!"}
+    msg = "Parcelamento completo excluído com sucesso!" if excluir_grupo else "Despesa excluída com sucesso!"
+    return {"status": "ok", "sucesso": True, "mensagem": msg}
 
 # --- FASE 4: Rotas de Contratos Digitais, Matrícula Online & 'Entrou, Pagou' ---
 

@@ -6,6 +6,8 @@ import sqlite3
 import os
 import datetime
 import calendar
+import uuid
+import re
 import urllib.parse
 from typing import List, Dict, Any, Optional
 
@@ -191,6 +193,9 @@ def init_db():
         data TEXT NOT NULL, -- 'YYYY-MM-DD'
         data_vencimento TEXT, -- 'YYYY-MM-DD'
         status TEXT DEFAULT 'pago', -- 'pago', 'pendente'
+        parcela_atual INTEGER DEFAULT 1,
+        total_parcelas INTEGER DEFAULT 1,
+        grupo_parcelamento_id TEXT,
         observacao TEXT
     )
     """)
@@ -346,6 +351,22 @@ def init_db():
         pass
     cursor.execute("UPDATE despesas SET data_vencimento = data WHERE data_vencimento IS NULL OR data_vencimento = ''")
     cursor.execute("UPDATE despesas SET status = 'pago' WHERE status IS NULL OR status = ''")
+
+    # Migração segura para suporte a despesas parceladas
+    try:
+        cursor.execute("ALTER TABLE despesas ADD COLUMN parcela_atual INTEGER DEFAULT 1")
+    except Exception:
+        pass
+    try:
+        cursor.execute("ALTER TABLE despesas ADD COLUMN total_parcelas INTEGER DEFAULT 1")
+    except Exception:
+        pass
+    try:
+        cursor.execute("ALTER TABLE despesas ADD COLUMN grupo_parcelamento_id TEXT")
+    except Exception:
+        pass
+    cursor.execute("UPDATE despesas SET parcela_atual = 1 WHERE parcela_atual IS NULL")
+    cursor.execute("UPDATE despesas SET total_parcelas = 1 WHERE total_parcelas IS NULL")
 
     # Matrículas iniciais nas turmas para demonstração do painel de vagas
     cursor.execute("SELECT COUNT(*) FROM matriculas_turmas")
@@ -831,8 +852,8 @@ def obter_relatorio_mensal(mes_ano: Optional[str] = None) -> Dict[str, Any]:
     cursor.execute("""
     SELECT SUM(valor) as total, COUNT(*) as qtd
     FROM despesas
-    WHERE data LIKE ?
-    """, (f"{mes_ano}%",))
+    WHERE (data_vencimento LIKE ? OR (data_vencimento IS NULL AND data LIKE ?))
+    """, (f"{mes_ano}%", f"{mes_ano}%"))
     row_desp = cursor.fetchone()
     total_despesas = row_desp["total"] or 0.0
     qtd_despesas = row_desp["qtd"] or 0
@@ -840,9 +861,9 @@ def obter_relatorio_mensal(mes_ano: Optional[str] = None) -> Dict[str, Any]:
     cursor.execute("""
     SELECT categoria, SUM(valor) as total, COUNT(*) as qtd
     FROM despesas
-    WHERE data LIKE ?
+    WHERE (data_vencimento LIKE ? OR (data_vencimento IS NULL AND data LIKE ?))
     GROUP BY categoria
-    """, (f"{mes_ano}%",))
+    """, (f"{mes_ano}%", f"{mes_ano}%"))
     despesas_por_categoria = [dict(r) for r in cursor.fetchall()]
 
     conn.close()
@@ -1508,7 +1529,27 @@ def obter_alunos_retencao_ausentes(dias_janela: int = 14) -> List[Dict[str, Any]
 
 # --- Gestão de Despesas do Estúdio ---
 
-def registrar_despesa(descricao: str, valor: float, categoria: str = "Geral", data: Optional[str] = None, observacao: str = "", data_vencimento: Optional[str] = None, status: str = "pago") -> int:
+def calcular_data_parcela(data_base: datetime.date, dia_alvo: int, incremento_meses: int) -> str:
+    """Calcula a data exata da parcela após N meses respeitando dias finais de cada mês."""
+    total_meses = (data_base.year * 12 + data_base.month - 1) + incremento_meses
+    novo_ano = total_meses // 12
+    novo_mes = (total_meses % 12) + 1
+    ultimo_dia = calendar.monthrange(novo_ano, novo_mes)[1]
+    dia_final = min(dia_alvo, ultimo_dia)
+    return f"{novo_ano:04d}-{novo_mes:02d}-{dia_final:02d}"
+
+def registrar_despesa(
+    descricao: str,
+    valor: float,
+    categoria: str = "Geral",
+    data: Optional[str] = None,
+    observacao: str = "",
+    data_vencimento: Optional[str] = None,
+    status: str = "pago",
+    parcela_atual: int = 1,
+    total_parcelas: int = 1,
+    grupo_parcelamento_id: Optional[str] = None
+) -> int:
     conn = get_connection()
     cursor = conn.cursor()
     hoje_str = datetime.date.today().strftime("%Y-%m-%d")
@@ -1520,13 +1561,117 @@ def registrar_despesa(descricao: str, valor: float, categoria: str = "Geral", da
         status = "pago"
 
     cursor.execute("""
-    INSERT INTO despesas (descricao, valor, categoria, data, data_vencimento, status, observacao)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
-    """, (descricao.strip(), float(valor), categoria.strip(), data, data_vencimento, status, observacao.strip()))
+    INSERT INTO despesas (
+        descricao, valor, categoria, data, data_vencimento, status, observacao,
+        parcela_atual, total_parcelas, grupo_parcelamento_id
+    )
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    """, (
+        descricao.strip(),
+        float(valor),
+        categoria.strip(),
+        data,
+        data_vencimento,
+        status,
+        observacao.strip(),
+        int(parcela_atual or 1),
+        int(total_parcelas or 1),
+        grupo_parcelamento_id
+    ))
     desp_id = cursor.lastrowid
     conn.commit()
     conn.close()
     return desp_id
+
+def registrar_despesa_parcelada(
+    descricao: str,
+    valor: float,
+    categoria: str = "Geral",
+    data: Optional[str] = None,
+    data_vencimento: Optional[str] = None,
+    total_parcelas: int = 2,
+    tipo_calculo_parcela: str = "total",
+    primeira_parcela_paga: bool = False,
+    observacao: str = ""
+) -> List[int]:
+    """
+    Registra uma compra/despesa parcelada em múltiplos meses futuros.
+    Calcula os vencimentos mensais automáticos e rateia os centavos com exatidão contábil.
+    """
+    total_parcelas = max(2, min(int(total_parcelas), 48))
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    hoje = datetime.date.today()
+    dt_emissao_base = hoje
+    if data:
+        try:
+            dt_emissao_base = datetime.datetime.strptime(data, "%Y-%m-%d").date()
+        except Exception:
+            dt_emissao_base = hoje
+
+    dt_venc_base = dt_emissao_base
+    if data_vencimento:
+        try:
+            dt_venc_base = datetime.datetime.strptime(data_vencimento, "%Y-%m-%d").date()
+        except Exception:
+            dt_venc_base = dt_emissao_base
+
+    dia_emissao_fixo = dt_emissao_base.day
+    dia_venc_fixo = dt_venc_base.day
+
+    # Divisão de valores com precisão absoluta de centavos
+    if tipo_calculo_parcela == "parcela":
+        # O valor informado é o valor de cada parcela
+        valores_parcelas = [round(float(valor), 2)] * total_parcelas
+    else:
+        # O valor informado é o valor total da compra a ser rateado
+        centavos_totais = int(round(float(valor) * 100))
+        centavos_por_parcela = centavos_totais // total_parcelas
+        resto_centavos = centavos_totais % total_parcelas
+        
+        valores_parcelas = []
+        for i in range(total_parcelas):
+            centavos_desta = centavos_por_parcela + (1 if i < resto_centavos else 0)
+            valores_parcelas.append(round(centavos_desta / 100.0, 2))
+
+    grupo_id = f"parc_{int(datetime.datetime.now().timestamp())}_{uuid.uuid4().hex[:6]}"
+    ids_criados = []
+
+    # Limpar qualquer indicação anterior de parcela no nome base
+    desc_base = re.sub(r'\s*\(\d+/\d+\)$', '', descricao.strip())
+
+    for idx in range(total_parcelas):
+        num_parcela = idx + 1
+        data_parc_emissao = calcular_data_parcela(dt_emissao_base, dia_emissao_fixo, idx)
+        data_parc_venc = calcular_data_parcela(dt_venc_base, dia_venc_fixo, idx)
+        val_parc = valores_parcelas[idx]
+
+        status_parc = "pago" if (idx == 0 and primeira_parcela_paga) else "pendente"
+        desc_formatada = f"{desc_base} ({num_parcela}/{total_parcelas})"
+
+        cursor.execute("""
+        INSERT INTO despesas (
+            descricao, valor, categoria, data, data_vencimento, status, observacao,
+            parcela_atual, total_parcelas, grupo_parcelamento_id
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (
+            desc_formatada,
+            val_parc,
+            categoria.strip() or "Geral",
+            data_parc_emissao,
+            data_parc_venc,
+            status_parc,
+            observacao.strip(),
+            num_parcela,
+            total_parcelas,
+            grupo_id
+        ))
+        ids_criados.append(cursor.lastrowid)
+
+    conn.commit()
+    conn.close()
+    return ids_criados
 
 def obter_despesa(despesa_id: int) -> Optional[Dict[str, Any]]:
     conn = get_connection()
@@ -1542,9 +1687,9 @@ def atualizar_despesa(despesa_id: int, dados: Dict[str, Any]) -> bool:
     campos = []
     valores = []
     for k, v in dados.items():
-        if k in ("descricao", "valor", "categoria", "data", "data_vencimento", "status", "observacao"):
+        if k in ("descricao", "valor", "categoria", "data", "data_vencimento", "status", "observacao", "parcela_atual", "total_parcelas", "grupo_parcelamento_id"):
             campos.append(f"{k} = ?")
-            valores.append(float(v) if k == "valor" else str(v).strip())
+            valores.append(float(v) if k == "valor" else (int(v) if k in ("parcela_atual", "total_parcelas") else str(v).strip()))
     if not campos:
         conn.close()
         return False
@@ -1591,10 +1736,21 @@ def listar_despesas(mes_ano: Optional[str] = None) -> List[Dict[str, Any]]:
         resultado.append(d)
     return resultado
 
-def excluir_despesa(despesa_id: int) -> bool:
+def excluir_despesa(despesa_id: int, excluir_grupo: bool = False) -> bool:
     conn = get_connection()
     cursor = conn.cursor()
-    cursor.execute("DELETE FROM despesas WHERE id = ?", (despesa_id,))
+    cursor.execute("SELECT grupo_parcelamento_id FROM despesas WHERE id = ?", (despesa_id,))
+    row = cursor.fetchone()
+    if not row:
+        conn.close()
+        return False
+
+    grupo_id = row["grupo_parcelamento_id"]
+    if excluir_grupo and grupo_id:
+        cursor.execute("DELETE FROM despesas WHERE grupo_parcelamento_id = ?", (grupo_id,))
+    else:
+        cursor.execute("DELETE FROM despesas WHERE id = ?", (despesa_id,))
+
     rows = cursor.rowcount
     conn.commit()
     conn.close()

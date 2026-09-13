@@ -1,4 +1,4 @@
-const CACHE_NAME = 'shanti-studio-pwa-v30';
+const CACHE_NAME = 'shanti-studio-pwa-v31';
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();

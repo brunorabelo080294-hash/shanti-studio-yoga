@@ -1703,34 +1703,60 @@ function setupModals() {
       if (dataInput) dataInput.value = today;
       const vencInput = document.getElementById('desp-vencimento');
       if (vencInput) vencInput.value = today;
+
+      // Resetar para À Vista
+      const radioAvista = document.getElementById('radio-tipo-avista');
+      if (radioAvista) {
+        radioAvista.checked = true;
+        const event = new Event('change');
+        radioAvista.dispatchEvent(event);
+      }
+
       abrirModal('modal-add-despesa');
     });
   }
+
+  setupDespesasParceladas();
 
   const formDespesa = document.getElementById('form-add-despesa');
   if (formDespesa) {
     formDespesa.addEventListener('submit', async (e) => {
       e.preventDefault();
+      const radioParcelado = document.getElementById('radio-tipo-parcelado');
+      const isParcelado = Boolean(radioParcelado && radioParcelado.checked);
+
       const dados = {
         descricao: document.getElementById('desp-desc').value.trim(),
         valor: parseFloat(document.getElementById('desp-valor').value),
         categoria: document.getElementById('desp-cat').value,
-        data_despesa: document.getElementById('desp-data').value || undefined,
+        data: document.getElementById('desp-data').value || undefined,
         data_vencimento: document.getElementById('desp-vencimento')?.value || undefined,
-        status: document.getElementById('desp-status')?.value || 'pago'
+        status: isParcelado ? 'pendente' : (document.getElementById('desp-status')?.value || 'pago'),
+        parcelado: isParcelado,
+        total_parcelas: isParcelado ? parseInt(document.getElementById('desp-num-parcelas')?.value || '2') : 1,
+        tipo_calculo_parcela: isParcelado ? (document.getElementById('desp-tipo-calculo')?.value || 'total') : 'total',
+        primeira_parcela_paga: isParcelado ? Boolean(document.getElementById('desp-primeira-paga')?.checked) : false
       };
 
       try {
-        await fetch('/api/despesas', {
+        const res = await fetch('/api/despesas', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(dados)
         });
+        if (!res.ok) throw new Error('Falha ao salvar despesa');
+        
         fecharModal('modal-add-despesa');
-        showToast('Despesa registrada com sucesso!');
-        await carregarFinanceiro();
+        
+        if (isParcelado) {
+          showToast(`✨ Compra parcelada em ${dados.total_parcelas}x registrada com sucesso!`);
+          adicionarMensagem(`💳 *Despesa parcelada registrada:* ${dados.descricao} parcelada em *${dados.total_parcelas} meses* (${dados.categoria}) com vencimentos mensais programados.`, 'bot');
+        } else {
+          showToast('Despesa registrada com sucesso!');
+          adicionarMensagem(`💸 *Despesa registrada:* ${dados.descricao} no valor de *R$ ${dados.valor.toFixed(2)}* (${dados.categoria}) - Vencimento: ${dados.data_vencimento ? formatarDataBR(dados.data_vencimento) : 'Hoje'}.`, 'bot');
+        }
 
-        adicionarMensagem(`💸 *Despesa registrada:* ${dados.descricao} no valor de *R$ ${dados.valor.toFixed(2)}* (${dados.categoria}) - Vencimento: ${dados.data_vencimento ? formatarDataBR(dados.data_vencimento) : 'Hoje'}.`, 'bot');
+        await carregarFinanceiro();
       } catch (err) {
         alert('Erro ao registrar despesa.');
       }
@@ -1769,6 +1795,113 @@ function setupModals() {
         alert('Erro ao atualizar despesa.');
       }
     });
+  }
+
+  function setupDespesasParceladas() {
+    const radioAvista = document.getElementById('radio-tipo-avista');
+    const radioParcelado = document.getElementById('radio-tipo-parcelado');
+    const boxParcelamento = document.getElementById('box-despesa-parcelamento');
+    const boxStatusAvista = document.getElementById('box-desp-status-avista');
+    const lblAvista = document.getElementById('lbl-tipo-avista');
+    const lblParcelado = document.getElementById('lbl-tipo-parcelado');
+    const lblVencimento = document.getElementById('lbl-desp-vencimento');
+
+    const atualizarVisibilidadeTipo = () => {
+      const isParcelado = radioParcelado && radioParcelado.checked;
+      if (isParcelado) {
+        if (boxParcelamento) boxParcelamento.style.display = 'block';
+        if (boxStatusAvista) boxStatusAvista.style.display = 'none';
+        if (lblParcelado) {
+          lblParcelado.style.border = '1.5px solid var(--shanti-forest)';
+          lblParcelado.style.background = 'var(--shanti-sage-light)';
+          lblParcelado.style.color = 'var(--shanti-forest)';
+        }
+        if (lblAvista) {
+          lblAvista.style.border = '1px solid var(--shanti-sand-border)';
+          lblAvista.style.background = 'var(--shanti-sand-light)';
+          lblAvista.style.color = 'var(--shanti-charcoal)';
+        }
+        if (lblVencimento) lblVencimento.textContent = 'Vencimento da 1ª Parcela *';
+      } else {
+        if (boxParcelamento) boxParcelamento.style.display = 'none';
+        if (boxStatusAvista) boxStatusAvista.style.display = 'block';
+        if (lblAvista) {
+          lblAvista.style.border = '1.5px solid var(--shanti-forest)';
+          lblAvista.style.background = 'var(--shanti-sage-light)';
+          lblAvista.style.color = 'var(--shanti-forest)';
+        }
+        if (lblParcelado) {
+          lblParcelado.style.border = '1px solid var(--shanti-sand-border)';
+          lblParcelado.style.background = 'var(--shanti-sand-light)';
+          lblParcelado.style.color = 'var(--shanti-charcoal)';
+        }
+        if (lblVencimento) lblVencimento.textContent = 'Data de Vencimento *';
+      }
+      atualizarPreviaParcelas();
+    };
+
+    if (radioAvista) radioAvista.addEventListener('change', atualizarVisibilidadeTipo);
+    if (radioParcelado) radioParcelado.addEventListener('change', atualizarVisibilidadeTipo);
+
+    const idsCalculo = ['desp-valor', 'desp-num-parcelas', 'desp-tipo-calculo', 'desp-primeira-paga', 'desp-vencimento'];
+    idsCalculo.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.addEventListener('input', atualizarPreviaParcelas);
+        el.addEventListener('change', atualizarPreviaParcelas);
+      }
+    });
+  }
+
+  function atualizarPreviaParcelas() {
+    const elTexto = document.getElementById('texto-previa-parcelas');
+    if (!elTexto) return;
+
+    const radioParcelado = document.getElementById('radio-tipo-parcelado');
+    if (!radioParcelado || !radioParcelado.checked) return;
+
+    const valorInput = parseFloat(document.getElementById('desp-valor')?.value) || 0;
+    const numParcelas = parseInt(document.getElementById('desp-num-parcelas')?.value || '2');
+    const tipoCalculo = document.getElementById('desp-tipo-calculo')?.value || 'total';
+    const primeiraPaga = Boolean(document.getElementById('desp-primeira-paga')?.checked);
+    const vencimento1 = document.getElementById('desp-vencimento')?.value;
+
+    if (valorInput <= 0) {
+      elTexto.innerHTML = 'Preencha o valor para calcular as parcelas.';
+      return;
+    }
+
+    let valorParcela = 0;
+    let valorTotal = 0;
+    if (tipoCalculo === 'parcela') {
+      valorParcela = valorInput;
+      valorTotal = valorInput * numParcelas;
+    } else {
+      valorTotal = valorInput;
+      valorParcela = valorTotal / numParcelas;
+    }
+
+    let periodoTexto = '';
+    if (vencimento1) {
+      const meses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+      const partes = vencimento1.split('-');
+      if (partes.length === 3) {
+        const y0 = parseInt(partes[0]);
+        const m0 = parseInt(partes[1]) - 1;
+
+        const mesInicio = `${meses[m0]}/${y0}`;
+        const totalMesesFim = (y0 * 12 + m0) + (numParcelas - 1);
+        const yFim = Math.floor(totalMesesFim / 12);
+        const mFim = totalMesesFim % 12;
+        const mesFim = `${meses[mFim]}/${yFim}`;
+
+        periodoTexto = ` • Vencimentos: <b>${mesInicio}</b> até <b>${mesFim}</b>`;
+      }
+    }
+
+    const status1Texto = primeiraPaga ? ' • <span style="color:#15803d; font-weight:600;"><i class="fa-solid fa-check"></i> 1ª Parcela Paga no ato</span>' : '';
+
+    elTexto.innerHTML = `💳 <b>${numParcelas}x de R$ ${valorParcela.toFixed(2)}</b> (Total: R$ ${valorTotal.toFixed(2)})${periodoTexto}${status1Texto}`;
   }
 
   // Modal de Upload de Contrato Assinado (Fase 4)
@@ -2056,12 +2189,20 @@ async function carregarFinanceiro() {
             statusBadge = `<span style="background:var(--shanti-sand-light); color:var(--shanti-stone); font-weight:500; font-size:10.5px; padding:2px 8px; border-radius:10px; border:1px solid var(--shanti-sand-border);">A Pagar</span>`;
           }
 
+          const ehParcelado = Boolean(d.total_parcelas && d.total_parcelas > 1);
+          const parcelaBadge = ehParcelado ? `
+            <span class="badge-parcela" title="Despesa parcelada em ${d.total_parcelas}x">
+              <i class="fa-solid fa-credit-card"></i> ${d.parcela_atual || 1}/${d.total_parcelas}
+            </span>
+          ` : '';
+
           return `
             <div style="background:var(--shanti-sand-light); border:1px solid var(--shanti-sand-border); border-radius:12px; padding:12px 14px; display:flex; justify-content:space-between; align-items:center; gap:10px; transition:all 0.2s ease;">
               <div style="flex:1; min-width:0;">
                 <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin-bottom:4px;">
                   <span style="font-weight:600; font-size:13.5px; color:var(--shanti-charcoal);">${d.descricao}</span>
                   <span style="font-size:10.5px; background:rgba(63,78,58,0.08); color:var(--shanti-forest); padding:2px 7px; border-radius:10px; font-weight:500;">${d.categoria}</span>
+                  ${parcelaBadge}
                   ${statusBadge}
                 </div>
                 <div style="font-size:11.5px; color:var(--shanti-stone);">
@@ -2076,7 +2217,7 @@ async function carregarFinanceiro() {
                   <button class="btn-editar-despesa" data-id="${d.id}" title="Editar Despesa" style="background:#FFFFFF; border:1px solid var(--shanti-sand-border); border-radius:10px; padding:4px 9px; font-size:11px; color:var(--shanti-forest); cursor:pointer; box-shadow:var(--shadow-sm);">
                     <i class="fa-solid fa-pen"></i>
                   </button>
-                  <button class="btn-excluir-despesa" data-id="${d.id}" data-desc="${d.descricao}" title="Excluir Despesa" style="background:#FFFFFF; border:1px solid var(--shanti-terracotta-border); border-radius:10px; padding:4px 9px; font-size:11px; color:var(--shanti-terracotta); cursor:pointer; box-shadow:var(--shadow-sm);">
+                  <button class="btn-excluir-despesa" data-id="${d.id}" data-desc="${d.descricao}" data-grupo="${d.grupo_parcelamento_id || ''}" data-parcela="${ehParcelado ? `${d.parcela_atual}/${d.total_parcelas}` : ''}" title="Excluir Despesa" style="background:#FFFFFF; border:1px solid var(--shanti-terracotta-border); border-radius:10px; padding:4px 9px; font-size:11px; color:var(--shanti-terracotta); cursor:pointer; box-shadow:var(--shadow-sm);">
                     <i class="fa-solid fa-trash"></i>
                   </button>
                 </div>
@@ -2093,7 +2234,7 @@ async function carregarFinanceiro() {
 
         containerDespesas.querySelectorAll('.btn-excluir-despesa').forEach(btn => {
           btn.addEventListener('click', () => {
-            excluirDespesa(parseInt(btn.dataset.id), btn.dataset.desc);
+            excluirDespesa(parseInt(btn.dataset.id), btn.dataset.desc, btn.dataset.grupo, btn.dataset.parcela);
           });
         });
       }
@@ -2135,14 +2276,33 @@ async function abrirModalEditarDespesa(id) {
   }
 }
 
-async function excluirDespesa(id, descricao) {
-  if (!confirm(`Tem certeza de que deseja apagar a despesa "${descricao}"?\n\nEsta ação removerá o registro do balanço financeiro.`)) {
-    return;
+async function excluirDespesa(id, descricao, grupoId, parcelaInfo) {
+  let excluirGrupo = false;
+
+  if (grupoId && parcelaInfo) {
+    const querExcluirTudo = confirm(
+      `A despesa "${descricao}" faz parte de uma compra parcelada (${parcelaInfo}).\n\n` +
+      `Deseja excluir TODAS as parcelas deste parcelamento?\n\n` +
+      `• Clique em [OK] para excluir TODAS as parcelas de uma vez.\n` +
+      `• Clique em [Cancelar] se desejar excluir apenas esta parcela avulsa.`
+    );
+    if (querExcluirTudo) {
+      excluirGrupo = true;
+    } else {
+      const confirmaApenasEsta = confirm(`Confirma a exclusão APENAS desta parcela avulsa (${parcelaInfo})?`);
+      if (!confirmaApenasEsta) return;
+      excluirGrupo = false;
+    }
+  } else {
+    if (!confirm(`Tem certeza de que deseja apagar a despesa "${descricao}"?\n\nEsta ação removerá o registro do balanço financeiro.`)) {
+      return;
+    }
   }
+
   try {
-    const res = await fetch(`/api/despesas/${id}`, { method: 'DELETE' });
+    const res = await fetch(`/api/despesas/${id}?excluir_grupo=${excluirGrupo}`, { method: 'DELETE' });
     if (res.ok) {
-      showToast('Despesa apagada com sucesso!');
+      showToast(excluirGrupo ? 'Parcelamento completo excluído com sucesso!' : 'Despesa excluída com sucesso!');
       await carregarFinanceiro();
     } else {
       alert('Erro ao excluir despesa.');
@@ -3735,10 +3895,106 @@ function setupCalendario() {
     btnToday.addEventListener('click', () => irParaHoje());
   }
 
+  // Abertura do Seletor Direto de Mês e Ano
+  const btnAbrirSeletor = document.getElementById('btn-abrir-seletor-mes-ano');
+  if (btnAbrirSeletor) {
+    btnAbrirSeletor.addEventListener('click', () => abrirSeletorMesAno());
+  }
+
+  const btnPickerPrevYear = document.getElementById('btn-picker-prev-year');
+  if (btnPickerPrevYear) {
+    btnPickerPrevYear.addEventListener('click', () => {
+      pickerAno--;
+      renderizarSeletorMesAno();
+    });
+  }
+
+  const btnPickerNextYear = document.getElementById('btn-picker-next-year');
+  if (btnPickerNextYear) {
+    btnPickerNextYear.addEventListener('click', () => {
+      pickerAno++;
+      renderizarSeletorMesAno();
+    });
+  }
+
+  const selectPickerYear = document.getElementById('picker-select-year');
+  if (selectPickerYear) {
+    selectPickerYear.addEventListener('change', (e) => {
+      pickerAno = parseInt(e.target.value);
+      renderizarSeletorMesAno();
+    });
+  }
+
+  const btnPickerToday = document.getElementById('btn-picker-go-today');
+  if (btnPickerToday) {
+    btnPickerToday.addEventListener('click', () => {
+      fecharModal('modal-cal-picker');
+      irParaHoje();
+    });
+  }
+
   const btnConfirmarPausa = document.getElementById('btn-confirmar-pausa-alerta');
   if (btnConfirmarPausa) {
     btnConfirmarPausa.addEventListener('click', () => salvarPausaAlerta());
   }
+}
+
+let pickerAno = new Date().getFullYear();
+
+function abrirSeletorMesAno() {
+  pickerAno = state.calendario.ano;
+  renderizarSeletorMesAno();
+  abrirModal('modal-cal-picker');
+}
+
+function renderizarSeletorMesAno() {
+  const selectYear = document.getElementById('picker-select-year');
+  if (selectYear) {
+    let optHtml = '';
+    const anoAtual = new Date().getFullYear();
+    for (let y = anoAtual - 6; y <= anoAtual + 6; y++) {
+      optHtml += `<option value="${y}" ${y === pickerAno ? 'selected' : ''}>${y}</option>`;
+    }
+    selectYear.innerHTML = optHtml;
+    selectYear.value = pickerAno;
+  }
+
+  const grid = document.getElementById('picker-months-grid');
+  if (!grid) return;
+
+  const mesesNomes = [
+    'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+    'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+  ];
+  const hoje = new Date();
+  const anoHoje = hoje.getFullYear();
+  const mesHoje = hoje.getMonth() + 1;
+
+  let gridHtml = '';
+  mesesNomes.forEach((nome, idx) => {
+    const numMes = idx + 1;
+    const ehAtivo = (pickerAno === state.calendario.ano && numMes === state.calendario.mes);
+    const ehAtual = (pickerAno === anoHoje && numMes === mesHoje);
+
+    let classes = ['picker-month-btn'];
+    if (ehAtivo) classes.push('selected');
+    if (ehAtual) classes.push('current');
+
+    gridHtml += `
+      <button type="button" class="${classes.join(' ')}" onclick="selecionarMesAnoDireto(${pickerAno}, ${numMes})" title="${nome} de ${pickerAno}">
+        ${nome.slice(0, 3)}
+      </button>
+    `;
+  });
+
+  grid.innerHTML = gridHtml;
+}
+
+function selecionarMesAnoDireto(ano, mes) {
+  state.calendario.ano = ano;
+  state.calendario.mes = mes;
+  fecharModal('modal-cal-picker');
+  carregarCalendario();
 }
 
 async function carregarCalendario() {
@@ -4302,3 +4558,5 @@ window.carregarRetencaoAusentes = carregarRetencaoAusentes;
 window.abrirModalPausaAlerta = abrirModalPausaAlerta;
 window.fecharModalPausaAlerta = fecharModalPausaAlerta;
 window.salvarPausaAlerta = salvarPausaAlerta;
+window.abrirSeletorMesAno = abrirSeletorMesAno;
+window.selecionarMesAnoDireto = selecionarMesAnoDireto;

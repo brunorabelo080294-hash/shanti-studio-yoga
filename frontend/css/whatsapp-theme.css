@@ -1892,6 +1892,79 @@ body {
   text-transform: capitalize;
 }
 
+.cal-month-title-btn {
+  background: rgba(63, 78, 58, 0.05);
+  border: 1px solid rgba(63, 78, 58, 0.15);
+  border-radius: 20px;
+  padding: 4px 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  margin-bottom: 2px;
+}
+
+.cal-month-title-btn:hover {
+  background: rgba(63, 78, 58, 0.12);
+  border-color: var(--shanti-forest);
+  transform: translateY(-1px);
+}
+
+.cal-month-title-btn:active {
+  transform: scale(0.97);
+}
+
+.cal-caret-icon {
+  font-size: 11px;
+  color: var(--shanti-terracotta);
+  transition: transform 0.2s ease;
+}
+
+.picker-month-btn {
+  background: var(--shanti-sand-light);
+  border: 1px solid var(--shanti-sand-border);
+  border-radius: 12px;
+  padding: 10px 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--shanti-charcoal);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+}
+
+.picker-month-btn:hover {
+  background: var(--shanti-sage-light);
+  border-color: var(--shanti-sage-border);
+  color: var(--shanti-forest);
+}
+
+.picker-month-btn.selected {
+  background: var(--shanti-forest) !important;
+  color: #ffffff !important;
+  border-color: var(--shanti-forest) !important;
+  box-shadow: var(--shadow-sm);
+}
+
+.picker-month-btn.current {
+  border: 1.5px solid var(--shanti-terracotta);
+}
+
+.badge-parcela {
+  background: rgba(217, 119, 87, 0.12);
+  color: var(--shanti-terracotta);
+  font-weight: 700;
+  font-size: 10.5px;
+  padding: 2px 7px;
+  border-radius: 10px;
+  border: 1px solid rgba(217, 119, 87, 0.25);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
 .cal-nav-btn {
   background: var(--shanti-sand-light);
   border: 1px solid var(--shanti-sand-border);
