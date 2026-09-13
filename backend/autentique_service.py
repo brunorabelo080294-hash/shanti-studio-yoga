@@ -24,20 +24,24 @@ def obter_token_autentique() -> Optional[str]:
     """
     Retorna o token da API Autentique.
     Prioridade:
-    1. Variável de ambiente AUTENTIQUE_API_TOKEN
-    2. Tabela 'configuracoes' do banco SQLite (chave 'autentique_api_token')
+    1. Tabela 'configuracoes' do banco SQLite (chave 'autentique_api_token')
+    2. Variável de ambiente AUTENTIQUE_API_TOKEN
+    3. Token configurado pelo proprietário
     """
-    token = os.getenv("AUTENTIQUE_API_TOKEN")
-    if token and token.strip():
-        return token.strip()
-
     try:
         configs = db.obter_configuracoes()
-        db_token = configs.get("autentique_api_token")
-        if db_token and db_token.strip():
-            return db_token.strip()
+        if "autentique_api_token" in configs:
+            db_token = configs.get("autentique_api_token")
+            if db_token and db_token.strip():
+                return db_token.strip()
+            # Explicitamente vazio nas configurações
+            return None
     except Exception as e:
         logger.error(f"Erro ao obter token do Autentique das configurações: {e}")
+
+    token = os.getenv("AUTENTIQUE_API_TOKEN", "fc2c3926514c154c5f25a5baa6dc32a95455135b0fcd52b278599ce6c4a36f6c")
+    if token and token.strip():
+        return token.strip()
 
     return None
 
@@ -78,7 +82,7 @@ def formatar_telefone_e164(telefone: str) -> Optional[str]:
 def testar_conexao(token: Optional[str] = None) -> Dict[str, Any]:
     """
     Testa a conectividade com o Autentique executando uma query GraphQL simples
-    que busca os dados do usuário/organização autenticado.
+    que busca os dados da conta autenticada via 'me'.
     """
     api_token = token or obter_token_autentique()
     if not api_token:
@@ -89,7 +93,7 @@ def testar_conexao(token: Optional[str] = None) -> Dict[str, Any]:
 
     query = """
     query {
-      user {
+      me {
         id
         name
         email
@@ -113,7 +117,7 @@ def testar_conexao(token: Optional[str] = None) -> Dict[str, Any]:
             msg_erro = data["errors"][0].get("message", "Erro GraphQL desconhecido.")
             return {"sucesso": False, "mensagem": f"Erro retornado pelo Autentique: {msg_erro}"}
 
-        usuario = data.get("data", {}).get("user", {})
+        usuario = data.get("data", {}).get("me", {})
         return {
             "sucesso": True,
             "mensagem": f"Conexão com Autentique validada com sucesso! Conta: {usuario.get('name')} ({usuario.get('email')})",
