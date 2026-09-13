@@ -531,8 +531,69 @@ function adicionarMensagem(texto, remetente = 'bot', dadosExtras = null, element
       });
       htmlInner += `</div>`;
     }
-    // 4. Lista Padrão de Cobrança de Atrasados
-    else if (Array.isArray(dadosExtras) && dadosExtras.length > 0) {
+    // 4. Lista de Despesas e Contas do Estúdio (Fase 3 & Correção de Bugs)
+    else if (Array.isArray(dadosExtras) && dadosExtras.length > 0 && (dadosExtras[0].descricao !== undefined || dadosExtras[0].categoria !== undefined)) {
+      htmlInner += `<div style="margin-top: 10px; display: flex; flex-direction: column; gap: 8px;">`;
+      dadosExtras.forEach(d => {
+        const isPaga = d.status === 'pago';
+        const stLabel = isPaga ? '<span style="color:#10b981; font-weight:700;">✓ Paga</span>' : '<span style="color:#ef4444; font-weight:700;">⚠️ Vencimento Pendente</span>';
+        const vencStr = d.data_vencimento || d.data || '';
+        const dtFmt = vencStr ? formatarDataBR(vencStr.split(' ')[0]) : '';
+        htmlInner += `
+          <div class="wa-action-card" style="border-left-color: ${isPaga ? '#10b981' : '#ef4444'};">
+            <div class="wa-action-card-header">
+              <span class="wa-action-card-name">💸 ${d.descricao || 'Despesa'}</span>
+              <span class="wa-action-card-val" style="color: ${isPaga ? '#10b981' : '#ef4444'};">R$ ${(d.valor || 0).toFixed(2)}</span>
+            </div>
+            <div class="wa-action-card-sub" style="color: var(--wa-text-secondary);">
+              • Categoria: ${d.categoria || 'Geral'} • Vencimento: ${dtFmt} • ${stLabel}
+            </div>
+            <div style="display: flex; gap: 6px; margin-top: 8px;">
+              ${!isPaga ? `
+                <button type="button" class="wa-action-btn-whatsapp" onclick="marcarDespesaPagaChat(${d.id})" style="background: linear-gradient(135deg, #10b981, #059669); flex: 1; border: none; cursor: pointer;">
+                  <i class="fa-solid fa-check"></i> Marcar como Paga
+                </button>
+              ` : ''}
+              <button type="button" class="wa-action-btn-whatsapp" onclick="navegarParaAba('financeiro')" style="background: #233930; border: 1px solid var(--shanti-gold); color: var(--shanti-gold); flex: 1; cursor: pointer;">
+                <i class="fa-solid fa-wallet"></i> Ver no Financeiro
+              </button>
+            </div>
+          </div>
+        `;
+      });
+      htmlInner += `</div>`;
+    }
+    // 5. Lista de Matrículas Pendentes de Aprovação / Pagamento ("Entrou, Pagou")
+    else if (Array.isArray(dadosExtras) && dadosExtras.length > 0 && (dadosExtras[0].aprovacao_pagamento === 'pendente' || (dadosExtras[0].plano && dadosExtras[0].valor_mensalidade && !dadosExtras[0].dias_atraso))) {
+      htmlInner += `<div style="margin-top: 10px; display: flex; flex-direction: column; gap: 8px;">`;
+      dadosExtras.forEach(al => {
+        const dtMat = al.data_matricula ? formatarDataBR(al.data_matricula.split(' ')[0]) : '';
+        htmlInner += `
+          <div class="wa-action-card" style="border-left-color: #f59e0b; background: #fffdfa;">
+            <div class="wa-action-card-header">
+              <span class="wa-action-card-name">🟡 ${al.nome}</span>
+              <span class="wa-action-card-val" style="color: #b45309;">R$ ${(al.valor_mensalidade || 0).toFixed(2)}</span>
+            </div>
+            <div class="wa-action-card-sub" style="color: var(--wa-text-secondary);">
+              • Plano: ${al.plano || 'Yoga'}${dtMat ? ' • Cadastrado em: ' + dtMat : ''} • Tel: ${al.telefone || '-'}
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 6px; margin-top: 8px;">
+              <button type="button" class="wa-action-btn-whatsapp" onclick="aprovarMatriculaChat(${al.id}, '${al.nome.replace(/'/g, "\\'")}')" style="background: linear-gradient(135deg, #16a34a, #15803d); font-weight:700; border: none; cursor: pointer;">
+                <i class="fa-solid fa-circle-check"></i> Aprovar Matrícula (Entrou, Pagou)
+              </button>
+              ${al.link_whatsapp ? `
+                <a href="${al.link_whatsapp}" target="_blank" class="wa-action-btn-whatsapp" style="background: #233930; border: 1px solid var(--shanti-gold); color: var(--shanti-gold);">
+                  <i class="fa-brands fa-whatsapp"></i> Confirmar PIX no WhatsApp
+                </a>
+              ` : ''}
+            </div>
+          </div>
+        `;
+      });
+      htmlInner += `</div>`;
+    }
+    // 6. Lista Padrão de Cobrança de Atrasados
+    else if (Array.isArray(dadosExtras) && dadosExtras.length > 0 && dadosExtras[0].nome) {
       htmlInner += `<div style="margin-top: 10px; display: flex; flex-direction: column; gap: 8px;">`;
       dadosExtras.forEach(al => {
         htmlInner += `
@@ -590,6 +651,45 @@ function adicionarMensagem(texto, remetente = 'bot', dadosExtras = null, element
 
   return rowEl;
 }
+
+window.aprovarMatriculaChat = async function(alunoId, alunoNome) {
+  try {
+    const res = await fetch(`/api/alunos/${alunoId}/aprovar-pagamento`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ forma_pagamento: 'PIX' })
+    });
+    const data = await res.json();
+    if (data.sucesso) {
+      showToast(`✓ Matrícula de ${alunoNome} aprovada com sucesso!`);
+      await atualizarTudo();
+      adicionarMensagem(`✅ *Matrícula e 1ª Mensalidade Aprovadas com Sucesso!*\n\n• Aluno: *${alunoNome}*\n• Valor: R$ ${(data.valor || 150).toFixed(2)} (PIX)\n• Status da Matrícula: Regularizada ('Entrou, Pagou')\n\nA primeira mensalidade foi lançada no financeiro e o aluno já está 100% ativo para as práticas! Namastê! 🙏`, 'bot');
+    } else {
+      showToast('Erro ao aprovar matrícula: ' + (data.detail || 'Tente novamente'));
+    }
+  } catch (err) {
+    showToast('Erro de conexão ao aprovar matrícula.');
+  }
+};
+
+window.marcarDespesaPagaChat = async function(despesaId) {
+  try {
+    const res = await fetch(`/api/despesas/${despesaId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: 'pago' })
+    });
+    if (res.ok) {
+      showToast('✓ Despesa marcada como paga!');
+      await atualizarTudo();
+      adicionarMensagem('✅ Despesa atualizada para *PAGA* no controle financeiro com sucesso!', 'bot');
+    } else {
+      showToast('Erro ao atualizar status da despesa.');
+    }
+  } catch (e) {
+    showToast('Erro ao atualizar despesa.');
+  }
+};
 
 function criarIndicadorDigitacao(msgInicial = 'Consultando o estúdio... 🧘‍♀️') {
   const container = document.getElementById('chat-messages');

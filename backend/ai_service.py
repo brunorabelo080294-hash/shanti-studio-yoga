@@ -29,6 +29,39 @@ def processar_comando_local(texto: str) -> Dict[str, Any]:
     """
     texto_lower = texto.lower()
 
+    # 0. Matrículas Pendentes de Pagamento / Aprovação ("Entrou, Pagou")
+    termos_matr_pend = [
+        "fez a matricula", "fez matrícula", "matricula e não", "matrícula e não",
+        "matricula e ainda não", "matrícula e ainda não", "não se pagou", "nao se pagou",
+        "matricula pendente", "matrículas pendentes", "matrícula pendente", "pendente de aprovação",
+        "pendente de aprovacao", "quem se matriculou e não", "quem se matriculou e ainda",
+        "aprovar matrícula", "aprovar matricula", "matriculas pendentes", "matrícula não paga", "matricula nao paga"
+    ]
+    if any(p in texto_lower for p in termos_matr_pend):
+        pendentes = db.obter_matriculas_pendentes()
+        if not pendentes:
+            return {
+                "resposta": "🧘 Nenhuma matrícula pendente no momento! Todos os alunos cadastrados já tiveram seus pagamentos confirmados e estão regulares.",
+                "tipo": "matriculas_pendentes",
+                "dados": []
+            }
+        
+        resposta = f"📝 *Matrículas Pendentes de Pagamento:* ({len(pendentes)})\n\n"
+        for idx, al in enumerate(pendentes, 1):
+            dt_mat = al.get("data_matricula") or ""
+            dt_fmt = ""
+            if dt_mat:
+                partes = dt_mat.split()[0].split("-")
+                if len(partes) == 3:
+                    dt_fmt = f" (cadastrado em {partes[2]}/{partes[1]})"
+            resposta += f"{idx}. *{al['nome']}*{dt_fmt}\n   • Plano: {al.get('plano', 'Yoga')} (R$ {al.get('valor_mensalidade', 0):.2f})\n   • Telefone: {al.get('telefone', '-')}\n\n"
+        resposta += "💡 *Regra Entrou, Pagou:* Você pode tocar no botão verde abaixo para aprovar o pagamento (a mensalidade é baixada como paga na hora) ou tocar para falar no WhatsApp do aluno!"
+        return {
+            "resposta": resposta.strip(),
+            "tipo": "matriculas_pendentes",
+            "dados": pendentes
+        }
+
     # 1. Inadimplência / Atraso
     if any(p in texto_lower for p in ["atraso", "atrasada", "atrasadas", "atrasados", "devedor", "inadimplente", "quem deve", "não pagou", "vencid"]):
         inadimplentes = db.obter_inadimplentes()
@@ -440,7 +473,8 @@ async def processar_mensagem_ia(texto: str) -> Dict[str, Any]:
         "turma", "turmas", "horário", "horario", "horários", "horarios", "vaga", "vagas", "aula", "aulas",
         "presença", "presenca", "veio", "veio na aula", "presente", "chegou", "frequencia",
         "ausente", "ausentes", "sumido", "sumidos", "faltou", "faltas",
-        "aniversariante", "aniversariantes", "aniversario", "aniversário"
+        "aniversariante", "aniversariantes", "aniversario", "aniversário",
+        "matricula", "matrícula", "matriculado", "matriculados", "matriculada", "não se pagou", "nao se pagou"
     ]
     if any(t in texto_lower for t in termos_estudio):
         return processar_comando_local(texto)

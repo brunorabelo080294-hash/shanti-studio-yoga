@@ -1311,6 +1311,44 @@ def aprovar_matricula_pagamento(aluno_id: int, forma_pagamento: str = "PIX") -> 
         "mensagem": f"Pagamento da 1ª mensalidade de {aluno.get('nome')} aprovado com sucesso! Matrícula ativada ('Entrou, Pagou')."
     }
 
+def obter_matriculas_pendentes() -> List[Dict[str, Any]]:
+    """
+    Retorna todos os alunos cadastrados cuja matrícula/1ª mensalidade ainda está 
+    pendente de aprovação da Natália ('Entrou, Pagou').
+    """
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT a.* 
+        FROM alunos a
+        WHERE a.aprovacao_pagamento = 'pendente' AND a.status = 'ativo'
+        ORDER BY a.id DESC
+    """)
+    rows = cursor.fetchall()
+    conn.close()
+
+    configs = obter_configuracoes()
+    studio_nome = configs.get("nome_studio", "Studio Shanti")
+
+    resultado = []
+    for r in rows:
+        al = dict(r)
+        tel_limpo = "".join(filter(str.isdigit, str(al.get("telefone", ""))))
+        if tel_limpo and not tel_limpo.startswith("55"):
+            tel_limpo = "55" + tel_limpo
+        
+        msg = (
+            f"Olá {al['nome']}! 🧘‍♀️ Aqui é a Natália do {studio_nome}.\n\n"
+            f"Recebemos sua ficha de matrícula no plano {al.get('plano', 'Yoga')}! "
+            f"Gostaria de confirmar o recebimento do seu comprovante PIX de R$ {al.get('valor_mensalidade', 0):.2f} "
+            f"para já deixar sua vaga garantida e aprovada no estúdio. Namastê! 🙏"
+        )
+        link_wa = f"https://wa.me/{tel_limpo}?text={urllib.parse.quote(msg)}"
+        al["link_whatsapp"] = link_wa
+        resultado.append(al)
+
+    return resultado
+
 def listar_contratos(filtro: Optional[str] = None) -> List[Dict[str, Any]]:
     """
     Lista todos os alunos ativos e o status detalhado de seus contratos:
