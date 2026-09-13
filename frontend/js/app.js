@@ -2485,6 +2485,36 @@ function setupSettings() {
     });
   }
 
+  const btnReenviarAutentique = document.getElementById('btn-reenviar-autentique');
+  if (btnReenviarAutentique) {
+    btnReenviarAutentique.addEventListener('click', async () => {
+      const alunoId = document.getElementById('links-autentique-aluno-id')?.value;
+      if (!alunoId) return;
+      if (!confirm('Deseja gerar um novo envio deste contrato no Autentique (com código exclusivamente via WhatsApp)?')) return;
+      
+      btnReenviarAutentique.disabled = true;
+      btnReenviarAutentique.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Enviando...';
+      try {
+        const res = await fetch(`/api/alunos/${alunoId}/contrato/autentique/enviar`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sandbox: true })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || 'Erro ao gerar novo envio.');
+        showToast('Novo contrato gerado no Autentique via WhatsApp!');
+        await carregarContratos();
+        const aluno = (state.contratos || []).find(c => c.id == alunoId) || {};
+        abrirModalLinksAutentique(alunoId, aluno.nome || 'Aluno', data.document_id, data.link_aluno, aluno.telefone, data.link_natalia);
+      } catch (err) {
+        alert(err.message);
+      } finally {
+        btnReenviarAutentique.disabled = false;
+        btnReenviarAutentique.innerHTML = '<i class="fa-solid fa-arrows-rotate"></i> Gerar Novo Envio';
+      }
+    });
+  }
+
   // 1. Salvar Configurações Gerais
   document.getElementById('btn-salvar-configuracoes').addEventListener('click', async () => {
     const configs = {
@@ -2987,7 +3017,7 @@ function abrirModalLinksAutentique(alunoId, alunoNome, docId, linkAluno, telefon
 
   const btnWaNatalia = document.getElementById('btn-wa-link-natalia');
   if (btnWaNatalia) {
-    const telNataliaRaw = (state.configuracoes?.telefone_studio || '22988423287').replace(/\D/g, '');
+    const telNataliaRaw = (state.configuracoes?.telefone_natalia || state.configuracoes?.telefone_studio || '22988423287').replace(/\D/g, '');
     const telNatalia = telNataliaRaw.startsWith('55') ? telNataliaRaw : ('55' + telNataliaRaw);
     const msgNatalia = encodeURIComponent(
       `Olá, Natália! 🧘‍♀️ Segue o link para você assinar o contrato de ${alunoNome} como Contratada (Studio Shanti):\n\n` +

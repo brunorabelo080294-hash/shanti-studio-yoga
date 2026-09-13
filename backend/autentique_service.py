@@ -158,18 +158,20 @@ def criar_documento_contrato(aluno_id: int, sandbox: Optional[bool] = None) -> D
     tel_natalia = configs.get("telefone_natalia", "22988423287")
     tel_natalia_e164 = formatar_telefone_e164(tel_natalia)
 
+    # Signatária 1: Professora Natália (Estúdio)
+    # Regra: Contato EXCLUSIVAMENTE por telefone/WhatsApp para que o código de confirmação
+    # seja enviado diretamente ao WhatsApp dela (NUNCA por e-mail).
     signatario_natalia: Dict[str, Any] = {
         "name": "Natalia de Carvalho Garufe",
         "action": "SIGN",
-        "delivery_method": "DELIVERY_METHOD_LINK"
+        "delivery_method": "DELIVERY_METHOD_WHATSAPP" if tel_natalia_e164 else "DELIVERY_METHOD_LINK"
     }
-    # Regra: Contato por signatário deve ser exclusivamente por telefone; caso não tenha, por e-mail.
     if tel_natalia_e164:
         signatario_natalia["phone"] = tel_natalia_e164
     elif email_natalia and "@" in email_natalia:
         signatario_natalia["email"] = email_natalia.strip()
 
-    # Signatário 2: Aluno
+    # Signatário 2: Aluno (Contratante)
     nome_aluno = (aluno.get("nome") or "Aluno").strip()
     tel_aluno_e164 = formatar_telefone_e164(aluno.get("telefone", ""))
     email_aluno = (aluno.get("email") or "").strip()
@@ -177,9 +179,8 @@ def criar_documento_contrato(aluno_id: int, sandbox: Optional[bool] = None) -> D
     signatario_aluno: Dict[str, Any] = {
         "name": nome_aluno,
         "action": "SIGN",
-        "delivery_method": "DELIVERY_METHOD_LINK"
+        "delivery_method": "DELIVERY_METHOD_WHATSAPP" if tel_aluno_e164 else "DELIVERY_METHOD_LINK"
     }
-    # Regra: Contato por signatário deve ser exclusivamente por telefone; caso não tenha, por e-mail.
     if tel_aluno_e164:
         signatario_aluno["phone"] = tel_aluno_e164
     elif email_aluno and "@" in email_aluno:
@@ -274,8 +275,11 @@ def criar_documento_contrato(aluno_id: int, sandbox: Optional[bool] = None) -> D
             for campo, msgs in ext["validation"].items():
                 detalhes.append(f"{campo}: {', '.join(msgs) if isinstance(msgs, list) else msgs}")
             msg = f"Validação Autentique: {'; '.join(detalhes)}"
-        elif "detail" in ext:
-            msg = f"Autentique: {ext['detail']}"
+        if msg == "user_biometric_verification_required":
+            msg = (
+                "O Autentique solicitou uma validação de identidade biométrica na conta do titular do token. "
+                "Para gerar novos contratos, acesse painel.autentique.com.br e conclua a verificação rápida de selfie da sua conta."
+            )
         logger.error(f"Erro GraphQL Autentique: {resp_json['errors']}")
         raise RuntimeError(f"Falha no Autentique: {msg}")
 
@@ -283,12 +287,35 @@ def criar_documento_contrato(aluno_id: int, sandbox: Optional[bool] = None) -> D
     doc_id = doc_data.get("id")
     signatures = doc_data.get("signatures", [])
 
+    # Função auxiliar para garantir obtenção do short_link (necessário com DELIVERY_METHOD_WHATSAPP)
+    def obter_ou_gerar_link(sig_obj: Dict[str, Any]) -> str:
+        short = (sig_obj.get("link") or {}).get("short_link")
+        if short:
+            return short
+        pub_id = sig_obj.get("public_id")
+        if pub_id and sig_obj.get("action"):
+            try:
+                res_link = requests.post(
+                    AUTENTIQUE_GRAPHQL_URL,
+                    headers={"Authorization": f"Bearer {api_token}", "Content-Type": "application/json"},
+                    json={"query": f'mutation {{ createLinkToSignature(public_id: "{pub_id}") {{ short_link }} }}'},
+                    timeout=10
+                )
+                if res_link.status_code == 200:
+                    short_link = res_link.json().get("data", {}).get("createLinkToSignature", {}).get("short_link")
+                    if short_link:
+                        sig_obj["link"] = {"short_link": short_link}
+                        return short_link
+            except Exception as err:
+                logger.warning(f"Erro ao gerar link de assinatura para {pub_id}: {err}")
+        return ""
+
     # Extrair links curtos de assinatura
     link_aluno = ""
     link_natalia = ""
     for sig in signatures:
         sig_name = (sig.get("name") or "").lower()
-        sig_link = (sig.get("link") or {}).get("short_link") or ""
+        sig_link = obter_ou_gerar_link(sig)
         if "natalia" in sig_name:
             link_natalia = sig_link
         elif sig_name:
@@ -297,9 +324,9 @@ def criar_documento_contrato(aluno_id: int, sandbox: Optional[bool] = None) -> D
     # Fallback se não distinguiu por nome
     signatarios_reais = [s for s in signatures if s.get("action")]
     if not link_natalia and len(signatarios_reais) > 0:
-        link_natalia = (signatarios_reais[0].get("link") or {}).get("short_link") or ""
+        link_natalia = obter_ou_gerar_link(signatarios_reais[0])
     if not link_aluno and len(signatarios_reais) > 1:
-        link_aluno = (signatarios_reais[1].get("link") or {}).get("short_link") or ""
+        link_aluno = obter_ou_gerar_link(signatarios_reais[1])
 
     # 4. Gravar no banco de dados SQLite
     db.registrar_disparo_autentique(
@@ -417,8 +444,32 @@ def consultar_status_documento(doc_id: str) -> Dict[str, Any]:
     natalia_assinou = bool(natalia_sig and natalia_sig.get("signed") is not None)
     aluno_assinou = bool(aluno_sig and aluno_sig.get("signed") is not None)
 
-    link_natalia = (natalia_sig.get("link") or {}).get("short_link") if natalia_sig else ""
-    link_aluno = (aluno_sig.get("link") or {}).get("short_link") if aluno_sig else ""
+    def resolver_link_sig(sig_obj: Optional[Dict[str, Any]]) -> str:
+        if not sig_obj:
+            return ""
+        short = (sig_obj.get("link") or {}).get("short_link")
+        if short:
+            return short
+        pub_id = sig_obj.get("public_id")
+        if pub_id and sig_obj.get("action"):
+            try:
+                res_link = requests.post(
+                    AUTENTIQUE_GRAPHQL_URL,
+                    headers={"Authorization": f"Bearer {api_token}", "Content-Type": "application/json"},
+                    json={"query": f'mutation {{ createLinkToSignature(public_id: "{pub_id}") {{ short_link }} }}'},
+                    timeout=10
+                )
+                if res_link.status_code == 200:
+                    short_link = res_link.json().get("data", {}).get("createLinkToSignature", {}).get("short_link")
+                    if short_link:
+                        sig_obj["link"] = {"short_link": short_link}
+                        return short_link
+            except Exception:
+                pass
+        return ""
+
+    link_natalia = resolver_link_sig(natalia_sig)
+    link_aluno = resolver_link_sig(aluno_sig)
 
     totalmente_assinado = (total_signers > 0 and assinados >= total_signers)
     url_assinado = doc.get("files", {}).get("signed")
