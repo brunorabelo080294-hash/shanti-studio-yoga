@@ -154,6 +154,23 @@ def init_db():
     )
     """)
 
+    # Tabela de Diagnóstico e Observabilidade do Sistema (Render vs. Gemini)
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS logs_diagnostico (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        timestamp TEXT DEFAULT (datetime('now', 'localtime')),
+        tipo_evento TEXT NOT NULL, -- 'chat', 'atalho', 'audio', 'ping_keepalive', 'teste_diagnostico'
+        status_servidor TEXT DEFAULT 'ok', -- 'ok', 'lento', 'iniciando'
+        status_ia TEXT DEFAULT 'nao_aplicavel', -- 'ok', 'lento', 'erro', 'local', 'chave_ausente'
+        servidor_cold_start INTEGER DEFAULT 0, -- 1 se cold start (<3 min), 0 se quente
+        tempo_servidor_ms INTEGER DEFAULT 0,
+        tempo_ia_ms INTEGER DEFAULT 0,
+        sucesso INTEGER DEFAULT 1,
+        mensagem_erro TEXT,
+        detalhes TEXT
+    )
+    """)
+
     # Configurações padrão
     configs_padrao = [
         ("nome_studio", "Studio Shanti"),
@@ -1483,6 +1500,126 @@ def remover_contrato_assinado(aluno_id: int) -> bool:
         "status_contrato": "pendente"
     })
     return True
+
+# =============================================================================
+# DIAGNÓSTICO E OBSERVABILIDADE (RENDER VS. GEMINI)
+# =============================================================================
+
+def registrar_log_diagnostico(
+    tipo_evento: str,
+    status_servidor: str = "ok",
+    status_ia: str = "nao_aplicavel",
+    servidor_cold_start: int = 0,
+    tempo_servidor_ms: int = 0,
+    tempo_ia_ms: int = 0,
+    sucesso: int = 1,
+    mensagem_erro: Optional[str] = None,
+    detalhes: Optional[str] = None
+) -> int:
+    """Registra evento de diagnóstico e garante retenção automática dos últimos 200 registros."""
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+        agora_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        cursor.execute("""
+            INSERT INTO logs_diagnostico (
+                timestamp, tipo_evento, status_servidor, status_ia,
+                servidor_cold_start, tempo_servidor_ms, tempo_ia_ms,
+                sucesso, mensagem_erro, detalhes
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (
+            agora_str, tipo_evento, status_servidor, status_ia,
+            servidor_cold_start, tempo_servidor_ms, tempo_ia_ms,
+            sucesso, mensagem_erro, detalhes
+        ))
+        log_id = cursor.lastrowid
+        # Auto-pruning: manter apenas os últimos 200 registros para otimizar espaço
+        cursor.execute("""
+            DELETE FROM logs_diagnostico 
+            WHERE id NOT IN (SELECT id FROM logs_diagnostico ORDER BY id DESC LIMIT 200)
+        """)
+        conn.commit()
+        conn.close()
+        return log_id
+    except Exception as e:
+        print(f"Erro ao registrar log de diagnóstico: {e}")
+        return 0
+
+def obter_ultimos_logs_diagnostico(limite: int = 20) -> List[Dict[str, Any]]:
+    """Retorna os últimos logs de diagnóstico ordenados pelo mais recente."""
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT id, timestamp, tipo_evento, status_servidor, status_ia,
+                   servidor_cold_start, tempo_servidor_ms, tempo_ia_ms,
+                   sucesso, mensagem_erro, detalhes
+            FROM logs_diagnostico
+            ORDER BY id DESC
+            LIMIT ?
+        """, (limite,))
+        rows = cursor.fetchall()
+        conn.close()
+        return [dict(r) for r in rows]
+    except Exception as e:
+        print(f"Erro ao obter logs de diagnóstico: {e}")
+        return []
+
+def obter_status_keepalive() -> Dict[str, Any]:
+    """Informa há quanto tempo o último ping do monitor (UptimeRobot) foi recebido."""
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT timestamp FROM logs_diagnostico 
+            WHERE tipo_evento = 'ping_keepalive'
+            ORDER BY id DESC LIMIT 1
+        """)
+        row = cursor.fetchone()
+        conn.close()
+        if not row or not row["timestamp"]:
+            return {
+                "ativo": False,
+                "ultimo_ping_timestamp": None,
+                "minutos_atras": None,
+                "mensagem": "Nenhum ping do UptimeRobot registrado ainda."
+            }
+        
+        ts_str = row["timestamp"]
+        dt_ping = None
+        try:
+            dt_ping = datetime.datetime.fromisoformat(ts_str)
+        except Exception:
+            try:
+                dt_ping = datetime.datetime.strptime(ts_str, "%Y-%m-%d %H:%M:%S")
+            except Exception:
+                pass
+                
+        if dt_ping:
+            diff_seg = (datetime.datetime.now() - dt_ping).total_seconds()
+            minutos = max(0, int(diff_seg // 60))
+            ativo = minutos <= 15
+            msg = f"Último ping há {minutos} min" if minutos > 0 else "Último ping há menos de 1 minuto"
+            return {
+                "ativo": ativo,
+                "ultimo_ping_timestamp": ts_str,
+                "minutos_atras": minutos,
+                "mensagem": msg
+            }
+        return {
+            "ativo": True,
+            "ultimo_ping_timestamp": ts_str,
+            "minutos_atras": 0,
+            "mensagem": f"Último ping registrado: {ts_str}"
+        }
+    except Exception as e:
+        print(f"Erro ao consultar status keepalive: {e}")
+        return {
+            "ativo": False,
+            "ultimo_ping_timestamp": None,
+            "minutos_atras": None,
+            "mensagem": f"Erro ao ler status: {e}"
+        }
 
 # Inicializar ao importar
 init_db()

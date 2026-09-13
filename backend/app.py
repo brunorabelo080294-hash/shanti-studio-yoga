@@ -8,6 +8,7 @@ import io
 import datetime
 import asyncio
 import re
+import time
 from typing import Optional, Dict, Any, List
 from fastapi import FastAPI, HTTPException, UploadFile, File, Form, Response
 from fastapi.responses import FileResponse
@@ -41,6 +42,36 @@ async def add_no_cache_header(request, call_next):
         response.headers["Pragma"] = "no-cache"
         response.headers["Expires"] = "0"
     return response
+
+# --- Monitoramento e Observabilidade do Servidor (Render vs. Gemini) ---
+SERVER_START_TIME = datetime.datetime.now(datetime.timezone.utc)
+LAST_KEEPALIVE_PING = datetime.datetime.now(datetime.timezone.utc)
+LAST_KEEPALIVE_DB_LOG = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(minutes=10)
+
+def obter_info_servidor_uptime() -> Dict[str, Any]:
+    """Calcula uptime e detecta se o servidor está em cold start (< 3 minutos desde inicialização)."""
+    agora = datetime.datetime.now(datetime.timezone.utc)
+    segundos = max(0, int((agora - SERVER_START_TIME).total_seconds()))
+    cold_start = segundos < 180  # Menos de 3 minutos é cold start recente no Render
+    
+    horas = segundos // 3600
+    minutos = (segundos % 3600) // 60
+    segs = segundos % 60
+    
+    if horas > 0:
+        uptime_fmt = f"{horas}h {minutos}m"
+    elif minutos > 0:
+        uptime_fmt = f"{minutos}m {segs}s"
+    else:
+        uptime_fmt = f"{segs}s"
+        
+    return {
+        "uptime_segundos": segundos,
+        "uptime_formatado": uptime_fmt,
+        "cold_start": cold_start,
+        "status_servidor": "iniciando" if cold_start else "ok",
+        "started_at": SERVER_START_TIME.isoformat()
+    }
 
 # --- Modelos Pydantic ---
 
@@ -131,9 +162,108 @@ class ConfigUpdate(BaseModel):
 
 # --- Rotas da API ---
 
+@app.get("/status-servidor")
+@app.get("/api/status-servidor")
+def api_status_servidor():
+    """
+    Endpoint ultraleve para verificação de saúde do servidor Render.
+    Não realiza nenhuma consulta a banco de dados nem chamada de IA.
+    Responde em menos de 10ms.
+    """
+    global LAST_KEEPALIVE_PING
+    LAST_KEEPALIVE_PING = datetime.datetime.now(datetime.timezone.utc)
+    info = obter_info_servidor_uptime()
+    return {
+        "status": "online",
+        "servidor": info["status_servidor"],
+        "cold_start": info["cold_start"],
+        "uptime_segundos": info["uptime_segundos"],
+        "uptime_formatado": info["uptime_formatado"],
+        "started_at": info["started_at"],
+        "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat()
+    }
+
+@app.get("/status-ia")
+@app.get("/api/status-ia")
+async def api_status_ia():
+    """
+    Endpoint isolado para teste de conectividade e latência do Google Gemini.
+    Mede a velocidade em milissegundos e retorna causas de erro simplificadas.
+    """
+    info_serv = obter_info_servidor_uptime()
+    res = await ai.testar_conexao_gemini_isolada()
+    
+    # Gravar log do teste isolado
+    db.registrar_log_diagnostico(
+        tipo_evento="teste_diagnostico",
+        status_servidor="ok",
+        status_ia=res.get("status_ia", "ok"),
+        servidor_cold_start=1 if info_serv["cold_start"] else 0,
+        tempo_servidor_ms=5,
+        tempo_ia_ms=res.get("latencia_ms", 0),
+        sucesso=1 if res.get("sucesso", True) else 0,
+        mensagem_erro=None if res.get("sucesso", True) else res.get("mensagem"),
+        detalhes=res.get("detalhes")
+    )
+    return res
+
+@app.get("/api/diagnostico/resumo")
+def api_diagnostico_resumo():
+    """Retorna dados consolidados para o painel visual de diagnóstico na tela de Ajustes."""
+    info_serv = obter_info_servidor_uptime()
+    status_kp = db.obter_status_keepalive()
+    ultimos_logs = db.obter_ultimos_logs_diagnostico(limite=15)
+    
+    # Calcular se o keepalive está ativo
+    agora_utc = datetime.datetime.now(datetime.timezone.utc)
+    diff_mem_min = max(0, int((agora_utc - LAST_KEEPALIVE_PING).total_seconds() // 60))
+    
+    minutos_kp = diff_mem_min
+    if status_kp.get("minutos_atras") is not None:
+        minutos_kp = min(diff_mem_min, status_kp["minutos_atras"])
+        
+    keepalive_ativo = minutos_kp <= 15
+    msg_kp = f"Último ping há {minutos_kp} min" if minutos_kp > 0 else "Último ping há menos de 1 minuto"
+    
+    return {
+        "servidor": {
+            "status": "online",
+            "cold_start": info_serv["cold_start"],
+            "uptime_segundos": info_serv["uptime_segundos"],
+            "uptime_formatado": info_serv["uptime_formatado"],
+            "started_at": info_serv["started_at"]
+        },
+        "keepalive": {
+            "ativo": keepalive_ativo,
+            "minutos_atras": minutos_kp,
+            "mensagem": msg_kp
+        },
+        "logs": ultimos_logs
+    }
+
 @app.get("/api/health")
 def api_health_check():
     """Endpoint leve para monitoramento e keep-alive 24/7 sem hibernação."""
+    global LAST_KEEPALIVE_PING, LAST_KEEPALIVE_DB_LOG
+    agora_utc = datetime.datetime.now(datetime.timezone.utc)
+    LAST_KEEPALIVE_PING = agora_utc
+    
+    # Registrar no banco de dados com rate-limit de 2 minutos para manter histórico limpo
+    if (agora_utc - LAST_KEEPALIVE_DB_LOG).total_seconds() >= 120:
+        LAST_KEEPALIVE_DB_LOG = agora_utc
+        info = obter_info_servidor_uptime()
+        db.registrar_log_diagnostico(
+            tipo_evento="ping_keepalive",
+            status_servidor="ok",
+            status_ia="nao_aplicavel",
+            servidor_cold_start=1 if info["cold_start"] else 0,
+            tempo_servidor_ms=2,
+            tempo_ia_ms=0,
+            sucesso=1,
+            mensagem_erro=None,
+            detalhes="Ping UptimeRobot"
+        )
+        
     return {"status": "online", "service": "Studio Shanti API", "timestamp": datetime.datetime.now().isoformat()}
 
 @app.get("/api/alunos")
@@ -540,17 +670,65 @@ def api_obter_aniversariantes(mes: Optional[int] = None):
 
 @app.post("/api/chat")
 async def api_chat(req: ChatRequest):
-    """Envia texto para o assistente IA."""
+    """Envia texto para o assistente IA com rastreamento isolado de métricas."""
     if not req.mensagem.strip():
         raise HTTPException(status_code=400, detail="Mensagem vazia")
-    resultado = await ai.processar_mensagem_ia(req.mensagem)
-    return resultado
+    
+    t0 = time.perf_counter()
+    info_serv = obter_info_servidor_uptime()
+    
+    msg_lower = req.mensagem.lower()
+    termos_atalho = [
+        "atraso", "atrasada", "atrasadas", "atrasados", "devedor", "inadimplente", "quem deve", "não pagou", "vencid",
+        "cobrança", "cobrar", "lembrete", "quem já pagou", "quem pagou", "relatorio", "relatório", "faturamento",
+        "despesa", "despesas", "gastei", "contrato", "contratos", "quantitativo", "alunos ativos", "turma",
+        "presença", "presenca", "ausente", "ausentes", "aniversariante", "matricula", "matrícula"
+    ]
+    e_atalho = any(t in msg_lower for t in termos_atalho)
+    tipo_ev = "atalho" if e_atalho else "chat"
+    
+    try:
+        resultado = await ai.processar_mensagem_ia(req.mensagem)
+        tempo_total_ms = max(1, int((time.perf_counter() - t0) * 1000))
+        tempo_ia_ms = 0 if e_atalho else max(0, tempo_total_ms - 10)
+        status_ia = "local" if e_atalho else ("lento" if tempo_ia_ms > 3000 else "ok")
+        
+        db.registrar_log_diagnostico(
+            tipo_evento=tipo_ev,
+            status_servidor="lento" if tempo_total_ms > 4000 else "ok",
+            status_ia=status_ia,
+            servidor_cold_start=1 if info_serv["cold_start"] else 0,
+            tempo_servidor_ms=tempo_total_ms,
+            tempo_ia_ms=tempo_ia_ms,
+            sucesso=1,
+            mensagem_erro=None,
+            detalhes=f"Intenção: {resultado.get('tipo', 'geral')}"
+        )
+        return resultado
+    except Exception as e:
+        tempo_total_ms = max(1, int((time.perf_counter() - t0) * 1000))
+        db.registrar_log_diagnostico(
+            tipo_evento=tipo_ev,
+            status_servidor="ok",
+            status_ia="erro",
+            servidor_cold_start=1 if info_serv["cold_start"] else 0,
+            tempo_servidor_ms=tempo_total_ms,
+            tempo_ia_ms=tempo_total_ms,
+            sucesso=0,
+            mensagem_erro=str(e)[:120],
+            detalhes="Erro no processamento do chat"
+        )
+        raise
 
 @app.post("/api/chat/audio")
 async def api_chat_audio(audio: UploadFile = File(...), texto_transcrito: Optional[str] = Form(None)):
     """
     Recebe arquivo de áudio gravado no app e transcreve com a IA Gemini multimodal.
+    Registra diagnóstico completo de latência de áudio.
     """
+    t0 = time.perf_counter()
+    info_serv = obter_info_servidor_uptime()
+    
     texto = (texto_transcrito or "").strip()
     if not texto:
         conteudo = await audio.read()
@@ -605,6 +783,18 @@ async def api_chat_audio(audio: UploadFile = File(...), texto_transcrito: Option
                 texto = ""
 
     if not texto:
+        tempo_total_ms = max(1, int((time.perf_counter() - t0) * 1000))
+        db.registrar_log_diagnostico(
+            tipo_evento="audio",
+            status_servidor="ok",
+            status_ia="ok",
+            servidor_cold_start=1 if info_serv["cold_start"] else 0,
+            tempo_servidor_ms=tempo_total_ms,
+            tempo_ia_ms=max(0, tempo_total_ms - 20),
+            sucesso=1,
+            mensagem_erro=None,
+            detalhes="Áudio inaudível ou silêncio"
+        )
         return {
             "resposta": "🧘 Não consegui compreender o seu áudio com clareza. Por favor, aproxime-se um pouco mais do microfone ou tente falar novamente!",
             "tipo": "audio_incompreensivel",
@@ -614,6 +804,20 @@ async def api_chat_audio(audio: UploadFile = File(...), texto_transcrito: Option
 
     resultado = await ai.processar_mensagem_ia(texto)
     resultado["transcricao"] = texto
+    
+    tempo_total_ms = max(1, int((time.perf_counter() - t0) * 1000))
+    tempo_ia_ms = max(0, tempo_total_ms - 30)
+    db.registrar_log_diagnostico(
+        tipo_evento="audio",
+        status_servidor="lento" if tempo_total_ms > 4000 else "ok",
+        status_ia="lento" if tempo_ia_ms > 3000 else "ok",
+        servidor_cold_start=1 if info_serv["cold_start"] else 0,
+        tempo_servidor_ms=tempo_total_ms,
+        tempo_ia_ms=tempo_ia_ms,
+        sucesso=1,
+        mensagem_erro=None,
+        detalhes=f"Transcrição: '{texto[:35]}'"
+    )
     return resultado
 
 @app.post("/api/chat/live")

@@ -353,6 +353,7 @@ function abrirTelaAjustes() {
   document.querySelectorAll('.wa-screen').forEach(s => s.classList.remove('active'));
   const screenAjustes = document.getElementById('screen-ajustes');
   if (screenAjustes) screenAjustes.classList.add('active');
+  carregarDiagnostico();
 }
 
 function voltarDaTelaAjustes() {
@@ -2465,6 +2466,201 @@ function setupSettings() {
         btnSalvarIcone.innerHTML = originalHtml;
       }
     });
+  }
+
+  // 3. Botão de Rodar Diagnóstico Manual do Sistema
+  const btnRodarDiag = document.getElementById('btn-rodar-diagnostico');
+  if (btnRodarDiag) {
+    btnRodarDiag.addEventListener('click', () => {
+      executarDiagnosticoManual();
+    });
+  }
+}
+
+// =============================================================================
+// DIAGNÓSTICO DO SISTEMA & OBSERVABILIDADE (RENDER VS. GEMINI)
+// =============================================================================
+
+async function carregarDiagnostico() {
+  const containerLogs = document.getElementById('lista-logs-diagnostico');
+  const elUptime = document.getElementById('diag-servidor-uptime');
+  const elCold = document.getElementById('diag-servidor-coldstart');
+  const badgeServidor = document.getElementById('badge-diag-servidor');
+  const elKeepalive = document.getElementById('diag-keepalive-status');
+
+  try {
+    const res = await fetch('/api/diagnostico/resumo');
+    if (!res.ok) return;
+    const data = await res.json();
+
+    // 1. Atualizar Bloco Servidor
+    if (data.servidor) {
+      if (elUptime) elUptime.textContent = data.servidor.uptime_formatado || '0s';
+      if (elCold) {
+        if (data.servidor.cold_start) {
+          elCold.textContent = 'Sim (acordou há <3 min)';
+          elCold.style.color = '#b45309';
+          if (badgeServidor) {
+            badgeServidor.textContent = 'Acordando';
+            badgeServidor.style.background = '#fef3c7';
+            badgeServidor.style.color = '#b45309';
+          }
+        } else {
+          elCold.textContent = 'Não (servidor ativo/quente)';
+          elCold.style.color = '#2e7d32';
+          if (badgeServidor) {
+            badgeServidor.textContent = 'Online (Quente)';
+            badgeServidor.style.background = '#e8f5e9';
+            badgeServidor.style.color = '#2e7d32';
+          }
+        }
+      }
+    }
+
+    // 2. Atualizar Keep-alive
+    if (elKeepalive && data.keepalive) {
+      if (data.keepalive.ativo) {
+        elKeepalive.innerHTML = `<i class="fa-solid fa-circle-check"></i> Ativo (${data.keepalive.mensagem})`;
+        elKeepalive.style.color = '#2e7d32';
+      } else {
+        elKeepalive.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> Inativo (${data.keepalive.mensagem})`;
+        elKeepalive.style.color = '#b91c1c';
+      }
+    }
+
+    // 3. Renderizar Lista de Logs
+    if (containerLogs) {
+      const logs = data.logs || [];
+      if (logs.length === 0) {
+        containerLogs.innerHTML = `
+          <div style="text-align: center; padding: 14px; font-size: 11.5px; color: var(--wa-text-secondary);">
+            Nenhum evento registrado ainda. As mensagens do chat, atalhos e pings aparecerão aqui em tempo real.
+          </div>
+        `;
+        return;
+      }
+
+      containerLogs.innerHTML = logs.slice(0, 10).map(l => {
+        let badgeTipo = '';
+        if (l.tipo_evento === 'atalho') {
+          badgeTipo = `<span style="background: rgba(43,76,60,0.1); color: var(--shanti-primary); font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 4px;">⚡ Atalho</span>`;
+        } else if (l.tipo_evento === 'chat') {
+          badgeTipo = `<span style="background: #ede9fe; color: #6d28d9; font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 4px;">💬 Chat</span>`;
+        } else if (l.tipo_evento === 'audio') {
+          badgeTipo = `<span style="background: #e0f2fe; color: #0369a1; font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 4px;">🎙️ Áudio</span>`;
+        } else if (l.tipo_evento === 'ping_keepalive') {
+          badgeTipo = `<span style="background: #f1f5f9; color: #475569; font-size: 10px; font-weight: 600; padding: 1px 6px; border-radius: 4px;">📡 Ping</span>`;
+        } else {
+          badgeTipo = `<span style="background: #fef3c7; color: #b45309; font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 4px;">🔍 Teste</span>`;
+        }
+
+        const hora = (l.timestamp || '').split(' ')[1] || (l.timestamp || '');
+        const tempoRender = l.tempo_servidor_ms !== undefined ? `${l.tempo_servidor_ms}ms` : '--';
+        const tempoIa = l.tempo_ia_ms !== undefined ? (l.tempo_ia_ms > 0 ? `${l.tempo_ia_ms}ms` : (l.status_ia === 'local' ? 'Local' : '0ms')) : '--';
+
+        return `
+          <div style="background: var(--shanti-sand); border: 0.5px solid var(--wa-border); border-radius: 6px; padding: 8px 10px; display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 11px;">
+            <div style="flex: 1; min-width: 0;">
+              <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 2px;">
+                ${badgeTipo}
+                <span style="color: var(--wa-text-secondary); font-size: 10px;">${hora}</span>
+                ${l.servidor_cold_start ? '<span style="font-size: 9.5px; background: #fef3c7; color: #b45309; padding: 0 4px; border-radius: 3px; font-weight: 600;">Cold Start</span>' : ''}
+              </div>
+              <div style="color: var(--wa-text-primary); font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                ${l.mensagem_erro ? `<b style="color: #b91c1c;">Erro:</b> ${l.mensagem_erro}` : (l.detalhes || 'Operação concluída com sucesso')}
+              </div>
+            </div>
+            <div style="text-align: right; white-space: nowrap; font-size: 10.5px;">
+              <div>Render: <b>${tempoRender}</b></div>
+              <div style="color: var(--shanti-primary);">IA: <b>${tempoIa}</b></div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+  } catch (err) {
+    console.warn('Erro ao carregar diagnóstico:', err);
+  }
+}
+
+async function executarDiagnosticoManual() {
+  const btn = document.getElementById('btn-rodar-diagnostico');
+  const elIaLatencia = document.getElementById('diag-ia-latencia');
+  const elIaModelo = document.getElementById('diag-ia-modelo');
+  const elIaMensagem = document.getElementById('diag-ia-mensagem');
+  const badgeIa = document.getElementById('badge-diag-ia');
+  const badgeGeral = document.getElementById('badge-diag-geral');
+
+  if (!btn) return;
+  const originalHtml = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> <span>Testando Servidor e IA Gemini...</span>';
+
+  try {
+    // 1. Executar testes isolados em paralelo
+    const [resServidor, resIa] = await Promise.all([
+      fetch('/status-servidor').then(r => r.json()).catch(e => ({ status: 'erro', detail: e.message })),
+      fetch('/status-ia').then(r => r.json()).catch(e => ({ status_ia: 'erro', mensagem: e.message, latencia_ms: 0 }))
+    ]);
+
+    // 2. Atualizar bloco da IA
+    if (resIa) {
+      if (elIaLatencia) elIaLatencia.textContent = `${resIa.latencia_ms || 0} ms`;
+      if (elIaModelo) elIaModelo.textContent = resIa.modelo || 'Auto';
+      if (elIaMensagem) elIaMensagem.textContent = resIa.mensagem || 'Teste concluído.';
+
+      if (badgeIa) {
+        if (resIa.status_ia === 'ok') {
+          badgeIa.textContent = 'Operando';
+          badgeIa.style.background = '#e8f5e9';
+          badgeIa.style.color = '#2e7d32';
+        } else if (resIa.status_ia === 'lento') {
+          badgeIa.textContent = 'Lenta (>3s)';
+          badgeIa.style.background = '#fef3c7';
+          badgeIa.style.color = '#b45309';
+        } else if (resIa.status_ia === 'chave_ausente') {
+          badgeIa.textContent = 'Motor Local';
+          badgeIa.style.background = '#e0f2fe';
+          badgeIa.style.color = '#0369a1';
+        } else {
+          badgeIa.textContent = 'Erro IA';
+          badgeIa.style.background = '#fee2e2';
+          badgeIa.style.color = '#b91c1c';
+        }
+      }
+    }
+
+    // 3. Atualizar badge geral do sistema
+    if (badgeGeral) {
+      if (resServidor.status === 'online' && (resIa.status_ia === 'ok' || resIa.status_ia === 'chave_ausente')) {
+        badgeGeral.textContent = '● Tudo Operacional';
+        badgeGeral.style.background = '#e8f5e9';
+        badgeGeral.style.color = '#2e7d32';
+        badgeGeral.style.border = '0.5px solid #a5d6a7';
+      } else if (resServidor.cold_start) {
+        badgeGeral.textContent = '● Servidor Acordando';
+        badgeGeral.style.background = '#fef3c7';
+        badgeGeral.style.color = '#b45309';
+        badgeGeral.style.border = '0.5px solid #fde68a';
+      } else {
+        badgeGeral.textContent = '● Atenção';
+        badgeGeral.style.background = '#fee2e2';
+        badgeGeral.style.color = '#b91c1c';
+        badgeGeral.style.border = '0.5px solid #fca5a5';
+      }
+    }
+
+    // 4. Recarregar tabela de logs e status geral
+    await carregarDiagnostico();
+    showToast('Diagnóstico do sistema concluído!');
+
+  } catch (err) {
+    console.error('Erro ao executar diagnóstico:', err);
+    alert('Erro ao executar diagnóstico.');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = originalHtml;
   }
 }
 

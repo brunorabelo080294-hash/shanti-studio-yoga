@@ -661,6 +661,105 @@
         </button>
       </div>
 
+      <!-- ==================================================================
+           CARD: DIAGNÓSTICO DO SISTEMA & OBSERVABILIDADE (RENDER VS. GEMINI)
+           ================================================================== -->
+      <div class="wa-card" id="card-diagnostico-sistema" style="border: 1px solid var(--shanti-gold); background: #ffffff;">
+        <div class="wa-card-title" style="margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-gauge-high" style="color: var(--shanti-gold); font-size: 16px;"></i>
+            <span style="font-weight: 700; color: var(--shanti-primary); font-size: 15px;">Saúde do Sistema & Diagnóstico</span>
+          </div>
+          <span id="badge-diag-geral" style="font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 12px; background: #e8f5e9; color: #2e7d32; border: 0.5px solid #a5d6a7;">
+            ● Online
+          </span>
+        </div>
+
+        <p style="font-size: 12px; color: var(--wa-text-secondary); margin-bottom: 14px; line-height: 1.4;">
+          Monitore o desempenho do servidor Render (hibernação e pings keep-alive) e a resposta da IA Gemini de forma 100% isolada e transparente.
+        </p>
+
+        <!-- Grade com 2 Blocos de Status: Servidor e IA -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px;">
+          
+          <!-- Bloco Servidor (Render) -->
+          <div style="background: var(--shanti-sand); border: 0.5px solid var(--wa-border); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+                <span style="font-size: 11.5px; font-weight: 700; color: var(--shanti-primary);"><i class="fa-solid fa-server" style="color: var(--shanti-gold);"></i> Servidor (Render)</span>
+                <span id="badge-diag-servidor" style="font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 6px; background: #e8f5e9; color: #2e7d32;">
+                  Online
+                </span>
+              </div>
+              <div style="font-size: 11.5px; color: var(--wa-text-secondary); margin-bottom: 4px;">
+                Uptime: <b id="diag-servidor-uptime" style="color: var(--wa-text-primary);">Carregando...</b>
+              </div>
+              <div style="font-size: 11px; color: var(--wa-text-secondary);">
+                Cold Start: <span id="diag-servidor-coldstart" style="font-weight: 600; color: #2e7d32;">Não (Quente)</span>
+              </div>
+            </div>
+            
+            <div style="margin-top: 10px; padding-top: 8px; border-top: 0.5px dashed var(--wa-border); font-size: 10.5px;">
+              <span style="display: block; color: var(--wa-text-secondary); margin-bottom: 2px;">Keep-alive 24/7:</span>
+              <span id="diag-keepalive-status" style="font-weight: 600; color: #2e7d32;">
+                <i class="fa-solid fa-circle-check"></i> Ativo
+              </span>
+            </div>
+          </div>
+
+          <!-- Bloco IA (Gemini) -->
+          <div style="background: var(--shanti-sand); border: 0.5px solid var(--wa-border); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+                <span style="font-size: 11.5px; font-weight: 700; color: var(--shanti-primary);"><i class="fa-solid fa-microchip" style="color: var(--shanti-gold);"></i> IA (Gemini)</span>
+                <span id="badge-diag-ia" style="font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 6px; background: #e8f5e9; color: #2e7d32;">
+                  Operando
+                </span>
+              </div>
+              <div style="font-size: 11.5px; color: var(--wa-text-secondary); margin-bottom: 4px;">
+                Latência: <b id="diag-ia-latencia" style="color: var(--wa-text-primary);">-- ms</b>
+              </div>
+              <div style="font-size: 11px; color: var(--wa-text-secondary);">
+                Modelo: <span id="diag-ia-modelo" style="font-weight: 600; color: var(--shanti-primary);">Auto</span>
+              </div>
+            </div>
+
+            <div style="margin-top: 10px; padding-top: 8px; border-top: 0.5px dashed var(--wa-border); font-size: 10.5px;">
+              <span style="display: block; color: var(--wa-text-secondary); margin-bottom: 2px;">Diagnóstico da IA:</span>
+              <span id="diag-ia-mensagem" style="font-weight: 500; color: var(--wa-text-secondary); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.25;">
+                Aguardando teste...
+              </span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Botão de Ação: Rodar Diagnóstico Agora -->
+        <div style="margin-bottom: 14px;">
+          <button type="button" id="btn-rodar-diagnostico" class="wa-btn-primary" style="background: var(--shanti-primary); border: 1px solid var(--shanti-gold); color: #ffffff; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 10px 14px; border-radius: 8px; cursor: pointer; transition: all 0.2s;">
+            <i class="fa-solid fa-stethoscope"></i>
+            <span>Rodar Diagnóstico Completo Agora</span>
+          </button>
+        </div>
+
+        <!-- Histórico Recente de Respostas & Pings -->
+        <div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <span style="font-size: 12px; font-weight: 700; color: var(--shanti-primary);">
+              <i class="fa-solid fa-list-check" style="color: var(--shanti-gold);"></i> Histórico Recente de Atividades
+            </span>
+            <span style="font-size: 10.5px; color: var(--wa-text-secondary);">Render vs. Gemini</span>
+          </div>
+
+          <div id="lista-logs-diagnostico" style="display: flex; flex-direction: column; gap: 6px; max-height: 240px; overflow-y: auto; padding-right: 4px;">
+            <div style="text-align: center; padding: 14px; font-size: 12px; color: var(--wa-text-secondary);">
+              <i class="fa-solid fa-spinner fa-spin" style="color: var(--shanti-gold);"></i> Carregando histórico de diagnósticos...
+            </div>
+          </div>
+        </div>
+
+      </div>
+
     </div>
   </section>
 
@@ -1188,12 +1287,12 @@
 <div class="wa-toast" id="toast-msg">Notificação</div>
 
 <!-- JavaScript Principal -->
-<script src="/js/app.js?v=21"></script>
+<script src="/js/app.js?v=22"></script>
 
 <script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/service-worker.js?v=21').then(reg => {
+      navigator.serviceWorker.register('/service-worker.js?v=22').then(reg => {
         reg.update();
       }).catch(err => {
         console.log('SW reg:', err);

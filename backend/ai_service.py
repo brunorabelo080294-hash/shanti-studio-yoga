@@ -10,6 +10,7 @@ import base64
 import json
 import asyncio
 import datetime
+import time
 from typing import Dict, Any, List, Optional
 import backend.database as db
 
@@ -788,3 +789,108 @@ async def gerar_audio_gemini(texto: str, voz: str = "Aoede") -> Optional[str]:
     except Exception as e:
         print(f"Erro em gerar_audio_gemini: {e}")
         return None
+
+async def testar_conexao_gemini_isolada() -> Dict[str, Any]:
+    """
+    Testa de forma isolada e minimalista a comunicação com os servidores do Google Gemini.
+    Mede a latência exata da resposta e traduz qualquer falha para explicações claras e simplificadas.
+    Nunca expõe chaves de API.
+    """
+    api_key = get_api_key()
+    if not api_key:
+        return {
+            "status_ia": "chave_ausente",
+            "latencia_ms": 0,
+            "modelo": "motor_local_integrado",
+            "mensagem": "Nenhuma chave de API configurada no estúdio. O app está operando perfeitamente com o motor local integrado (respostas instantâneas a atalhos e comandos).",
+            "detalhes": None,
+            "sucesso": True
+        }
+
+    t0 = time.perf_counter()
+    try:
+        from google import genai
+        from google.genai import types
+
+        client = genai.Client(api_key=api_key)
+        candidate_models = [
+            "gemini-3.5-flash-lite",
+            "gemini-3.1-flash-lite",
+            "gemini-flash-latest"
+        ]
+
+        modelo_usado = candidate_models[0]
+        resposta_texto = ""
+        ultimo_erro = None
+
+        for mod in candidate_models:
+            try:
+                modelo_usado = mod
+                resp = await asyncio.wait_for(
+                    client.aio.models.generate_content(
+                        model=mod,
+                        contents="Responda apenas: OK",
+                        config=types.GenerateContentConfig(
+                            max_output_tokens=10,
+                            temperature=0.0
+                        )
+                    ),
+                    timeout=5.0
+                )
+                resposta_texto = (resp.text or "").strip()
+                if resposta_texto:
+                    break
+            except Exception as ex_m:
+                ultimo_erro = ex_m
+                continue
+
+        latencia_ms = max(1, int((time.perf_counter() - t0) * 1000))
+
+        if not resposta_texto and ultimo_erro:
+            raise ultimo_erro
+
+        status_ia = "lento" if latencia_ms > 3000 else "ok"
+        msg = (
+            f"Google Gemini conectado e operando normalmente ({latencia_ms}ms)."
+            if status_ia == "ok"
+            else f"Google Gemini conectado, porém com resposta lenta dos servidores da nuvem ({latencia_ms}ms)."
+        )
+
+        return {
+            "status_ia": status_ia,
+            "latencia_ms": latencia_ms,
+            "modelo": modelo_usado,
+            "mensagem": msg,
+            "detalhes": f"Resposta: '{resposta_texto[:30]}'",
+            "sucesso": True
+        }
+
+    except Exception as e:
+        latencia_ms = max(1, int((time.perf_counter() - t0) * 1000))
+        err_str = str(e)
+        err_lower = err_str.lower()
+
+        # Mapeamento explicativo para leigos
+        if "429" in err_str or "resource_exhausted" in err_lower or "quota" in err_lower:
+            motivo = "Cota de requisições gratuitas da IA excedida (limite diário ou por minuto do Google atingido). O app utiliza o motor local até a renovação da cota."
+        elif any(x in err_str for x in ["400", "401", "403"]) or "api_key_invalid" in err_lower or "permission" in err_lower or "unauthenticated" in err_lower:
+            motivo = "Chave de API do Gemini inválida ou sem permissão. Verifique a chave inserida na aba Ajustes."
+        elif "timeout" in err_lower or isinstance(e, asyncio.TimeoutError):
+            motivo = "Tempo limite esgotado: os servidores do Google demoraram mais de 5 segundos para responder. Instabilidade temporária na nuvem."
+        elif "connect" in err_lower or "network" in err_lower or "dns" in err_lower or "gaierror" in err_lower:
+            motivo = "Falha de conexão com os servidores do Google (DNS ou rede temporariamente inacessível)."
+        else:
+            motivo = f"Erro de comunicação com a IA: {err_str[:120]}"
+
+        # Proteção estrita: nunca vazar a chave nos detalhes técnicos
+        detalhes_seguros = err_str.replace(api_key, "***CHAVE_OCULTA***") if api_key else err_str
+
+        return {
+            "status_ia": "erro",
+            "latencia_ms": latencia_ms,
+            "modelo": "desconhecido",
+            "mensagem": motivo,
+            "detalhes": detalhes_seguros[:200],
+            "sucesso": False
+        }
+
