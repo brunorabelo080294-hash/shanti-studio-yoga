@@ -1,44 +1,65 @@
 /* ==========================================================================
-   SHANTI STUDIO DE YOGA - WhatsApp Luxe Theme
-   Design profissional, sofisticado e visualmente refinado
-   Harmonizado com o logo: Dourado, Verde Esmeralda e Areia Quente
+   SHANTI STUDIO DE YOGA - Nova Identidade Visual (Boutique de Bem-Estar)
+   Paleta: Forest Green, Sage Green, Terracotta, Warm Sand, Oatmeal e Charcoal
+   Harmonizado com o logo vetorial Lótus e tipografia clássica Marcellus
    ========================================================================== */
 
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Marcellus&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
 
 :root {
-  /* Cores da Identidade Visual Shanti - Fase 1 */
-  --shanti-primary: #1C2B24;        /* Verde Escuro Principal */
-  --shanti-secondary: #233930;      /* Verde Secundário (tabs/superfícies) */
-  --shanti-primary-light: #233930;  /* Verde Secundário */
-  --shanti-gold: #D9B667;           /* Dourado de Destaque */
-  --shanti-gold-light: #F0D998;     /* Dourado Suave */
-  --shanti-gold-glow: rgba(217, 182, 103, 0.25);
-  --shanti-sand: #F3EFE4;           /* Fundo Neutro */
-  --shanti-sand-dark: #E2DCC8;      /* Borda Neutra e Superfície */
-  --shanti-text-muted-dark: #9BA89F; /* Texto secundário sobre fundo escuro */
-  --shanti-whatsapp-green: #25d366; /* Verde Oficial WhatsApp (apenas botões WA) */
-  --shanti-whatsapp-dark: #128c7e;
+  /* Nova Identidade Visual Shanti - Design System Oficial */
+  --shanti-forest: #3F4E3A;          /* Verde Floresta Profundo: títulos nobres e cabeçalhos */
+  --shanti-sage: #8A937E;            /* Verde Sálvia: ações secundárias, botões suaves, em dia */
+  --shanti-sage-light: #EAECE7;      /* Verde Sálvia suave para fundos/bolhas */
+  --shanti-sage-border: #D3D8CE;     /* Borda sálvia */
+  
+  --shanti-terracotta: #B16A4C;      /* Terracota / Argila: ações primárias, alertas e destaque */
+  --shanti-terracotta-light: #F9EFEA;/* Fundo suave terracota */
+  --shanti-terracotta-hover: #9A5A3F;/* Hover terracota */
+  --shanti-terracotta-border: #E8CFBE;
+  
+  --shanti-sand: #D4B99B;            /* Warm Sand: realce nobre e acentos orgânicos */
+  --shanti-sand-light: #F8F4EF;      /* Areia clarinha para superfícies */
+  --shanti-sand-border: #E8E0D5;     /* Borda neutra elegante */
+  
+  --shanti-oatmeal: #F4EFEA;         /* Aveia / Cream: fundo acolhedor de todas as telas */
+  --shanti-card-bg: #FFFFFF;         /* Warm White: superfícies de cards e modais */
+  --shanti-charcoal: #3E3228;        /* Marrom Espresso / Rich Charcoal: texto legível */
+  --shanti-stone: #9E988F;           /* Cinza Pedra / Fendi: subtítulos e ícones neutros */
+  
+  --shanti-whatsapp-green: #25D366;  /* Verde Oficial WhatsApp (EXCLUSIVO botões WA) */
+  --shanti-whatsapp-dark: #128C7E;
+  
+  /* Tokens de Compatibilidade e Semântica */
+  --shanti-primary: #3F4E3A;
+  --shanti-secondary: #F4EFEA;
+  --shanti-primary-light: #4A5B45;
+  --shanti-gold: #B16A4C;            /* Terracota de destaque */
+  --shanti-gold-light: #D4B99B;      /* Warm Sand */
+  --shanti-gold-glow: rgba(177, 106, 76, 0.20);
+  --shanti-text-muted-dark: #9E988F;
   
   /* Cores de Interface e Chat */
-  --wa-bubble-bot: #ffffff;         /* Bolha bot branca/neutra */
-  --wa-bubble-user: #EDE8DC;        /* Bolha usuário neutra suave (sem verde-menta) */
-  --wa-text-primary: #1C2B24;
-  --wa-text-secondary: #63736d;
-  --wa-text-light: #ffffff;
-  --wa-border: #E2DCC8;             /* Borda padronizada 0.5px */
-  --wa-border-gold: rgba(217, 182, 103, 0.35);
-  --wa-blue-tick: #0ea5e9;
-  --wa-danger: #dc2626;
-  --wa-warning: #d97706;
-  --wa-success: #059669;
+  --wa-bubble-bot: #FFFFFF;
+  --wa-bubble-user: #EAECE7;         /* Sage suave */
+  --wa-text-primary: #3E3228;
+  --wa-text-secondary: #7D756C;
+  --wa-text-light: #FFFFFF;
+  --wa-border: #E8E0D5;
+  --wa-border-gold: rgba(177, 106, 76, 0.25);
+  --wa-blue-tick: #8A937E;
+  --wa-danger: #B16A4C;              /* Terracota para atrasos */
+  --wa-warning: #C98A4B;             /* Ocre para pendências */
+  --wa-success: #6E7C62;             /* Sálvia profundo para sucesso */
 
-  /* Efeitos e Tipografia */
+  /* Tipografia */
   --font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-brand: 'Cinzel', Georgia, serif;
-  --shadow-sm: 0 1px 4px rgba(28, 43, 36, 0.05);
-  --shadow-md: 0 4px 14px rgba(28, 43, 36, 0.08);
-  --shadow-lg: 0 8px 30px rgba(28, 43, 36, 0.14);
+  --font-brand: 'Marcellus', 'Cinzel', Georgia, serif;
+  
+  /* Sombras Orgânicas e Suaves */
+  --shadow-sm: 0 2px 8px rgba(62, 50, 40, 0.04);
+  --shadow-md: 0 4px 18px rgba(62, 50, 40, 0.06);
+  --shadow-lg: 0 12px 36px rgba(62, 50, 40, 0.10);
 }
 
 * {
@@ -50,8 +71,8 @@
 
 body {
   font-family: var(--font-family);
-  background: radial-gradient(circle at top right, #eee6d8, #d8cebe);
-  color: var(--wa-text-primary);
+  background: #E8E2D8;
+  color: var(--shanti-charcoal);
   height: 100vh;
   height: 100dvh;
   display: flex;
@@ -60,13 +81,13 @@ body {
   overflow: hidden;
 }
 
-/* Container do App com Visual Moderno */
+/* Container do App com Visual Boutique */
 #app-container {
   width: 100%;
   max-width: 490px;
   height: 100%;
   max-height: 100dvh;
-  background-color: var(--shanti-sand);
+  background-color: var(--shanti-oatmeal);
   display: flex;
   flex-direction: column;
   position: relative;
@@ -77,29 +98,26 @@ body {
 @media (min-width: 491px) {
   #app-container {
     height: 94vh;
-    border-radius: 20px;
-    border: 1px solid rgba(255, 255, 255, 0.6);
-    box-shadow: 0 20px 45px rgba(11, 56, 44, 0.22);
+    border-radius: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    box-shadow: 0 20px 48px rgba(62, 50, 40, 0.14);
   }
 }
 
 /* ==========================================================================
-   Header WhatsApp Luxe
-   ========================================================================== */
-/* ==========================================================================
-   Header Studio Shanti - Fase 1
+   Header Studio Shanti - Fase 1 (Boutique Orgânica)
    ========================================================================== */
 .wa-header {
-  background: var(--shanti-primary);
-  color: var(--wa-text-light);
-  padding: 14px 18px;
+  background: var(--shanti-card-bg);
+  color: var(--shanti-charcoal);
+  padding: 12px 18px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   flex-shrink: 0;
   z-index: 10;
-  border-bottom: 2px solid var(--shanti-gold);
-  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.12);
+  border-bottom: 1px solid var(--shanti-sand-border);
+  box-shadow: 0 2px 10px rgba(62, 50, 40, 0.03);
 }
 
 .wa-header-left {
@@ -108,21 +126,29 @@ body {
   gap: 12px;
 }
 
-/* Avatar Rounded-Square com Dourado #D9B667 */
+/* Avatar / Logo do Estúdio */
 .wa-avatar-wrapper {
   position: relative;
   width: 44px;
   height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--shanti-sand-light);
+  border: 1px solid var(--shanti-sand-border);
+  border-radius: 12px;
+  padding: 4px;
+  box-shadow: 0 2px 6px rgba(62, 50, 40, 0.04);
 }
 
 .wa-avatar-img {
   width: 100%;
   height: 100%;
-  border-radius: 10px;
-  object-fit: cover;
-  background-color: var(--shanti-sand);
-  border: 1.5px solid var(--shanti-gold);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  border-radius: 0;
+  object-fit: contain;
+  background-color: transparent;
+  border: none;
+  box-shadow: none;
   display: block;
 }
 
@@ -133,20 +159,21 @@ body {
 
 .wa-header-title h1 {
   font-family: var(--font-brand);
-  font-size: 18px;
+  font-size: 19px;
   font-weight: 500;
-  letter-spacing: 0.5px;
-  color: #ffffff;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--shanti-charcoal);
   line-height: 1.2;
 }
 
 .wa-header-title .wa-status-text {
-  font-size: 12px;
-  color: var(--shanti-text-muted-dark);
+  font-size: 11px;
+  color: var(--shanti-stone);
   font-family: var(--font-family);
   font-weight: 400;
   margin-top: 2px;
-  letter-spacing: 0.2px;
+  letter-spacing: 0.3px;
 }
 
 .wa-header-actions {
@@ -156,34 +183,36 @@ body {
 }
 
 .wa-icon-btn {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  color: var(--shanti-text-muted-dark);
-  font-size: 15px;
+  background: var(--shanti-card-bg);
+  border: 1px solid var(--shanti-sand-border);
+  color: var(--shanti-charcoal);
+  font-size: 14px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   width: 36px;
   height: 36px;
-  border-radius: 8px;
-  transition: all 0.2s;
+  border-radius: 10px;
+  box-shadow: 0 1px 4px rgba(62, 50, 40, 0.04);
+  transition: all 0.2s ease;
 }
 
 .wa-icon-btn:hover {
-  background: rgba(217, 182, 103, 0.2);
-  border-color: var(--shanti-gold);
-  color: var(--shanti-gold);
+  background: var(--shanti-sand-light);
+  border-color: var(--shanti-sand);
+  color: var(--shanti-terracotta);
+  transform: translateY(-1px);
 }
 
 /* ==========================================================================
-   Abas de Navegação Deslizáveis / Scrollable Tabs - Sem Cortes
+   Abas de Navegação - Visual Limpo e Orgânico
    ========================================================================== */
 .wa-nav-tabs {
-  background: var(--shanti-secondary);
+  background: var(--shanti-card-bg);
   display: flex;
   flex-shrink: 0;
-  border-bottom: 1px solid rgba(217, 182, 103, 0.2);
+  border-bottom: 1px solid var(--shanti-sand-border);
   overflow-x: auto;
   overflow-y: hidden;
   white-space: nowrap;
@@ -192,7 +221,7 @@ body {
   -ms-overflow-style: none;
   scroll-behavior: smooth;
   scroll-snap-type: x proximity;
-  padding: 0 4px;
+  padding: 0 8px;
 }
 
 .wa-nav-tabs::-webkit-scrollbar {
@@ -204,13 +233,13 @@ body {
   min-width: max-content;
   background: none;
   border: none;
-  color: var(--shanti-text-muted-dark);
-  padding: 12px 14px 10px;
+  color: var(--shanti-stone);
+  padding: 12px 14px 11px;
   font-size: 12px;
   font-family: var(--font-family);
-  font-weight: 600;
+  font-weight: 500;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.4px;
   cursor: pointer;
   position: relative;
   display: inline-flex;
@@ -227,40 +256,43 @@ body {
   font-size: 13.5px;
 }
 
+.wa-tab-btn:hover {
+  color: var(--shanti-charcoal);
+}
+
 .wa-tab-btn.active {
-  color: var(--shanti-gold);
-  font-weight: 700;
+  color: var(--shanti-terracotta);
+  font-weight: 600;
 }
 
 .wa-tab-btn.active::after {
   content: "";
   position: absolute;
   bottom: 0;
-  left: 10px;
-  right: 10px;
+  left: 12px;
+  right: 12px;
   height: 2.5px;
-  background: var(--shanti-gold);
+  background: var(--shanti-terracotta);
   border-radius: 2px 2px 0 0;
-  box-shadow: 0 0 8px var(--shanti-gold-glow);
+  box-shadow: 0 1px 6px rgba(177, 106, 76, 0.3);
 }
 
 .wa-tab-badge {
-  background: linear-gradient(135deg, var(--shanti-gold), #b8934b);
-  color: #0c3b2e;
+  background: var(--shanti-sand-border);
+  color: var(--shanti-charcoal);
   font-size: 10px;
   font-weight: 700;
   padding: 2px 6px;
   border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
 }
 
 .wa-tab-badge.danger {
-  background: linear-gradient(135deg, #ef4444, #b91c1c);
+  background: var(--shanti-terracotta);
   color: #ffffff;
 }
 
 .wa-tab-badge.warning {
-  background: linear-gradient(135deg, #f59e0b, #d97706);
+  background: #C98A4B;
   color: #ffffff;
 }
 
