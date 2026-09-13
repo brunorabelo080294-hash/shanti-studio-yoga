@@ -160,13 +160,14 @@ def criar_documento_contrato(aluno_id: int, sandbox: Optional[bool] = None) -> D
 
     signatario_natalia: Dict[str, Any] = {
         "name": "Natalia de Carvalho Garufe",
-        "action": "SIGN"
+        "action": "SIGN",
+        "delivery_method": "DELIVERY_METHOD_LINK"
     }
+    # Autentique v2: Apenas UM meio de contato permitido por signatário (email OU phone, nunca ambos)
     if email_natalia and "@" in email_natalia:
         signatario_natalia["email"] = email_natalia.strip()
-    if tel_natalia_e164:
+    elif tel_natalia_e164:
         signatario_natalia["phone"] = tel_natalia_e164
-        signatario_natalia["delivery_method"] = "DELIVERY_METHOD_WHATSAPP"
 
     # Signatário 2: Aluno
     nome_aluno = (aluno.get("nome") or "Aluno").strip()
@@ -175,13 +176,14 @@ def criar_documento_contrato(aluno_id: int, sandbox: Optional[bool] = None) -> D
 
     signatario_aluno: Dict[str, Any] = {
         "name": nome_aluno,
-        "action": "SIGN"
+        "action": "SIGN",
+        "delivery_method": "DELIVERY_METHOD_LINK"
     }
+    # Autentique v2: Apenas UM meio de contato permitido por signatário (email OU phone, nunca ambos)
     if email_aluno and "@" in email_aluno:
         signatario_aluno["email"] = email_aluno
-    if tel_aluno_e164:
+    elif tel_aluno_e164:
         signatario_aluno["phone"] = tel_aluno_e164
-        signatario_aluno["delivery_method"] = "DELIVERY_METHOD_WHATSAPP"
 
     signers_list = [signatario_natalia, signatario_aluno]
 
@@ -263,9 +265,18 @@ def criar_documento_contrato(aluno_id: int, sandbox: Optional[bool] = None) -> D
 
     resp_json = res.json()
     if "errors" in resp_json and resp_json["errors"]:
-        msg = resp_json["errors"][0].get("message", "Erro retornado pelo Autentique")
+        err = resp_json["errors"][0]
+        msg = err.get("message", "Erro retornado pelo Autentique")
+        ext = err.get("extensions", {})
+        if "validation" in ext and isinstance(ext["validation"], dict):
+            detalhes = []
+            for campo, msgs in ext["validation"].items():
+                detalhes.append(f"{campo}: {', '.join(msgs) if isinstance(msgs, list) else msgs}")
+            msg = f"Validação Autentique: {'; '.join(detalhes)}"
+        elif "detail" in ext:
+            msg = f"Autentique: {ext['detail']}"
         logger.error(f"Erro GraphQL Autentique: {resp_json['errors']}")
-        raise RuntimeError(f"Autentique GraphQL Error: {msg}")
+        raise RuntimeError(f"Falha no Autentique: {msg}")
 
     doc_data = resp_json.get("data", {}).get("createDocument", {})
     doc_id = doc_data.get("id")
@@ -276,17 +287,18 @@ def criar_documento_contrato(aluno_id: int, sandbox: Optional[bool] = None) -> D
     link_natalia = ""
     for sig in signatures:
         sig_name = (sig.get("name") or "").lower()
-        sig_link = sig.get("link", {}).get("short_link") or ""
+        sig_link = (sig.get("link") or {}).get("short_link") or ""
         if "natalia" in sig_name:
             link_natalia = sig_link
-        else:
+        elif sig_name:
             link_aluno = sig_link
 
     # Fallback se não distinguiu por nome
-    if not link_aluno and len(signatures) > 1:
-        link_aluno = signatures[1].get("link", {}).get("short_link") or ""
-    if not link_natalia and len(signatures) > 0:
-        link_natalia = signatures[0].get("link", {}).get("short_link") or ""
+    signatarios_reais = [s for s in signatures if s.get("action")]
+    if not link_natalia and len(signatarios_reais) > 0:
+        link_natalia = (signatarios_reais[0].get("link") or {}).get("short_link") or ""
+    if not link_aluno and len(signatarios_reais) > 1:
+        link_aluno = (signatarios_reais[1].get("link") or {}).get("short_link") or ""
 
     # 4. Gravar no banco de dados SQLite
     db.registrar_disparo_autentique(
