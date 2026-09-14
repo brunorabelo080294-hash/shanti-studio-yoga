@@ -9,6 +9,8 @@ import calendar
 import uuid
 import re
 import urllib.parse
+import hashlib
+import secrets
 from typing import List, Dict, Any, Optional
 
 try:
@@ -352,6 +354,33 @@ def init_db():
         detalhes TEXT
     )
     """)
+
+    # Tabela de Usuários e Autenticação (Natália & Bruno Dev)
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS usuarios (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        username TEXT UNIQUE NOT NULL,
+        nome TEXT NOT NULL,
+        senha_hash TEXT NOT NULL,
+        salt TEXT NOT NULL,
+        role TEXT NOT NULL DEFAULT 'admin',
+        criado_em TEXT DEFAULT (datetime('now', 'localtime'))
+    )
+    """)
+    cursor.execute("SELECT COUNT(*) FROM usuarios")
+    if cursor.fetchone()[0] == 0:
+        salt_nat = "77b0037dfcd9b63d9f6b4ba34ea2d707"
+        hash_nat = hashlib.sha256(("shanti2026" + salt_nat).encode("utf-8")).hexdigest()
+        salt_bru = "892097a4db187404de0791052be03d63"
+        hash_bru = hashlib.sha256(("dev2026" + salt_bru).encode("utf-8")).hexdigest()
+        cursor.execute("""
+        INSERT INTO usuarios (username, nome, senha_hash, salt, role)
+        VALUES (?, ?, ?, ?, ?)
+        """, ("natalia", "Natalia Garufe", hash_nat, salt_nat, "admin"))
+        cursor.execute("""
+        INSERT INTO usuarios (username, nome, senha_hash, salt, role)
+        VALUES (?, ?, ?, ?, ?)
+        """, ("bruno", "Bruno Dev", hash_bru, salt_bru, "dev"))
 
     # Configurações padrão
     configs_padrao = [
@@ -2550,6 +2579,139 @@ def obter_status_keepalive() -> Dict[str, Any]:
             "minutos_atras": None,
             "mensagem": f"Erro ao ler status: {e}"
         }
+
+# --- Funções de Autenticação e Gestão de Usuários (Natália & Bruno Dev) ---
+
+def _gerar_salt() -> str:
+    """Gera um salt criptográfico aleatório hexadecimal de 16 bytes."""
+    return secrets.token_hex(16)
+
+def _hash_senha(senha: str, salt: str) -> str:
+    """Calcula o hash SHA-256 da senha combinada com o salt (senha + salt)."""
+    return hashlib.sha256((senha + salt).encode("utf-8")).hexdigest()
+
+def autenticar_usuario(login_input: str, senha: str) -> Optional[Dict[str, Any]]:
+    """
+    Autentica usuário por username (ex: 'natalia', 'bruno') ou nome completo.
+    Retorna os dados públicos do usuário autenticado ou None se inválido.
+    """
+    if not login_input or not senha:
+        return None
+
+    login_clean = str(login_input).strip().lower()
+
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT id, username, nome, senha_hash, salt, role
+            FROM usuarios
+            WHERE LOWER(username) = ? OR LOWER(nome) = ?
+            LIMIT 1
+        """, (login_clean, login_clean))
+        row = cursor.fetchone()
+        conn.close()
+
+        if not row:
+            return None
+
+        u = dict(row)
+        salt = u.get("salt", "")
+        hash_esperado = u.get("senha_hash", "")
+
+        if _hash_senha(senha, salt) == hash_esperado:
+            return {
+                "id": u["id"],
+                "username": u["username"],
+                "nome": u["nome"],
+                "role": u.get("role", "admin")
+            }
+        return None
+    except Exception as e:
+        print(f"Erro ao autenticar usuário: {e}")
+        return None
+
+def obter_usuario(username_ou_id: Any) -> Optional[Dict[str, Any]]:
+    """Obtém os dados públicos de um usuário por ID ou username."""
+    if not username_ou_id:
+        return None
+
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+        if isinstance(username_ou_id, int) or (isinstance(username_ou_id, str) and username_ou_id.isdigit()):
+            cursor.execute("SELECT id, username, nome, role FROM usuarios WHERE id = ?", (int(username_ou_id),))
+        else:
+            cursor.execute("SELECT id, username, nome, role FROM usuarios WHERE LOWER(username) = ?", (str(username_ou_id).lower().strip(),))
+        row = cursor.fetchone()
+        conn.close()
+        return dict(row) if row else None
+    except Exception as e:
+        print(f"Erro ao obter usuário: {e}")
+        return None
+
+def alterar_senha(username: str, nova_senha: str) -> bool:
+    """Atualiza a senha do usuário gerando um novo salt e hash criptográfico."""
+    if not username or not nova_senha or len(str(nova_senha).strip()) < 4:
+        return False
+
+    novo_salt = _gerar_salt()
+    novo_hash = _hash_senha(str(nova_senha).strip(), novo_salt)
+
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute("""
+            UPDATE usuarios
+            SET senha_hash = ?, salt = ?
+            WHERE LOWER(username) = ?
+        """, (novo_hash, novo_salt, str(username).lower().strip()))
+        conn.commit()
+        rows = cursor.rowcount
+        conn.close()
+        return rows > 0
+    except Exception as e:
+        print(f"Erro ao alterar senha do usuário {username}: {e}")
+        return False
+
+def listar_perfis_rapidos() -> List[Dict[str, Any]]:
+    """Retorna a lista de perfis para seleção rápida na tela de login."""
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT id, username, nome, role FROM usuarios ORDER BY id ASC")
+        rows = cursor.fetchall()
+        conn.close()
+
+        perfis = []
+        for r in rows:
+            d = dict(r)
+            uname = str(d.get("username", "")).lower()
+            if uname == "natalia":
+                titulo = "Gestão & Studio"
+                avatar = "🧘‍♀️"
+            elif uname == "bruno":
+                titulo = "Desenvolvedor Master"
+                avatar = "💻"
+            else:
+                titulo = "Acesso Shanti"
+                avatar = "👤"
+
+            perfis.append({
+                "id": d["id"],
+                "username": d["username"],
+                "nome": d["nome"],
+                "role": d.get("role", "admin"),
+                "titulo": titulo,
+                "avatar": avatar
+            })
+        return perfis
+    except Exception as e:
+        print(f"Erro ao listar perfis rápidos: {e}")
+        return [
+            {"id": 1, "username": "natalia", "nome": "Natalia Garufe", "role": "admin", "titulo": "Gestão & Studio", "avatar": "🧘‍♀️"},
+            {"id": 2, "username": "bruno", "nome": "Bruno Dev", "role": "dev", "titulo": "Desenvolvedor Master", "avatar": "💻"}
+        ]
 
 # Inicializar ao importar
 init_db()

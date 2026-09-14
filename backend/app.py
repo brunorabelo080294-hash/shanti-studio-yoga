@@ -9,6 +9,9 @@ import datetime
 import asyncio
 import re
 import time
+import hmac
+import hashlib
+import base64
 from typing import Optional, Dict, Any, List
 from fastapi import FastAPI, HTTPException, UploadFile, File, Form, Response, Request
 from fastapi.responses import FileResponse
@@ -182,7 +185,115 @@ class TTSRequest(BaseModel):
 class ConfigUpdate(BaseModel):
     configs: Dict[str, str]
 
-# --- Rotas da API ---
+class LoginRequest(BaseModel):
+    username: str
+    senha: str
+    lembrar: Optional[bool] = True
+
+class AlterarSenhaRequest(BaseModel):
+    username: str
+    senha_atual: str
+    nova_senha: str
+
+# --- Autenticação e Sessão Segura (Studio Shanti) ---
+AUTH_SECRET_KEY = os.getenv("AUTH_SECRET_KEY") or "shanti-studio-secure-auth-secret-2026"
+
+def gerar_token_sessao(username: str, role: str) -> str:
+    """Gera um token seguro assinado com HMAC-SHA256 para persistência no celular."""
+    ts = int(time.time())
+    payload = f"{username}:{role}:{ts}"
+    sig = hmac.new(AUTH_SECRET_KEY.encode("utf-8"), payload.encode("utf-8"), hashlib.sha256).hexdigest()
+    token_str = f"{payload}:{sig}"
+    return base64.urlsafe_b64encode(token_str.encode("utf-8")).decode("utf-8")
+
+def validar_token_sessao(token: str) -> Optional[Dict[str, Any]]:
+    """Valida a assinatura criptográfica do token e retorna os dados do usuário."""
+    if not token:
+        return None
+    try:
+        decoded = base64.urlsafe_b64decode(token.encode("utf-8")).decode("utf-8")
+        parts = decoded.split(":")
+        if len(parts) != 4:
+            return None
+        username, role, ts_str, sig = parts
+        payload = f"{username}:{role}:{ts_str}"
+        expected_sig = hmac.new(AUTH_SECRET_KEY.encode("utf-8"), payload.encode("utf-8"), hashlib.sha256).hexdigest()
+        if not hmac.compare_digest(sig, expected_sig):
+            return None
+        user = db.obter_usuario(username)
+        return user
+    except Exception:
+        return None
+
+# --- Rotas da API de Autenticação ---
+
+@app.get("/api/auth/perfis")
+def api_auth_perfis():
+    """Retorna os perfis do Studio Shanti para seleção rápida (Natália Garufe & Bruno Dev)."""
+    return db.listar_perfis_rapidos()
+
+@app.post("/api/auth/login")
+def api_auth_login(req: LoginRequest):
+    """Valida credenciais e retorna o token de acesso seguro com os dados do usuário."""
+    user = db.autenticar_usuario(req.username, req.senha)
+    if not user:
+        raise HTTPException(
+            status_code=401,
+            detail="Senha ou usuário incorretos. Por favor, verifique seus dados."
+        )
+    token = gerar_token_sessao(user["username"], user.get("role", "admin"))
+    return {
+        "sucesso": True,
+        "token": token,
+        "user": user
+    }
+
+@app.get("/api/auth/verificar")
+def api_auth_verificar(request: Request):
+    """Verifica se o token salvo no celular ainda é válido."""
+    auth_header = request.headers.get("Authorization", "")
+    token = None
+    if auth_header.startswith("Bearer "):
+        token = auth_header[7:].strip()
+    elif "token" in request.query_params:
+        token = request.query_params.get("token")
+
+    if not token:
+        return {"autenticado": False, "mensagem": "Nenhum token fornecido"}
+
+    user = validar_token_sessao(token)
+    if not user:
+        return {"autenticado": False, "mensagem": "Sessão inválida ou expirada"}
+
+    return {
+        "autenticado": True,
+        "user": user
+    }
+
+@app.post("/api/auth/alterar-senha")
+def api_auth_alterar_senha(req: AlterarSenhaRequest):
+    """Permite ao usuário alterar sua senha informando a senha atual."""
+    user = db.autenticar_usuario(req.username, req.senha_atual)
+    if not user:
+        raise HTTPException(status_code=400, detail="A senha atual informada está incorreta.")
+
+    nova_senha_limpa = str(req.nova_senha).strip()
+    if len(nova_senha_limpa) < 4:
+        raise HTTPException(status_code=400, detail="A nova senha deve possuir pelo menos 4 caracteres.")
+
+    sucesso = db.alterar_senha(req.username, nova_senha_limpa)
+    if not sucesso:
+        raise HTTPException(status_code=500, detail="Erro interno ao gravar nova senha.")
+
+    novo_token = gerar_token_sessao(user["username"], user.get("role", "admin"))
+    return {
+        "sucesso": True,
+        "mensagem": "Senha alterada com sucesso!",
+        "token": novo_token,
+        "user": user
+    }
+
+# --- Rotas da API Gerais ---
 
 @app.get("/status-servidor")
 @app.get("/api/status-servidor")

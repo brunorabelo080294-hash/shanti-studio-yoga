@@ -23,7 +23,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
   <!-- WhatsApp Luxe Theme Stylesheet -->
-  <link rel="stylesheet" href="/css/whatsapp-theme.css?v=33">
+  <link rel="stylesheet" href="/css/whatsapp-theme.css?v=34">
 </head>
 <body>
 
@@ -52,6 +52,106 @@
   })();
 </script>
 
+<!-- ======================================================================
+     TELA DE ACESSO SEGURO / LOGIN (BOUTIQUE SHANTI)
+     ====================================================================== -->
+<div id="pwa-login-screen" class="pwa-login-screen" style="display: none;">
+  <div class="pwa-login-card">
+    
+    <!-- Logo & Marca Boutique -->
+    <div class="pwa-login-header">
+      <div class="pwa-login-logo-wrapper">
+        <img src="/icons/lotus-brand.png?v=1" alt="Studio Shanti" class="pwa-login-logo">
+      </div>
+      <h2 class="pwa-login-brand">Studio Shanti</h2>
+      <p class="pwa-login-tagline">Yoga & Gestão Integrada</p>
+      <div class="pwa-login-badge">
+        <i class="fa-solid fa-lock"></i> Acesso Restrito ao Studio
+      </div>
+    </div>
+
+    <!-- Formulário de Autenticação -->
+    <form id="form-login-pwa" class="pwa-login-form" autocomplete="on">
+      
+      <!-- Seletor Rápido de Perfis -->
+      <label class="pwa-login-label">Selecione seu perfil de acesso:</label>
+      <div class="pwa-profile-selector" id="pwa-profile-selector">
+        <!-- Perfil 1: Natália Garufe -->
+        <button type="button" class="pwa-profile-btn active" data-username="natalia" id="btn-perfil-natalia">
+          <div class="pwa-profile-avatar">🧘‍♀️</div>
+          <div class="pwa-profile-info">
+            <span class="pwa-profile-name">Natalia Garufe</span>
+            <span class="pwa-profile-desc">Gestão & Studio Shanti</span>
+          </div>
+          <div class="pwa-profile-check"><i class="fa-solid fa-check"></i></div>
+        </button>
+
+        <!-- Perfil 2: Bruno Dev -->
+        <button type="button" class="pwa-profile-btn" data-username="bruno" id="btn-perfil-bruno">
+          <div class="pwa-profile-avatar">💻</div>
+          <div class="pwa-profile-info">
+            <span class="pwa-profile-name">Bruno Dev</span>
+            <span class="pwa-profile-desc">Desenvolvedor Master</span>
+          </div>
+          <div class="pwa-profile-check"><i class="fa-solid fa-check"></i></div>
+        </button>
+      </div>
+
+      <!-- Campo de Usuário (oculto para seleção visual rápida) -->
+      <input type="hidden" id="login-username" name="username" value="natalia">
+
+      <!-- Campo de Senha -->
+      <div class="pwa-input-group">
+        <label for="login-senha" class="pwa-login-label">
+          <span>Senha de Acesso</span>
+        </label>
+        <div class="pwa-password-wrapper">
+          <i class="fa-solid fa-key pwa-input-icon"></i>
+          <input 
+            type="password" 
+            id="login-senha" 
+            name="password"
+            class="pwa-login-input" 
+            placeholder="Digite sua senha..." 
+            required 
+            autocomplete="current-password"
+          >
+          <button type="button" id="btn-toggle-login-senha" class="pwa-btn-toggle-eye" title="Mostrar/Ocultar Senha">
+            <i class="fa-solid fa-eye" id="icon-toggle-login-senha"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Opção de Lembrar Login no Celular -->
+      <div class="pwa-login-options">
+        <label class="pwa-checkbox-label">
+          <input type="checkbox" id="login-lembrar" checked>
+          <span>Lembrar de mim neste celular</span>
+        </label>
+      </div>
+
+      <!-- Alerta de Erro de Login -->
+      <div id="login-error-box" class="pwa-login-error" style="display: none;">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+        <span id="login-error-text">Senha incorreta. Verifique e tente novamente.</span>
+      </div>
+
+      <!-- Botão Entrar -->
+      <button type="submit" id="btn-submit-login" class="pwa-btn-enter">
+        <span id="btn-login-spinner" class="fa-solid fa-spinner fa-spin" style="display: none;"></span>
+        <span id="btn-login-text">Entrar no Studio</span>
+        <i class="fa-solid fa-arrow-right" id="btn-login-arrow"></i>
+      </button>
+
+      <!-- Rodapé com Criptografia -->
+      <div class="pwa-login-footer">
+        <i class="fa-solid fa-shield-halved"></i> Conexão segura protegida por criptografia
+      </div>
+    </form>
+
+  </div>
+</div>
+
 <div id="app-container">
   
   <!-- Header Studio Shanti (Fase 1) -->
@@ -63,7 +163,7 @@
       <div class="wa-header-title">
         <h1 id="header-studio-name">Studio Shanti</h1>
         <div class="wa-status-text">
-          <span>Yoga Studio Management</span>
+          <span id="header-user-status">Yoga Studio Management</span>
         </div>
       </div>
     </div>
@@ -76,6 +176,9 @@
       </button>
       <button class="wa-icon-btn" id="btn-header-menu" title="Configurações">
         <i class="fa-solid fa-gear"></i>
+      </button>
+      <button class="wa-icon-btn" id="btn-header-logout" title="Sair da Conta" style="color: #ef4444;">
+        <i class="fa-solid fa-arrow-right-from-bracket"></i>
       </button>
     </div>
   </header>
@@ -654,6 +757,39 @@
         <img id="cfg-logo-preview" src="/icons/icon-192.png?v=9" alt="Studio Shanti" style="width: 80px; height: 80px; border-radius: 20px; border: 2px solid var(--shanti-sand-border); margin: 0 auto 10px; display: block; box-shadow: 0 4px 14px rgba(63,78,58,0.12); object-fit: contain; background: var(--shanti-forest); padding: 6px;">
         <h3 style="font-family: var(--font-brand); font-size: 20px; font-weight: 600; color: var(--shanti-forest); letter-spacing: 0.5px;">Studio Shanti</h3>
         <p style="font-size: 12px; color: var(--shanti-stone);">Identidade Visual & Configurações</p>
+      </div>
+
+      <!-- Card: Usuário Conectado e Segurança -->
+      <div class="wa-card" id="card-seguranca-acesso" style="border: 1.5px solid var(--shanti-sand-border); background: #ffffff;">
+        <div class="wa-card-title" style="margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-shield-halved" style="color: var(--shanti-terracotta); font-size: 16px;"></i>
+            <span style="font-weight: 700; color: var(--shanti-forest); font-size: 15px;">Segurança & Conta Conectada</span>
+          </div>
+          <span id="badge-user-role" style="font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 12px; background: var(--shanti-sage-light); color: var(--shanti-forest); border: 0.5px solid var(--shanti-sage-border);">
+            Admin
+          </span>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 12px; padding: 12px; background: var(--shanti-sand-light); border-radius: 12px; margin-bottom: 14px; border: 1px solid var(--shanti-sand-border);">
+          <div id="cfg-user-avatar" style="font-size: 26px; width: 44px; height: 44px; border-radius: 50%; background: #ffffff; display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-sm); border: 1.5px solid var(--shanti-forest); flex-shrink: 0;">
+            🧘‍♀️
+          </div>
+          <div style="flex: 1; line-height: 1.3;">
+            <div id="cfg-user-nome" style="font-weight: 700; font-size: 14px; color: var(--shanti-forest);">Natalia Garufe</div>
+            <div id="cfg-user-titulo" style="font-size: 12px; color: var(--shanti-stone);">Gestão & Studio Shanti</div>
+            <div id="cfg-user-username" style="font-size: 11px; color: var(--shanti-terracotta); font-weight: 600; margin-top: 2px;">Usuário: natalia</div>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+          <button type="button" id="btn-abrir-modal-senha" class="wa-btn-primary" style="flex: 1; min-width: 140px; padding: 9px 14px; font-size: 12.5px; background: var(--shanti-forest); color: #ffffff; border: none; border-radius: 10px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 6px;">
+            <i class="fa-solid fa-key"></i> Alterar Minha Senha
+          </button>
+          <button type="button" id="btn-logout-ajustes" class="wa-btn-primary" style="flex: 1; min-width: 140px; padding: 9px 14px; font-size: 12.5px; background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; border-radius: 10px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 6px;">
+            <i class="fa-solid fa-arrow-right-from-bracket"></i> Sair do Aplicativo
+          </button>
+        </div>
       </div>
 
       <!-- Card: Ícone e Splash Screen do PWA (Fase 1) -->
@@ -1875,16 +2011,62 @@
   </div>
 </div>
 
+<!-- ======================================================================
+     MODAL: ALTERAR SENHA DE ACESSO
+     ====================================================================== -->
+<div class="wa-modal-overlay" id="modal-alterar-senha">
+  <div class="wa-modal-sheet" style="max-width: 380px;">
+    <div class="wa-modal-header">
+      <h3 class="wa-modal-title" style="font-size: 16px;">
+        <i class="fa-solid fa-key" style="color: var(--shanti-terracotta);"></i> Alterar Senha de Acesso
+      </h3>
+      <button class="wa-modal-close" data-close-modal="modal-alterar-senha">&times;</button>
+    </div>
+
+    <form id="form-alterar-senha" style="padding: 10px 0;">
+      <p style="font-size: 12.5px; color: var(--shanti-stone); margin-bottom: 14px; line-height: 1.4;">
+        Alterando a senha do usuário <b id="modal-senha-username" style="color: var(--shanti-forest);">natalia</b>. A nova senha será sincronizada com segurança no banco de dados.
+      </p>
+
+      <div class="wa-form-group" style="margin-bottom: 12px;">
+        <label style="font-size: 12px; font-weight: 600; color: var(--shanti-forest);">Senha Atual *</label>
+        <input type="password" id="input-senha-atual" class="wa-form-control" required placeholder="Digite sua senha atual...">
+      </div>
+
+      <div class="wa-form-group" style="margin-bottom: 12px;">
+        <label style="font-size: 12px; font-weight: 600; color: var(--shanti-forest);">Nova Senha * (mínimo 4 dígitos)</label>
+        <input type="password" id="input-nova-senha" class="wa-form-control" required minlength="4" placeholder="Digite a nova senha...">
+      </div>
+
+      <div class="wa-form-group" style="margin-bottom: 14px;">
+        <label style="font-size: 12px; font-weight: 600; color: var(--shanti-forest);">Confirmar Nova Senha *</label>
+        <input type="password" id="input-confirma-nova-senha" class="wa-form-control" required minlength="4" placeholder="Repita a nova senha...">
+      </div>
+
+      <div id="modal-senha-erro" style="display:none; color: var(--wa-danger); font-size: 12px; margin-bottom: 12px; padding: 8px 12px; background: #fef2f2; border-radius: 8px; border: 1px solid #fca5a5;"></div>
+
+      <div style="display: flex; gap: 8px; margin-top: 14px;">
+        <button type="button" class="wa-btn-primary" data-close-modal="modal-alterar-senha" style="flex: 1; background: var(--shanti-sand-light); color: var(--shanti-charcoal); border: 1px solid var(--shanti-sand-border); box-shadow: none;">
+          Cancelar
+        </button>
+        <button type="submit" class="wa-btn-primary" id="btn-salvar-nova-senha" style="flex: 1; background: var(--shanti-terracotta); border: none;">
+          <i class="fa-solid fa-check"></i> Salvar Senha
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <!-- Toast -->
 <div class="wa-toast" id="toast-msg">Notificação</div>
 
 <!-- JavaScript Principal -->
-<script src="/js/app.js?v=33"></script>
+<script src="/js/app.js?v=34"></script>
 
 <script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/service-worker.js?v=33').then(reg => {
+      navigator.serviceWorker.register('/service-worker.js?v=34').then(reg => {
         reg.update();
       }).catch(err => {
         console.log('SW reg:', err);

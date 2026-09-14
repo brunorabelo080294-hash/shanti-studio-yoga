@@ -20,6 +20,8 @@ const state = {
   configuracoes: {},
   liveVoiceMode: false,
   isSpeaking: false,
+  currentUser: null,
+  authToken: null,
   calendario: {
     ano: new Date().getFullYear(),
     mes: new Date().getMonth() + 1,
@@ -56,6 +58,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     setupSettings();
     setupCalendario();
     setupPWAInstall();
+    await setupAuth();
     
     // Pré-carregar vozes para síntese de fala
     if ('speechSynthesis' in window) {
@@ -70,22 +73,24 @@ document.addEventListener('DOMContentLoaded', async () => {
     const welcomeTime = document.getElementById('welcome-time');
     if (welcomeTime) welcomeTime.textContent = timeStr;
 
-    // Carregar dados
-    await carregarConfiguracoes();
-    await atualizarTudo();
+    // Se estiver autenticado, carregar os dados
+    if (state.authToken) {
+      await carregarConfiguracoes();
+      await atualizarTudo();
+    }
 
     // Sincronização automática em tempo real entre celulares (Bruno e Natália)
     window.addEventListener('focus', () => {
-      atualizarTudo();
+      if (state.authToken) atualizarTudo();
     });
     document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'visible') {
+      if (document.visibilityState === 'visible' && state.authToken) {
         atualizarTudo();
       }
     });
     // Polling contínuo em segundo plano a cada 30 segundos enquanto o app estiver aberto
     setInterval(() => {
-      if (document.visibilityState === 'visible') {
+      if (document.visibilityState === 'visible' && state.authToken) {
         atualizarTudo();
       }
     }, 30000);
@@ -374,6 +379,14 @@ function setupNavigation() {
       voltarDaTelaAjustes();
     });
   }
+
+  // Botão de Logout no Header
+  const btnHeaderLogout = document.getElementById('btn-header-logout');
+  if (btnHeaderLogout) {
+    btnHeaderLogout.addEventListener('click', () => {
+      confirmarLogout();
+    });
+  }
 }
 
 function abrirTelaAjustes() {
@@ -424,6 +437,465 @@ function navegarParaAba(nomeAba) {
   }
 }
 window.navegarParaAba = navegarParaAba;
+
+// =============================================================================
+// SISTEMA DE AUTENTICAÇÃO & CONTROLE DE ACESSO (STUDIO SHANTI)
+// =============================================================================
+
+// Interceptar todas as requisições fetch para rotas /api/ e injetar token Bearer
+(function interceptarFetchComAuth() {
+  const _originalFetch = window.fetch;
+  window.fetch = function(resource, init = {}) {
+    if (typeof resource === 'string' && resource.startsWith('/api/') && state.authToken) {
+      init.headers = init.headers || {};
+      if (init.headers instanceof Headers) {
+        if (!init.headers.has('Authorization')) {
+          init.headers.set('Authorization', 'Bearer ' + state.authToken);
+        }
+      } else if (Array.isArray(init.headers)) {
+        init.headers.push(['Authorization', 'Bearer ' + state.authToken]);
+      } else {
+        if (!init.headers['Authorization']) {
+          init.headers['Authorization'] = 'Bearer ' + state.authToken;
+        }
+      }
+    }
+    return _originalFetch(resource, init);
+  };
+})();
+
+async function setupAuth() {
+  // 1. Verificar se há sessão salva no localStorage (lembrar de mim) ou sessionStorage
+  const savedToken = localStorage.getItem('shanti_auth_token') || sessionStorage.getItem('shanti_auth_token');
+  const savedUserStr = localStorage.getItem('shanti_auth_user') || sessionStorage.getItem('shanti_auth_user');
+
+  if (savedToken && savedUserStr) {
+    try {
+      const user = JSON.parse(savedUserStr);
+      state.authToken = savedToken;
+      state.currentUser = user;
+      atualizarUsuarioUI(user);
+      ocultarTelaLogin();
+
+      // Validação assíncrona em segundo plano
+      fetch('/api/auth/verificar')
+        .then(res => res.json())
+        .then(data => {
+          if (!data.autenticado) {
+            console.warn('Sessão expirada ou inválida. Solicitando novo login.');
+            fazerLogout('Sua sessão expirou. Por favor, entre novamente.');
+          } else if (data.user) {
+            state.currentUser = data.user;
+            atualizarUsuarioUI(data.user);
+          }
+        })
+        .catch(err => {
+          console.warn('Verificação offline da sessão:', err);
+        });
+    } catch (e) {
+      console.error('Erro ao restaurar sessão salva:', e);
+      exibirTelaLogin();
+    }
+  } else {
+    exibirTelaLogin();
+  }
+
+  // 2. Carregar perfis do backend para exibição interativa
+  await carregarPerfisLogin();
+
+  // 3. Configurar eventos da tela de login
+  configurarEventosLogin();
+}
+
+function atualizarUsuarioUI(user) {
+  if (!user) return;
+
+  const headerStatus = document.getElementById('header-user-status');
+  const isBruno = user.username && user.username.toLowerCase() === 'bruno';
+  const avatarEmoji = isBruno ? '💻' : '🧘‍♀️';
+  const cargoTexto = isBruno ? 'Desenvolvedor Master' : 'Gestão & Studio Shanti';
+
+  if (headerStatus) {
+    headerStatus.innerHTML = `<span class="wa-user-badge-header">${avatarEmoji} ${user.nome}</span>`;
+  }
+
+  // Atualizar card de segurança na tela de Ajustes
+  const cfgNome = document.getElementById('cfg-user-nome');
+  if (cfgNome) cfgNome.textContent = user.nome;
+
+  const cfgTitulo = document.getElementById('cfg-user-titulo');
+  if (cfgTitulo) cfgTitulo.textContent = cargoTexto;
+
+  const cfgUsername = document.getElementById('cfg-user-username');
+  if (cfgUsername) cfgUsername.textContent = `Usuário: ${user.username}`;
+
+  const cfgAvatar = document.getElementById('cfg-user-avatar');
+  if (cfgAvatar) cfgAvatar.textContent = avatarEmoji;
+
+  const badgeRole = document.getElementById('badge-user-role');
+  if (badgeRole) {
+    badgeRole.textContent = user.role === 'dev' ? 'Dev Master' : 'Administradora';
+  }
+}
+
+function exibirTelaLogin() {
+  const loginScreen = document.getElementById('pwa-login-screen');
+  if (loginScreen) {
+    loginScreen.style.display = 'flex';
+  }
+  const appContainer = document.getElementById('app-container');
+  if (appContainer) {
+    appContainer.style.filter = 'blur(4px)';
+    appContainer.style.pointerEvents = 'none';
+  }
+}
+
+function ocultarTelaLogin() {
+  const loginScreen = document.getElementById('pwa-login-screen');
+  if (loginScreen) {
+    loginScreen.style.display = 'none';
+  }
+  const appContainer = document.getElementById('app-container');
+  if (appContainer) {
+    appContainer.style.filter = 'none';
+    appContainer.style.pointerEvents = 'auto';
+  }
+}
+
+async function carregarPerfisLogin() {
+  try {
+    const res = await fetch('/api/auth/perfis');
+    if (!res.ok) return;
+    const perfis = await res.json();
+    const container = document.getElementById('pwa-profile-selector');
+    if (!container || !perfis || perfis.length === 0) return;
+
+    container.innerHTML = perfis.map((p, idx) => {
+      const isActive = idx === 0 ? 'active' : '';
+      return `
+        <button type="button" class="pwa-profile-btn ${isActive}" data-username="${p.username}" id="btn-perfil-${p.username}">
+          <div class="pwa-profile-avatar">${p.avatar || '👤'}</div>
+          <div class="pwa-profile-info">
+            <span class="pwa-profile-name">${p.nome}</span>
+            <span class="pwa-profile-desc">${p.titulo || 'Studio Shanti'}</span>
+          </div>
+          <div class="pwa-profile-check"><i class="fa-solid fa-check"></i></div>
+        </button>
+      `;
+    }).join('');
+
+    // Reanexar cliques aos botões de perfil
+    anexarCliquesPerfis();
+  } catch (err) {
+    console.warn('Erro ao carregar perfis de login:', err);
+  }
+}
+
+function anexarCliquesPerfis() {
+  const profileBtns = document.querySelectorAll('.pwa-profile-btn');
+  const inputUser = document.getElementById('login-username');
+  const inputSenha = document.getElementById('login-senha');
+
+  profileBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      profileBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const uname = btn.getAttribute('data-username');
+      if (inputUser) inputUser.value = uname;
+      if (inputSenha) {
+        inputSenha.value = '';
+        inputSenha.focus();
+      }
+      const errBox = document.getElementById('login-error-box');
+      if (errBox) errBox.style.display = 'none';
+    });
+  });
+}
+
+function configurarEventosLogin() {
+  anexarCliquesPerfis();
+
+  // Alternar visualização da senha
+  const btnToggleEye = document.getElementById('btn-toggle-login-senha');
+  const inputSenha = document.getElementById('login-senha');
+  const iconEye = document.getElementById('icon-toggle-login-senha');
+
+  if (btnToggleEye && inputSenha) {
+    btnToggleEye.addEventListener('click', () => {
+      if (inputSenha.type === 'password') {
+        inputSenha.type = 'text';
+        if (iconEye) {
+          iconEye.classList.remove('fa-eye');
+          iconEye.classList.add('fa-eye-slash');
+        }
+      } else {
+        inputSenha.type = 'password';
+        if (iconEye) {
+          iconEye.classList.remove('fa-eye-slash');
+          iconEye.classList.add('fa-eye');
+        }
+      }
+    });
+  }
+
+  // Submissão do Formulário de Login
+  const formLogin = document.getElementById('form-login-pwa');
+  if (formLogin) {
+    formLogin.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      await processarLogin();
+    });
+  }
+
+  // Botão de Logout no Header e na tela de Ajustes
+  const btnHeaderLogout = document.getElementById('btn-header-logout');
+  if (btnHeaderLogout) {
+    btnHeaderLogout.addEventListener('click', () => {
+      confirmarLogout();
+    });
+  }
+
+  const btnLogoutAjustes = document.getElementById('btn-logout-ajustes');
+  if (btnLogoutAjustes) {
+    btnLogoutAjustes.addEventListener('click', () => {
+      confirmarLogout();
+    });
+  }
+
+  // Modal Alterar Senha
+  const btnAbrirModalSenha = document.getElementById('btn-abrir-modal-senha');
+  if (btnAbrirModalSenha) {
+    btnAbrirModalSenha.addEventListener('click', () => {
+      abrirModalAlterarSenha();
+    });
+  }
+
+  const formAlterarSenha = document.getElementById('form-alterar-senha');
+  if (formAlterarSenha) {
+    formAlterarSenha.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      await processarAlteracaoSenha();
+    });
+  }
+}
+
+async function processarLogin() {
+  const username = document.getElementById('login-username')?.value || 'natalia';
+  const senha = document.getElementById('login-senha')?.value || '';
+  const lembrar = document.getElementById('login-lembrar')?.checked !== false;
+
+  const btnSubmit = document.getElementById('btn-submit-login');
+  const btnSpinner = document.getElementById('btn-login-spinner');
+  const btnText = document.getElementById('btn-login-text');
+  const btnArrow = document.getElementById('btn-login-arrow');
+  const errBox = document.getElementById('login-error-box');
+  const errText = document.getElementById('login-error-text');
+
+  if (!senha) {
+    if (errBox && errText) {
+      errText.textContent = 'Por favor, digite sua senha de acesso.';
+      errBox.style.display = 'flex';
+    }
+    return;
+  }
+
+  // Estado de carregando
+  if (btnSubmit) btnSubmit.disabled = true;
+  if (btnSpinner) btnSpinner.style.display = 'inline-block';
+  if (btnArrow) btnArrow.style.display = 'none';
+  if (btnText) btnText.textContent = 'Autenticando...';
+  if (errBox) errBox.style.display = 'none';
+
+  try {
+    const res = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, senha, lembrar })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok || !data.sucesso) {
+      const msg = data.detail || 'Senha ou usuário incorretos. Tente novamente.';
+      if (errBox && errText) {
+        errText.textContent = msg;
+        errBox.style.display = 'flex';
+      }
+      const inputSenha = document.getElementById('login-senha');
+      if (inputSenha) {
+        inputSenha.select();
+        inputSenha.focus();
+      }
+      return;
+    }
+
+    // Sucesso no Login!
+    state.authToken = data.token;
+    state.currentUser = data.user;
+
+    // Salvar na persistência de acordo com a escolha "Lembrar de mim"
+    if (lembrar) {
+      localStorage.setItem('shanti_auth_token', data.token);
+      localStorage.setItem('shanti_auth_user', JSON.stringify(data.user));
+    } else {
+      sessionStorage.setItem('shanti_auth_token', data.token);
+      sessionStorage.setItem('shanti_auth_user', JSON.stringify(data.user));
+    }
+
+    atualizarUsuarioUI(data.user);
+    ocultarTelaLogin();
+
+    // Mensagem de boas-vindas
+    showToast(`Bem-vindo(a), ${data.user.nome}! 🙏`);
+
+    // Carregar dados atualizados do Studio
+    await carregarConfiguracoes();
+    await atualizarTudo();
+
+  } catch (err) {
+    console.error('Erro na requisição de login:', err);
+    if (errBox && errText) {
+      errText.textContent = 'Erro de conexão com o servidor. Verifique sua internet.';
+      errBox.style.display = 'flex';
+    }
+  } finally {
+    if (btnSubmit) btnSubmit.disabled = false;
+    if (btnSpinner) btnSpinner.style.display = 'none';
+    if (btnArrow) btnArrow.style.display = 'inline-block';
+    if (btnText) btnText.textContent = 'Entrar no Studio';
+  }
+}
+
+function confirmarLogout() {
+  const nome = state.currentUser ? state.currentUser.nome : 'Usuário';
+  if (confirm(`Deseja realmente sair da conta de ${nome}? Você precisará da senha para entrar novamente.`)) {
+    fazerLogout();
+  }
+}
+
+function fazerLogout(mensagem) {
+  localStorage.removeItem('shanti_auth_token');
+  localStorage.removeItem('shanti_auth_user');
+  sessionStorage.removeItem('shanti_auth_token');
+  sessionStorage.removeItem('shanti_auth_user');
+
+  state.authToken = null;
+  state.currentUser = null;
+
+  const headerStatus = document.getElementById('header-user-status');
+  if (headerStatus) {
+    headerStatus.textContent = 'Yoga Studio Management';
+  }
+
+  const inputSenha = document.getElementById('login-senha');
+  if (inputSenha) inputSenha.value = '';
+
+  const errBox = document.getElementById('login-error-box');
+  if (errBox) errBox.style.display = 'none';
+
+  exibirTelaLogin();
+
+  if (mensagem) {
+    showToast(mensagem);
+  } else {
+    showToast('Você saiu da sua conta.');
+  }
+}
+window.fazerLogout = fazerLogout;
+
+function abrirModalAlterarSenha() {
+  const user = state.currentUser || { username: 'natalia', nome: 'Natalia Garufe' };
+  const elUser = document.getElementById('modal-senha-username');
+  if (elUser) elUser.textContent = `${user.nome} (${user.username})`;
+
+  const inputAtual = document.getElementById('input-senha-atual');
+  const inputNova = document.getElementById('input-nova-senha');
+  const inputConf = document.getElementById('input-confirma-nova-senha');
+  const errBox = document.getElementById('modal-senha-erro');
+
+  if (inputAtual) inputAtual.value = '';
+  if (inputNova) inputNova.value = '';
+  if (inputConf) inputConf.value = '';
+  if (errBox) errBox.style.display = 'none';
+
+  const modal = document.getElementById('modal-alterar-senha');
+  if (modal) modal.classList.add('active');
+}
+
+async function processarAlteracaoSenha() {
+  const user = state.currentUser || { username: 'natalia' };
+  const senhaAtual = document.getElementById('input-senha-atual')?.value || '';
+  const novaSenha = document.getElementById('input-nova-senha')?.value || '';
+  const confirmaNovaSenha = document.getElementById('input-confirma-nova-senha')?.value || '';
+  const errBox = document.getElementById('modal-senha-erro');
+
+  if (!senhaAtual) {
+    if (errBox) { errBox.textContent = 'Informe a sua senha atual.'; errBox.style.display = 'block'; }
+    return;
+  }
+  if (!novaSenha || novaSenha.length < 4) {
+    if (errBox) { errBox.textContent = 'A nova senha deve ter no mínimo 4 dígitos.'; errBox.style.display = 'block'; }
+    return;
+  }
+  if (novaSenha !== confirmaNovaSenha) {
+    if (errBox) { errBox.textContent = 'A nova senha e a confirmação não coincidem.'; errBox.style.display = 'block'; }
+    return;
+  }
+
+  const btnSalvar = document.getElementById('btn-salvar-nova-senha');
+  if (btnSalvar) {
+    btnSalvar.disabled = true;
+    btnSalvar.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Gravando...';
+  }
+
+  try {
+    const res = await fetch('/api/auth/alterar-senha', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        username: user.username,
+        senha_atual: senhaAtual,
+        nova_senha: novaSenha
+      })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok || !data.sucesso) {
+      if (errBox) {
+        errBox.textContent = data.detail || 'Erro ao alterar senha. Verifique a senha atual digitada.';
+        errBox.style.display = 'block';
+      }
+      return;
+    }
+
+    // Sucesso! Atualizar token
+    if (data.token) {
+      state.authToken = data.token;
+      if (localStorage.getItem('shanti_auth_token')) {
+        localStorage.setItem('shanti_auth_token', data.token);
+      } else if (sessionStorage.getItem('shanti_auth_token')) {
+        sessionStorage.setItem('shanti_auth_token', data.token);
+      }
+    }
+
+    const modal = document.getElementById('modal-alterar-senha');
+    if (modal) modal.classList.remove('active');
+
+    showToast('Senha alterada com sucesso! ✨');
+  } catch (err) {
+    console.error('Erro ao alterar senha:', err);
+    if (errBox) {
+      errBox.textContent = 'Erro de comunicação com o servidor.';
+      errBox.style.display = 'block';
+    }
+  } finally {
+    if (btnSalvar) {
+      btnSalvar.disabled = false;
+      btnSalvar.innerHTML = '<i class="fa-solid fa-check"></i> Salvar Senha';
+    }
+  }
+}
 
 // =============================================================================
 // CHAT COM A ASSISTENTE IA (COM AVATAR DO LOGO)

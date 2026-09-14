@@ -2471,3 +2471,335 @@ body {
   flex-wrap: wrap;
   gap: 10px;
 }
+
+/* ==========================================================================
+   TELA DE ACESSO SEGURO / LOGIN GATEKEEPER (STUDIO SHANTI)
+   ========================================================================== */
+
+.pwa-login-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  z-index: 999999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at 50% 15%, #354430 0%, #202A1E 100%);
+  padding: 16px;
+  box-sizing: border-box;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.pwa-login-card {
+  width: 100%;
+  max-width: 390px;
+  background: #FFFFFF;
+  border-radius: 24px;
+  padding: 26px 22px;
+  box-sizing: border-box;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  display: flex;
+  flex-direction: column;
+  animation: pwaLoginFadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes pwaLoginFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.94) translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.pwa-login-header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.pwa-login-logo-wrapper {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--shanti-forest), #283624);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 10px;
+  box-shadow: 0 8px 24px rgba(63, 78, 58, 0.4);
+  border: 2px solid var(--shanti-sand);
+}
+
+.pwa-login-logo {
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+}
+
+.pwa-login-brand {
+  font-family: 'Cinzel', serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--shanti-forest);
+  margin: 0;
+  letter-spacing: 1px;
+}
+
+.pwa-login-tagline {
+  font-size: 12px;
+  color: var(--shanti-stone);
+  margin: 3px 0 8px;
+  font-weight: 500;
+}
+
+.pwa-login-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--shanti-forest);
+  background: var(--shanti-sage-light);
+  padding: 3px 10px;
+  border-radius: 12px;
+  border: 1px solid var(--shanti-sage-border);
+}
+
+.pwa-login-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--shanti-forest);
+  margin-bottom: 6px;
+}
+
+.pwa-profile-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.pwa-profile-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  border: 2px solid var(--shanti-sand-border);
+  background: var(--shanti-sand-light);
+  width: 100%;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+  box-sizing: border-box;
+}
+
+.pwa-profile-btn:hover {
+  border-color: var(--shanti-sand);
+  background: #FFFFFF;
+}
+
+.pwa-profile-btn.active {
+  border-color: var(--shanti-terracotta);
+  background: #FFF7F4;
+  box-shadow: 0 4px 14px rgba(177, 106, 76, 0.15);
+}
+
+.pwa-profile-avatar {
+  font-size: 24px;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  flex-shrink: 0;
+}
+
+.pwa-profile-info {
+  flex: 1;
+  line-height: 1.25;
+}
+
+.pwa-profile-name {
+  display: block;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--shanti-forest);
+}
+
+.pwa-profile-btn.active .pwa-profile-name {
+  color: var(--shanti-terracotta);
+}
+
+.pwa-profile-desc {
+  display: block;
+  font-size: 11px;
+  color: var(--shanti-stone);
+}
+
+.pwa-profile-check {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1.5px solid var(--shanti-stone);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  color: transparent;
+  transition: all 0.2s ease;
+}
+
+.pwa-profile-btn.active .pwa-profile-check {
+  background: var(--shanti-terracotta);
+  border-color: var(--shanti-terracotta);
+  color: #FFFFFF;
+}
+
+.pwa-input-group {
+  margin-bottom: 14px;
+}
+
+.pwa-password-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.pwa-input-icon {
+  position: absolute;
+  left: 12px;
+  color: var(--shanti-stone);
+  font-size: 14px;
+  pointer-events: none;
+}
+
+.pwa-login-input {
+  width: 100%;
+  padding: 12px 42px 12px 36px;
+  border-radius: 12px;
+  border: 1.5px solid var(--shanti-sand-border);
+  background: #FAF8F5;
+  font-size: 14px;
+  color: var(--shanti-charcoal);
+  box-sizing: border-box;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.pwa-login-input:focus {
+  border-color: var(--shanti-forest);
+  background: #FFFFFF;
+  box-shadow: 0 0 0 3px rgba(63, 78, 58, 0.12);
+}
+
+.pwa-btn-toggle-eye {
+  position: absolute;
+  right: 10px;
+  background: none;
+  border: none;
+  color: var(--shanti-stone);
+  font-size: 15px;
+  cursor: pointer;
+  padding: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pwa-login-options {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.pwa-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--shanti-charcoal);
+  cursor: pointer;
+  user-select: none;
+}
+
+.pwa-checkbox-label input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--shanti-forest);
+  cursor: pointer;
+}
+
+.pwa-login-error {
+  background: #FEF2F2;
+  border: 1px solid #FCA5A5;
+  color: #B91C1C;
+  font-size: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  line-height: 1.35;
+}
+
+.pwa-btn-enter {
+  width: 100%;
+  padding: 13px 18px;
+  background: linear-gradient(135deg, var(--shanti-terracotta), #9A5A3F);
+  color: #FFFFFF;
+  border: none;
+  border-radius: 14px;
+  font-size: 14px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(177, 106, 76, 0.3);
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.pwa-btn-enter:active {
+  transform: scale(0.98);
+}
+
+.pwa-login-footer {
+  text-align: center;
+  font-size: 11px;
+  color: var(--shanti-stone);
+  margin-top: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+/* Indicador de Usuário Conectado no Topo */
+.wa-user-badge-header {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.95);
+  background: rgba(255, 255, 255, 0.15);
+  padding: 2px 8px;
+  border-radius: 10px;
+  backdrop-filter: blur(4px);
+}
