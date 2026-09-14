@@ -139,11 +139,11 @@ class PgConnectionWrapper:
         return cur
 
 def get_connection():
-    db_url = os.getenv("DATABASE_URL")
+    db_url = DATABASE_URL
     if db_url and HAS_PSYCOPG2:
         try:
-            # Conexão direta com Supabase PostgreSQL
-            pg_conn = psycopg2.connect(db_url)
+            # Conexão direta com Supabase PostgreSQL (com timeout de 10s)
+            pg_conn = psycopg2.connect(db_url, connect_timeout=10)
             return PgConnectionWrapper(pg_conn)
         except Exception as e:
             print(f"⚠️ Erro ao conectar no PostgreSQL Supabase: {e}. Utilizando SQLite local como fallback.")
