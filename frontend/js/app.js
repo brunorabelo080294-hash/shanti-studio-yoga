@@ -3,6 +3,45 @@
  * Frontend JavaScript completo para chat, áudio, controle de alunos, relatórios e WhatsApp.
  */
 
+// =============================================================================
+// HELPERS GLOBAIS DE FUSO HORÁRIO (AMERICA/SAO_PAULO - UTC-3) & UTILITÁRIOS
+// =============================================================================
+
+/**
+ * Retorna a data atual no formato YYYY-MM-DD rigorosamente no fuso de São Paulo.
+ * Evita virada de data prematura às 21h que ocorria com toISOString() em UTC.
+ */
+function obterDataHojeBR() {
+  const formatter = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Sao_Paulo',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  });
+  return formatter.format(new Date()); // Retorna "YYYY-MM-DD"
+}
+
+function obterPartesHojeBR() {
+  const hojeStr = obterDataHojeBR();
+  const [anoStr, mesStr, diaStr] = hojeStr.split('-');
+  return {
+    ano: parseInt(anoStr, 10),
+    mes: parseInt(mesStr, 10),
+    dia: parseInt(diaStr, 10),
+    dataStr: hojeStr
+  };
+}
+
+function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
 // Estado global da aplicação
 const state = {
   alunos: [],
@@ -23,9 +62,9 @@ const state = {
   currentUser: null,
   authToken: null,
   calendario: {
-    ano: new Date().getFullYear(),
-    mes: new Date().getMonth() + 1,
-    diaSelecionado: new Date().toISOString().slice(0, 10),
+    ano: obterPartesHojeBR().ano,
+    mes: obterPartesHojeBR().mes,
+    diaSelecionado: obterDataHojeBR(),
     dadosMes: null,
     dadosDia: null,
     retencao: []
@@ -4517,12 +4556,11 @@ async function carregarCalendario() {
 
     renderizarGradeCalendario(dados);
 
-    const hoje = new Date();
-    const hojeStr = hoje.toISOString().slice(0, 10);
-    const mesmoMes = (hoje.getFullYear() === ano && (hoje.getMonth() + 1) === mes);
+    const partesHoje = obterPartesHojeBR();
+    const mesmoMes = (partesHoje.ano === ano && partesHoje.mes === mes);
 
     if (mesmoMes) {
-      state.calendario.diaSelecionado = hojeStr;
+      state.calendario.diaSelecionado = partesHoje.dataStr;
     } else if (!state.calendario.diaSelecionado || !state.calendario.diaSelecionado.startsWith(`${ano}-${String(mes).padStart(2, '0')}`)) {
       if (dados.dias_com_aula && dados.dias_com_aula.length > 0) {
         state.calendario.diaSelecionado = dados.dias_com_aula[0].data;
@@ -4551,6 +4589,8 @@ function renderizarGradeCalendario(dados) {
     mapaDiasComAula[d.dia] = d;
   });
 
+  const mapaEventos = dados.mapa_eventos || {};
+
   const primeiroDiaDt = new Date(ano, mes - 1, 1);
   let primeiroDiaSemana = primeiroDiaDt.getDay();
   let offsetSegunda = (primeiroDiaSemana === 0) ? 6 : primeiroDiaSemana - 1;
@@ -4564,31 +4604,43 @@ function renderizarGradeCalendario(dados) {
     html += '<div class="cal-day-cell empty"></div>';
   }
 
-  const hoje = new Date();
-  const hojeStr = hoje.toISOString().slice(0, 10);
+  const partesHoje = obterPartesHojeBR();
+  const hojeStr = partesHoje.dataStr;
+  const ehMesAtual = (ano === partesHoje.ano && mes === partesHoje.mes);
   const diaSel = state.calendario.diaSelecionado;
 
   for (let d = 1; d <= totalDias; d++) {
     const dataStr = `${ano}-${String(mes).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-    const ehHoje = (dataStr === hojeStr);
+    const ehHoje = ehMesAtual && (dataStr === hojeStr);
     const ehSelecionado = (dataStr === diaSel);
     const aulaInfo = mapaDiasComAula[d];
+    const eventosDoDia = mapaEventos[d] || [];
+    const temEvento = eventosDoDia.length > 0;
 
     let classes = ['cal-day-cell'];
     if (ehHoje) classes.push('today');
     if (ehSelecionado) classes.push('selected');
     if (aulaInfo) classes.push('has-class');
+    if (temEvento) classes.push('has-event');
 
     let dotStatusHtml = '';
     if (aulaInfo) {
       let dotClass = 'pendente';
       if (aulaInfo.status_dia === 'concluido') dotClass = 'concluido';
       else if (aulaInfo.status_dia === 'parcial') dotClass = 'parcial';
-      dotStatusHtml = `<span class="cal-dot ${dotClass}" title="${aulaInfo.turmas_count} turma(s) • ${aulaInfo.status_dia}"></span>`;
+      dotStatusHtml += `<span class="cal-dot ${dotClass}" title="${aulaInfo.turmas_count} turma(s) • ${aulaInfo.status_dia}"></span>`;
+    }
+    if (temEvento) {
+      dotStatusHtml += `<span class="cal-dot evento" title="${eventosDoDia.length} compromisso(s) externo(s)"></span>`;
     }
 
+    let tooltip = `Dia ${d}`;
+    if (ehHoje) tooltip += ' (Hoje)';
+    if (aulaInfo) tooltip += ` • ${aulaInfo.turmas_count} turma(s)`;
+    if (temEvento) tooltip += ` • ${eventosDoDia.length} compromisso(s) externo(s)`;
+
     html += `
-      <div class="${classes.join(' ')}" data-date="${dataStr}" onclick="selecionarDiaCalendario('${dataStr}')" title="Dia ${d}${aulaInfo ? ` (${aulaInfo.turmas_count} turma(s) - toque para ver)` : ''}">
+      <div class="${classes.join(' ')}" data-date="${dataStr}" onclick="selecionarDiaCalendario('${dataStr}')" title="${tooltip}">
         <span class="cal-day-circle">${d}</span>
         <div class="cal-dot-container">${dotStatusHtml}</div>
       </div>
@@ -4616,10 +4668,10 @@ function mudarMesCalendario(delta) {
 }
 
 function irParaHoje() {
-  const agora = new Date();
-  state.calendario.ano = agora.getFullYear();
-  state.calendario.mes = agora.getMonth() + 1;
-  state.calendario.diaSelecionado = agora.toISOString().slice(0, 10);
+  const partesHoje = obterPartesHojeBR();
+  state.calendario.ano = partesHoje.ano;
+  state.calendario.mes = partesHoje.mes;
+  state.calendario.diaSelecionado = partesHoje.dataStr;
   carregarCalendario();
 }
 
@@ -4668,6 +4720,7 @@ async function carregarChamadaDia(dataStr, turmaIdFocus = null) {
     if (pFalt) pFalt.textContent = `${t.faltas} falta${t.faltas === 1 ? '' : 's'}`;
     if (pPend) pPend.textContent = `${t.pendentes} pendente${t.pendentes === 1 ? '' : 's'}`;
 
+    renderizarEventosDia(chamada.eventos_externos || []);
     renderizarTurmasChamada(chamada, turmaIdFocus);
 
     // Rolagem suave até a folha de chamada
@@ -5039,6 +5092,265 @@ async function salvarPausaAlerta() {
   }
 }
 
+// =============================================================================
+// AGENDA DE COMPROMISSOS & EVENTOS EXTERNOS (NATÁLIA)
+// =============================================================================
+
+function renderizarEventosDia(eventos) {
+  const container = document.getElementById('cal-eventos-dia-list');
+  const badge = document.getElementById('badge-eventos-dia');
+  if (!container) return;
+
+  if (badge) {
+    if (eventos && eventos.length > 0) {
+      badge.textContent = eventos.length;
+      badge.style.display = 'inline-block';
+    } else {
+      badge.style.display = 'none';
+    }
+  }
+
+  if (!eventos || eventos.length === 0) {
+    container.innerHTML = `
+      <div style="text-align: center; padding: 14px 10px; background: #FFFFFF; border: 1px dashed #FDE68A; border-radius: 10px; color: var(--shanti-stone); font-size: 12px;">
+        <span style="color: #D97706; font-weight: 600;">Nenhum compromisso avulso agendado para este dia.</span>
+        <div style="margin-top: 4px;">Toque em <strong>+ Novo Compromisso</strong> acima para agendar workshops, particulares ou eventos externos! ✨</div>
+      </div>
+    `;
+    return;
+  }
+
+  let html = '';
+  eventos.forEach(ev => {
+    const horario = ev.horario_fim ? `${ev.horario_inicio} às ${ev.horario_fim}` : `${ev.horario_inicio}`;
+    let tipoBadge = '';
+    if (ev.tipo === 'workshop') {
+      tipoBadge = '<span class="cal-evento-tipo-badge" style="background:#FEF3C7; color:#92400E;">Workshop</span>';
+    } else if (ev.tipo === 'particular') {
+      tipoBadge = '<span class="cal-evento-tipo-badge" style="background:#F0FDF4; color:#166534;">Particular</span>';
+    } else {
+      tipoBadge = '<span class="cal-evento-tipo-badge">Externo</span>';
+    }
+
+    const localHtml = ev.local ? `
+      <div class="cal-evento-local">
+        <i class="fa-solid fa-location-dot" style="color: #D97706;"></i>
+        <span>${escapeHtml(ev.local)}</span>
+      </div>
+    ` : '';
+
+    const obsHtml = ev.observacoes ? `
+      <div class="cal-evento-obs">
+        <i class="fa-regular fa-note-sticky" style="margin-right: 4px;"></i>
+        ${escapeHtml(ev.observacoes)}
+      </div>
+    ` : '';
+
+    html += `
+      <div class="cal-evento-item" id="cal-evento-${ev.id}">
+        <div class="cal-evento-info">
+          <div style="display: flex; align-items: center; flex-wrap: wrap;">
+            <div class="cal-evento-time-badge">
+              <i class="fa-regular fa-clock"></i> ${horario}
+            </div>
+            ${tipoBadge}
+          </div>
+          <div class="cal-evento-titulo">${escapeHtml(ev.titulo)}</div>
+          ${localHtml}
+          ${obsHtml}
+        </div>
+        <div class="cal-evento-actions">
+          <button type="button" class="cal-evento-btn edit" onclick="abrirModalEditarEvento(${ev.id})" title="Editar compromisso">
+            <i class="fa-solid fa-pen-to-square"></i>
+          </button>
+          <button type="button" class="cal-evento-btn delete" onclick="excluirEventoAgenda(${ev.id})" title="Excluir compromisso">
+            <i class="fa-solid fa-trash"></i>
+          </button>
+        </div>
+      </div>
+    `;
+  });
+
+  container.innerHTML = html;
+}
+
+function abrirModalNovoEvento(dataPrevia = null) {
+  const form = document.getElementById('form-evento-agenda');
+  if (form) form.reset();
+
+  const idField = document.getElementById('evento-form-id');
+  if (idField) idField.value = '';
+
+  const dataField = document.getElementById('evento-form-data');
+  if (dataField) {
+    dataField.value = dataPrevia || state.calendario.diaSelecionado || obterDataHojeBR();
+  }
+
+  const horaInicioField = document.getElementById('evento-form-inicio');
+  if (horaInicioField) {
+    horaInicioField.value = '09:00';
+  }
+
+  const horaFimField = document.getElementById('evento-form-fim');
+  if (horaFimField) horaFimField.value = '';
+
+  const tipoField = document.getElementById('evento-form-tipo');
+  if (tipoField) tipoField.value = 'externo';
+
+  const btnExcluir = document.getElementById('btn-excluir-evento-modal');
+  if (btnExcluir) btnExcluir.style.display = 'none';
+
+  const headerText = document.getElementById('modal-evento-titulo-texto');
+  if (headerText) headerText.textContent = 'Novo Compromisso Externo';
+
+  abrirModal('modal-evento-agenda');
+  const tituloField = document.getElementById('evento-form-titulo');
+  if (tituloField) setTimeout(() => tituloField.focus(), 150);
+}
+
+async function abrirModalEditarEvento(eventoId) {
+  try {
+    // Regra Permanente 4: Carregar estado do backend antes de editar
+    const res = await fetch(`/api/eventos/${eventoId}`);
+    if (!res.ok) {
+      alert('Compromisso não encontrado no servidor.');
+      return;
+    }
+    const ev = await res.json();
+
+    document.getElementById('evento-form-id').value = ev.id;
+    document.getElementById('evento-form-titulo').value = ev.titulo || '';
+    document.getElementById('evento-form-data').value = ev.data || '';
+    document.getElementById('evento-form-inicio').value = ev.horario_inicio || '';
+    document.getElementById('evento-form-fim').value = ev.horario_fim || '';
+    document.getElementById('evento-form-local').value = ev.local || '';
+    document.getElementById('evento-form-obs').value = ev.observacoes || '';
+    document.getElementById('evento-form-tipo').value = ev.tipo || 'externo';
+
+    const btnExcluir = document.getElementById('btn-excluir-evento-modal');
+    if (btnExcluir) btnExcluir.style.display = 'inline-block';
+
+    const headerText = document.getElementById('modal-evento-titulo-texto');
+    if (headerText) headerText.textContent = 'Editar Compromisso Externo';
+
+    abrirModal('modal-evento-agenda');
+  } catch (err) {
+    console.error('Erro ao carregar compromisso:', err);
+    alert('Erro ao carregar detalhes do compromisso.');
+  }
+}
+
+async function salvarEventoAgenda(event) {
+  if (event) event.preventDefault();
+
+  const idVal = document.getElementById('evento-form-id').value;
+  const titulo = document.getElementById('evento-form-titulo').value.trim();
+  const data = document.getElementById('evento-form-data').value.trim();
+  const inicio = document.getElementById('evento-form-inicio').value.trim();
+  const fim = document.getElementById('evento-form-fim').value.trim();
+  const local = document.getElementById('evento-form-local').value.trim();
+  const obs = document.getElementById('evento-form-obs').value.trim();
+  const tipo = document.getElementById('evento-form-tipo').value.trim();
+
+  // Regra Permanente 3: Validação de placeholders visuais
+  const placeholdersInvalidos = ['informe usuário', 'não informado', 'nenhum', 'null', 'undefined'];
+  if (!titulo || placeholdersInvalidos.includes(titulo.toLowerCase())) {
+    alert('Por favor, informe um título válido para o compromisso.');
+    return;
+  }
+  if (!data || !inicio) {
+    alert('Data e horário de início são obrigatórios.');
+    return;
+  }
+
+  const btnSubmit = document.getElementById('btn-salvar-evento-submit');
+  if (btnSubmit) {
+    btnSubmit.disabled = true;
+    btnSubmit.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Salvando...';
+  }
+
+  try {
+    let url = '/api/eventos';
+    let method = 'POST';
+
+    const payload = {
+      titulo: titulo,
+      data: data,
+      horario_inicio: inicio,
+      horario_fim: fim || null,
+      local: local || null,
+      observacoes: obs || null,
+      tipo: tipo || 'externo'
+    };
+
+    if (idVal) {
+      // Regras Permanentes 1 e 2: Atualização parcial segura
+      url = `/api/eventos/${idVal}`;
+      method = 'PUT';
+    }
+
+    const res = await fetch(url, {
+      method: method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    if (!res.ok) {
+      const erro = await res.json();
+      throw new Error(erro.detail || 'Falha ao salvar compromisso');
+    }
+
+    fecharModal('modal-evento-agenda');
+
+    // Atualiza o dia selecionado para o dia do evento salvo
+    state.calendario.diaSelecionado = data;
+
+    // Se o evento foi criado em outro mês/ano, atualiza o calendário para o mês correspondente
+    const [anoEv, mesEv] = data.split('-').map(Number);
+    if (anoEv !== state.calendario.ano || mesEv !== state.calendario.mes) {
+      state.calendario.ano = anoEv;
+      state.calendario.mes = mesEv;
+    }
+
+    await carregarCalendario();
+
+  } catch (err) {
+    console.error('Erro ao salvar compromisso:', err);
+    alert('Erro ao salvar compromisso: ' + err.message);
+  } finally {
+    if (btnSubmit) {
+      btnSubmit.disabled = false;
+      btnSubmit.innerHTML = '<i class="fa-solid fa-check"></i> Salvar';
+    }
+  }
+}
+
+async function confirmarExclusaoEventoModal() {
+  const idVal = document.getElementById('evento-form-id').value;
+  if (!idVal) return;
+  await excluirEventoAgenda(parseInt(idVal, 10));
+}
+
+async function excluirEventoAgenda(id) {
+  if (!confirm('Deseja realmente excluir este compromisso externo?')) {
+    return;
+  }
+
+  try {
+    const res = await fetch(`/api/eventos/${id}`, { method: 'DELETE' });
+    if (!res.ok) {
+      throw new Error('Falha ao excluir compromisso');
+    }
+
+    fecharModal('modal-evento-agenda');
+    await carregarCalendario();
+
+  } catch (err) {
+    console.error('Erro ao excluir compromisso:', err);
+    alert('Erro ao excluir compromisso.');
+  }
+}
+
 // Expor funções no escopo global window para chamadas inline HTML
 window.setupCalendario = setupCalendario;
 window.carregarCalendario = carregarCalendario;
@@ -5056,3 +5368,9 @@ window.abrirSeletorMesAno = abrirSeletorMesAno;
 window.selecionarMesAnoDireto = selecionarMesAnoDireto;
 window.abrirModal = abrirModal;
 window.fecharModal = fecharModal;
+window.abrirModalNovoEvento = abrirModalNovoEvento;
+window.abrirModalEditarEvento = abrirModalEditarEvento;
+window.salvarEventoAgenda = salvarEventoAgenda;
+window.excluirEventoAgenda = excluirEventoAgenda;
+window.confirmarExclusaoEventoModal = confirmarExclusaoEventoModal;
+window.renderizarEventosDia = renderizarEventosDia;

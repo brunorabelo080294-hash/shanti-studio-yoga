@@ -6,3 +6,4 @@ requests
 pillow
 reportlab
 psycopg2-binary>=2.9.9
+tzdata>=2024.1

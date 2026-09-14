@@ -2060,9 +2060,16 @@ body {
 }
 
 .cal-day-cell.today .cal-day-circle {
-  border: 2px solid var(--shanti-terracotta);
+  border: 2px solid var(--shanti-terracotta) !important;
   color: var(--shanti-terracotta);
   font-weight: 800;
+  background: rgba(177, 106, 76, 0.08);
+}
+
+.cal-day-cell.today.has-class .cal-day-circle {
+  background: #E8F5E9;
+  border: 2px solid var(--shanti-terracotta) !important;
+  color: #166534;
 }
 
 .cal-day-cell.selected .cal-day-circle {
@@ -2074,11 +2081,20 @@ body {
   transform: scale(1.08);
 }
 
+.cal-day-cell.today.selected .cal-day-circle {
+  background: var(--shanti-forest) !important;
+  color: #FFFFFF !important;
+  border-color: var(--shanti-forest) !important;
+  box-shadow: 0 0 0 2px #FFFFFF, 0 0 0 4.5px var(--shanti-terracotta), 0 4px 10px rgba(45, 79, 62, 0.35) !important;
+  transform: scale(1.1);
+}
+
 .cal-dot-container {
   height: 5px;
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 2px;
   margin-top: 1px;
 }
 
@@ -2101,6 +2117,15 @@ body {
   background: #D97706;
 }
 
+.cal-dot.evento {
+  background: #D97706;
+  border-radius: 1.5px;
+  width: 5px;
+  height: 5px;
+  transform: rotate(45deg);
+  display: inline-block;
+}
+
 .cal-legend-row {
   display: flex;
   justify-content: center;
@@ -2111,6 +2136,143 @@ body {
   font-size: 11px;
   color: var(--shanti-stone);
   flex-wrap: wrap;
+}
+
+/* ==========================================================================
+   CARD & LISTA DE COMPROMISSOS EXTERNOS (AGENDA NATÁLIA)
+   ========================================================================== */
+.cal-eventos-card {
+  margin-top: 14px;
+  border: 1px solid #FDE68A !important;
+  background: #FFFDF9 !important;
+  border-radius: 14px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(217, 119, 6, 0.07);
+}
+
+.cal-eventos-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #FEF3C7;
+}
+
+.cal-eventos-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #92400E;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cal-evento-item {
+  background: #FFFFFF;
+  border: 1px solid #FDE68A;
+  border-left: 4px solid #D97706;
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  transition: all 0.2s ease;
+}
+
+.cal-evento-item:hover {
+  box-shadow: 0 3px 10px rgba(217, 119, 6, 0.12);
+  transform: translateY(-1px);
+}
+
+.cal-evento-info {
+  flex: 1;
+}
+
+.cal-evento-time-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #FEF3C7;
+  color: #92400E;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 6px;
+  margin-bottom: 6px;
+}
+
+.cal-evento-tipo-badge {
+  display: inline-flex;
+  align-items: center;
+  background: #EFF6FF;
+  color: #1E40AF;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 6px;
+  margin-left: 6px;
+}
+
+.cal-evento-titulo {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--shanti-charcoal);
+  margin-bottom: 4px;
+}
+
+.cal-evento-local {
+  font-size: 12px;
+  color: var(--shanti-stone);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 4px;
+}
+
+.cal-evento-obs {
+  font-size: 12px;
+  color: #64748B;
+  background: #F8FAFC;
+  padding: 6px 10px;
+  border-radius: 6px;
+  margin-top: 6px;
+  line-height: 1.4;
+  border-left: 2px solid #CBD5E1;
+}
+
+.cal-evento-actions {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.cal-evento-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--shanti-sand-border);
+  background: #FFFFFF;
+  color: var(--shanti-stone);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.cal-evento-btn.edit:hover {
+  background: #F0FDF4;
+  color: var(--shanti-forest);
+  border-color: #86EFAC;
+}
+
+.cal-evento-btn.delete:hover {
+  background: #FEF2F2;
+  color: #DC2626;
+  border-color: #FECACA;
 }
 
 /* Card Inferior: Agenda de Turmas do Dia Selecionado */

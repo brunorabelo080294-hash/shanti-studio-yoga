@@ -171,6 +171,24 @@ class DespesaUpdate(BaseModel):
     status: Optional[str] = None
     observacao: Optional[str] = None
 
+class EventoCreate(BaseModel):
+    titulo: str
+    data: str
+    horario_inicio: str
+    horario_fim: Optional[str] = None
+    local: Optional[str] = None
+    observacoes: Optional[str] = None
+    tipo: Optional[str] = "externo"
+
+class EventoUpdate(BaseModel):
+    titulo: Optional[str] = None
+    data: Optional[str] = None
+    horario_inicio: Optional[str] = None
+    horario_fim: Optional[str] = None
+    local: Optional[str] = None
+    observacoes: Optional[str] = None
+    tipo: Optional[str] = None
+
 class ChatRequest(BaseModel):
     mensagem: str
 
@@ -610,7 +628,7 @@ def api_obter_alunos_ausentes(dias: int = 10):
 
 @app.get("/api/calendario/mes")
 def api_obter_calendario_mes(ano: Optional[int] = None, mes: Optional[int] = None):
-    hoje = datetime.date.today()
+    hoje = db.obter_hoje_sp()
     if not ano:
         ano = hoje.year
     if not mes:
@@ -620,7 +638,7 @@ def api_obter_calendario_mes(ano: Optional[int] = None, mes: Optional[int] = Non
 @app.get("/api/calendario/dia")
 def api_obter_calendario_dia(data: Optional[str] = None):
     if not data:
-        data = datetime.date.today().strftime("%Y-%m-%d")
+        data = db.obter_hoje_sp().strftime("%Y-%m-%d")
     return db.obter_chamada_dia(data)
 
 @app.post("/api/calendario/presenca")
@@ -643,6 +661,71 @@ def api_marcar_todos_presentes_turma(dados: CalendarioLoteRequest):
 @app.get("/api/calendario/retencao")
 def api_obter_retencao_ausentes(dias: int = 14):
     return db.obter_alunos_retencao_ausentes(dias_janela=dias)
+
+# --- Rotas da Agenda de Eventos & Compromissos Externos (Natália) ---
+
+@app.get("/api/eventos")
+def api_listar_eventos(mes_ano: Optional[str] = None, data: Optional[str] = None):
+    """Lista eventos por data específica ou por mês/ano."""
+    if data:
+        return db.listar_eventos_dia(data)
+    if mes_ano:
+        try:
+            partes = mes_ano.split("-")
+            return db.listar_eventos_mes(int(partes[0]), int(partes[1]))
+        except Exception:
+            pass
+    hoje = db.obter_hoje_sp()
+    return db.listar_eventos_mes(hoje.year, hoje.month)
+
+@app.get("/api/eventos/{evento_id}")
+def api_obter_evento(evento_id: int):
+    ev = db.obter_evento(evento_id)
+    if not ev:
+        raise HTTPException(status_code=404, detail="Compromisso não encontrado")
+    return ev
+
+@app.post("/api/eventos")
+def api_criar_evento(dados: EventoCreate):
+    if not dados.titulo or not dados.titulo.strip():
+        raise HTTPException(status_code=400, detail="Título é obrigatório")
+    if not dados.data or not dados.data.strip() or not dados.horario_inicio or not dados.horario_inicio.strip():
+        raise HTTPException(status_code=400, detail="Data e horário de início são obrigatórios")
+
+    placeholders = {"informe usuário", "não informado", "nenhum", "null", "undefined"}
+    titulo = dados.titulo.strip()
+    if titulo.lower() in placeholders:
+        raise HTTPException(status_code=400, detail="Título inválido")
+
+    ev_id = db.criar_evento(
+        titulo=titulo,
+        data=dados.data.strip(),
+        horario_inicio=dados.horario_inicio.strip(),
+        horario_fim=dados.horario_fim.strip() if dados.horario_fim and dados.horario_fim.strip() else None,
+        local=dados.local.strip() if dados.local and dados.local.strip() else None,
+        observacoes=dados.observacoes.strip() if dados.observacoes and dados.observacoes.strip() else None,
+        tipo=dados.tipo or "externo"
+    )
+    return {"sucesso": True, "id": ev_id, "mensagem": "Compromisso agendado com sucesso"}
+
+@app.put("/api/eventos/{evento_id}")
+def api_atualizar_evento(evento_id: int, dados: EventoUpdate):
+    # Regras 1 e 2 de Integridade: atualização parcial apenas dos campos enviados
+    payload = {k: v for k, v in dados.model_dump().items() if v is not None}
+    if not payload:
+        return {"sucesso": True, "id": evento_id, "mensagem": "Nenhum campo para atualizar"}
+
+    ok = db.atualizar_evento(evento_id, payload)
+    if not ok:
+        raise HTTPException(status_code=404, detail="Compromisso não encontrado")
+    return {"sucesso": True, "id": evento_id, "mensagem": "Compromisso atualizado com sucesso"}
+
+@app.delete("/api/eventos/{evento_id}")
+def api_excluir_evento(evento_id: int):
+    ok = db.excluir_evento(evento_id)
+    if not ok:
+        raise HTTPException(status_code=404, detail="Compromisso não encontrado")
+    return {"sucesso": True, "id": evento_id, "mensagem": "Compromisso excluído com sucesso"}
 
 @app.post("/api/alunos/{aluno_id}/pausar-alerta")
 def api_pausar_alerta_aluno(aluno_id: int, dados: PausarAlertaRequest):

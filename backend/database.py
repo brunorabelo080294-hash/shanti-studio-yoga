@@ -14,6 +14,20 @@ import secrets
 from typing import List, Dict, Any, Optional
 
 try:
+    import zoneinfo
+    TZ_SP = zoneinfo.ZoneInfo("America/Sao_Paulo")
+except Exception:
+    TZ_SP = datetime.timezone(datetime.timedelta(hours=-3))
+
+def obter_hoje_sp() -> datetime.date:
+    """Retorna a data atual no fuso horário oficial do estúdio (America/Sao_Paulo)."""
+    return datetime.datetime.now(TZ_SP).date()
+
+def obter_agora_sp() -> datetime.datetime:
+    """Retorna a data e hora atual no fuso horário oficial do estúdio (America/Sao_Paulo)."""
+    return datetime.datetime.now(TZ_SP)
+
+try:
     import psycopg2
     from psycopg2.extras import RealDictCursor
     HAS_PSYCOPG2 = True
@@ -44,7 +58,8 @@ class PgCursorWrapper:
         query = self._adapt_query(query)
         # Se for INSERT e não tiver RETURNING, adiciona RETURNING id para popular lastrowid
         is_insert = query.strip().upper().startswith("INSERT")
-        if is_insert and "RETURNING" not in query.upper():
+        table_without_id = any(t in query.lower() for t in ["historico_presenca", "matriculas_turmas", "configuracoes"])
+        if is_insert and "RETURNING" not in query.upper() and not table_without_id:
             query_with_returning = query + " RETURNING id"
             try:
                 if params:
@@ -56,7 +71,10 @@ class PgCursorWrapper:
                     self.lastrowid = row[0]
                 return self
             except Exception:
-                pass
+                try:
+                    self._cur.connection.rollback()
+                except Exception:
+                    pass
 
         if params:
             self._cur.execute(query, params)
@@ -66,6 +84,8 @@ class PgCursorWrapper:
 
     def _adapt_query(self, query: str) -> str:
         q = query.replace('?', '%s')
+        q = q.replace("datetime('now', 'localtime')", "CURRENT_TIMESTAMP")
+        q = q.replace("datetime('now')", "CURRENT_TIMESTAMP")
         if "INSERT OR IGNORE INTO configuracoes" in q:
             q = q.replace(
                 "INSERT OR IGNORE INTO configuracoes (chave, valor) VALUES (%s, %s)",
@@ -156,7 +176,21 @@ def init_db():
     """Inicializa as tabelas do banco de dados e dados padrão se vazio."""
     conn = get_connection()
     if isinstance(conn, PgConnectionWrapper):
-        # No Supabase PostgreSQL as tabelas já foram criadas e migradas
+        cursor = conn.cursor()
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS eventos_agenda (
+            id SERIAL PRIMARY KEY,
+            titulo TEXT NOT NULL,
+            data TEXT NOT NULL,
+            horario_inicio TEXT NOT NULL,
+            horario_fim TEXT,
+            local TEXT,
+            observacoes TEXT,
+            tipo TEXT DEFAULT 'externo',
+            criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+        """)
+        conn.commit()
         conn.close()
         return
     cursor = conn.cursor()
@@ -381,6 +415,21 @@ def init_db():
         INSERT INTO usuarios (username, nome, senha_hash, salt, role)
         VALUES (?, ?, ?, ?, ?)
         """, ("bruno", "Bruno Dev", hash_bru, salt_bru, "dev"))
+
+    # Tabela de Eventos e Compromissos Avulsos da Agenda
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS eventos_agenda (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        titulo TEXT NOT NULL,
+        data TEXT NOT NULL,           -- 'YYYY-MM-DD'
+        horario_inicio TEXT NOT NULL, -- 'HH:MM'
+        horario_fim TEXT,             -- 'HH:MM'
+        local TEXT,
+        observacoes TEXT,
+        tipo TEXT DEFAULT 'externo',  -- 'externo', 'workshop', 'particular'
+        criado_em TEXT DEFAULT (datetime('now', 'localtime'))
+    )
+    """)
 
     # Configurações padrão
     configs_padrao = [
@@ -1251,6 +1300,126 @@ def parse_dias_semana(dias_str: Optional[str]) -> List[int]:
                 break
     return sorted(list(dias))
 
+# =============================================================================
+# EVENTOS & COMPROMISSOS AVULSOS DA AGENDA (FORA DA GRADE FIXA DE TURMAS)
+# =============================================================================
+
+def criar_evento(
+    titulo: str,
+    data: str,
+    horario_inicio: str,
+    horario_fim: Optional[str] = None,
+    local: Optional[str] = None,
+    observacoes: Optional[str] = None,
+    tipo: str = "externo"
+) -> int:
+    """Cria um novo compromisso/evento avulso na agenda pessoal da Natália."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        INSERT INTO eventos_agenda (titulo, data, horario_inicio, horario_fim, local, observacoes, tipo)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    """, (
+        titulo.strip(),
+        data.strip(),
+        horario_inicio.strip(),
+        horario_fim.strip() if horario_fim and horario_fim.strip() else None,
+        local.strip() if local and local.strip() else None,
+        observacoes.strip() if observacoes and observacoes.strip() else None,
+        tipo.strip() if tipo else "externo"
+    ))
+    ev_id = cursor.lastrowid
+    conn.commit()
+    conn.close()
+    return ev_id
+
+def obter_evento(evento_id: int) -> Optional[Dict[str, Any]]:
+    """Retorna um evento específico pelo ID."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM eventos_agenda WHERE id = ?", (evento_id,))
+    row = cursor.fetchone()
+    conn.close()
+    return dict(row) if row else None
+
+def listar_eventos_mes(ano: int, mes: int) -> List[Dict[str, Any]]:
+    """Retorna todos os compromissos de um determinado mês/ano."""
+    prefixo = f"{ano:04d}-{mes:02d}%"
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT * FROM eventos_agenda
+        WHERE data LIKE ?
+        ORDER BY data ASC, horario_inicio ASC
+    """, (prefixo,))
+    rows = cursor.fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+def listar_eventos_dia(data_str: str) -> List[Dict[str, Any]]:
+    """Retorna todos os compromissos agendados para um dia específico."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT * FROM eventos_agenda
+        WHERE data = ?
+        ORDER BY horario_inicio ASC
+    """, (data_str,))
+    rows = cursor.fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+def atualizar_evento(evento_id: int, dados: Dict[str, Any]) -> bool:
+    """
+    Atualiza parcialmente um compromisso existente (Regras Permanentes 1 e 2).
+    Apenas os campos fornecidos são atualizados, preservando todos os demais.
+    """
+    evento_atual = obter_evento(evento_id)
+    if not evento_atual:
+        return False
+
+    campos_permitidos = ["titulo", "data", "horario_inicio", "horario_fim", "local", "observacoes", "tipo"]
+    placeholders_proibidos = {"informe usuário", "não informado", "nenhum", "null", "undefined"}
+
+    updates = []
+    valores = []
+    for campo in campos_permitidos:
+        if campo in dados and dados[campo] is not None:
+            val = dados[campo]
+            if isinstance(val, str):
+                val_limpo = val.strip()
+                if val_limpo.lower() in placeholders_proibidos:
+                    val_limpo = ""
+                updates.append(f"{campo} = ?")
+                valores.append(val_limpo if val_limpo else None)
+            else:
+                updates.append(f"{campo} = ?")
+                valores.append(val)
+
+    if not updates:
+        return True
+
+    valores.append(evento_id)
+    sql = f"UPDATE eventos_agenda SET {', '.join(updates)} WHERE id = ?"
+
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute(sql, tuple(valores))
+    rows = cursor.rowcount
+    conn.commit()
+    conn.close()
+    return rows > 0
+
+def excluir_evento(evento_id: int) -> bool:
+    """Exclui um compromisso avulso da agenda."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM eventos_agenda WHERE id = ?", (evento_id,))
+    rows = cursor.rowcount
+    conn.commit()
+    conn.close()
+    return rows > 0
+
 def obter_grade_calendario_mes(ano: int, mes: int) -> Dict[str, Any]:
     """
     Calcula a grade do calendário para o mês/ano fornecido.
@@ -1295,7 +1464,19 @@ def obter_grade_calendario_mes(ano: int, mes: int) -> Dict[str, Any]:
     total_presencas_mes = 0
     total_faltas_mes = 0
 
-    hoje_str = datetime.date.today().strftime("%Y-%m-%d")
+    hoje_str = obter_hoje_sp().strftime("%Y-%m-%d")
+
+    # Obter eventos/compromissos externos do mês
+    eventos_mes = listar_eventos_mes(ano, mes)
+    mapa_eventos = {}
+    for ev in eventos_mes:
+        try:
+            d_num = int(ev["data"].split("-")[2])
+            if d_num not in mapa_eventos:
+                mapa_eventos[d_num] = []
+            mapa_eventos[d_num].append(ev)
+        except Exception:
+            pass
 
     for dia in range(1, num_dias + 1):
         dt = datetime.date(ano, mes, dia)
@@ -1333,7 +1514,8 @@ def obter_grade_calendario_mes(ano: int, mes: int) -> Dict[str, Any]:
                 "faltas": f_count,
                 "pendentes": max(0, total_esperados - checado),
                 "status_dia": status_dia,
-                "eh_hoje": (dt_str == hoje_str)
+                "eh_hoje": (dt_str == hoje_str),
+                "eventos_count": len(mapa_eventos.get(dia, []))
             })
 
     return {
@@ -1341,24 +1523,27 @@ def obter_grade_calendario_mes(ano: int, mes: int) -> Dict[str, Any]:
         "mes": mes,
         "dias_com_aula": dias_com_aula,
         "turmas": turmas_ativas,
+        "eventos_externos": eventos_mes,
+        "dias_com_evento": sorted(list(mapa_eventos.keys())),
+        "mapa_eventos": mapa_eventos,
         "resumo_mes": {
             "total_dias_com_aula": len(dias_com_aula),
             "total_aulas": total_aulas_mes,
             "total_presencas": total_presencas_mes,
-            "total_faltas": total_faltas_mes
+            "total_faltas": total_faltas_mes,
+            "total_eventos_externos": len(eventos_mes)
         }
     }
 
 def obter_chamada_dia(data_str: str) -> Dict[str, Any]:
     """
-    Retorna a lista de chamada para uma data específica.
-    Agrupa por turma ativa que tenha aula naquele dia da semana.
-    Cada aluno traz seu status ('pendente', 'presente', 'faltou').
+    Retorna a lista de chamada e compromissos para uma data específica.
+    Agrupa por turma ativa da grade oficial e inclui separadamente os eventos avulsos da agenda.
     """
     try:
         dt = datetime.date.fromisoformat(data_str)
     except Exception:
-        dt = datetime.date.today()
+        dt = obter_hoje_sp()
         data_str = dt.strftime("%Y-%m-%d")
 
     w = dt.weekday()
@@ -1451,16 +1636,21 @@ def obter_chamada_dia(data_str: str) -> Dict[str, Any]:
 
     conn.close()
 
+    # Buscar eventos avulsos da data especificada
+    eventos_externos = listar_eventos_dia(data_str)
+
     return {
         "data": data_str,
         "dia_semana_nome": dia_semana_nome,
-        "eh_hoje": (data_str == datetime.date.today().strftime("%Y-%m-%d")),
+        "eh_hoje": (data_str == obter_hoje_sp().strftime("%Y-%m-%d")),
         "turmas": resultado_turmas,
+        "eventos_externos": eventos_externos,
         "totais": {
             "esperados": total_esperados,
             "presentes": total_presentes,
             "faltas": total_faltas,
-            "pendentes": total_pendentes
+            "pendentes": total_pendentes,
+            "eventos_externos": len(eventos_externos)
         }
     }
 
@@ -1477,11 +1667,11 @@ def salvar_status_presenca(aluno_id: int, turma_id: int, data_str: str, status: 
 
     cursor.execute("""
         INSERT INTO historico_presenca (aluno_id, turma_id, data, status, justificativa, atualizado_em)
-        VALUES (?, ?, ?, ?, ?, datetime('now', 'localtime'))
+        VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
         ON CONFLICT(aluno_id, turma_id, data) DO UPDATE SET
             status = excluded.status,
             justificativa = excluded.justificativa,
-            atualizado_em = datetime('now', 'localtime')
+            atualizado_em = CURRENT_TIMESTAMP
     """, (aluno_id, turma_id, data_str, status, justificativa))
 
     # Sincronizar compatibilidade com tabela legada 'frequencias'
