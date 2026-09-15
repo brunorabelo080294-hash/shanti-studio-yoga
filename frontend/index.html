@@ -416,12 +416,50 @@
           <!-- Células circulares geradas via JavaScript -->
         </div>
 
-        <!-- Legenda Compacta -->
-        <div class="cal-legend-row">
-          <span style="display: flex; align-items: center; gap: 4px;"><span class="cal-dot concluido"></span> Check-in Feito</span>
-          <span style="display: flex; align-items: center; gap: 4px;"><span class="cal-dot pendente"></span> Aula Prevista</span>
-          <span style="display: flex; align-items: center; gap: 4px;"><span class="cal-dot parcial"></span> Em Andamento</span>
-          <span style="display: flex; align-items: center; gap: 4px;"><span class="cal-dot evento"></span> Compromisso Externo</span>
+        <!-- Legenda Estruturada em 2 Linhas -->
+        <div class="cal-legend-wrapper">
+          <div class="cal-legend-header">
+            <span class="cal-legend-title">Legenda Visual</span>
+            <button type="button" class="cal-legend-help-trigger" onclick="abrirModalAjudaCalendario()" title="Entenda as cores e marcações">
+              <i class="fa-solid fa-circle-question"></i> Como funciona?
+            </button>
+          </div>
+
+          <!-- Linha 1: Tipo do Dia (Cores do Círculo) -->
+          <div class="cal-legend-row line-tipo">
+            <div class="cal-legend-item" title="Dia com turmas regulares do estúdio">
+              <span class="cal-legend-circle studio"></span>
+              <span>Aula no Estúdio</span>
+            </div>
+            <div class="cal-legend-item" title="Workshop ou particular da Natália">
+              <span class="cal-legend-circle externo"></span>
+              <span>Compromisso Externo</span>
+            </div>
+            <div class="cal-legend-item" title="Estúdio + Compromisso Externo">
+              <span class="cal-legend-circle misto"></span>
+              <span>Estúdio + Externo</span>
+            </div>
+            <div class="cal-legend-item" title="Dia atual em São Paulo">
+              <span class="cal-legend-circle hoje"></span>
+              <span>Hoje</span>
+            </div>
+          </div>
+
+          <!-- Linha 2: Status da Aula (Barrinha Inferior) -->
+          <div class="cal-legend-row line-status">
+            <div class="cal-legend-item" title="Todos os alunos presentes ou checados">
+              <span class="cal-legend-bar concluido"></span>
+              <span>Check-in Feito</span>
+            </div>
+            <div class="cal-legend-item" title="Alguns alunos com check-in pendente">
+              <span class="cal-legend-bar parcial"></span>
+              <span>Em Andamento</span>
+            </div>
+            <div class="cal-legend-item" title="Aula futura programada">
+              <span class="cal-legend-bar pendente"></span>
+              <span>Aula Prevista</span>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -1405,6 +1443,67 @@
         </button>
       </div>
     </form>
+  </div>
+</div>
+
+<!-- ======================================================================
+     MODAL: AJUDA VISUAL DAS CORES DO CALENDÁRIO
+     ====================================================================== -->
+<div class="wa-modal-overlay" id="modal-ajuda-calendario">
+  <div class="wa-modal-sheet" style="max-width: 440px;">
+    <div class="wa-modal-header">
+      <h3 class="wa-modal-title" style="color: var(--shanti-forest);">
+        <i class="fa-solid fa-palette" style="color: var(--shanti-terracotta);"></i>
+        Cores & Símbolos do Calendário
+      </h3>
+      <button class="wa-modal-close" data-close-modal="modal-ajuda-calendario">&times;</button>
+    </div>
+
+    <div style="padding: 6px 0 14px 0;">
+      <h4 style="font-size: 13px; font-weight: 700; color: var(--shanti-forest); margin: 0 0 10px 0; display: flex; align-items: center; gap: 6px;">
+        <i class="fa-solid fa-circle-dot" style="color: var(--shanti-forest);"></i> 1. Cor de Fundo do Dia (Tipo de Atividade)
+      </h4>
+      <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px;">
+        <div style="display: flex; align-items: center; gap: 10px; padding: 7px 10px; background: #F8FAFC; border-radius: 10px; border: 1px solid #F1F5F9;">
+          <span style="width: 28px; height: 28px; border-radius: 50%; background: #E8F5E9; border: 1.5px solid #86EFAC; display: inline-flex; align-items: center; justify-content: center; font-size: 11.5px; font-weight: 700; color: #166534; flex-shrink: 0;">15</span>
+          <span style="font-size: 12px; color: var(--shanti-charcoal); line-height: 1.35;"><strong>Círculo Verde:</strong> Dia com aula regular na grade do Studio Shanti.</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px; padding: 7px 10px; background: #F8FAFC; border-radius: 10px; border: 1px solid #F1F5F9;">
+          <span style="width: 28px; height: 28px; border-radius: 50%; background: #FEF3C7; border: 1.5px solid #FCD34D; display: inline-flex; align-items: center; justify-content: center; font-size: 11.5px; font-weight: 700; color: #92400E; flex-shrink: 0;">18</span>
+          <span style="font-size: 12px; color: var(--shanti-charcoal); line-height: 1.35;"><strong>Círculo Dourado:</strong> Workshop, vivência ou aula particular externa da Natália.</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px; padding: 7px 10px; background: #F8FAFC; border-radius: 10px; border: 1px solid #F1F5F9;">
+          <span style="width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg, #E8F5E9 50%, #FEF3C7 50%); border: 1.5px solid #F59E0B; display: inline-flex; align-items: center; justify-content: center; font-size: 11.5px; font-weight: 800; color: #1E293B; flex-shrink: 0;">20</span>
+          <span style="font-size: 12px; color: var(--shanti-charcoal); line-height: 1.35;"><strong>Círculo Bicolor:</strong> Dia com turmas no estúdio E compromisso externo agendado.</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px; padding: 7px 10px; background: #F8FAFC; border-radius: 10px; border: 1px solid #F1F5F9;">
+          <span style="width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--shanti-terracotta); background: rgba(177, 106, 76, 0.1); display: inline-flex; align-items: center; justify-content: center; font-size: 11.5px; font-weight: 800; color: var(--shanti-terracotta); flex-shrink: 0;">Hoje</span>
+          <span style="font-size: 12px; color: var(--shanti-charcoal); line-height: 1.35;"><strong>Aro Terracota:</strong> Dia de hoje (move-se sozinho no horário de Brasília).</span>
+        </div>
+      </div>
+
+      <h4 style="font-size: 13px; font-weight: 700; color: var(--shanti-forest); margin: 0 0 10px 0; display: flex; align-items: center; gap: 6px;">
+        <i class="fa-solid fa-minus" style="color: var(--shanti-forest);"></i> 2. Barrinha Inferior (Progresso da Chamada)
+      </h4>
+      <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px;">
+        <div style="display: flex; align-items: center; gap: 10px; padding: 7px 10px; background: #F8FAFC; border-radius: 10px; border: 1px solid #F1F5F9;">
+          <span style="width: 22px; height: 4px; border-radius: 2px; background: #16A34A; display: inline-block; flex-shrink: 0;"></span>
+          <span style="font-size: 12px; color: var(--shanti-charcoal); line-height: 1.35;"><strong>Barrinha Verde:</strong> Check-in concluído para todos os alunos esperados do dia.</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px; padding: 7px 10px; background: #F8FAFC; border-radius: 10px; border: 1px solid #F1F5F9;">
+          <span style="width: 22px; height: 4px; border-radius: 2px; background: #D97706; display: inline-block; flex-shrink: 0;"></span>
+          <span style="font-size: 12px; color: var(--shanti-charcoal); line-height: 1.35;"><strong>Barrinha Âmbar:</strong> Aula em andamento (alguns alunos ainda estão pendentes).</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px; padding: 7px 10px; background: #F8FAFC; border-radius: 10px; border: 1px solid #F1F5F9;">
+          <span style="width: 22px; height: 4px; border-radius: 2px; background: #94A3B8; display: inline-block; flex-shrink: 0;"></span>
+          <span style="font-size: 12px; color: var(--shanti-charcoal); line-height: 1.35;"><strong>Barrinha Cinza:</strong> Aula futura prevista (chamada ainda não foi realizada).</span>
+        </div>
+      </div>
+    </div>
+
+    <button type="button" class="wa-btn-primary" data-close-modal="modal-ajuda-calendario" style="width: 100%; padding: 10px; border-radius: 12px; font-size: 13px; font-weight: 600; background: var(--shanti-forest); border: none; cursor: pointer; color: #FFFFFF;">
+      Entendi! 🙏
+    </button>
   </div>
 </div>
 

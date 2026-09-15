@@ -2051,33 +2051,58 @@ body {
   background: #F1EFE9;
 }
 
-/* Dias com Aula Programada (Círculo Verde Estilo Referência) */
-.cal-day-cell.has-class .cal-day-circle {
+/* 1. Dias com Apenas Aula no Estúdio (Círculo Verde Estilo Referência) */
+.cal-day-cell.has-class:not(.has-event) .cal-day-circle {
   background: #E8F5E9;
   color: #166534;
   font-weight: 700;
   border: 1.5px solid #86EFAC;
 }
 
-.cal-day-cell.today .cal-day-circle {
-  border: 2px solid var(--shanti-terracotta) !important;
-  color: var(--shanti-terracotta);
-  font-weight: 800;
-  background: rgba(177, 106, 76, 0.08);
+/* 2. Dias com Apenas Compromisso Externo (Círculo Dourado/Âmbar) */
+.cal-day-cell.has-event:not(.has-class) .cal-day-circle {
+  background: #FEF3C7;
+  color: #92400E;
+  font-weight: 700;
+  border: 1.5px solid #FCD34D;
 }
 
-.cal-day-cell.today.has-class .cal-day-circle {
-  background: #E8F5E9;
+/* 3. Dias com Ambos: Aula no Estúdio + Compromisso Externo (Bicolor Harmonioso) */
+.cal-day-cell.has-class.has-event .cal-day-circle {
+  background: linear-gradient(135deg, #E8F5E9 48%, #FEF3C7 52%);
+  color: #1E293B;
+  font-weight: 800;
+  border: 1.5px solid #F59E0B;
+}
+
+/* 4. Dia de Hoje (Aro Terracota Nítido com Fundo Preservado) */
+.cal-day-cell.today .cal-day-circle {
   border: 2px solid var(--shanti-terracotta) !important;
+  font-weight: 800;
+}
+
+.cal-day-cell.today:not(.has-class):not(.has-event) .cal-day-circle {
+  background: rgba(177, 106, 76, 0.08);
+  color: var(--shanti-terracotta);
+}
+
+.cal-day-cell.today.has-class:not(.has-event) .cal-day-circle {
+  background: #E8F5E9;
   color: #166534;
 }
 
+.cal-day-cell.today.has-event:not(.has-class) .cal-day-circle {
+  background: #FEF3C7;
+  color: #92400E;
+}
+
+/* 5. Dia Selecionado (Verde Floresta Nobre) */
 .cal-day-cell.selected .cal-day-circle {
   background: var(--shanti-forest) !important;
   color: #FFFFFF !important;
   font-weight: 800;
   border-color: var(--shanti-forest) !important;
-  box-shadow: 0 3px 8px rgba(45, 79, 62, 0.35);
+  box-shadow: 0 3px 10px rgba(45, 79, 62, 0.38);
   transform: scale(1.08);
 }
 
@@ -2085,57 +2110,184 @@ body {
   background: var(--shanti-forest) !important;
   color: #FFFFFF !important;
   border-color: var(--shanti-forest) !important;
-  box-shadow: 0 0 0 2px #FFFFFF, 0 0 0 4.5px var(--shanti-terracotta), 0 4px 10px rgba(45, 79, 62, 0.35) !important;
+  box-shadow: 0 0 0 2px #FFFFFF, 0 0 0 4.5px var(--shanti-terracotta), 0 4px 12px rgba(45, 79, 62, 0.4) !important;
   transform: scale(1.1);
 }
 
-.cal-dot-container {
+/* ==========================================================================
+   BARRINHA FLUIDA INFERIOR DE STATUS DA AULA (SUBSTITUI OS PONTINHOS DE 3PX)
+   ========================================================================== */
+.cal-bar-container {
   height: 5px;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 2px;
-  margin-top: 1px;
+  margin-top: 2px;
+  width: 100%;
 }
 
-.cal-dot {
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  display: inline-block;
+.cal-status-bar {
+  height: 3px;
+  width: 18px;
+  border-radius: 3px;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  display: block;
 }
 
-.cal-dot.pendente {
-  background: #94A3B8;
+.cal-status-bar.concluido {
+  background: #16A34A; /* Verde vívido */
+  box-shadow: 0 1px 3px rgba(22, 163, 74, 0.35);
 }
 
-.cal-dot.concluido {
-  background: #16A34A;
+.cal-status-bar.parcial {
+  background: #D97706; /* Âmbar vibrante */
+  box-shadow: 0 1px 3px rgba(217, 119, 6, 0.35);
 }
 
-.cal-dot.parcial {
-  background: #D97706;
+.cal-status-bar.pendente {
+  background: #94A3B8; /* Slate neutro */
 }
 
-.cal-dot.evento {
-  background: #D97706;
-  border-radius: 1.5px;
-  width: 5px;
-  height: 5px;
-  transform: rotate(45deg);
-  display: inline-block;
+.cal-status-bar.evento-only {
+  background: #D97706; /* Âmbar */
+  width: 14px;
+  height: 2.5px;
+}
+
+/* Fluidez e feedback ao interagir com a célula */
+.cal-day-cell:not(.empty):hover .cal-status-bar {
+  width: 22px;
+}
+
+.cal-day-cell.selected .cal-status-bar {
+  width: 20px;
+}
+
+/* ==========================================================================
+   LEGENDA ESTRUTURADA EM 2 LINHAS COM BOTÃO DE EXPLICAÇÃO RÁPIDA
+   ========================================================================== */
+.cal-legend-wrapper {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid #F1ECE3;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cal-legend-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 4px;
+}
+
+.cal-legend-title {
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--shanti-stone);
+}
+
+.cal-legend-help-trigger {
+  background: none;
+  border: 1px solid var(--shanti-sand-border);
+  font-size: 11px;
+  color: var(--shanti-terracotta);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-weight: 600;
+  background: #FFFDF9;
+  transition: all 0.18s ease;
+}
+
+.cal-legend-help-trigger:hover {
+  background: rgba(177, 106, 76, 0.1);
+  border-color: var(--shanti-terracotta);
 }
 
 .cal-legend-row {
   display: flex;
-  justify-content: center;
-  gap: 14px;
-  margin-top: 10px;
-  padding-top: 8px;
-  border-top: 1px solid #F1ECE3;
+  justify-content: space-between;
+  align-items: center;
+  gap: 6px;
   font-size: 11px;
-  color: var(--shanti-stone);
+  color: var(--shanti-charcoal);
   flex-wrap: wrap;
+  padding: 4px 6px;
+  background: #FDFBF7;
+  border-radius: 8px;
+}
+
+.cal-legend-row.line-tipo {
+  border-left: 3px solid var(--shanti-forest);
+}
+
+.cal-legend-row.line-status {
+  border-left: 3px solid var(--shanti-terracotta);
+}
+
+.cal-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+/* Indicadores de tipo de dia (Círculos) */
+.cal-legend-circle {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.cal-legend-circle.studio {
+  background: #E8F5E9;
+  border: 1.5px solid #86EFAC;
+}
+
+.cal-legend-circle.externo {
+  background: #FEF3C7;
+  border: 1.5px solid #FCD34D;
+}
+
+.cal-legend-circle.misto {
+  background: linear-gradient(135deg, #E8F5E9 50%, #FEF3C7 50%);
+  border: 1.5px solid #F59E0B;
+}
+
+.cal-legend-circle.hoje {
+  background: rgba(177, 106, 76, 0.15);
+  border: 1.5px solid var(--shanti-terracotta);
+}
+
+/* Indicadores de status de aula (Barrinhas) */
+.cal-legend-bar {
+  width: 14px;
+  height: 3.5px;
+  border-radius: 2px;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.cal-legend-bar.concluido {
+  background: #16A34A;
+}
+
+.cal-legend-bar.parcial {
+  background: #D97706;
+}
+
+.cal-legend-bar.pendente {
+  background: #94A3B8;
 }
 
 /* ==========================================================================

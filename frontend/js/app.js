@@ -4615,34 +4615,34 @@ function renderizarGradeCalendario(dados) {
     const ehSelecionado = (dataStr === diaSel);
     const aulaInfo = mapaDiasComAula[d];
     const eventosDoDia = mapaEventos[d] || [];
+    const temAula = Boolean(aulaInfo);
     const temEvento = eventosDoDia.length > 0;
 
     let classes = ['cal-day-cell'];
     if (ehHoje) classes.push('today');
     if (ehSelecionado) classes.push('selected');
-    if (aulaInfo) classes.push('has-class');
+    if (temAula) classes.push('has-class');
     if (temEvento) classes.push('has-event');
 
-    let dotStatusHtml = '';
-    if (aulaInfo) {
-      let dotClass = 'pendente';
-      if (aulaInfo.status_dia === 'concluido') dotClass = 'concluido';
-      else if (aulaInfo.status_dia === 'parcial') dotClass = 'parcial';
-      dotStatusHtml += `<span class="cal-dot ${dotClass}" title="${aulaInfo.turmas_count} turma(s) • ${aulaInfo.status_dia}"></span>`;
-    }
-    if (temEvento) {
-      dotStatusHtml += `<span class="cal-dot evento" title="${eventosDoDia.length} compromisso(s) externo(s)"></span>`;
+    let barHtml = '';
+    if (temAula) {
+      let barClass = 'pendente';
+      if (aulaInfo.status_dia === 'concluido') barClass = 'concluido';
+      else if (aulaInfo.status_dia === 'parcial') barClass = 'parcial';
+      barHtml = `<span class="cal-status-bar ${barClass}" title="${aulaInfo.turmas_count} turma(s) • ${aulaInfo.status_dia}"></span>`;
+    } else if (temEvento) {
+      barHtml = `<span class="cal-status-bar evento-only" title="${eventosDoDia.length} compromisso(s) externo(s)"></span>`;
     }
 
     let tooltip = `Dia ${d}`;
     if (ehHoje) tooltip += ' (Hoje)';
-    if (aulaInfo) tooltip += ` • ${aulaInfo.turmas_count} turma(s)`;
+    if (temAula) tooltip += ` • ${aulaInfo.turmas_count} turma(s) no estúdio`;
     if (temEvento) tooltip += ` • ${eventosDoDia.length} compromisso(s) externo(s)`;
 
     html += `
       <div class="${classes.join(' ')}" data-date="${dataStr}" onclick="selecionarDiaCalendario('${dataStr}')" title="${tooltip}">
         <span class="cal-day-circle">${d}</span>
-        <div class="cal-dot-container">${dotStatusHtml}</div>
+        <div class="cal-bar-container">${barHtml}</div>
       </div>
     `;
   }
@@ -5351,6 +5351,10 @@ async function excluirEventoAgenda(id) {
   }
 }
 
+function abrirModalAjudaCalendario() {
+  abrirModal('modal-ajuda-calendario');
+}
+
 // Expor funções no escopo global window para chamadas inline HTML
 window.setupCalendario = setupCalendario;
 window.carregarCalendario = carregarCalendario;
@@ -5374,3 +5378,4 @@ window.salvarEventoAgenda = salvarEventoAgenda;
 window.excluirEventoAgenda = excluirEventoAgenda;
 window.confirmarExclusaoEventoModal = confirmarExclusaoEventoModal;
 window.renderizarEventosDia = renderizarEventosDia;
+window.abrirModalAjudaCalendario = abrirModalAjudaCalendario;
