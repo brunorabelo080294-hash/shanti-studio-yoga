@@ -191,6 +191,7 @@ class EventoUpdate(BaseModel):
 
 class ChatRequest(BaseModel):
     mensagem: str
+    usuario: Optional[str] = None
 
 class LiveChatRequest(BaseModel):
     mensagem: str
@@ -1077,27 +1078,44 @@ def api_salvar_config_autentique(req: ConfigAutentiqueRequest):
 def api_obter_aniversariantes(mes: Optional[int] = None):
     return db.obter_aniversariantes_mes(mes=mes)
 
+@app.get("/api/ia/auditoria")
+def api_obter_logs_auditoria_ia(limit: int = 50):
+    """Retorna os logs de auditoria das ações executadas ou solicitadas pela IA."""
+    return db.listar_logs_auditoria_ia(limit=limit)
+
 @app.post("/api/chat")
-async def api_chat(req: ChatRequest):
-    """Envia texto para o assistente IA com rastreamento isolado de métricas."""
+async def api_chat(req: ChatRequest, request: Request):
+    """Envia texto para o assistente IA com rastreamento isolado de métricas e auditoria."""
     if not req.mensagem.strip():
         raise HTTPException(status_code=400, detail="Mensagem vazia")
     
     t0 = time.perf_counter()
     info_serv = obter_info_servidor_uptime()
     
+    # Identificar operador autenticado ou informado
+    auth_header = request.headers.get("Authorization", "")
+    usuario_operador = req.usuario
+    if auth_header.startswith("Bearer "):
+        user = validar_token_sessao(auth_header[7:].strip())
+        if user and user.get("nome"):
+            usuario_operador = user["nome"]
+    if not usuario_operador:
+        usuario_operador = "Natália Garufe"
+
     msg_lower = req.mensagem.lower()
     termos_atalho = [
         "atraso", "atrasada", "atrasadas", "atrasados", "devedor", "inadimplente", "quem deve", "não pagou", "vencid",
         "cobrança", "cobrar", "lembrete", "quem já pagou", "quem pagou", "relatorio", "relatório", "faturamento",
-        "despesa", "despesas", "gastei", "contrato", "contratos", "quantitativo", "alunos ativos", "turma",
-        "presença", "presenca", "ausente", "ausentes", "aniversariante", "matricula", "matrícula"
+        "contrato", "contratos", "quantitativo", "alunos ativos", "turma",
+        "presença", "presenca", "ausente", "ausentes", "aniversariante"
     ]
-    e_atalho = any(t in msg_lower for t in termos_atalho)
+    indicadores_acao = ["lance", "lançar", "lancar", "cadastrar", "cadastre", "excluir", "deletar", "apagar", "remover", "marcar", "baixar", "pagou", "gastei", "comprei"]
+    e_acao = any(a in msg_lower for a in indicadores_acao)
+    e_atalho = any(t in msg_lower for t in termos_atalho) and not e_acao
     tipo_ev = "atalho" if e_atalho else "chat"
     
     try:
-        resultado = await ai.processar_mensagem_ia(req.mensagem)
+        resultado = await ai.processar_mensagem_ia(req.mensagem, usuario=usuario_operador)
         tempo_total_ms = max(1, int((time.perf_counter() - t0) * 1000))
         tempo_ia_ms = 0 if e_atalho else max(0, tempo_total_ms - 10)
         status_ia = "local" if e_atalho else ("lento" if tempo_ia_ms > 3000 else "ok")
@@ -1130,7 +1148,7 @@ async def api_chat(req: ChatRequest):
         raise
 
 @app.post("/api/chat/audio")
-async def api_chat_audio(audio: UploadFile = File(...), texto_transcrito: Optional[str] = Form(None)):
+async def api_chat_audio(request: Request, audio: UploadFile = File(...), texto_transcrito: Optional[str] = Form(None)):
     """
     Recebe arquivo de áudio gravado no app e transcreve com a IA Gemini multimodal.
     Registra diagnóstico completo de latência de áudio.
@@ -1232,7 +1250,14 @@ async def api_chat_audio(audio: UploadFile = File(...), texto_transcrito: Option
             "dados": []
         }
 
-    resultado = await ai.processar_mensagem_ia(texto)
+    auth_header = request.headers.get("Authorization", "")
+    usuario_operador = "Natália Garufe"
+    if auth_header.startswith("Bearer "):
+        user = validar_token_sessao(auth_header[7:].strip())
+        if user and user.get("nome"):
+            usuario_operador = user["nome"]
+
+    resultado = await ai.processar_mensagem_ia(texto, usuario=usuario_operador)
     resultado["transcricao"] = texto
     
     tempo_total_ms = max(1, int((time.perf_counter() - t0) * 1000))

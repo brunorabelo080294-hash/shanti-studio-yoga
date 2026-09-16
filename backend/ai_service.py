@@ -490,18 +490,41 @@ def processar_comando_local(texto: str) -> Dict[str, Any]:
         "dados": {}
     }
 
-def build_system_instruction() -> str:
-    """Monta a instrução de sistema atualizada com o contexto em tempo real do Studio Shanti."""
-    quantitativo = db.obter_quantitativo()
-    relatorio = db.obter_relatorio_mensal()
-    inadimplentes = db.obter_inadimplentes()
-    ausentes = db.obter_alunos_ausentes()
-    aniversariantes = db.obter_aniversariantes_mes()
-    turmas = db.listar_turmas(ativas_somente=True)
-    configs = db.obter_configuracoes()
-    despesas_mes = db.listar_despesas(datetime.date.today().strftime("%Y-%m"))
-    alertas_despesas = db.obter_alertas_despesas()
-    alertas_contratos = db.obter_alertas_contratos()
+PROMPT_ACOES_SISTEMA = """Você é a Assistente e Gerente de IA do Studio Shanti.
+Quando o usuário pedir para realizar uma ação no sistema do estúdio de yoga:
+- Para lançar despesas: chame a ferramenta 'lancar_despesa'.
+  REGRA CRÍTICA DE OURO: Se o usuário pedir para lançar uma despesa SEM informar o valor em reais (por exemplo: 'lance uma despesa de material', 'cadastre um gasto com velas', etc.), NUNCA invente um valor nem chame a ferramenta com valor zero. Responda perguntando educadamente qual é o valor em reais.
+- Para marcar pagamento de aluno: chame a ferramenta 'marcar_pagamento'.
+- Para excluir aluno: chame a ferramenta 'excluir_aluno'. Essa ação é permanente e destrutiva; o sistema solicitará confirmação antes de remover qualquer dado.
+- Para cadastrar aluno: chame a ferramenta 'cadastrar_aluno'.
+
+Seja sempre acolhedora, clara, objetiva e profissional no tom do Yoga.
+"""
+
+_cached_system_instruction = None
+_cached_system_instruction_time = 0.0
+
+def build_system_instruction(forcar_atualizacao: bool = False) -> str:
+    """Monta a instrução de sistema atualizada com o contexto em tempo real do Studio Shanti com cache de 120s."""
+    global _cached_system_instruction, _cached_system_instruction_time
+    agora = time.time()
+    if not forcar_atualizacao and _cached_system_instruction and (agora - _cached_system_instruction_time < 120.0):
+        return _cached_system_instruction
+    try:
+        quantitativo = db.obter_quantitativo()
+        relatorio = db.obter_relatorio_mensal()
+        inadimplentes = db.obter_inadimplentes()
+        ausentes = db.obter_alunos_ausentes()
+        aniversariantes = db.obter_aniversariantes_mes()
+        turmas = db.listar_turmas(ativas_somente=True)
+        configs = db.obter_configuracoes()
+        despesas_mes = db.listar_despesas(datetime.date.today().strftime("%Y-%m"))
+        alertas_despesas = db.obter_alertas_despesas()
+        alertas_contratos = db.obter_alertas_contratos()
+    except Exception as e:
+        if _cached_system_instruction:
+            return _cached_system_instruction
+        return PROMPT_ACOES_SISTEMA
 
     return f"""
     Você é a Assistente Virtual e Gerente de IA do '{configs.get('nome_studio', 'Studio Shanti')}'.
@@ -536,16 +559,193 @@ def build_system_instruction() -> str:
     6. Capacidade Máxima das Turmas: O estúdio adota rigorosamente o teto de 16 alunos por turma. Sempre que perguntado sobre turmas, informe a ocupação (X/16) e alerte com destaque caso alguma turma atinja 16 alunos (turma lotada) ou 15 alunos (última vaga).
     7. Despesas e Contas do Estúdio: Ao ser perguntado sobre despesas, contas a pagar ou vencimentos, informe os detalhes das contas lançadas e avise com urgência sobre contas vencidas ou vencendo hoje.
     8. Contratos Digitais: Ao ser perguntada sobre contratos, informe a situação dos contratos vigentes, alerte expressamente caso haja contratos a vencer em até 30 dias ou pendentes de assinatura e indique que a Natália pode gerenciar tudo na aba Contratos.
+    9. Execução de Ações via Ferramentas:
+       Você possui ferramentas para registrar ações no sistema:
+       - Para lançar despesas: chame a ferramenta 'lancar_despesa'. REGRA DE OURO: Se o usuário pedir para lançar despesa SEM informar o valor (ex: 'lance uma despesa de material'), NUNCA invente um valor nem chame a ferramenta. Pergunte ao usuário educadamente qual foi o valor em reais.
+       - Para registrar pagamentos: chame 'marcar_pagamento'.
+       - Para excluir alunos: chame 'excluir_aluno'. O sistema exigirá confirmação explícita na mensagem seguinte.
+       - Para cadastrar novos alunos: chame 'cadastrar_aluno'.
     """
+
+IA_TOOLS = [
+    {
+        "type": "function",
+        "function": {
+            "name": "lancar_despesa",
+            "description": "Lança uma nova despesa ou pagamento de conta no sistema financeiro do estúdio. Use SEMPRE que o usuário pedir para lançar, cadastrar ou anotar um gasto ou despesa. Se o usuário NÃO informou o valor, NÃO invente um valor nem chame a função com valor zerado — formule uma resposta perguntando o valor.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "descricao": {
+                        "type": "string",
+                        "description": "Descrição clara do item ou serviço gasto (ex: 'Material de limpeza', 'Aluguel do estúdio', 'Velas e incensos', 'Anúncio no Instagram')"
+                    },
+                    "valor": {
+                        "type": "number",
+                        "description": "Valor numérico em reais da despesa (ex: 50.0). Obrigatório e maior que zero."
+                    },
+                    "categoria": {
+                        "type": "string",
+                        "enum": ["Aluguel", "Energia/Água", "Materiais", "Marketing", "Geral"],
+                        "description": "Categoria da despesa (Aluguel, Energia/Água, Materiais, Marketing, Geral)"
+                    },
+                    "data": {
+                        "type": "string",
+                        "description": "Data no formato YYYY-MM-DD. Opcional (se omitido, será hoje)."
+                    }
+                },
+                "required": ["descricao", "valor"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "marcar_pagamento",
+            "description": "Registra o pagamento da mensalidade de um aluno no sistema. Use quando o usuário pedir para registrar pagamento, dar baixa, marcar como pago ou informar que o aluno pagou.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "aluno": {
+                        "type": "string",
+                        "description": "Nome ou parte do nome do aluno que realizou o pagamento (ex: 'Bruno', 'Mariana')"
+                    },
+                    "forma_pagamento": {
+                        "type": "string",
+                        "enum": ["PIX", "Dinheiro", "Cartão", "Transferência"],
+                        "description": "Forma de pagamento utilizada (padrão: PIX)"
+                    },
+                    "valor": {
+                        "type": "number",
+                        "description": "Valor monetário pago em reais. Opcional (se omitido, o sistema utilizará o valor da mensalidade cadastrada do aluno)."
+                    },
+                    "data": {
+                        "type": "string",
+                        "description": "Data do pagamento no formato YYYY-MM-DD. Opcional (padrão é hoje)."
+                    },
+                    "mes_referencia": {
+                        "type": "string",
+                        "description": "Mês de referência do pagamento no formato YYYY-MM. Opcional (padrão é o mês atual)."
+                    }
+                },
+                "required": ["aluno"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "excluir_aluno",
+            "description": "AÇÃO DESTRUTIVA: Solicita a exclusão definitiva de um aluno e de todo o seu histórico do sistema. O sistema NÃO executará a exclusão imediatamente; ele pedirá confirmação explícita do usuário antes de qualquer remoção.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "aluno": {
+                        "type": "string",
+                        "description": "Nome ou parte do nome do aluno a ser excluído (ex: 'Bruno Rabelo')"
+                    }
+                },
+                "required": ["aluno"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "cadastrar_aluno",
+            "description": "Cadastra um novo aluno no estúdio de yoga.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "nome": {
+                        "type": "string",
+                        "description": "Nome completo do aluno."
+                    },
+                    "telefone": {
+                        "type": "string",
+                        "description": "Telefone ou WhatsApp do aluno com DDD (ex: '22988887777')."
+                    },
+                    "plano": {
+                        "type": "string",
+                        "enum": ["1x na semana", "2x na semana", "3x na semana", "Livre"],
+                        "description": "Plano contratado pelo aluno (padrão: '2x na semana')."
+                    },
+                    "valor_mensalidade": {
+                        "type": "number",
+                        "description": "Valor da mensalidade em reais (ex: 150.0). Se omitido, utiliza o valor padrão do plano."
+                    },
+                    "dia_vencimento": {
+                        "type": "integer",
+                        "description": "Dia de vencimento da mensalidade (1 a 31). Padrão: 10."
+                    }
+                },
+                "required": ["nome"]
+            }
+        }
+    }
+]
 
 GROQ_CANDIDATE_MODELS = [
     "qwen/qwen3.8-27b",
     "openai/gpt-oss-120b",
     "openai/gpt-oss-20b",
-    "groq/compound-mini",
-    "llama-3.3-70b-versatile",
-    "llama-3.1-8b-instant"
+    "groq/compound-mini"
 ]
+
+async def chamar_groq_com_tools(
+    texto: str,
+    system_prompt: str,
+    api_key: str,
+    model: Optional[str] = None
+) -> Dict[str, Any]:
+    """Chama a API OpenAI-compatible do Groq com catálogo de tools para function calling."""
+    url = "https://api.groq.com/openai/v1/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json"
+    }
+    model_preferido = model or get_groq_model()
+    modelos_para_tentar = [model_preferido] + [m for m in ["qwen/qwen3.8-27b", "openai/gpt-oss-120b", "openai/gpt-oss-20b"] if m != model_preferido]
+
+    ultimo_erro = None
+    async with httpx.AsyncClient(timeout=14.0) as client:
+        for m in modelos_para_tentar:
+            try:
+                payload = {
+                    "model": m,
+                    "messages": [
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": texto}
+                    ],
+                    "tools": IA_TOOLS,
+                    "tool_choice": "auto",
+                    "temperature": 0.2,
+                    "max_tokens": 800
+                }
+                resp = await client.post(url, headers=headers, json=payload)
+                if resp.status_code == 200:
+                    data = resp.json()
+                    choices = data.get("choices", [])
+                    if choices:
+                        msg = choices[0].get("message", {})
+                        tool_calls = msg.get("tool_calls")
+                        content = (msg.get("content") or "").strip()
+                        return {
+                            "content": content,
+                            "tool_calls": tool_calls,
+                            "modelo": m
+                        }
+                elif resp.status_code in [400, 404]:
+                    continue
+                else:
+                    ultimo_erro = Exception(f"Groq HTTP {resp.status_code}: {resp.text[:120]}")
+            except Exception as ex:
+                ultimo_erro = ex
+                continue
+
+    if ultimo_erro:
+        raise ultimo_erro
+    raise Exception("Nenhum modelo do Groq retornou resposta válida para tool calling.")
 
 async def chamar_groq_chat(texto: str, system_prompt: str, api_key: str, model: Optional[str] = None) -> str:
     """Chama a API OpenAI-compatible do Groq com rotação inteligente de modelos candidatos."""
@@ -653,98 +853,453 @@ async def chamar_gemini_chat(texto: str, system_prompt: str, api_key: str) -> st
         raise ultimo_erro
     raise Exception("Nenhum modelo Gemini retornou resposta.")
 
-async def processar_mensagem_ia(texto: str) -> Dict[str, Any]:
+# --- Executores de Ações da IA com Validação e Log de Auditoria ---
+
+def executar_acao_lancar_despesa(args: Dict[str, Any], usuario: str) -> Dict[str, Any]:
+    """Executa o lançamento de despesa via IA com validação e log de auditoria."""
+    descricao = str(args.get("descricao") or "").strip()
+    valor_raw = args.get("valor")
+    categoria = str(args.get("categoria") or "Geral").strip()
+    data = args.get("data")
+
+    # Regra permanente 3: placeholder não é dado
+    if not descricao or descricao.lower() in ["não informado", "nao informado", "despesa", "gasto"]:
+        return {
+            "resposta": "Por favor, informe a descrição do que foi comprado ou pago (ex: 'material de limpeza', 'aluguel').",
+            "tipo": "clarificacao_necessaria",
+            "acao_executada": False
+        }
+
+    # Validação estrita do valor (nunca inventar valor)
+    try:
+        valor = float(valor_raw) if valor_raw is not None else 0.0
+    except (ValueError, TypeError):
+        valor = 0.0
+
+    if valor <= 0:
+        return {
+            "resposta": f"Qual é o valor da despesa de *{descricao}*? Por favor, informe o valor em reais (ex: R$ 50,00).",
+            "tipo": "clarificacao_necessaria",
+            "acao_executada": False
+        }
+
+    # Mapeamento inteligente de categoria
+    categorias_validas = ["Aluguel", "Energia/Água", "Materiais", "Marketing", "Geral"]
+    if categoria not in categorias_validas:
+        desc_lower = descricao.lower()
+        if any(x in desc_lower for x in ["aluguel", "sala", "espaço"]):
+            categoria = "Aluguel"
+        elif any(x in desc_lower for x in ["luz", "energia", "água", "agua", "internet", "telefone"]):
+            categoria = "Energia/Água"
+        elif any(x in desc_lower for x in ["incenso", "óleo", "oleo", "tapete", "material", "limpeza"]):
+            categoria = "Materiais"
+        elif any(x in desc_lower for x in ["anúncio", "anuncio", "marketing", "insta", "instagram"]):
+            categoria = "Marketing"
+        else:
+            categoria = "Geral"
+
+    if not data:
+        data = db.obter_hoje_sp().strftime("%Y-%m-%d")
+
+    did = db.registrar_despesa(descricao=descricao, valor=valor, categoria=categoria, data=data)
+
+    db.registrar_log_auditoria_ia(
+        usuario=usuario,
+        acao="lancar_despesa",
+        parametros={"descricao": descricao, "valor": valor, "categoria": categoria, "data": data},
+        resultado=f"Despesa de R$ {valor:.2f} ({descricao}) lançada com sucesso na categoria {categoria}.",
+        sucesso=True,
+        detalhes=f"despesa_id={did}"
+    )
+
+    return {
+        "resposta": f"💸 Despesa de R$ {valor:.2f} em *{descricao}* lançada com sucesso na categoria *{categoria}*!",
+        "tipo": "despesa_registrada",
+        "acao_executada": True,
+        "dados": {"id": did, "descricao": descricao, "valor": valor, "categoria": categoria, "data": data}
+    }
+
+
+def executar_acao_marcar_pagamento(args: Dict[str, Any], usuario: str) -> Dict[str, Any]:
+    """Registra pagamento de mensalidade via IA com validação e log de auditoria."""
+    aluno_str = str(args.get("aluno") or "").strip()
+    forma = str(args.get("forma_pagamento") or "PIX").strip()
+    data = args.get("data")
+    mes_ref = args.get("mes_referencia")
+    valor_raw = args.get("valor")
+
+    if not aluno_str:
+        return {
+            "resposta": "De qual aluno você deseja registrar o pagamento?",
+            "tipo": "clarificacao_necessaria",
+            "acao_executada": False
+        }
+
+    # Buscar aluno no banco
+    alunos = db.listar_alunos()
+    aluno_alvo = None
+    aluno_lower = aluno_str.lower()
+    
+    for a in alunos:
+        if a["nome"].lower() == aluno_lower:
+            aluno_alvo = a
+            break
+    if not aluno_alvo:
+        for a in alunos:
+            if aluno_lower in a["nome"].lower() or a["nome"].lower().startswith(aluno_lower):
+                aluno_alvo = a
+                break
+
+    if not aluno_alvo:
+        return {
+            "resposta": f"Não encontrei nenhum aluno com o nome '{aluno_str}'. Verifique a lista de alunos na aba Alunos.",
+            "tipo": "aluno_nao_encontrado",
+            "acao_executada": False
+        }
+
+    valor = 0.0
+    if valor_raw is not None:
+        try:
+            valor = float(valor_raw)
+        except (ValueError, TypeError):
+            valor = 0.0
+    if valor <= 0:
+        valor = float(aluno_alvo.get("valor_mensalidade") or 150.0)
+
+    hoje_sp = db.obter_hoje_sp()
+    if not data:
+        data = hoje_sp.strftime("%Y-%m-%d")
+    if not mes_ref:
+        mes_ref = hoje_sp.strftime("%Y-%m")
+
+    pid = db.registrar_pagamento(
+        aluno_id=aluno_alvo["id"],
+        valor=valor,
+        forma_pagamento=forma,
+        mes_referencia=mes_ref,
+        data_pagamento=data
+    )
+    recibo = db.gerar_comprovante_pagamento(pid)
+
+    db.registrar_log_auditoria_ia(
+        usuario=usuario,
+        acao="marcar_pagamento",
+        parametros={
+            "aluno": aluno_alvo["nome"],
+            "aluno_id": aluno_alvo["id"],
+            "valor": valor,
+            "forma_pagamento": forma,
+            "mes_referencia": mes_ref,
+            "data_pagamento": data
+        },
+        resultado=f"Pagamento de R$ {valor:.2f} ({forma}) do aluno {aluno_alvo['nome']} registrado com sucesso para {mes_ref}.",
+        sucesso=True,
+        detalhes=f"pagamento_id={pid}"
+    )
+
+    return {
+        "resposta": f"✅ Pagamento de *{aluno_alvo['nome']}* no valor de R$ {valor:.2f} ({forma}) registrado com sucesso para {mes_ref}!",
+        "tipo": "pagamento_registrado",
+        "acao_executada": True,
+        "dados": [recibo] if recibo else []
+    }
+
+
+def executar_acao_excluir_aluno(args: Dict[str, Any], usuario: str) -> Dict[str, Any]:
     """
-    Processa a mensagem com fast-path instantâneo para comandos do estúdio (0.005s)
-    e Groq AI (Llama 3.3 / Qwen) com fallback para Gemini e Modo Local offline.
+    AÇÃO DESTRUTIVA: NUNCA executa a exclusão diretamente.
+    Cria uma confirmação pendente no banco e responde pedindo confirmação explícita ao usuário.
     """
+    aluno_str = str(args.get("aluno") or "").strip()
+    if not aluno_str:
+        return {
+            "resposta": "Qual aluno você deseja excluir do sistema?",
+            "tipo": "clarificacao_necessaria",
+            "acao_executada": False
+        }
+
+    alunos = db.listar_alunos()
+    aluno_alvo = None
+    aluno_lower = aluno_str.lower()
+    for a in alunos:
+        if a["nome"].lower() == aluno_lower:
+            aluno_alvo = a
+            break
+    if not aluno_alvo:
+        for a in alunos:
+            if aluno_lower in a["nome"].lower() or a["nome"].lower().startswith(aluno_lower):
+                aluno_alvo = a
+                break
+
+    if not aluno_alvo:
+        return {
+            "resposta": f"Não encontrei nenhum aluno com o nome '{aluno_str}' para exclusão.",
+            "tipo": "aluno_nao_encontrado",
+            "acao_executada": False
+        }
+
+    db.criar_confirmacao_ia(
+        usuario=usuario,
+        acao="excluir_aluno",
+        alvo_id=aluno_alvo["id"],
+        alvo_nome=aluno_alvo["nome"],
+        dados={"aluno_id": aluno_alvo["id"], "nome": aluno_alvo["nome"]},
+        validade_minutos=5
+    )
+
+    return {
+        "resposta": (
+            f"⚠️ Você quer mesmo excluir o aluno *{aluno_alvo['nome']}*? "
+            f"Essa ação não pode ser desfeita e removerá todas as matrículas, frequências e pagamentos associados.\n\n"
+            f"Responda **'sim'** para confirmar ou **'não'** para cancelar."
+        ),
+        "tipo": "confirmacao_necessaria",
+        "acao_executada": False,
+        "aguardando_confirmacao": True,
+        "aluno": aluno_alvo["nome"]
+    }
+
+
+def executar_acao_cadastrar_aluno(args: Dict[str, Any], usuario: str) -> Dict[str, Any]:
+    """Cadastra um novo aluno no estúdio via IA com validação e log de auditoria."""
+    nome = str(args.get("nome") or "").strip()
+    if not nome or nome.lower() in ["não informado", "nao informado", "aluno", "novo aluno"]:
+        return {
+            "resposta": "Por favor, informe o nome do aluno que você gostaria de cadastrar.",
+            "tipo": "clarificacao_necessaria",
+            "acao_executada": False
+        }
+
+    telefone = str(args.get("telefone") or "").strip()
+    plano = str(args.get("plano") or "2x na semana").strip()
+    valor_raw = args.get("valor_mensalidade")
+    venc_raw = args.get("dia_vencimento")
+
+    dados = {
+        "nome": nome,
+        "telefone": telefone or "Não informado",
+        "plano": plano
+    }
+    if valor_raw is not None:
+        try:
+            dados["valor_mensalidade"] = float(valor_raw)
+        except:
+            pass
+    if venc_raw is not None:
+        try:
+            dados["dia_vencimento"] = int(venc_raw)
+        except:
+            pass
+
+    aid = db.cadastrar_aluno(dados)
+
+    db.registrar_log_auditoria_ia(
+        usuario=usuario,
+        acao="cadastrar_aluno",
+        parametros=dados,
+        resultado=f"Aluno {nome} cadastrado com sucesso (ID {aid}) no plano {plano}.",
+        sucesso=True,
+        detalhes=f"aluno_id={aid}"
+    )
+
+    return {
+        "resposta": f"✅ Aluno(a) *{nome}* cadastrado(a) com sucesso no plano *{plano}*!",
+        "tipo": "aluno_cadastrado",
+        "acao_executada": True,
+        "dados": {"id": aid, "nome": nome, "plano": plano}
+    }
+
+
+def processar_acao_fallback(texto: str, usuario: str) -> Optional[Dict[str, Any]]:
+    """Parser heurístico seguro de contingência caso o provedor de IA esteja indisponível."""
     texto_lower = texto.lower()
 
-    # 1. Fast-path: Se for qualquer comando ou consulta do estúdio, responder IMEDIATAMENTE (0.005s)
-    termos_estudio = [
-        "atraso", "atrasada", "atrasadas", "atrasados", "devedor", "inadimplente", "quem deve", "não pagou", "vencid",
-        "cobrança", "cobrar", "lembrete", "mandar mensagem", "enviar mensagem", "aviso de vencimento", "aviso whatsapp",
-        "quem já pagou", "quem pagou", "já pagou este mês", "pagamentos confirmados", "quem está em dia", "mensalidades pagas", "pagos este mês",
-        "pagou", "recebi", "pagamento de", "baixar mensalidade",
-        "relatorio", "relatório", "faturamento", "receita", "financeiro", "balanço", "quanto recebi", "lucro",
-        "despesa", "despesas", "gastei", "quanto gastou", "contas a pagar", "contas a vencer", "vencimento de conta", "detalhe das contas", "contas pendentes", "paguei conta", "comprei", "gasto",
-        "contrato", "contratos", "vigência", "vigencia", "30 dias", "assinatura de contrato", "pendente de assinatura", "contratos a vencer",
-        "quantitativo", "quantos alunos", "total de alunos", "número de alunos", "alunos ativos", "evasão", "saídas",
-        "saiu", "desistiu", "cancelou", "inativar", "trancar", "parou",
-        "turma", "turmas", "horário", "horario", "horários", "horarios", "vaga", "vagas", "aula", "aulas",
-        "presença", "presenca", "veio", "veio na aula", "presente", "chegou", "frequencia",
-        "ausente", "ausentes", "sumido", "sumidos", "faltou", "faltas",
-        "aniversariante", "aniversariantes", "aniversario", "aniversário",
-        "matricula", "matrícula", "matriculado", "matriculados", "matriculada", "não se pagou", "nao se pagou"
-    ]
-    if any(t in texto_lower for t in termos_estudio):
-        return processar_comando_local(texto)
+    # 1. Despesa
+    if any(k in texto_lower for k in ["despesa", "gastei", "comprei", "paguei conta", "gasto"]):
+        match_valor = re.search(r"r\$\s*(\d+(?:[.,]\d+)?)|\b(\d+(?:[.,]\d+)?)\s*(?:reais|real)\b", texto_lower)
+        if not match_valor:
+            return {
+                "resposta": "Qual é o valor da despesa que você deseja lançar? Por favor, informe o valor em reais (ex: R$ 50,00).",
+                "tipo": "clarificacao_necessaria",
+                "acao_executada": False
+            }
+        val_str = match_valor.group(1) or match_valor.group(2)
+        try:
+            valor = float(val_str.replace(",", "."))
+        except:
+            valor = 0.0
 
+        desc = re.sub(r"(?i)\b(lance|lançar|lancar|cadastrar|anotar|registre|registrar|uma|despesa|de|em|no|na|r\$|\d+(?:[.,]\d+)?|reais|real)\b", "", texto).strip()
+        if not desc or len(desc) < 3:
+            desc = "Gasto Diversos"
+
+        return executar_acao_lancar_despesa({"descricao": desc, "valor": valor}, usuario)
+
+    # 2. Pagamento
+    if any(k in texto_lower for k in ["pagou", "recebi", "pagamento", "baixar mensalidade", "marcar como pago", "marcar pago"]):
+        alunos = db.listar_alunos()
+        aluno_nome = None
+        for a in alunos:
+            if a["nome"].lower() in texto_lower or a["nome"].split()[0].lower() in texto_lower:
+                aluno_nome = a["nome"]
+                break
+        if aluno_nome:
+            forma = "PIX"
+            if "cartão" in texto_lower or "cartao" in texto_lower: forma = "Cartão"
+            elif "dinheiro" in texto_lower: forma = "Dinheiro"
+            return executar_acao_marcar_pagamento({"aluno": aluno_nome, "forma_pagamento": forma}, usuario)
+
+    # 3. Excluir aluno
+    if any(k in texto_lower for k in ["excluir", "deletar", "apagar", "remover"]) and "aluno" in texto_lower:
+        alunos = db.listar_alunos()
+        for a in alunos:
+            if a["nome"].lower() in texto_lower or a["nome"].split()[0].lower() in texto_lower:
+                return executar_acao_excluir_aluno({"aluno": a["nome"]}, usuario)
+
+    # 4. Cadastrar aluno
+    if any(k in texto_lower for k in ["cadastrar aluno", "cadastre o aluno", "matricular aluno"]):
+        partes = texto.split("aluno")[-1].strip()
+        nome = partes.split(",")[0].strip() if "," in partes else partes
+        if nome:
+            return executar_acao_cadastrar_aluno({"nome": nome}, usuario)
+
+    return None
+
+
+async def processar_mensagem_ia(texto: str, usuario: str = "Natália Garufe") -> Dict[str, Any]:
+    """
+    Processa mensagens da IA com suporte a Function Calling, auditoria e confirmação segura em 2 etapas.
+    """
+    texto_lower = texto.lower()
+    usuario_ativo = usuario or "Natália Garufe"
+
+    # 1. VERIFICAR CONFIRMAÇÃO PENDENTE DO USUÁRIO (Ação Destrutiva)
+    conf_pendente = db.obter_confirmacao_ia_pendente(usuario_ativo)
+    if conf_pendente:
+        texto_clean = texto.strip().lower()
+        palavras_afirmativas = ["sim", "s", "confirmar", "confirmo", "pode excluir", "pode apagar", "excluir", "apagar", "com certeza", "sim por favor", "sim, pode", "ok"]
+        palavras_negativas = ["não", "nao", "n", "cancelar", "cancela", "deixa quieto", "não excluir", "nao excluir", "pare", "desistir"]
+
+        eh_afirmacao = any(texto_clean == a or texto_clean.startswith(a + " ") or (" " + a) in texto_clean for a in palavras_afirmativas)
+        eh_negacao = any(texto_clean == n or texto_clean.startswith(n + " ") or (" " + n) in texto_clean for n in palavras_negativas)
+
+        if eh_afirmacao and not eh_negacao:
+            if conf_pendente["acao"] == "excluir_aluno":
+                aluno_id = conf_pendente["alvo_id"]
+                aluno_nome = conf_pendente["alvo_nome"]
+                sucesso = db.excluir_aluno(aluno_id)
+                db.concluir_confirmacao_ia(conf_pendente["id"], "confirmado")
+                db.registrar_log_auditoria_ia(
+                    usuario=usuario_ativo,
+                    acao="excluir_aluno",
+                    parametros={"aluno_id": aluno_id, "aluno_nome": aluno_nome},
+                    resultado=f"Aluno {aluno_nome} (ID {aluno_id}) excluído com sucesso após confirmação explícita do usuário.",
+                    sucesso=sucesso,
+                    detalhes=f"conf_id={conf_pendente['id']}",
+                    confirmacao_previa=True
+                )
+                return {
+                    "resposta": f"✅ O aluno *{aluno_nome}* foi excluído com sucesso do sistema.",
+                    "tipo": "aluno_excluido",
+                    "acao_executada": True,
+                    "dados": {"id": aluno_id, "nome": aluno_nome}
+                }
+        elif eh_negacao:
+            db.concluir_confirmacao_ia(conf_pendente["id"], "cancelado")
+            db.registrar_log_auditoria_ia(
+                usuario=usuario_ativo,
+                acao="excluir_aluno",
+                parametros={"aluno_id": conf_pendente["alvo_id"], "aluno_nome": conf_pendente["alvo_nome"]},
+                resultado=f"Exclusão do aluno {conf_pendente['alvo_nome']} cancelada pelo usuário.",
+                sucesso=True,
+                detalhes=f"conf_id={conf_pendente['id']}",
+                confirmacao_previa=True
+            )
+            return {
+                "resposta": f"❌ Ação cancelada. O aluno *{conf_pendente['alvo_nome']}* não foi excluído e permanece cadastrado.",
+                "tipo": "acao_cancelada",
+                "acao_executada": False
+            }
+        else:
+            db.concluir_confirmacao_ia(conf_pendente["id"], "cancelado_outra_mensagem")
+
+    # 2. IDENTIFICAR SE É UMA AÇÃO DE ESCRITA
+    indicadores_acao = [
+        "lance uma despesa", "lançar despesa", "lancar despesa", "cadastrar despesa", "anote uma despesa", "nova despesa", "gastei", "comprei", "despesa de",
+        "marcar pagamento", "marcar como pago", "marcar pago", "marcar o aluno", "dar baixa", "baixar mensalidade", "pagou a mensalidade", "pagamento do aluno",
+        "excluir aluno", "excluir o aluno", "deletar aluno", "deletar o aluno", "apagar aluno", "apagar o aluno", "remover aluno", "remover o aluno",
+        "cadastrar aluno", "cadastrar aluna", "cadastre o aluno", "cadastre a aluna", "matricular aluno", "matricular aluna", "novo aluno", "nova aluna"
+    ]
+    eh_acao_intencional = any(ind in texto_lower for ind in indicadores_acao)
+
+    # 3. SE NÃO FOR AÇÃO, CHECAR FAST-PATH SOMENTE PARA CONSULTAS DE LEITURA
+    if not eh_acao_intencional:
+        consultas_estudio = [
+            "atraso", "atrasada", "atrasadas", "atrasados", "devedor", "inadimplente", "quem deve", "não pagou", "vencid",
+            "cobrança", "cobrar", "lembrete",
+            "quem já pagou", "quem pagou", "já pagou este mês", "pagamentos confirmados", "quem está em dia", "mensalidades pagas", "pagos este mês",
+            "relatorio", "relatório", "faturamento", "receita", "financeiro", "balanço", "quanto recebi", "lucro",
+            "contrato", "contratos", "vigência", "vigencia", "30 dias", "assinatura de contrato", "pendente de assinatura", "contratos a vencer",
+            "quantitativo", "quantos alunos", "total de alunos", "número de alunos", "alunos ativos", "evasão", "saídas",
+            "turma", "turmas", "horário", "horario", "horários", "horarios", "vaga", "vagas", "aula", "aulas",
+            "presença", "presenca", "veio", "veio na aula", "presente", "chegou", "frequencia",
+            "ausente", "ausentes", "sumido", "sumidos", "faltou", "faltas",
+            "aniversariante", "aniversariantes", "aniversario", "aniversário"
+        ]
+        if any(c in texto_lower for c in consultas_estudio):
+            return processar_comando_local(texto)
+
+    # 4. CHAMA GROQ COM TOOLS PARA PROCESSAMENTO INTELIGENTE
     groq_key = get_groq_api_key()
     gemini_key = get_gemini_api_key()
     provider = get_ai_provider()
+    system_instruction = PROMPT_ACOES_SISTEMA if eh_acao_intencional else build_system_instruction()
 
-    if not groq_key and not gemini_key:
-        return processar_comando_local(texto)
-
-    system_instruction = build_system_instruction()
-    resposta_texto = ""
-
-    # Tentativa com Groq (Padrão ou configurado)
-    if (provider == "groq" or not gemini_key) and groq_key:
+    if groq_key:
         try:
-            resposta_texto = await chamar_groq_chat(texto, system_instruction, groq_key)
+            res_groq = await chamar_groq_com_tools(texto, system_instruction, groq_key)
+            tool_calls = res_groq.get("tool_calls")
+            if tool_calls:
+                for tc in tool_calls:
+                    fn = tc.get("function", {})
+                    fn_name = fn.get("name")
+                    fn_args_raw = fn.get("arguments", "{}")
+                    try:
+                        fn_args = json.loads(fn_args_raw) if isinstance(fn_args_raw, str) else (fn_args_raw or {})
+                    except Exception:
+                        fn_args = {}
+
+                    if fn_name == "lancar_despesa":
+                        return executar_acao_lancar_despesa(fn_args, usuario_ativo)
+                    elif fn_name == "marcar_pagamento":
+                        return executar_acao_marcar_pagamento(fn_args, usuario_ativo)
+                    elif fn_name == "excluir_aluno":
+                        return executar_acao_excluir_aluno(fn_args, usuario_ativo)
+                    elif fn_name == "cadastrar_aluno":
+                        return executar_acao_cadastrar_aluno(fn_args, usuario_ativo)
+
+            content = res_groq.get("content")
+            if content:
+                return {"resposta": content, "tipo": "chat", "dados": []}
         except Exception as eg:
-            print(f"Erro no Groq: {eg}. Tentando Gemini como fallback...")
-            if gemini_key:
-                try:
-                    resposta_texto = await chamar_gemini_chat(texto, system_instruction, gemini_key)
-                except Exception as ege:
-                    print(f"Erro no fallback Gemini: {ege}")
-    elif gemini_key:
-        # Modo Gemini configurado explicitamente
+            print(f"Erro no Groq com tools: {eg}. Tentando contingência...")
+
+    # 5. CONTINGÊNCIA: Se for ação intencional mas Groq falhou, executar via parser seguro
+    if eh_acao_intencional:
+        res_fallback = processar_acao_fallback(texto, usuario_ativo)
+        if res_fallback:
+            return res_fallback
+
+    # 6. Fallback final para Gemini ou Modo Local
+    if gemini_key:
         try:
-            resposta_texto = await chamar_gemini_chat(texto, system_instruction, gemini_key)
+            resp_gem = await chamar_gemini_chat(texto, system_instruction, gemini_key)
+            if resp_gem:
+                return {"resposta": resp_gem, "tipo": "chat", "dados": []}
         except Exception as ege:
-            print(f"Erro no Gemini: {ege}. Tentando Groq como fallback...")
-            if groq_key:
-                try:
-                    resposta_texto = await chamar_groq_chat(texto, system_instruction, groq_key)
-                except Exception as eg:
-                    print(f"Erro no fallback Groq: {eg}")
+            print(f"Erro no Gemini fallback: {ege}")
 
-    if not resposta_texto:
-        return processar_comando_local(texto)
-
-    # Verificar dados adicionais anexos
-    dados_extras = []
-    tipo = "chat"
-
-    if any(p in texto_lower for p in ["atraso", "atrasada", "atrasados", "cobrança", "cobrar", "devedor", "lembrete"]):
-        dados_extras = db.gerar_mensagens_cobranca(tipo="atrasados")
-        tipo = "inadimplencia" if "quem" in texto_lower else "cobranca"
-    elif any(p in texto_lower for p in ["quem já pagou", "quem pagou", "já pagou este mês", "pagamentos confirmados", "quem está em dia"]):
-        pagos = db.listar_pagamentos_mes(datetime.date.today().strftime("%Y-%m"))
-        dados_extras = [db.gerar_comprovante_pagamento(p["id"]) for p in pagos if db.gerar_comprovante_pagamento(p["id"])]
-        tipo = "pagamentos_mes"
-    elif any(p in texto_lower for p in ["aniversariante", "aniversario", "aniversário"]):
-        dados_extras = db.obter_aniversariantes_mes()
-        tipo = "aniversariantes"
-    elif any(p in texto_lower for p in ["ausente", "ausentes", "sumido", "sumidos", "faltou", "faltas"]):
-        dados_extras = db.obter_alunos_ausentes()
-        tipo = "ausentes"
-    elif any(p in texto_lower for p in ["contrato", "contratos", "vigência", "vigencia", "30 dias"]):
-        dados_extras = db.obter_alertas_contratos()
-        tipo = "contratos"
-    elif any(p in texto_lower for p in ["despesa", "despesas", "gastei", "contas a pagar"]):
-        dados_extras = db.listar_despesas(datetime.date.today().strftime("%Y-%m"))
-        tipo = "despesas"
-
-    return {
-        "resposta": resposta_texto,
-        "tipo": tipo,
-        "dados": dados_extras
-    }
+    return processar_comando_local(texto)
 
 
 def pcm_to_wav_base64(pcm_data: bytes, sample_rate: int = 24000, channels: int = 1, sampwidth: int = 2) -> str:

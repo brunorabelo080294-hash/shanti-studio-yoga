@@ -1334,18 +1334,30 @@ async function enviarMensagemTexto(textoCustomizado = null) {
 
   const indicador = criarIndicadorDigitacao('Consultando o estúdio... 🧘‍♀️');
 
+  const savedUserStr = localStorage.getItem('shanti_auth_user') || sessionStorage.getItem('shanti_auth_user');
+  let usuarioNome = 'Natália Garufe';
+  if (savedUserStr) {
+    try {
+      const u = JSON.parse(savedUserStr);
+      if (u && u.nome) usuarioNome = u.nome;
+    } catch (e) {}
+  }
+  const token = localStorage.getItem('shanti_auth_token') || sessionStorage.getItem('shanti_auth_token');
+  const headers = { 'Content-Type': 'application/json' };
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+
   try {
     const res = await fetch('/api/chat', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ mensagem: texto })
+      headers: headers,
+      body: JSON.stringify({ mensagem: texto, usuario: usuarioNome })
     });
     const data = await res.json();
     indicador.remover();
 
     adicionarMensagem(data.resposta, 'bot', data.dados);
     
-    if (data.tipo === 'pagamento_registrado' || data.tipo === 'aluno_inativado' || data.tipo === 'despesa_registrada' || data.tipo === 'presenca_registrada') {
+    if (data.acao_executada || data.tipo === 'pagamento_registrado' || data.tipo === 'aluno_inativado' || data.tipo === 'aluno_excluido' || data.tipo === 'aluno_cadastrado' || data.tipo === 'despesa_registrada' || data.tipo === 'presenca_registrada') {
       await atualizarTudo();
     }
   } catch (err) {
@@ -1414,8 +1426,13 @@ function setupAudio() {
       formData.append('audio', file);
 
       try {
+        const token = localStorage.getItem('shanti_auth_token') || sessionStorage.getItem('shanti_auth_token');
+        const audioHeaders = {};
+        if (token) audioHeaders['Authorization'] = `Bearer ${token}`;
+
         const res = await fetch('/api/chat/audio', {
           method: 'POST',
+          headers: audioHeaders,
           body: formData
         });
         const data = await res.json();
@@ -1432,7 +1449,7 @@ function setupAudio() {
         }
 
         adicionarMensagem(data.resposta, 'bot', data.dados);
-        if (data.tipo === 'pagamento_registrado' || data.tipo === 'aluno_inativado' || data.tipo === 'despesa_registrada' || data.tipo === 'presenca_registrada') {
+        if (data.acao_executada || data.tipo === 'pagamento_registrado' || data.tipo === 'aluno_inativado' || data.tipo === 'aluno_excluido' || data.tipo === 'aluno_cadastrado' || data.tipo === 'despesa_registrada' || data.tipo === 'presenca_registrada') {
           await atualizarTudo();
         }
       } catch (err) {
@@ -1546,8 +1563,13 @@ function setupAudio() {
         }
 
         try {
+          const token = localStorage.getItem('shanti_auth_token') || sessionStorage.getItem('shanti_auth_token');
+          const audioHeaders = {};
+          if (token) audioHeaders['Authorization'] = `Bearer ${token}`;
+
           const res = await fetch('/api/chat/audio', {
             method: 'POST',
+            headers: audioHeaders,
             body: formData
           });
           const data = await res.json();
@@ -1565,7 +1587,7 @@ function setupAudio() {
           }
 
           adicionarMensagem(data.resposta, 'bot', data.dados);
-          if (data.tipo === 'pagamento_registrado' || data.tipo === 'aluno_inativado' || data.tipo === 'despesa_registrada' || data.tipo === 'presenca_registrada') {
+          if (data.acao_executada || data.tipo === 'pagamento_registrado' || data.tipo === 'aluno_inativado' || data.tipo === 'aluno_excluido' || data.tipo === 'aluno_cadastrado' || data.tipo === 'despesa_registrada' || data.tipo === 'presenca_registrada') {
             await atualizarTudo();
           }
         } catch (e) {

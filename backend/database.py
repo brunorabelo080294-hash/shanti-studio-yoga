@@ -4,6 +4,7 @@ Gerencia alunos, pagamentos, inadimplência e geração de cobranças WhatsApp.
 """
 import sqlite3
 import os
+import json
 import datetime
 import calendar
 import uuid
@@ -188,6 +189,28 @@ def init_db():
             observacoes TEXT,
             tipo TEXT DEFAULT 'externo',
             criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+        CREATE TABLE IF NOT EXISTS logs_auditoria_ia (
+            id SERIAL PRIMARY KEY,
+            usuario TEXT NOT NULL,
+            acao TEXT NOT NULL,
+            parametros TEXT,
+            resultado TEXT,
+            sucesso INTEGER DEFAULT 1,
+            detalhes TEXT,
+            confirmacao_previa INTEGER DEFAULT 0,
+            criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+        CREATE TABLE IF NOT EXISTS confirmacoes_ia (
+            id SERIAL PRIMARY KEY,
+            usuario TEXT NOT NULL,
+            acao TEXT NOT NULL,
+            alvo_id INTEGER,
+            alvo_nome TEXT,
+            dados_json TEXT,
+            status TEXT DEFAULT 'pendente',
+            criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            expira_em TIMESTAMP
         );
         """)
         conn.commit()
@@ -428,6 +451,36 @@ def init_db():
         observacoes TEXT,
         tipo TEXT DEFAULT 'externo',  -- 'externo', 'workshop', 'particular'
         criado_em TEXT DEFAULT (datetime('now', 'localtime'))
+    )
+    """)
+
+    # Tabela de Logs de Auditoria de Ações da IA
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS logs_auditoria_ia (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        usuario TEXT NOT NULL,
+        acao TEXT NOT NULL,
+        parametros TEXT,
+        resultado TEXT,
+        sucesso INTEGER DEFAULT 1,
+        detalhes TEXT,
+        confirmacao_previa INTEGER DEFAULT 0,
+        criado_em TEXT DEFAULT (datetime('now', 'localtime'))
+    )
+    """)
+
+    # Tabela de Confirmações Pendentes da IA (para ações destrutivas)
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS confirmacoes_ia (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        usuario TEXT NOT NULL,
+        acao TEXT NOT NULL,
+        alvo_id INTEGER,
+        alvo_nome TEXT,
+        dados_json TEXT,
+        status TEXT DEFAULT 'pendente',
+        criado_em TEXT DEFAULT (datetime('now', 'localtime')),
+        expira_em TEXT
     )
     """)
 
@@ -2902,6 +2955,138 @@ def listar_perfis_rapidos() -> List[Dict[str, Any]]:
             {"id": 1, "username": "natalia", "nome": "Natalia Garufe", "role": "admin", "titulo": "Gestão & Studio", "avatar": "🧘‍♀️"},
             {"id": 2, "username": "bruno", "nome": "Bruno Dev", "role": "dev", "titulo": "Desenvolvedor Master", "avatar": "💻"}
         ]
+
+# --- Auditoria de Ações da IA & Confirmações Seguras ---
+
+def registrar_log_auditoria_ia(
+    usuario: str,
+    acao: str,
+    parametros: Optional[Dict[str, Any]] = None,
+    resultado: str = "",
+    sucesso: bool = True,
+    detalhes: str = "",
+    confirmacao_previa: bool = False
+) -> int:
+    """Registra uma ação executada ou solicitada pela IA para auditoria transparente."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    params_json = json.dumps(parametros or {}, ensure_ascii=False)
+    agora_sp = obter_agora_sp().strftime("%Y-%m-%d %H:%M:%S")
+    cursor.execute("""
+    INSERT INTO logs_auditoria_ia (usuario, acao, parametros, resultado, sucesso, detalhes, confirmacao_previa, criado_em)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    """, (
+        str(usuario or "Usuário").strip(),
+        str(acao).strip(),
+        params_json,
+        str(resultado).strip(),
+        1 if sucesso else 0,
+        str(detalhes or "").strip(),
+        1 if confirmacao_previa else 0,
+        agora_sp
+    ))
+    log_id = cursor.lastrowid or 0
+    conn.commit()
+    conn.close()
+    return log_id
+
+def listar_logs_auditoria_ia(limit: int = 50) -> List[Dict[str, Any]]:
+    """Lista os logs mais recentes de auditoria de ações da IA."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+    SELECT id, usuario, acao, parametros, resultado, sucesso, detalhes, confirmacao_previa, criado_em
+    FROM logs_auditoria_ia
+    ORDER BY id DESC
+    LIMIT ?
+    """, (limit,))
+    rows = cursor.fetchall()
+    logs = []
+    for r in rows:
+        d = dict(r)
+        try:
+            d["parametros"] = json.loads(d.get("parametros") or "{}")
+        except Exception:
+            pass
+        d["sucesso"] = bool(d.get("sucesso"))
+        d["confirmacao_previa"] = bool(d.get("confirmacao_previa"))
+        logs.append(d)
+    conn.close()
+    return logs
+
+def criar_confirmacao_ia(
+    usuario: str,
+    acao: str,
+    alvo_id: Optional[int] = None,
+    alvo_nome: str = "",
+    dados: Optional[Dict[str, Any]] = None,
+    validade_minutos: int = 5
+) -> int:
+    """Armazena uma intenção de ação destrutiva que requer confirmação explícita do usuário."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    # Invalida confirmações anteriores pendentes deste usuário para evitar conflitos
+    cursor.execute("""
+    UPDATE confirmacoes_ia SET status = 'cancelado_substituido'
+    WHERE usuario = ? AND status = 'pendente'
+    """, (str(usuario or "Usuário").strip(),))
+    
+    agora = obter_agora_sp()
+    expira = agora + datetime.timedelta(minutes=validade_minutos)
+    dados_json = json.dumps(dados or {}, ensure_ascii=False)
+
+    cursor.execute("""
+    INSERT INTO confirmacoes_ia (usuario, acao, alvo_id, alvo_nome, dados_json, status, criado_em, expira_em)
+    VALUES (?, ?, ?, ?, ?, 'pendente', ?, ?)
+    """, (
+        str(usuario or "Usuário").strip(),
+        str(acao).strip(),
+        alvo_id,
+        str(alvo_nome or "").strip(),
+        dados_json,
+        agora.strftime("%Y-%m-%d %H:%M:%S"),
+        expira.strftime("%Y-%m-%d %H:%M:%S")
+    ))
+    conf_id = cursor.lastrowid or 0
+    conn.commit()
+    conn.close()
+    return conf_id
+
+def obter_confirmacao_ia_pendente(usuario: str) -> Optional[Dict[str, Any]]:
+    """Recupera confirmação ativa e não expirada para o usuário."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    agora_str = obter_agora_sp().strftime("%Y-%m-%d %H:%M:%S")
+    cursor.execute("""
+    SELECT id, usuario, acao, alvo_id, alvo_nome, dados_json, status, criado_em, expira_em
+    FROM confirmacoes_ia
+    WHERE usuario = ? AND status = 'pendente' AND expira_em >= ?
+    ORDER BY id DESC
+    LIMIT 1
+    """, (str(usuario or "Usuário").strip(), agora_str))
+    row = cursor.fetchone()
+    if not row:
+        conn.close()
+        return None
+    res = dict(row)
+    try:
+        res["dados"] = json.loads(res.get("dados_json") or "{}")
+    except Exception:
+        res["dados"] = {}
+    conn.close()
+    return res
+
+def concluir_confirmacao_ia(conf_id: int, status: str = "confirmado") -> bool:
+    """Atualiza o status de uma confirmação (ex: 'confirmado', 'cancelado', 'expirado')."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+    UPDATE confirmacoes_ia SET status = ? WHERE id = ?
+    """, (status, conf_id))
+    rows = cursor.rowcount
+    conn.commit()
+    conn.close()
+    return rows > 0
 
 # Inicializar ao importar
 init_db()
