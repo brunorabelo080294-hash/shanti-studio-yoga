@@ -1,8 +1,13 @@
 __pycache__/
 *.pyc
 .venv/
-*backup*
+*.db
 *.db-journal
+*.sql
+backend/backups/
+backend/*backup*.db
 .env
 .env.*
+!backend/backup_service.py
+!tests/test_backup_automatico.py
 

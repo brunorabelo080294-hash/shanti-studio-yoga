@@ -3401,6 +3401,14 @@ function setupSettings() {
       executarDiagnosticoManual();
     });
   }
+
+  // 4. Botão de Executar Backup Manual
+  const btnBackupAgora = document.getElementById('btn-executar-backup-agora');
+  if (btnBackupAgora) {
+    btnBackupAgora.addEventListener('click', () => {
+      dispararBackupManual();
+    });
+  }
 }
 
 // =============================================================================
@@ -3476,6 +3484,8 @@ async function carregarDiagnostico() {
           badgeTipo = `<span style="background: #e0f2fe; color: #0369a1; font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 4px;">🎙️ Áudio</span>`;
         } else if (l.tipo_evento === 'ping_keepalive') {
           badgeTipo = `<span style="background: #f1f5f9; color: #475569; font-size: 10px; font-weight: 600; padding: 1px 6px; border-radius: 4px;">📡 Ping</span>`;
+        } else if (l.tipo_evento === 'backup_automatico') {
+          badgeTipo = `<span style="background: #e0f2fe; color: #0284c7; font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 4px;">💾 Backup</span>`;
         } else {
           badgeTipo = `<span style="background: #fef3c7; color: #b45309; font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 4px;">🔍 Teste</span>`;
         }
@@ -3503,6 +3513,70 @@ async function carregarDiagnostico() {
           </div>
         `;
       }).join('');
+    }
+
+    // 4. Atualizar Card de Backup do Banco
+    if (data.backup) {
+      const b = data.backup;
+      const badgeDrive = document.getElementById('badge-backup-drive');
+      const elPasta = document.getElementById('backup-drive-pasta');
+      const elDriveDet = document.getElementById('backup-drive-detalhes');
+      const badgeUltimo = document.getElementById('badge-backup-ultimo');
+      const elData = document.getElementById('backup-ultimo-data');
+      const elTam = document.getElementById('backup-ultimo-tamanho');
+      const elProx = document.getElementById('backup-proximo-horario');
+      const bannerAlerta = document.getElementById('banner-alerta-backup');
+      const textoAlerta = document.getElementById('texto-alerta-backup');
+
+      if (badgeDrive) {
+        if (b.drive && b.drive.configurado) {
+          badgeDrive.textContent = 'Conectado';
+          badgeDrive.style.background = '#e8f5e9';
+          badgeDrive.style.color = '#2e7d32';
+        } else {
+          badgeDrive.textContent = 'Aguardando Setup';
+          badgeDrive.style.background = '#fef3c7';
+          badgeDrive.style.color = '#b45309';
+        }
+      }
+
+      if (elPasta) elPasta.textContent = (b.drive && b.drive.pasta_id) ? b.drive.pasta_id : 'Não configurada';
+      if (elDriveDet) {
+        if (b.drive && b.drive.email_servico) {
+          elDriveDet.textContent = `Conta: ${b.drive.email_servico}`;
+        } else {
+          elDriveDet.textContent = 'Cópia local ativa (Drive aguarda Service Account)';
+        }
+      }
+
+      if (badgeUltimo) {
+        if (b.sucesso === true) {
+          badgeUltimo.textContent = 'Sucesso';
+          badgeUltimo.style.background = '#e8f5e9';
+          badgeUltimo.style.color = '#2e7d32';
+        } else if (b.sucesso === false) {
+          badgeUltimo.textContent = 'Falha';
+          badgeUltimo.style.background = '#fee2e2';
+          badgeUltimo.style.color = '#b91c1c';
+        } else {
+          badgeUltimo.textContent = 'Pendente';
+          badgeUltimo.style.background = 'var(--shanti-sand)';
+          badgeUltimo.style.color = 'var(--shanti-stone)';
+        }
+      }
+
+      if (elData) elData.textContent = b.timestamp_formatado || b.timestamp || 'Hoje';
+      if (elTam) elTam.textContent = b.tamanho_formatado || '--';
+      if (elProx) elProx.textContent = b.proxima_execucao || 'Hoje às 03:00 (Brasília)';
+
+      if (bannerAlerta) {
+        if (b.sucesso === false && b.erro) {
+          bannerAlerta.style.display = 'block';
+          if (textoAlerta) textoAlerta.textContent = `Motivo: ${b.erro}`;
+        } else {
+          bannerAlerta.style.display = 'none';
+        }
+      }
     }
 
   } catch (err) {
@@ -3584,6 +3658,45 @@ async function executarDiagnosticoManual() {
   } catch (err) {
     console.error('Erro ao executar diagnóstico:', err);
     alert('Erro ao executar diagnóstico.');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = originalHtml;
+  }
+}
+
+async function dispararBackupManual() {
+  const btn = document.getElementById('btn-executar-backup-agora');
+  if (!btn) return;
+  const originalHtml = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> <span>Exportando Dump SQL...</span>';
+
+  try {
+    const token = localStorage.getItem('token_shanti') || '';
+    const headers = { 'Content-Type': 'application/json' };
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+
+    const res = await fetch('/api/backup/executar', {
+      method: 'POST',
+      headers: headers
+    });
+
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(errData.detail || 'Erro ao executar backup no servidor.');
+    }
+
+    const data = await res.json();
+    if (data.sucesso) {
+      showToast(`Backup gerado com sucesso! (${data.tamanho_formatado})`);
+    } else {
+      alert(`Falha no backup: ${data.erro || 'Erro desconhecido'}`);
+    }
+
+    await carregarDiagnostico();
+  } catch (err) {
+    console.error('Erro ao disparar backup manual:', err);
+    alert('Erro ao disparar backup: ' + err.message);
   } finally {
     btn.disabled = false;
     btn.innerHTML = originalHtml;

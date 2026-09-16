@@ -26,8 +26,10 @@ import backend.ai_service as ai
 import backend.pdf_service as pdf_service
 import backend.contract_service as contract_service
 import backend.autentique_service as autentique_service
+import backend.backup_service as backup_service
 
 app = FastAPI(title="Yoga Studio - WhatsApp AI Assistant")
+backup_service.iniciar_agendador_background(app)
 
 app.add_middleware(
     CORSMiddleware,
@@ -390,6 +392,7 @@ def api_diagnostico_resumo():
             "minutos_atras": minutos_kp,
             "mensagem": msg_kp
         },
+        "backup": backup_service.obter_status_backup(),
         "logs": ultimos_logs
     }
 
@@ -417,6 +420,36 @@ def api_health_check():
         )
         
     return {"status": "online", "service": "Studio Shanti API", "timestamp": datetime.datetime.now().isoformat()}
+
+# --- Endpoints de Backup Automático para o Google Drive ---
+
+@app.get("/api/backup/status")
+def api_backup_status():
+    """Retorna status da rotina de backup diário e do Google Drive."""
+    return backup_service.obter_status_backup()
+
+@app.post("/api/backup/executar")
+async def api_backup_executar(request: Request):
+    """Executa a rotina de backup sob demanda (manual)."""
+    usuario_operador = "Natália Garufe"
+    auth_header = request.headers.get("Authorization", "")
+    if auth_header.startswith("Bearer "):
+        token = auth_header.replace("Bearer ", "").strip()
+        usuario_db = db.obter_usuario_por_token(token)
+        if usuario_db:
+            usuario_operador = usuario_db.get("nome", usuario_operador)
+            
+    res = backup_service.executar_rotina_backup(origem=f"manual ({usuario_operador})")
+    return res
+
+@app.get("/api/backup/download-ultimo")
+def api_backup_download_ultimo():
+    """Permite baixar o arquivo .sql mais recente salvo no servidor."""
+    caminho = backup_service.obter_caminho_ultimo_backup()
+    if not caminho or not os.path.exists(caminho):
+        raise HTTPException(status_code=404, detail="Nenhum arquivo de backup encontrado.")
+    nome_arquivo = os.path.basename(caminho)
+    return FileResponse(caminho, filename=nome_arquivo, media_type="application/sql")
 
 @app.get("/api/alunos")
 def api_listar_alunos(status: Optional[str] = None):

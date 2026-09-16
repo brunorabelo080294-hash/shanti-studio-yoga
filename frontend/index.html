@@ -1204,6 +1204,92 @@
 
       </div>
 
+      <!-- Card de Backup Automático para o Google Drive -->
+      <div class="wa-card" id="card-backup-banco" style="border: 1px solid var(--shanti-sand-border); background: #ffffff; margin-top: 14px;">
+        <div class="wa-card-title" style="margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-cloud-arrow-up" style="color: var(--shanti-terracotta); font-size: 16px;"></i>
+            <span style="font-weight: 700; color: var(--shanti-forest); font-size: 15px;">Backup Automático do Banco de Dados</span>
+          </div>
+          <span id="badge-diag-backup" style="font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 12px; background: var(--shanti-sage-light); color: var(--shanti-forest); border: 0.5px solid var(--shanti-sage-border);">
+            ● Ativo (Diário)
+          </span>
+        </div>
+
+        <p style="font-size: 12px; color: var(--shanti-stone); margin-bottom: 14px; line-height: 1.4;">
+          Exportação completa diária (.sql) para proteção dos dados contra falhas de infraestrutura ou bugs. Os backups rodam diariamente às 03:00 (Brasília) e mantêm os últimos 30 dias de histórico.
+        </p>
+
+        <!-- Informações do Backup e do Google Drive -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px;">
+          <!-- Bloco Google Drive -->
+          <div style="background: var(--shanti-sand-light); border: 1px solid var(--shanti-sand-border); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+                <span style="font-size: 11.5px; font-weight: 700; color: var(--shanti-forest);"><i class="fa-brands fa-google-drive" style="color: #0f9d58;"></i> Google Drive</span>
+                <span id="badge-backup-drive" style="font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 6px; background: #fef3c7; color: #b45309;">
+                  Verificando...
+                </span>
+              </div>
+              <div style="font-size: 11px; color: var(--shanti-stone); margin-bottom: 4px;">
+                Pasta: <span id="backup-drive-pasta" style="font-weight: 600; color: var(--shanti-charcoal);">--</span>
+              </div>
+              <div style="font-size: 10.5px; color: var(--shanti-stone);">
+                Retenção: <span style="font-weight: 600; color: var(--shanti-forest);">30 dias de histórico</span>
+              </div>
+            </div>
+            <div style="margin-top: 8px; padding-top: 6px; border-top: 0.5px dashed var(--shanti-sand-border); font-size: 10px; color: var(--shanti-stone);" id="backup-drive-detalhes">
+              Gratuito via Service Account
+            </div>
+          </div>
+
+          <!-- Bloco Último Backup -->
+          <div style="background: var(--shanti-sand-light); border: 1px solid var(--shanti-sand-border); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+                <span style="font-size: 11.5px; font-weight: 700; color: var(--shanti-forest);"><i class="fa-solid fa-clock-rotate-left" style="color: var(--shanti-terracotta);"></i> Último Backup</span>
+                <span id="badge-backup-ultimo" style="font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 6px; background: var(--shanti-sand); color: var(--shanti-stone);">
+                  --
+                </span>
+              </div>
+              <div style="font-size: 11px; color: var(--shanti-stone); margin-bottom: 4px;">
+                Data: <b id="backup-ultimo-data" style="color: var(--shanti-charcoal);">--</b>
+              </div>
+              <div style="font-size: 10.5px; color: var(--shanti-stone);">
+                Tamanho: <span id="backup-ultimo-tamanho" style="font-weight: 600; color: var(--shanti-forest);">--</span>
+              </div>
+            </div>
+            <div style="margin-top: 8px; padding-top: 6px; border-top: 0.5px dashed var(--shanti-sand-border); font-size: 10px; color: var(--shanti-stone);">
+              Próximo: <span id="backup-proximo-horario" style="font-weight: 600; color: var(--shanti-forest);">Hoje às 03:00 (Brasília)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Banner de Alerta se houver erro recente -->
+        <div id="banner-alerta-backup" style="display: none; background: #fef2f2; border: 1px solid #f87171; border-radius: 10px; padding: 10px 12px; margin-bottom: 12px; font-size: 11.5px; color: #991b1b;">
+          <div style="display: flex; align-items: center; gap: 8px; font-weight: 700; margin-bottom: 4px;">
+            <i class="fa-solid fa-triangle-exclamation" style="color: #dc2626;"></i>
+            <span>Atenção: Houve uma falha no último backup automático!</span>
+          </div>
+          <div id="texto-alerta-backup" style="margin-bottom: 8px; font-size: 11px; color: #7f1d1d;"></div>
+          <a id="link-whatsapp-suporte-backup" href="https://wa.me/5522988423287?text=Ol%C3%A1%20Nat%C3%A1lia,%20houve%20um%20alerta%20de%20falha%20no%20backup%20do%20sistema%20Shanti%20Studio." target="_blank" class="wa-btn-primary" style="background: #dc2626; color: #ffffff; text-decoration: none; padding: 6px 10px; border-radius: 6px; font-size: 10.5px; display: inline-flex; align-items: center; gap: 6px;">
+            <i class="fa-brands fa-whatsapp"></i> Notificar Suporte Técnico
+          </a>
+        </div>
+
+        <!-- Botões de Ação: Fazer Backup Agora e Baixar Cópia -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+          <button type="button" id="btn-executar-backup-agora" class="wa-btn-primary" style="background: var(--shanti-forest); border: none; color: #ffffff; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 9px 12px; border-radius: 12px; cursor: pointer; transition: all 0.2s; font-size: 12px;">
+            <i class="fa-solid fa-play"></i>
+            <span>Fazer Backup Agora</span>
+          </button>
+          <a id="btn-download-backup-sql" href="/api/backup/download-ultimo" download class="wa-btn-primary" style="background: var(--shanti-sand); border: 1px solid var(--shanti-sand-border); color: var(--shanti-forest); font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 9px 12px; border-radius: 12px; text-decoration: none; transition: all 0.2s; font-size: 12px;">
+            <i class="fa-solid fa-download"></i>
+            <span>Baixar Cópia (.SQL)</span>
+          </a>
+        </div>
+      </div>
+
     </div>
   </section>
 
