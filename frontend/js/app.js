@@ -147,9 +147,14 @@ async function atualizarTudo() {
   await carregarEstudio();
   await carregarContratos();
   await carregarRetencaoAusentes();
+  await carregarReposicoesAdmin();
   const screenCal = document.getElementById('screen-calendario');
   if (screenCal && screenCal.classList.contains('active')) {
     await carregarCalendario();
+  }
+  const screenGestao = document.getElementById('screen-gestao-aluno');
+  if (screenGestao && screenGestao.classList.contains('active')) {
+    await carregarGestaoAluno();
   }
 }
 
@@ -390,6 +395,7 @@ function setupNavigation() {
       if (tab.dataset.tab === 'financeiro') carregarFinanceiro();
       if (tab.dataset.tab === 'estudio') carregarEstudio();
       if (tab.dataset.tab === 'contratos') carregarContratos();
+      if (tab.dataset.tab === 'gestao-aluno') carregarGestaoAluno();
     });
   });
 
@@ -5514,3 +5520,735 @@ window.excluirEventoAgenda = excluirEventoAgenda;
 window.confirmarExclusaoEventoModal = confirmarExclusaoEventoModal;
 window.renderizarEventosDia = renderizarEventosDia;
 window.abrirModalAjudaCalendario = abrirModalAjudaCalendario;
+
+// =============================================================================
+// GESTÃO ADMIN: ÁREA DO ALUNO, QR CODE, BIBLIOTECA, REPOSIÇÕES E CONQUISTAS
+// =============================================================================
+
+let cacheAlunosAcesso = [];
+let cacheConteudosBiblioteca = [];
+
+function setupSubabasGestaoAluno() {
+  const container = document.getElementById('subnav-gestao-aluno');
+  if (!container) return;
+  const botoes = container.querySelectorAll('.wa-filter-chip');
+  botoes.forEach(btn => {
+    btn.addEventListener('click', () => {
+      botoes.forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.subpane-gestao-aluno').forEach(p => {
+        p.classList.remove('active');
+        p.style.display = 'none';
+      });
+
+      btn.classList.add('active');
+      const subtab = btn.dataset.subtab;
+      const targetPane = document.getElementById(`subpane-${subtab}`);
+      if (targetPane) {
+        targetPane.classList.add('active');
+        targetPane.style.display = 'block';
+      }
+
+      if (subtab === 'qrcode') {
+        carregarAlunosAcesso();
+      } else if (subtab === 'biblioteca') {
+        carregarBibliotecaAdmin();
+      } else if (subtab === 'reposicoes') {
+        carregarReposicoesAdmin();
+      } else if (subtab === 'conquistas') {
+        carregarConquistasAdmin();
+      }
+    });
+  });
+}
+
+async function carregarGestaoAluno() {
+  setupSubabasGestaoAluno();
+  await Promise.all([
+    carregarConfigAlunoApp(),
+    carregarAlunosAcesso(),
+    carregarReposicoesAdmin(),
+    carregarBibliotecaAdmin(),
+    carregarConquistasAdmin()
+  ]);
+}
+
+async function carregarConfigAlunoApp() {
+  try {
+    const res = await fetch('/api/admin/aluno-app/configuracoes');
+    if (!res.ok) return;
+    const data = await res.json();
+    
+    const appUrl = data.app_aluno_url || `${window.location.origin}/aluno`;
+    const qrImg = document.getElementById('img-qrcode-aluno');
+    if (qrImg) {
+      qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(appUrl)}&margin=1`;
+    }
+    const linkDisplay = document.getElementById('link-aluno-url-display');
+    if (linkDisplay) {
+      linkDisplay.href = appUrl;
+      linkDisplay.textContent = appUrl;
+    }
+  } catch (err) {
+    console.warn('Erro ao carregar configurações do App do Aluno:', err);
+  }
+}
+
+function copiarLinkAppAluno() {
+  const url = `${window.location.origin}/aluno`;
+  navigator.clipboard.writeText(url).then(() => {
+    showToast('Link do App do Aluno copiado! ✨');
+  }).catch(() => {
+    prompt('Copie o link abaixo:', url);
+  });
+}
+
+function imprimirPlacaRecepcao() {
+  const url = `${window.location.origin}/aluno`;
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=600x600&data=${encodeURIComponent(url)}&margin=1`;
+  
+  const printWindow = window.open('', '_blank', 'width=800,height=900');
+  if (!printWindow) {
+    alert('Por favor, permita pop-ups no navegador para imprimir a placa.');
+    return;
+  }
+  printWindow.document.write(`
+    <!DOCTYPE html>
+    <html lang="pt-BR">
+    <head>
+      <meta charset="UTF-8">
+      <title>Placa de Balcão - App do Aluno Studio Shanti</title>
+      <style>
+        @page { size: A4 portrait; margin: 15mm; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+          background: #FAF7F2;
+          color: #232D20;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          min-height: 100vh;
+          padding: 20px;
+        }
+        .placa-card {
+          width: 100%;
+          max-width: 520px;
+          background: #FFFFFF;
+          border: 2.5px solid #3F4E3A;
+          border-radius: 28px;
+          padding: 44px 36px;
+          text-align: center;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 16px;
+        }
+        .placa-logo {
+          width: 68px;
+          height: 68px;
+          background: #FAF7F2;
+          border: 2px solid #3F4E3A;
+          border-radius: 18px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 34px;
+        }
+        .placa-brand {
+          font-size: 30px;
+          font-weight: 700;
+          color: #3F4E3A;
+        }
+        .placa-sub {
+          font-size: 13px;
+          color: #7D8878;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 0.12em;
+        }
+        .placa-qr-box {
+          background: #FAF7F2;
+          border: 2px solid #3F4E3A;
+          border-radius: 24px;
+          padding: 20px;
+          margin: 6px 0;
+          display: inline-block;
+        }
+        .placa-qr-img {
+          width: 230px;
+          height: 230px;
+          display: block;
+          border-radius: 10px;
+        }
+        .placa-instrucao {
+          font-size: 18px;
+          font-weight: 800;
+          color: #B8674A;
+        }
+        .placa-passos {
+          font-size: 13.5px;
+          color: #4A5646;
+          line-height: 1.6;
+          max-width: 420px;
+        }
+        .placa-url {
+          font-size: 13.5px;
+          font-weight: 700;
+          color: #3F4E3A;
+          background: #FAF7F2;
+          padding: 7px 18px;
+          border-radius: 999px;
+          border: 1px solid #ECE7DE;
+        }
+        .placa-footer {
+          font-style: italic;
+          font-size: 14px;
+          color: #7D8878;
+          margin-top: 8px;
+        }
+        @media print {
+          body { background: #FFFFFF; }
+          .placa-card { box-shadow: none; border-width: 2px; }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="placa-card">
+        <div class="placa-logo">🧘‍♀️</div>
+        <div>
+          <h1 class="placa-brand">Studio Shanti</h1>
+          <p class="placa-sub">Espaço Exclusivo do Aluno</p>
+        </div>
+        <div class="placa-qr-box">
+          <img src="${qrUrl}" alt="QR Code App do Aluno" class="placa-qr-img">
+        </div>
+        <div class="placa-instrucao">Aponte a câmera do seu celular</div>
+        <p class="placa-passos">
+          Acompanhe sua frequência, comemore suas conquistas por presença, solicite reposições e acesse leituras exclusivas.
+        </p>
+        <div class="placa-url">${url}</div>
+        <div class="placa-footer">"Presente no agora, em paz consigo mesmo." · Namastê 🙏</div>
+      </div>
+      <script>
+        window.onload = function() {
+          setTimeout(function() {
+            window.print();
+          }, 600);
+        };
+      <\/script>
+    </body>
+    </html>
+  `);
+  printWindow.document.close();
+}
+
+async function carregarAlunosAcesso() {
+  try {
+    const res = await fetch('/api/alunos');
+    if (!res.ok) return;
+    const alunos = await res.json();
+    cacheAlunosAcesso = alunos.filter(a => a.status === 'ativo' || a.status === 'matriculado');
+    renderizarAlunosAcesso(cacheAlunosAcesso);
+  } catch (err) {
+    console.warn('Erro ao carregar alunos para acesso:', err);
+  }
+}
+
+function filtrarAlunosAcesso() {
+  const busca = (document.getElementById('busca-aluno-acesso')?.value || '').toLowerCase();
+  const filtrados = cacheAlunosAcesso.filter(a => {
+    return (a.nome || '').toLowerCase().includes(busca) ||
+           (a.telefone || '').includes(busca) ||
+           (a.cpf || '').includes(busca);
+  });
+  renderizarAlunosAcesso(filtrados);
+}
+
+function renderizarAlunosAcesso(lista) {
+  const container = document.getElementById('lista-alunos-acesso');
+  const badgeStats = document.getElementById('badge-acessos-stats');
+  if (badgeStats) badgeStats.textContent = `${lista.length} Alunos Ativos`;
+
+  if (!container) return;
+  if (!lista || lista.length === 0) {
+    container.innerHTML = `<p style="font-size:12px; color:var(--shanti-stone); text-align:center; padding:16px;">Nenhum aluno encontrado.</p>`;
+    return;
+  }
+
+  container.innerHTML = lista.map(al => {
+    let statusLabel = 'Sem Senha';
+    let statusColor = '#9ca3af';
+    let statusBg = '#f3f4f6';
+
+    if (al.senha_hash) {
+      if (al.primeiro_acesso === 1) {
+        statusLabel = 'Senha Provisória Gerada';
+        statusColor = '#b45309';
+        statusBg = '#fef3c7';
+      } else {
+        statusLabel = 'Senha Pessoal Ativa ✓';
+        statusColor = '#15803d';
+        statusBg = '#dcfce7';
+      }
+    }
+
+    return `
+      <div style="background:var(--shanti-sand-light); border:1px solid var(--shanti-sand-border); border-radius:12px; padding:10px 14px; display:flex; justify-content:space-between; align-items:center; gap:10px;">
+        <div style="flex:1; min-width:0;">
+          <div style="font-weight:700; font-size:13.5px; color:var(--shanti-charcoal); display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+            ${al.nome}
+            <span style="font-size:10.5px; padding:1px 6px; border-radius:8px; background:${statusBg}; color:${statusColor}; font-weight:600;">
+              ${statusLabel}
+            </span>
+          </div>
+          <div style="font-size:11.5px; color:var(--shanti-stone); margin-top:2px;">
+            WhatsApp: <b>${al.telefone || 'Não informado'}</b> • Plano: ${al.plano || 'Regular'}
+          </div>
+        </div>
+        <div>
+          <button type="button" class="wa-btn-primary" onclick="gerarSenhaTempAlunoClick(${al.id})" style="background:var(--shanti-forest); color:#ffffff; border:none; padding:6px 12px; border-radius:16px; font-size:11.5px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:5px; white-space:nowrap;">
+            <i class="fa-solid fa-key"></i> ${al.senha_hash ? 'Resetar Senha' : 'Criar Senha'}
+          </button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+async function gerarSenhaTempAlunoClick(alunoId) {
+  try {
+    const res = await fetch('/api/admin/aluno-app/gerar-senha-temporaria', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ aluno_id: alunoId })
+    });
+    const data = await res.json();
+    if (!res.ok || !data.sucesso) {
+      alert(data.detail || 'Erro ao gerar senha temporária.');
+      return;
+    }
+
+    document.getElementById('st-aluno-nome').textContent = data.aluno_nome;
+    document.getElementById('st-senha-temp').textContent = data.senha_temporaria;
+
+    const btnWa = document.getElementById('st-btn-whatsapp');
+    if (btnWa && data.link_whatsapp) {
+      btnWa.href = data.link_whatsapp;
+    }
+
+    abrirModal('modal-senha-temp-gerada');
+    await carregarAlunosAcesso();
+  } catch (err) {
+    console.error('Erro ao gerar senha:', err);
+    alert('Erro de comunicação.');
+  }
+}
+
+async function carregarBibliotecaAdmin() {
+  try {
+    const res = await fetch('/api/admin/biblioteca');
+    if (!res.ok) return;
+    cacheConteudosBiblioteca = await res.json();
+    renderizarBibliotecaAdmin(cacheConteudosBiblioteca);
+  } catch (err) {
+    console.warn('Erro ao carregar biblioteca:', err);
+  }
+}
+
+function renderizarBibliotecaAdmin(lista) {
+  const container = document.getElementById('lista-conteudos-biblioteca');
+  if (!container) return;
+  if (!lista || lista.length === 0) {
+    container.innerHTML = `<div style="text-align:center; padding:20px; font-size:13px; color:var(--shanti-stone); background:var(--shanti-sand-light); border:1px dashed var(--shanti-sand-border); border-radius:12px;">Nenhuma leitura ou material publicado ainda. Clique em "+ Nova Leitura" acima.</div>`;
+    return;
+  }
+
+  container.innerHTML = lista.map(c => {
+    const isPub = c.status === 'publicado';
+    return `
+      <div style="background:var(--shanti-sand-light); border:1px solid var(--shanti-sand-border); border-radius:12px; padding:12px 14px; display:flex; justify-content:space-between; align-items:flex-start; gap:10px;">
+        <div style="flex:1; min-width:0;">
+          <div style="display:flex; align-items:center; gap:6px; margin-bottom:4px; flex-wrap:wrap;">
+            <span style="font-weight:700; font-size:14px; color:var(--shanti-charcoal);">${c.titulo}</span>
+            <span style="font-size:10px; font-weight:700; padding:2px 6px; border-radius:6px; background:${isPub ? '#dcfce7' : '#f3f4f6'}; color:${isPub ? '#15803d' : '#6b7280'};">
+              ${isPub ? '● Publicado' : 'Rascunho'}
+            </span>
+            <span style="font-size:10.5px; background:rgba(63,78,58,0.08); color:var(--shanti-forest); padding:2px 6px; border-radius:6px;">
+              ${c.tipo === 'pdf' ? '<i class="fa-solid fa-file-pdf"></i> Arquivo PDF' : '<i class="fa-solid fa-align-left"></i> Artigo'}
+            </span>
+          </div>
+          ${c.subtitulo ? `<div style="font-size:12px; color:var(--shanti-stone); margin-bottom:4px;">${c.subtitulo}</div>` : ''}
+          <div style="font-size:11px; color:var(--shanti-stone);">
+            Criado em: <b>${formatarDataBR(c.criado_em)}</b> ${c.arquivo_url ? `• <a href="${c.arquivo_url}" target="_blank" style="color:var(--shanti-forest); text-decoration:underline;">Ver anexo</a>` : ''}
+          </div>
+        </div>
+        <div style="display:flex; gap:6px;">
+          <button type="button" class="wa-btn-primary" onclick="editarConteudoBibliotecaClick(${c.id})" style="padding:5px 9px; font-size:11.5px; background:#ffffff; color:var(--shanti-forest); border:1px solid var(--shanti-sand-border); border-radius:10px;" title="Editar">
+            <i class="fa-solid fa-pen"></i>
+          </button>
+          <button type="button" class="wa-btn-primary" onclick="excluirConteudoBibliotecaClick(${c.id})" style="padding:5px 9px; font-size:11.5px; background:#ffffff; color:#b91c1c; border:1px solid #fca5a5; border-radius:10px;" title="Excluir">
+            <i class="fa-solid fa-trash-can"></i>
+          </button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function abrirModalCriarLeitura() {
+  document.getElementById('modal-biblioteca-title').innerHTML = '<i class="fa-solid fa-book-open" style="color:var(--shanti-terracotta);"></i> Nova Leitura';
+  document.getElementById('bib-conteudo-id').value = '';
+  document.getElementById('bib-titulo').value = '';
+  document.getElementById('bib-subtitulo').value = '';
+  document.getElementById('bib-tipo').value = 'texto';
+  document.getElementById('bib-conteudo').value = '';
+  document.getElementById('bib-status').value = 'publicado';
+  const fileInp = document.getElementById('bib-arquivo-file');
+  if (fileInp) fileInp.value = '';
+  alternarTipoConteudoBiblioteca();
+  abrirModal('modal-conteudo-biblioteca');
+}
+
+function alternarTipoConteudoBiblioteca() {
+  const tipo = document.getElementById('bib-tipo').value;
+  const grpTexto = document.getElementById('group-bib-texto');
+  const grpArquivo = document.getElementById('group-bib-arquivo');
+  if (tipo === 'pdf') {
+    if (grpArquivo) grpArquivo.style.display = 'block';
+  } else {
+    if (grpArquivo) grpArquivo.style.display = 'none';
+  }
+}
+
+async function salvarConteudoBibliotecaForm(e) {
+  e.preventDefault();
+  const idVal = document.getElementById('bib-conteudo-id').value;
+  const titulo = document.getElementById('bib-titulo').value.trim();
+  const subtitulo = document.getElementById('bib-subtitulo').value.trim();
+  const tipo = document.getElementById('bib-tipo').value;
+  const conteudo = document.getElementById('bib-conteudo').value.trim();
+  const status = document.getElementById('bib-status').value;
+  const fileInput = document.getElementById('bib-arquivo-file');
+  const file = fileInput && fileInput.files && fileInput.files[0];
+
+  const btn = document.getElementById('btn-salvar-conteudo-bib');
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Salvando...';
+  }
+
+  try {
+    if (file) {
+      const formData = new FormData();
+      formData.append('arquivo', file);
+      formData.append('titulo', titulo);
+      formData.append('subtitulo', subtitulo);
+      formData.append('tipo', tipo);
+      formData.append('conteudo', conteudo);
+      formData.append('status', status);
+
+      const res = await fetch('/api/admin/biblioteca/upload', {
+        method: 'POST',
+        body: formData
+      });
+      if (!res.ok) throw new Error('Erro ao fazer upload do material.');
+    } else if (idVal) {
+      const res = await fetch(`/api/admin/biblioteca/${idVal}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ titulo, subtitulo, tipo, conteudo, status })
+      });
+      if (!res.ok) throw new Error('Erro ao atualizar leitura.');
+    } else {
+      const res = await fetch('/api/admin/biblioteca', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ titulo, subtitulo, tipo, conteudo, status })
+      });
+      if (!res.ok) throw new Error('Erro ao criar leitura.');
+    }
+
+    fecharModal('modal-conteudo-biblioteca');
+    showToast('Leitura salva com sucesso! ✨');
+    await carregarBibliotecaAdmin();
+  } catch (err) {
+    console.error('Erro:', err);
+    alert(err.message || 'Erro ao salvar conteúdo.');
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fa-solid fa-check"></i> Salvar Leitura';
+    }
+  }
+}
+
+function editarConteudoBibliotecaClick(id) {
+  const item = cacheConteudosBiblioteca.find(c => c.id == id);
+  if (!item) return;
+
+  document.getElementById('modal-biblioteca-title').innerHTML = '<i class="fa-solid fa-pen" style="color:var(--shanti-terracotta);"></i> Editar Leitura';
+  document.getElementById('bib-conteudo-id').value = item.id;
+  document.getElementById('bib-titulo').value = item.titulo || '';
+  document.getElementById('bib-subtitulo').value = item.subtitulo || '';
+  document.getElementById('bib-tipo').value = item.tipo || 'texto';
+  document.getElementById('bib-conteudo').value = item.conteudo || '';
+  document.getElementById('bib-status').value = item.status || 'publicado';
+  alternarTipoConteudoBiblioteca();
+  abrirModal('modal-conteudo-biblioteca');
+}
+
+async function excluirConteudoBibliotecaClick(id) {
+  if (!confirm('Deseja realmente excluir este conteúdo da biblioteca?')) return;
+  try {
+    const res = await fetch(`/api/admin/biblioteca/${id}`, { method: 'DELETE' });
+    if (res.ok) {
+      showToast('Conteúdo excluído.');
+      await carregarBibliotecaAdmin();
+    }
+  } catch (err) {
+    alert('Erro ao excluir.');
+  }
+}
+
+async function carregarReposicoesAdmin() {
+  const filtro = document.getElementById('filtro-status-reposicao')?.value || '';
+  const badgeNav = document.getElementById('badge-reposicoes-admin');
+  const badgeSub = document.getElementById('badge-sub-reposicoes');
+
+  try {
+    const url = filtro ? `/api/admin/reposicoes?status=${filtro}` : '/api/admin/reposicoes';
+    const res = await fetch(url);
+    if (!res.ok) return;
+    const repos = await res.json();
+
+    const pendentesCount = repos.filter(r => r.status === 'pendente').length;
+    if (badgeNav) {
+      badgeNav.textContent = pendentesCount;
+      badgeNav.style.display = pendentesCount > 0 ? 'inline-block' : 'none';
+    }
+    if (badgeSub) {
+      badgeSub.textContent = pendentesCount;
+      badgeSub.style.display = pendentesCount > 0 ? 'inline-block' : 'none';
+    }
+
+    renderizarReposicoesAdmin(repos);
+  } catch (err) {
+    console.warn('Erro ao carregar reposições:', err);
+  }
+}
+
+function renderizarReposicoesAdmin(lista) {
+  const container = document.getElementById('lista-solicitacoes-reposicao-admin');
+  if (!container) return;
+
+  if (!lista || lista.length === 0) {
+    container.innerHTML = `<div style="text-align:center; padding:20px; font-size:13px; color:var(--shanti-stone); background:var(--shanti-sand-light); border:1px dashed var(--shanti-sand-border); border-radius:12px;">Nenhuma solicitação de reposição encontrada.</div>`;
+    return;
+  }
+
+  container.innerHTML = lista.map(r => {
+    const st = r.status || 'pendente';
+    let badgeBg = '#fef3c7';
+    let badgeColor = '#b45309';
+    let statusLabel = 'Pendente';
+    if (st === 'aprovada') {
+      badgeBg = '#dcfce7';
+      badgeColor = '#15803d';
+      statusLabel = 'Aprovada';
+    } else if (st === 'rejeitada') {
+      badgeBg = '#fee2e2';
+      badgeColor = '#b91c1c';
+      statusLabel = 'Recusada';
+    }
+
+    let telDig = (r.aluno_telefone || '').replace(/\D/g, '');
+    if (telDig && !telDig.startsWith('55')) telDig = '55' + telDig;
+
+    return `
+      <div style="background:var(--shanti-sand-light); border:1px solid var(--shanti-sand-border); border-radius:12px; padding:12px 14px; display:flex; flex-direction:column; gap:8px;">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
+          <div>
+            <span style="font-weight:700; font-size:14px; color:var(--shanti-charcoal);">${r.aluno_nome}</span>
+            <div style="font-size:12px; color:var(--shanti-stone); margin-top:2px;">
+              Data da Falta: <b>${formatarDataBR(r.data_falta)}</b> ${r.data_sugerida ? `• Pretendida: <b>${formatarDataBR(r.data_sugerida)}</b>` : ''}
+            </div>
+          </div>
+          <span style="font-size:11px; font-weight:700; padding:2px 8px; border-radius:8px; background:${badgeBg}; color:${badgeColor};">
+            ${statusLabel}
+          </span>
+        </div>
+
+        ${r.motivo ? `<div style="font-size:12px; color:var(--shanti-charcoal); background:#ffffff; padding:6px 10px; border-radius:8px; border:0.5px solid var(--shanti-sand-border);"><b>Motivo:</b> ${r.motivo}</div>` : ''}
+        ${r.resposta_admin ? `<div style="font-size:11.5px; color:var(--shanti-forest);"><b>Resposta:</b> ${r.resposta_admin}</div>` : ''}
+
+        <div style="display:flex; gap:6px; margin-top:4px; flex-wrap:wrap;">
+          ${st === 'pendente' ? `
+            <button type="button" class="wa-btn-primary" onclick="abrirModalResponderReposicaoClick(${r.id}, '${(r.aluno_nome || '').replace(/'/g, "\\'")}', '${r.data_falta}', '${(r.motivo || '').replace(/'/g, "\\'")}', '${r.aluno_telefone || ''}')" style="background:var(--shanti-forest); color:#ffffff; border:none; padding:5px 12px; border-radius:14px; font-size:11.5px; font-weight:600; cursor:pointer;">
+              <i class="fa-solid fa-reply"></i> Responder / Alocar
+            </button>
+          ` : `
+            <button type="button" class="wa-btn-primary" onclick="abrirModalResponderReposicaoClick(${r.id}, '${(r.aluno_nome || '').replace(/'/g, "\\'")}', '${r.data_falta}', '${(r.motivo || '').replace(/'/g, "\\'")}', '${r.aluno_telefone || ''}')" style="background:#ffffff; color:var(--shanti-forest); border:1px solid var(--shanti-sand-border); padding:5px 12px; border-radius:14px; font-size:11.5px; font-weight:600; cursor:pointer;">
+              <i class="fa-solid fa-pen"></i> Alterar Resposta
+            </button>
+          `}
+
+          ${telDig ? `
+            <a href="https://wa.me/${telDig}" target="_blank" class="wa-btn-primary" style="background:var(--shanti-whatsapp-green); color:#ffffff; text-decoration:none; padding:5px 12px; border-radius:14px; font-size:11.5px; font-weight:600; display:inline-flex; align-items:center; gap:5px;">
+              <i class="fa-brands fa-whatsapp"></i> Conversar
+            </a>
+          ` : ''}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function abrirModalResponderReposicaoClick(id, alunoNome, dataFalta, motivo, telefone) {
+  document.getElementById('resp-repo-id').value = id;
+  document.getElementById('resp-repo-alunonome').value = alunoNome;
+  document.getElementById('resp-repo-telefone').value = telefone || '';
+  document.getElementById('resp-repo-aluno').textContent = alunoNome;
+  document.getElementById('resp-repo-data-falta').textContent = formatarDataBR(dataFalta);
+  document.getElementById('resp-repo-motivo').textContent = motivo ? `Motivo: ${motivo}` : 'Sem motivo detalhado';
+
+  const selTurma = document.getElementById('resp-repo-turma');
+  selTurma.innerHTML = '<option value="">-- Selecione a Turma de Destino --</option>';
+  if (state.turmas) {
+    state.turmas.forEach(t => {
+      selTurma.innerHTML += `<option value="${t.id}">${t.nome} (${t.dias_semana} às ${t.horario})</option>`;
+    });
+  }
+
+  abrirModal('modal-responder-reposicao');
+}
+
+async function processarRespostaReposicao(e) {
+  e.preventDefault();
+  const id = document.getElementById('resp-repo-id').value;
+  const status = document.getElementById('resp-repo-status').value;
+  const turmaId = document.getElementById('resp-repo-turma').value || null;
+  const dataSug = document.getElementById('resp-repo-data-sugerida').value || null;
+  const msg = document.getElementById('resp-repo-msg').value.trim();
+  const tel = document.getElementById('resp-repo-telefone').value;
+  const alunoNome = document.getElementById('resp-repo-alunonome').value;
+
+  try {
+    const res = await fetch(`/api/admin/reposicoes/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        status: status,
+        resposta_admin: msg,
+        turma_destino_id: turmaId ? parseInt(turmaId, 10) : null,
+        data_sugerida: dataSug
+      })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || 'Erro ao processar.');
+
+    fecharModal('modal-responder-reposicao');
+    showToast(data.mensagem || 'Resposta registrada com sucesso!');
+    await carregarReposicoesAdmin();
+
+    if (tel) {
+      let telDig = tel.replace(/\D/g, '');
+      if (telDig && !telDig.startsWith('55')) telDig = '55' + telDig;
+      const primeiroNome = alunoNome.split(' ')[0];
+      const txtStatus = status === 'aprovada' ? 'confirmada' : 'não pôde ser aprovada no momento';
+      const msgWa = encodeURIComponent(
+        `Olá, ${primeiroNome}! 🧘‍♀️ Sobre sua solicitação de reposição no Shanti Studio:\n\n` +
+        `Sua reposição foi *${txtStatus}*! ${msg ? `\n\n"${msg}"` : ''}\n\nQualquer dúvida me avise. Namastê! 🙏`
+      );
+      if (confirm(`Deseja notificar ${primeiroNome} no WhatsApp agora?`)) {
+        window.open(`https://wa.me/${telDig}?text=${msgWa}`, '_blank');
+      }
+    }
+  } catch (err) {
+    alert(err.message || 'Erro ao responder solicitação.');
+  }
+}
+
+async function carregarConquistasAdmin() {
+  try {
+    const res = await fetch('/api/admin/conquistas');
+    if (!res.ok) return;
+    const ranking = await res.json();
+
+    let totalDesbloq = 0;
+    ranking.forEach(r => {
+      totalDesbloq += (r.marcos || []).filter(m => m.desbloqueado).length;
+    });
+
+    const badgeTotal = document.getElementById('badge-total-conquistas-desbloqueadas');
+    if (badgeTotal) badgeTotal.textContent = `${totalDesbloq} Conquistas Alcançadas`;
+
+    renderizarMuralConquistas(ranking);
+  } catch (err) {
+    console.warn('Erro ao carregar mural de conquistas:', err);
+  }
+}
+
+function renderizarMuralConquistas(ranking) {
+  const container = document.getElementById('lista-mural-conquistas');
+  if (!container) return;
+
+  if (!ranking || ranking.length === 0) {
+    container.innerHTML = `<div style="text-align:center; padding:20px; font-size:13px; color:var(--shanti-stone); background:var(--shanti-sand-light); border:1px dashed var(--shanti-sand-border); border-radius:12px;">Nenhum aluno com registro de aulas.</div>`;
+    return;
+  }
+
+  container.innerHTML = ranking.map((al, idx) => {
+    const marcos = al.marcos || [];
+
+    return `
+      <div style="background:var(--shanti-sand-light); border:1px solid var(--shanti-sand-border); border-radius:12px; padding:12px 14px; display:flex; flex-direction:column; gap:8px;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span style="font-size:14px; font-weight:800; color:${idx < 3 ? 'var(--shanti-terracotta)' : 'var(--shanti-stone)'};">
+              #${idx + 1}
+            </span>
+            <div>
+              <span style="font-weight:700; font-size:14px; color:var(--shanti-charcoal);">${al.nome}</span>
+              <div style="font-size:11.5px; color:var(--shanti-stone);">
+                Total acumulado: <b style="color:var(--shanti-forest); font-size:12.5px;">${al.total_presencas} aulas</b>
+              </div>
+            </div>
+          </div>
+          ${al.link_whatsapp_incentivo ? `
+            <a href="${al.link_whatsapp_incentivo}" target="_blank" class="wa-btn-primary" style="background:var(--shanti-whatsapp-green); color:#ffffff; text-decoration:none; padding:5px 12px; border-radius:14px; font-size:11.5px; font-weight:600; display:inline-flex; align-items:center; gap:5px;">
+              <i class="fa-brands fa-whatsapp"></i> Incentivar
+            </a>
+          ` : ''}
+        </div>
+
+        <div style="display:flex; gap:6px; flex-wrap:wrap; margin-top:2px;">
+          ${marcos.map(m => {
+            const desb = m.desbloqueado;
+            return `
+              <span style="font-size:11px; padding:3px 8px; border-radius:10px; font-weight:600; display:inline-flex; align-items:center; gap:4px; ${desb ? 'background:#FAF7F2; color:#B8674A; border:1px solid rgba(184,103,74,0.3);' : 'background:#ECE7DE; color:#9BA596; opacity:0.6;'}">
+                <i class="fa-solid ${desb ? m.icone : 'fa-lock'}"></i> ${m.marco} aulas
+              </span>
+            `;
+          }).join('')}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// Expor funções no escopo global
+window.carregarGestaoAluno = carregarGestaoAluno;
+window.copiarLinkAppAluno = copiarLinkAppAluno;
+window.imprimirPlacaRecepcao = imprimirPlacaRecepcao;
+window.filtrarAlunosAcesso = filtrarAlunosAcesso;
+window.gerarSenhaTempAlunoClick = gerarSenhaTempAlunoClick;
+window.abrirModalCriarLeitura = abrirModalCriarLeitura;
+window.alternarTipoConteudoBiblioteca = alternarTipoConteudoBiblioteca;
+window.salvarConteudoBibliotecaForm = salvarConteudoBibliotecaForm;
+window.editarConteudoBibliotecaClick = editarConteudoBibliotecaClick;
+window.excluirConteudoBibliotecaClick = excluirConteudoBibliotecaClick;
+window.carregarReposicoesAdmin = carregarReposicoesAdmin;
+window.abrirModalResponderReposicaoClick = abrirModalResponderReposicaoClick;
+window.processarRespostaReposicao = processarRespostaReposicao;
+window.carregarConquistasAdmin = carregarConquistasAdmin;
+

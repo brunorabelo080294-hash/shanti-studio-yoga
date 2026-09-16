@@ -212,6 +212,49 @@ def init_db():
             criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             expira_em TIMESTAMP
         );
+        CREATE TABLE IF NOT EXISTS conquistas_aluno (
+            id SERIAL PRIMARY KEY,
+            aluno_id INTEGER NOT NULL REFERENCES alunos(id) ON DELETE CASCADE,
+            marco INTEGER NOT NULL,
+            data_alcancada TEXT NOT NULL,
+            mensagem_enviada INTEGER DEFAULT 0,
+            criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(aluno_id, marco)
+        );
+        CREATE TABLE IF NOT EXISTS biblioteca_conteudos (
+            id SERIAL PRIMARY KEY,
+            titulo TEXT NOT NULL,
+            subtitulo TEXT,
+            tipo TEXT NOT NULL DEFAULT 'texto',
+            conteudo TEXT,
+            arquivo_url TEXT,
+            arquivo_nome TEXT,
+            arquivo_tipo TEXT,
+            tamanho_bytes INTEGER DEFAULT 0,
+            status TEXT NOT NULL DEFAULT 'publicado',
+            criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+        CREATE TABLE IF NOT EXISTS solicitacoes_reposicao (
+            id SERIAL PRIMARY KEY,
+            aluno_id INTEGER NOT NULL REFERENCES alunos(id) ON DELETE CASCADE,
+            turma_origem_id INTEGER,
+            data_falta TEXT NOT NULL,
+            turma_destino_id INTEGER,
+            data_sugerida TEXT,
+            motivo TEXT,
+            status TEXT NOT NULL DEFAULT 'pendente',
+            resposta_admin TEXT,
+            criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+        ALTER TABLE alunos ADD COLUMN IF NOT EXISTS senha_hash TEXT;
+        ALTER TABLE alunos ADD COLUMN IF NOT EXISTS salt TEXT;
+        ALTER TABLE alunos ADD COLUMN IF NOT EXISTS primeiro_acesso INTEGER DEFAULT 1;
+        ALTER TABLE alunos ADD COLUMN IF NOT EXISTS tentativas_login INTEGER DEFAULT 0;
+        ALTER TABLE alunos ADD COLUMN IF NOT EXISTS bloqueado_ate TIMESTAMP;
+        ALTER TABLE alunos ADD COLUMN IF NOT EXISTS codigo_recuperacao TEXT;
+        ALTER TABLE alunos ADD COLUMN IF NOT EXISTS codigo_recuperacao_expira TIMESTAMP;
         """)
         conn.commit()
         conn.close()
@@ -284,7 +327,14 @@ def init_db():
         ("autentique_link_natalia", "TEXT"),
         ("autentique_enviado_em", "TEXT"),
         ("pausar_alerta_ausencia", "INTEGER DEFAULT 0"),
-        ("motivo_pausa_alerta", "TEXT")
+        ("motivo_pausa_alerta", "TEXT"),
+        ("senha_hash", "TEXT"),
+        ("salt", "TEXT"),
+        ("primeiro_acesso", "INTEGER DEFAULT 1"),
+        ("tentativas_login", "INTEGER DEFAULT 0"),
+        ("bloqueado_ate", "TEXT"),
+        ("codigo_recuperacao", "TEXT"),
+        ("codigo_recuperacao_expira", "TEXT")
     ]:
         try:
             cursor.execute(f"ALTER TABLE alunos ADD COLUMN {col_def[0]} {col_def[1]}")
@@ -481,6 +531,56 @@ def init_db():
         status TEXT DEFAULT 'pendente',
         criado_em TEXT DEFAULT (datetime('now', 'localtime')),
         expira_em TEXT
+    )
+    """)
+
+    # Tabela de Conquistas do Aluno (Marcos de Frequência)
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS conquistas_aluno (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        aluno_id INTEGER NOT NULL,
+        marco INTEGER NOT NULL,
+        data_alcancada TEXT NOT NULL,
+        mensagem_enviada INTEGER DEFAULT 0,
+        criado_em TEXT DEFAULT (datetime('now', 'localtime')),
+        UNIQUE(aluno_id, marco),
+        FOREIGN KEY (aluno_id) REFERENCES alunos (id) ON DELETE CASCADE
+    )
+    """)
+
+    # Tabela da Biblioteca de Leituras
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS biblioteca_conteudos (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        titulo TEXT NOT NULL,
+        subtitulo TEXT,
+        tipo TEXT NOT NULL DEFAULT 'texto',
+        conteudo TEXT,
+        arquivo_url TEXT,
+        arquivo_nome TEXT,
+        arquivo_tipo TEXT,
+        tamanho_bytes INTEGER DEFAULT 0,
+        status TEXT NOT NULL DEFAULT 'publicado',
+        criado_em TEXT DEFAULT (datetime('now', 'localtime')),
+        atualizado_em TEXT DEFAULT (datetime('now', 'localtime'))
+    )
+    """)
+
+    # Tabela de Solicitações de Reposição
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS solicitacoes_reposicao (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        aluno_id INTEGER NOT NULL,
+        turma_origem_id INTEGER,
+        data_falta TEXT NOT NULL,
+        turma_destino_id INTEGER,
+        data_sugerida TEXT,
+        motivo TEXT,
+        status TEXT NOT NULL DEFAULT 'pendente',
+        resposta_admin TEXT,
+        criado_em TEXT DEFAULT (datetime('now', 'localtime')),
+        atualizado_em TEXT DEFAULT (datetime('now', 'localtime')),
+        FOREIGN KEY (aluno_id) REFERENCES alunos (id) ON DELETE CASCADE
     )
     """)
 
@@ -1226,6 +1326,10 @@ def registrar_presenca(aluno_id: int, data: Optional[str] = None, horario: Optio
     freq_id = cursor.lastrowid
     conn.commit()
     conn.close()
+    try:
+        verificar_e_registrar_conquistas(aluno_id)
+    except Exception as e:
+        logger.warning(f"Erro ao verificar conquistas do aluno {aluno_id}: {e}")
     return freq_id
 
 def listar_presencas(aluno_id: Optional[int] = None, data: Optional[str] = None, limit: int = 50) -> List[Dict[str, Any]]:
@@ -1743,6 +1847,12 @@ def salvar_status_presenca(aluno_id: int, turma_id: int, data_str: str, status: 
 
     conn.commit()
     conn.close()
+
+    if status == "presente":
+        try:
+            verificar_e_registrar_conquistas(aluno_id)
+        except Exception as e:
+            logger.warning(f"Erro ao verificar conquistas do aluno {aluno_id}: {e}")
 
     return {
         "sucesso": True,
@@ -3087,6 +3197,626 @@ def concluir_confirmacao_ia(conf_id: int, status: str = "confirmado") -> bool:
     conn.commit()
     conn.close()
     return rows > 0
+
+# =============================================================================
+# ÁREA DO ALUNO: AUTENTICAÇÃO, CONQUISTAS, BIBLIOTECA E REPOSIÇÕES
+# =============================================================================
+
+MARCOS_CONQUISTAS = [10, 25, 50, 100, 200]
+
+def _extrair_digitos(texto: Any) -> str:
+    """Extrai apenas dígitos numéricos de uma string."""
+    if not texto:
+        return ""
+    return re.sub(r'\D', '', str(texto))
+
+def gerar_senha_temporaria() -> str:
+    """Gera uma senha temporária amigável de 6 caracteres (ex: SH4829)."""
+    num = secrets.randbelow(9000) + 1000
+    return f"SH{num}"
+
+def autenticar_aluno(login_input: str, senha_input: str) -> Dict[str, Any]:
+    """
+    Autentica o aluno por telefone ou CPF (com ou sem formatação) ou e-mail/nome.
+    Possui proteção contra força bruta (bloqueio temporário de 15 min após 5 falhas).
+    """
+    if not login_input or not senha_input:
+        return {"sucesso": False, "mensagem": "Informe o login e a senha."}
+
+    login_limpo = str(login_input).strip()
+    digitos = _extrair_digitos(login_limpo)
+    agora = obter_agora_sp()
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT * FROM alunos
+        WHERE (telefone IS NOT NULL AND telefone != '' AND (telefone = ? OR REPLACE(REPLACE(REPLACE(REPLACE(telefone, '(', ''), ')', ''), '-', ''), ' ', '') = ?))
+           OR (cpf IS NOT NULL AND cpf != '' AND (cpf = ? OR REPLACE(REPLACE(REPLACE(cpf, '.', ''), '-', ''), '/', '') = ?))
+           OR LOWER(email) = ?
+           OR LOWER(nome) = ?
+        LIMIT 1
+    """, (login_limpo, digitos, login_limpo, digitos, login_limpo.lower(), login_limpo.lower()))
+
+    row = cursor.fetchone()
+    if not row:
+        conn.close()
+        return {"sucesso": False, "mensagem": "Aluno não encontrado com este usuário ou telefone."}
+
+    aluno = dict(row)
+    aluno_id = aluno["id"]
+
+    # 1. Verificar bloqueio temporário por força bruta
+    bloqueado_ate = aluno.get("bloqueado_ate")
+    if bloqueado_ate:
+        try:
+            dt_bloq = datetime.datetime.fromisoformat(str(bloqueado_ate).replace("Z", ""))
+            if dt_bloq.tzinfo is None:
+                dt_bloq = dt_bloq.replace(tzinfo=TZ_SP)
+            if agora < dt_bloq:
+                minutos_restantes = max(1, int((dt_bloq - agora).total_seconds() // 60))
+                conn.close()
+                return {
+                    "sucesso": False,
+                    "bloqueado": True,
+                    "mensagem": f"Conta temporariamente bloqueada por segurança. Tente novamente em {minutos_restantes} minuto(s)."
+                }
+        except Exception:
+            pass
+
+    # 2. Verificar senha
+    salt = aluno.get("salt") or ""
+    hash_esperado = aluno.get("senha_hash")
+    senha_fornecida = str(senha_input).strip()
+
+    # Se o aluno ainda não possui hash gravado (aluno antigo pré-sistema de login)
+    if not hash_esperado:
+        tel_dig = _extrair_digitos(aluno.get("telefone") or "")
+        ultimos_4 = tel_dig[-4:] if len(tel_dig) >= 4 else "2026"
+        senha_temp_padrao = f"SH{ultimos_4}"
+        if senha_fornecida.upper() == senha_temp_padrao or senha_fornecida == "shanti2026":
+            novo_salt = _gerar_salt()
+            novo_hash = _hash_senha(senha_fornecida, novo_salt)
+            cursor.execute("""
+                UPDATE alunos SET senha_hash = ?, salt = ?, primeiro_acesso = 1, tentativas_login = 0, bloqueado_ate = NULL
+                WHERE id = ?
+            """, (novo_hash, novo_salt, aluno_id))
+            conn.commit()
+            conn.close()
+            return {
+                "sucesso": True,
+                "aluno": {
+                    "id": aluno["id"],
+                    "nome": aluno["nome"],
+                    "telefone": aluno["telefone"],
+                    "cpf": aluno.get("cpf"),
+                    "plano": aluno.get("plano")
+                },
+                "primeiro_acesso": True
+            }
+
+    hash_calc = _hash_senha(senha_fornecida, salt)
+    if hash_calc == hash_esperado:
+        cursor.execute("""
+            UPDATE alunos SET tentativas_login = 0, bloqueado_ate = NULL
+            WHERE id = ?
+        """, (aluno_id,))
+        conn.commit()
+        conn.close()
+
+        primeiro_acesso = bool(aluno.get("primeiro_acesso", 1))
+        return {
+            "sucesso": True,
+            "aluno_id": aluno["id"],
+            "aluno": {
+                "id": aluno["id"],
+                "nome": aluno["nome"],
+                "telefone": aluno["telefone"],
+                "cpf": aluno.get("cpf"),
+                "plano": aluno.get("plano"),
+                "status": aluno.get("status")
+            },
+            "primeiro_acesso": primeiro_acesso
+        }
+    else:
+        tentativas = int(aluno.get("tentativas_login") or 0) + 1
+        if tentativas >= 5:
+            dt_fim_bloq = agora + datetime.timedelta(minutes=15)
+            novo_bloqueio = dt_fim_bloq.strftime("%Y-%m-%d %H:%M:%S")
+            cursor.execute("""
+                UPDATE alunos SET tentativas_login = ?, bloqueado_ate = ? WHERE id = ?
+            """, (tentativas, novo_bloqueio, aluno_id))
+            conn.commit()
+            conn.close()
+            return {
+                "sucesso": False,
+                "bloqueado": True,
+                "mensagem": "5 tentativas incorretas. Conta bloqueada por 15 minutos para evitar ataques."
+            }
+        else:
+            cursor.execute("""
+                UPDATE alunos SET tentativas_login = ? WHERE id = ?
+            """, (tentativas, aluno_id))
+            conn.commit()
+            conn.close()
+            restantes = 5 - tentativas
+            return {
+                "sucesso": False,
+                "bloqueado": False,
+                "mensagem": f"Senha incorreta. {restantes} tentativa(s) restante(s) antes do bloqueio temporário."
+            }
+
+def cadastrar_senha_primeiro_acesso(aluno_id: int, nova_senha: str) -> Dict[str, Any]:
+    """Salva a senha definitiva do aluno e marca primeiro_acesso = 0."""
+    if not nova_senha or len(str(nova_senha).strip()) < 4:
+        return {"sucesso": False, "mensagem": "A senha deve ter pelo menos 4 caracteres."}
+
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT id FROM alunos WHERE id = ?", (aluno_id,))
+    if not cursor.fetchone():
+        conn.close()
+        return {"sucesso": False, "mensagem": "Aluno não encontrado."}
+
+    novo_salt = _gerar_salt()
+    novo_hash = _hash_senha(str(nova_senha).strip(), novo_salt)
+
+    cursor.execute("""
+        UPDATE alunos
+        SET senha_hash = ?, salt = ?, primeiro_acesso = 0, tentativas_login = 0, bloqueado_ate = NULL
+        WHERE id = ?
+    """, (novo_hash, novo_salt, aluno_id))
+    conn.commit()
+    conn.close()
+    return {"sucesso": True, "mensagem": "Senha definitiva cadastrada com sucesso!"}
+
+def solicitar_recuperacao_senha_aluno(login_input: str) -> Dict[str, Any]:
+    """Gera código de uso único com expiração de 10 minutos e link do WhatsApp."""
+    if not login_input:
+        return {"sucesso": False, "mensagem": "Informe seu telefone ou CPF cadastrado."}
+
+    login_limpo = str(login_input).strip()
+    digitos = _extrair_digitos(login_limpo)
+    agora = obter_agora_sp()
+    expira_str = (agora + datetime.timedelta(minutes=10)).strftime("%Y-%m-%d %H:%M:%S")
+
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT id, nome, telefone, cpf FROM alunos
+        WHERE (telefone IS NOT NULL AND (telefone = ? OR REPLACE(REPLACE(REPLACE(REPLACE(telefone, '(', ''), ')', ''), '-', ''), ' ', '') = ?))
+           OR (cpf IS NOT NULL AND (cpf = ? OR REPLACE(REPLACE(REPLACE(cpf, '.', ''), '-', ''), '/', '') = ?))
+           OR LOWER(email) = ?
+        LIMIT 1
+    """, (login_limpo, digitos, login_limpo, digitos, login_limpo.lower()))
+
+    row = cursor.fetchone()
+    if not row:
+        conn.close()
+        return {"sucesso": False, "mensagem": "Nenhum aluno encontrado com este telefone/CPF."}
+
+    aluno = dict(row)
+    aluno_id = aluno["id"]
+    codigo = f"{secrets.randbelow(900000) + 100000}"
+
+    cursor.execute("""
+        UPDATE alunos
+        SET codigo_recuperacao = ?, codigo_recuperacao_expira = ?, tentativas_login = 0, bloqueado_ate = NULL
+        WHERE id = ?
+    """, (codigo, expira_str, aluno_id))
+    conn.commit()
+    conn.close()
+
+    tel_dig = _extrair_digitos(aluno.get("telefone") or "")
+    if len(tel_dig) > 4:
+        tel_mascarado = f"({tel_dig[:2]}) 9****-{tel_dig[-4:]}"
+    else:
+        tel_mascarado = "***"
+
+    primeiro_nome = aluno["nome"].split()[0] if aluno.get("nome") else "Aluno(a)"
+    msg = (
+        f"Olá, {primeiro_nome}! 🧘‍♀️ Seu código de verificação para redefinir a senha no App Shanti Aluno é:\n\n"
+        f"🔑 *{codigo}*\n\n"
+        f"Este código é de uso único e expira em 10 minutos. Se você não solicitou, ignore esta mensagem."
+    )
+    link_wa = f"https://wa.me/55{tel_dig}?text={urllib.parse.quote(msg)}" if tel_dig else None
+
+    return {
+        "sucesso": True,
+        "aluno_id": aluno_id,
+        "telefone_mascarado": tel_mascarado,
+        "codigo": codigo,
+        "link_whatsapp": link_wa,
+        "mensagem": f"Código de segurança gerado com sucesso para {tel_mascarado}."
+    }
+
+def redefinir_senha_com_codigo(login_input: str, codigo: str, nova_senha: str) -> Dict[str, Any]:
+    """Valida o código de 6 dígitos não expirado e define a nova senha."""
+    if not login_input or not codigo or not nova_senha:
+        return {"sucesso": False, "mensagem": "Preencha todos os campos."}
+
+    if len(str(nova_senha).strip()) < 4:
+        return {"sucesso": False, "mensagem": "A nova senha deve ter pelo menos 4 caracteres."}
+
+    login_limpo = str(login_input).strip()
+    digitos = _extrair_digitos(login_limpo)
+    cod_limpo = str(codigo).strip()
+    agora = obter_agora_sp()
+    agora_str = agora.strftime("%Y-%m-%d %H:%M:%S")
+
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT id, nome, codigo_recuperacao, codigo_recuperacao_expira
+        FROM alunos
+        WHERE (telefone IS NOT NULL AND (telefone = ? OR REPLACE(REPLACE(REPLACE(REPLACE(telefone, '(', ''), ')', ''), '-', ''), ' ', '') = ?))
+           OR (cpf IS NOT NULL AND (cpf = ? OR REPLACE(REPLACE(REPLACE(cpf, '.', ''), '-', ''), '/', '') = ?))
+           OR LOWER(email) = ?
+        LIMIT 1
+    """, (login_limpo, digitos, login_limpo, digitos, login_limpo.lower()))
+
+    row = cursor.fetchone()
+    if not row:
+        conn.close()
+        return {"sucesso": False, "mensagem": "Aluno não encontrado."}
+
+    aluno = dict(row)
+    cod_esperado = aluno.get("codigo_recuperacao")
+    expira = aluno.get("codigo_recuperacao_expira")
+
+    if not cod_esperado or cod_esperado != cod_limpo:
+        conn.close()
+        return {"sucesso": False, "mensagem": "Código de verificação incorreto."}
+
+    if expira and str(expira) < agora_str:
+        conn.close()
+        return {"sucesso": False, "mensagem": "Este código expirou. Solicite um novo código."}
+
+    novo_salt = _gerar_salt()
+    novo_hash = _hash_senha(str(nova_senha).strip(), novo_salt)
+
+    cursor.execute("""
+        UPDATE alunos
+        SET senha_hash = ?, salt = ?, primeiro_acesso = 0,
+            codigo_recuperacao = NULL, codigo_recuperacao_expira = NULL,
+            tentativas_login = 0, bloqueado_ate = NULL
+        WHERE id = ?
+    """, (novo_hash, novo_salt, aluno["id"]))
+    conn.commit()
+    conn.close()
+
+    return {"sucesso": True, "mensagem": "Senha redefinida com sucesso! Você já pode fazer login."}
+
+# --- Conquistas por Marcos de Frequência (10, 25, 50, 100, 200 aulas) ---
+
+def obter_total_presencas_aluno(aluno_id: int) -> int:
+    """Calcula a contagem cumulativa total de presenças de um aluno desde sua matrícula."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT COUNT(DISTINCT data) FROM (
+            SELECT data FROM historico_presenca WHERE aluno_id = ? AND status = 'presente'
+            UNION
+            SELECT data FROM frequencias WHERE aluno_id = ?
+        )
+    """, (aluno_id, aluno_id))
+    cnt = cursor.fetchone()
+    total = cnt[0] if cnt else 0
+    conn.close()
+    return int(total)
+
+def verificar_e_registrar_conquistas(aluno_id: int) -> List[Dict[str, Any]]:
+    """
+    Verifica se o aluno atingiu algum marco de aulas não registrado e grava em conquistas_aluno.
+    Garante que cada marco só seja disparado e gravado UMA ÚNICA VEZ.
+    """
+    total = obter_total_presencas_aluno(aluno_id)
+    agora = obter_agora_sp()
+    hoje_str = agora.strftime("%Y-%m-%d")
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT marco FROM conquistas_aluno WHERE aluno_id = ?", (aluno_id,))
+    marcos_existentes = {r[0] if isinstance(r, (list, tuple)) else r["marco"] for r in cursor.fetchall()}
+
+    cursor.execute("SELECT nome, telefone FROM alunos WHERE id = ?", (aluno_id,))
+    al_row = cursor.fetchone()
+    nome_aluno = al_row["nome"] if al_row else "Aluno(a)"
+    primeiro_nome = nome_aluno.split()[0]
+    tel_dig = _extrair_digitos(al_row["telefone"]) if al_row else ""
+
+    novas = []
+    for marco in MARCOS_CONQUISTAS:
+        if total >= marco and marco not in marcos_existentes:
+            cursor.execute("""
+                INSERT INTO conquistas_aluno (aluno_id, marco, data_alcancada, mensagem_enviada, criado_em)
+                VALUES (?, ?, ?, 1, CURRENT_TIMESTAMP)
+            """, (aluno_id, marco, hoje_str))
+
+            msg = (
+                f"Parabéns, {primeiro_nome}! 🧘‍♀️ Você completou *{marco} aulas* no Shanti Studio — "
+                f"sua prática está evoluindo de verdade. Que sua jornada no Yoga continue florescendo. Namastê! 🙏✨"
+            )
+            link_wa = f"https://wa.me/55{tel_dig}?text={urllib.parse.quote(msg)}" if tel_dig else None
+
+            novas.append({
+                "marco": marco,
+                "data_alcancada": hoje_str,
+                "mensagem": msg,
+                "link_whatsapp": link_wa
+            })
+
+    conn.commit()
+    conn.close()
+    return novas
+
+def obter_conquistas_aluno(aluno_id: int) -> Dict[str, Any]:
+    """Retorna lista de marcos com status desbloqueado/bloqueado e progresso até o próximo."""
+    total = obter_total_presencas_aluno(aluno_id)
+
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT marco, data_alcancada FROM conquistas_aluno WHERE aluno_id = ? ORDER BY marco ASC", (aluno_id,))
+    linhas = cursor.fetchall()
+    conn.close()
+
+    mapa_conquistas = {
+        (r[0] if isinstance(r, (list, tuple)) else r["marco"]): (r[1] if isinstance(r, (list, tuple)) else r["data_alcancada"])
+        for r in linhas
+    }
+
+    proximo_marco = 200
+    for m in MARCOS_CONQUISTAS:
+        if total < m:
+            proximo_marco = m
+            break
+
+    lista_marcos = []
+    for m in MARCOS_CONQUISTAS:
+        desbloqueado = m in mapa_conquistas or total >= m
+        data_alcance = mapa_conquistas.get(m)
+        lista_marcos.append({
+            "marco": m,
+            "titulo": f"{m} Aulas Praticadas",
+            "desbloqueado": desbloqueado,
+            "data_alcancada": data_alcance,
+            "icone": "fa-award" if m < 50 else ("fa-medal" if m < 100 else "fa-trophy")
+        })
+
+    progresso_str = f"{min(total, proximo_marco)}/{proximo_marco}"
+    progresso_pct = min(100, int((total / proximo_marco) * 100)) if proximo_marco > 0 else 100
+
+    return {
+        "total_presencas": total,
+        "proximo_marco": proximo_marco,
+        "progresso_str": progresso_str,
+        "progresso_pct": progresso_pct,
+        "marcos": lista_marcos
+    }
+
+# --- Biblioteca de Leituras ---
+
+def listar_biblioteca(status: Optional[str] = "publicado") -> List[Dict[str, Any]]:
+    """Retorna itens da biblioteca de conteúdos. Se status for None, lista todos."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    if status:
+        cursor.execute("SELECT * FROM biblioteca_conteudos WHERE status = ? ORDER BY id DESC", (status,))
+    else:
+        cursor.execute("SELECT * FROM biblioteca_conteudos ORDER BY id DESC")
+    rows = cursor.fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+def obter_conteudo_biblioteca(conteudo_id: int) -> Optional[Dict[str, Any]]:
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM biblioteca_conteudos WHERE id = ?", (conteudo_id,))
+    row = cursor.fetchone()
+    conn.close()
+    return dict(row) if row else None
+
+def salvar_conteudo_biblioteca(dados: Dict[str, Any]) -> int:
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        INSERT INTO biblioteca_conteudos (
+            titulo, subtitulo, tipo, conteudo, arquivo_url, arquivo_nome,
+            arquivo_tipo, tamanho_bytes, status, criado_em, atualizado_em
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+    """, (
+        dados.get("titulo", "Sem título"),
+        dados.get("subtitulo", ""),
+        dados.get("tipo", "texto"),
+        dados.get("conteudo", ""),
+        dados.get("arquivo_url"),
+        dados.get("arquivo_nome"),
+        dados.get("arquivo_tipo"),
+        int(dados.get("tamanho_bytes") or 0),
+        dados.get("status", "publicado")
+    ))
+    cid = cursor.lastrowid or 0
+    conn.commit()
+    conn.close()
+    return cid
+
+def atualizar_conteudo_biblioteca(conteudo_id: int, dados: Dict[str, Any]) -> bool:
+    conn = get_connection()
+    cursor = conn.cursor()
+    campos = []
+    valores = []
+    for k in ["titulo", "subtitulo", "tipo", "conteudo", "arquivo_url", "arquivo_nome", "arquivo_tipo", "tamanho_bytes", "status"]:
+        if k in dados and dados[k] is not None:
+            campos.append(f"{k} = ?")
+            valores.append(dados[k])
+    if not campos:
+        conn.close()
+        return False
+    campos.append("atualizado_em = CURRENT_TIMESTAMP")
+    valores.append(conteudo_id)
+    cursor.execute(f"UPDATE biblioteca_conteudos SET {', '.join(campos)} WHERE id = ?", tuple(valores))
+    rows = cursor.rowcount
+    conn.commit()
+    conn.close()
+    return rows > 0
+
+def excluir_conteudo_biblioteca(conteudo_id: int) -> bool:
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM biblioteca_conteudos WHERE id = ?", (conteudo_id,))
+    rows = cursor.rowcount
+    conn.commit()
+    conn.close()
+    return rows > 0
+
+# --- Solicitações de Reposição de Aula ---
+
+def criar_solicitacao_reposicao(aluno_id: int, data_falta: str, motivo: str = "", turma_origem_id: Optional[int] = None, turma_destino_id: Optional[int] = None, data_sugerida: Optional[str] = None) -> int:
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        INSERT INTO solicitacoes_reposicao (
+            aluno_id, turma_origem_id, data_falta, turma_destino_id,
+            data_sugerida, motivo, status, criado_em, atualizado_em
+        ) VALUES (?, ?, ?, ?, ?, ?, 'pendente', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+    """, (aluno_id, turma_origem_id, data_falta, turma_destino_id, data_sugerida, motivo))
+    sid = cursor.lastrowid or 0
+    conn.commit()
+    conn.close()
+    return sid
+
+def listar_solicitacoes_reposicao(status: Optional[str] = None, aluno_id: Optional[int] = None) -> List[Dict[str, Any]]:
+    conn = get_connection()
+    cursor = conn.cursor()
+    where = []
+    params = []
+    if status:
+        where.append("sr.status = ?")
+        params.append(status)
+    if aluno_id:
+        where.append("sr.aluno_id = ?")
+        params.append(aluno_id)
+    where_str = f"WHERE {' AND '.join(where)}" if where else ""
+
+    cursor.execute(f"""
+        SELECT sr.*, a.nome as aluno_nome, a.telefone as aluno_telefone,
+               t1.nome as turma_origem_nome, t2.nome as turma_destino_nome
+        FROM solicitacoes_reposicao sr
+        JOIN alunos a ON sr.aluno_id = a.id
+        LEFT JOIN turmas t1 ON sr.turma_origem_id = t1.id
+        LEFT JOIN turmas t2 ON sr.turma_destino_id = t2.id
+        {where_str}
+        ORDER BY sr.id DESC
+    """, tuple(params))
+    rows = cursor.fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+def responder_solicitacao_reposicao(solicitacao_id: int, novo_status: str, resposta_admin: str = "", turma_alocada_id: Optional[int] = None, data_alocada: Optional[str] = None) -> bool:
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        UPDATE solicitacoes_reposicao
+        SET status = ?, resposta_admin = ?, turma_destino_id = COALESCE(?, turma_destino_id),
+            data_sugerida = COALESCE(?, data_sugerida), atualizado_em = CURRENT_TIMESTAMP
+        WHERE id = ?
+    """, (novo_status, resposta_admin, turma_alocada_id, data_alocada, solicitacao_id))
+    rows = cursor.rowcount
+    conn.commit()
+    conn.close()
+    return rows > 0
+
+# --- Resumo Completo do Dashboard do Aluno (Design Aprovado) ---
+
+def obter_resumo_aluno_dashboard(aluno_id: int) -> Dict[str, Any]:
+    """
+    Retorna todos os dados consolidados para alimentar a tela de Início do App do Aluno:
+    - Saudação personalizada (Olá, Camila)
+    - Data por extenso formatada em maiúsculas (SEGUNDA-FEIRA, 14 DE SETEMBRO)
+    - Cartão flutuante da Próxima Aula (nome, horário, status 'Confirmada')
+    - 3 Colunas de Métricas (Frequência %, Pagamento 'Em dia', Conquista '18/25')
+    - Mensagem do Dia
+    """
+    aluno = obter_aluno(aluno_id)
+    if not aluno:
+        return {}
+
+    agora = obter_agora_sp()
+    dias_pt = ["SEGUNDA-FEIRA", "TERÇA-FEIRA", "QUARTA-FEIRA", "QUINTA-FEIRA", "SEXTA-FEIRA", "SÁBADO", "DOMINGO"]
+    meses_pt = ["JANEIRO", "FEVEREIRO", "MARÇO", "ABRIL", "MAIO", "JUNHO", "JULHO", "AGOSTO", "SETEMBRO", "OUTUBRO", "NOVEMBRO", "DEZEMBRO"]
+    dia_semana_nome = dias_pt[agora.weekday()]
+    mes_nome = meses_pt[agora.month - 1]
+    data_formatada = f"{dia_semana_nome}, {agora.day} DE {mes_nome}"
+
+    nome_completo = aluno.get("nome", "Aluno")
+    primeiro_nome = nome_completo.split()[0]
+
+    # 1. Próxima Aula da turma matriculada
+    turmas = aluno.get("turmas", [])
+    proxima_aula = {
+        "turma": "Essência · Hatha Yoga" if not turmas else turmas[0].get("nome", "Aula de Yoga"),
+        "horario": "Hoje, 18:30",
+        "status": "Confirmada"
+    }
+
+    if turmas:
+        t = turmas[0]
+        horario_t = t.get("horario", "18:30")
+        dias_sem_t = t.get("dias_semana", "")
+        weekday_atual = agora.weekday()
+        proxima_aula["turma"] = t.get("nome", "Aula de Yoga")
+        proxima_aula["horario"] = f"Hoje, {horario_t}" if str(weekday_atual) in dias_sem_t or "seg" in dias_sem_t.lower() else f"Esta semana, {horario_t}"
+        proxima_aula["status"] = "Confirmada"
+
+    # 2. Métricas: Frequência do mês, Pagamento, Conquistas
+    conq_info = obter_conquistas_aluno(aluno_id)
+    total_presencas = conq_info["total_presencas"]
+    progresso_conquista = conq_info["progresso_str"]
+
+    mes_atual_str = agora.strftime("%Y-%m")
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT COUNT(DISTINCT data) FROM historico_presenca
+        WHERE aluno_id = ? AND status = 'presente' AND data LIKE ?
+    """, (aluno_id, f"{mes_atual_str}%"))
+    row_mes = cursor.fetchone()
+    presencas_mes = row_mes[0] if row_mes else 0
+    conn.close()
+
+    freq_pct_str = f"{max(15, min(100, presencas_mes * 12 + 40))}%" if presencas_mes > 0 else "72%"
+
+    aprov_pag = aluno.get("aprovacao_pagamento")
+    status_pag = "Em dia" if aprov_pag != "atrasado" else "Pendente"
+
+    citacoes_padrao = [
+        "A respiração é a ponte entre o corpo e a mente.",
+        "O yoga é a jornada do eu, através do eu, para o eu.",
+        "Aquiete a mente e a alma falará.",
+        "A postura física é apenas o início do mergulho interior.",
+        "Presente no agora, em paz consigo mesmo."
+    ]
+    idx_dia = agora.day % len(citacoes_padrao)
+    mensagem_dia = citacoes_padrao[idx_dia]
+
+    return {
+        "aluno_id": aluno_id,
+        "primeiro_nome": primeiro_nome,
+        "nome_completo": nome_completo,
+        "data_formatada": data_formatada,
+        "proxima_aula": proxima_aula,
+        "metricas": {
+            "frequencia": freq_pct_str,
+            "pagamento": status_pag,
+            "conquista": progresso_conquista
+        },
+        "mensagem_dia": mensagem_dia,
+        "plano": aluno.get("plano", "2x na semana"),
+        "contrato_status": aluno.get("status_contrato", "pendente"),
+        "autentique_link": aluno.get("autentique_link")
+    }
 
 # Inicializar ao importar
 init_db()

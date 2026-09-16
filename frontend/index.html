@@ -222,6 +222,10 @@
       <i class="fa-solid fa-file-signature"></i> Contratos
       <span class="wa-tab-badge warning" id="badge-contratos-alert" style="display:none;">0</span>
     </button>
+    <button class="wa-tab-btn" data-tab="gestao-aluno">
+      <i class="fa-solid fa-graduation-cap"></i> Área do Aluno
+      <span class="wa-tab-badge warning" id="badge-reposicoes-admin" style="display:none;">0</span>
+    </button>
   </nav>
 
   <!-- ====================================================================
@@ -1293,6 +1297,158 @@
     </div>
   </section>
 
+  <!-- ====================================================================
+       TELA 7: ÁREA DO ALUNO & ENGAJAMENTO (QR CODE, BIBLIOTECA, CONQUISTAS, REPOSIÇÕES)
+       ==================================================================== -->
+  <section class="wa-screen" id="screen-gestao-aluno">
+    <div class="wa-chat-container">
+
+      <!-- Header da Área do Aluno -->
+      <div class="wa-card" style="margin-bottom: 12px; background: linear-gradient(135deg, var(--shanti-forest), #283624); color: #ffffff; border-radius: 16px; padding: 18px 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="width: 36px; height: 36px; background: rgba(255,255,255,0.15); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px;">
+              <i class="fa-solid fa-graduation-cap"></i>
+            </div>
+            <div>
+              <h2 style="font-size: 17px; font-weight: 700; margin: 0; color: #ffffff;">Área do Aluno & Engajamento</h2>
+              <p style="font-size: 11.5px; opacity: 0.85; margin: 0;">Portal do Aluno, QR Code de Acesso, Biblioteca e Conquistas</p>
+            </div>
+          </div>
+          <a href="/aluno" target="_blank" class="wa-btn-primary" style="background: #ffffff; color: var(--shanti-forest); text-decoration: none; padding: 6px 12px; font-size: 11.5px; font-weight: 700; border-radius: 20px; display: inline-flex; align-items: center; gap: 6px;" title="Abrir App do Aluno em Nova Aba">
+            <i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir App
+          </a>
+        </div>
+      </div>
+
+      <!-- Sub-abas de Navegação Interna -->
+      <div style="display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 12px;" id="subnav-gestao-aluno">
+        <button type="button" class="wa-filter-chip active" data-subtab="qrcode">
+          <i class="fa-solid fa-qrcode"></i> QR Code & Acesso
+        </button>
+        <button type="button" class="wa-filter-chip" data-subtab="biblioteca">
+          <i class="fa-solid fa-book-open"></i> Biblioteca
+        </button>
+        <button type="button" class="wa-filter-chip" data-subtab="reposicoes">
+          <i class="fa-solid fa-arrow-rotate-right"></i> Reposições
+          <span class="wa-tab-badge danger" id="badge-sub-reposicoes" style="display:none;">0</span>
+        </button>
+        <button type="button" class="wa-filter-chip" data-subtab="conquistas">
+          <i class="fa-solid fa-award"></i> Conquistas
+        </button>
+      </div>
+
+      <!-- PAINEL 1: QR CODE & GERENCIAMENTO DE ACESSO -->
+      <div class="subpane-gestao-aluno active" id="subpane-qrcode">
+        <!-- Card QR Code de Recepção -->
+        <div class="wa-card" style="margin-bottom: 14px; text-align: center; padding: 22px 18px; border: 1px solid var(--shanti-sand-border); border-radius: 16px; background: #ffffff;">
+          <h3 style="font-size: 16px; font-weight: 700; color: var(--shanti-forest); margin-bottom: 4px;">
+            Placa de Recepção & Acesso dos Alunos
+          </h3>
+          <p style="font-size: 12.5px; color: var(--shanti-stone); margin-bottom: 16px;">
+            Gere a placa de balcão para seus alunos apontarem a câmera e instalarem o App do Aluno instantaneamente.
+          </p>
+
+          <div style="display: inline-block; padding: 16px; background: #FAF7F2; border: 2px solid var(--shanti-forest); border-radius: 20px; box-shadow: 0 8px 24px rgba(63,78,58,0.1); margin-bottom: 14px;" id="box-qrcode-container">
+            <img id="img-qrcode-aluno" src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=https%3A%2F%2Fshanti-studio-yoga.onrender.com%2Faluno&margin=1" alt="QR Code App do Aluno" style="width: 180px; height: 180px; display: block; border-radius: 8px;">
+          </div>
+
+          <div style="font-size: 12px; color: var(--shanti-charcoal); font-weight: 600; margin-bottom: 14px; word-break: break-all;">
+            Link direto: <a href="/aluno" target="_blank" id="link-aluno-url-display" style="color: var(--shanti-forest); text-decoration: underline;">https://shanti-studio-yoga.onrender.com/aluno</a>
+          </div>
+
+          <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
+            <button type="button" class="wa-btn-primary" onclick="imprimirPlacaRecepcao()" style="background: var(--shanti-forest); color: #ffffff; border: none; padding: 9px 18px; border-radius: 20px; font-size: 12.5px; font-weight: 700; cursor: pointer;">
+              <i class="fa-solid fa-print"></i> Imprimir Placa de Balcão (A4)
+            </button>
+            <button type="button" class="wa-btn-primary" onclick="copiarLinkAppAluno()" style="background: var(--shanti-sand-light); color: var(--shanti-forest); border: 1px solid var(--shanti-sand-border); padding: 9px 16px; border-radius: 20px; font-size: 12.5px; font-weight: 600; cursor: pointer;">
+              <i class="fa-solid fa-copy"></i> Copiar Link
+            </button>
+          </div>
+        </div>
+
+        <!-- Tabela de Alunos & Senhas de Acesso -->
+        <div class="wa-card" style="padding: 16px; border: 1px solid var(--shanti-sand-border); border-radius: 16px; background: #ffffff;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <h3 style="font-size: 14.5px; font-weight: 700; color: var(--shanti-forest); margin: 0;">
+              <i class="fa-solid fa-key" style="color: var(--shanti-terracotta);"></i> Acessos dos Alunos
+            </h3>
+            <span id="badge-acessos-stats" style="font-size: 11px; color: var(--shanti-stone);">0 Alunos</span>
+          </div>
+
+          <div style="margin-bottom: 12px;">
+            <input type="text" id="busca-aluno-acesso" class="wa-form-control" placeholder="Buscar aluno por nome, telefone ou CPF..." oninput="filtrarAlunosAcesso()">
+          </div>
+
+          <div id="lista-alunos-acesso" style="display: flex; flex-direction: column; gap: 8px; max-height: 420px; overflow-y: auto;">
+            <!-- Injetado via JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- PAINEL 2: BIBLIOTECA DE LEITURAS -->
+      <div class="subpane-gestao-aluno" id="subpane-biblioteca" style="display: none;">
+        <div class="wa-card" style="padding: 16px; border: 1px solid var(--shanti-sand-border); border-radius: 16px; background: #ffffff;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+            <div>
+              <h3 style="font-size: 15px; font-weight: 700; color: var(--shanti-forest); margin: 0;">Biblioteca do Studio</h3>
+              <p style="font-size: 11.5px; color: var(--shanti-stone); margin: 0;">Artigos, textos e materiais em PDF para seus alunos</p>
+            </div>
+            <button type="button" class="wa-btn-primary" onclick="abrirModalCriarLeitura()" style="background: var(--shanti-terracotta); border: none; color: #ffffff; padding: 7px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; cursor: pointer;">
+              <i class="fa-solid fa-plus"></i> Nova Leitura
+            </button>
+          </div>
+
+          <div id="lista-conteudos-biblioteca" style="display: flex; flex-direction: column; gap: 10px;">
+            <!-- Injetado via JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- PAINEL 3: SOLICITAÇÕES DE REPOSIÇÃO -->
+      <div class="subpane-gestao-aluno" id="subpane-reposicoes" style="display: none;">
+        <div class="wa-card" style="padding: 16px; border: 1px solid var(--shanti-sand-border); border-radius: 16px; background: #ffffff;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+            <div>
+              <h3 style="font-size: 15px; font-weight: 700; color: var(--shanti-forest); margin: 0;">Solicitações de Reposição</h3>
+              <p style="font-size: 11.5px; color: var(--shanti-stone); margin: 0;">Alunos que avisaram falta e solicitaram reposição</p>
+            </div>
+            <select id="filtro-status-reposicao" class="wa-form-control" style="width: auto; font-size: 11.5px; padding: 4px 8px;" onchange="carregarReposicoesAdmin()">
+              <option value="">Todas</option>
+              <option value="pendente" selected>Pendentes</option>
+              <option value="aprovada">Aprovadas</option>
+              <option value="rejeitada">Recusadas</option>
+            </select>
+          </div>
+
+          <div id="lista-solicitacoes-reposicao-admin" style="display: flex; flex-direction: column; gap: 10px;">
+            <!-- Injetado via JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- PAINEL 4: MURAL DE CONQUISTAS -->
+      <div class="subpane-gestao-aluno" id="subpane-conquistas" style="display: none;">
+        <div class="wa-card" style="padding: 16px; border: 1px solid var(--shanti-sand-border); border-radius: 16px; background: #ffffff;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+            <div>
+              <h3 style="font-size: 15px; font-weight: 700; color: var(--shanti-forest); margin: 0;">Mural de Conquistas & Frequência</h3>
+              <p style="font-size: 11.5px; color: var(--shanti-stone); margin: 0;">Marcos de 10, 25, 50, 100 e 200 aulas praticadas</p>
+            </div>
+            <span id="badge-total-conquistas-desbloqueadas" style="font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 12px; background: var(--shanti-sage-light); color: var(--shanti-forest);">
+              0 Conquistas
+            </span>
+          </div>
+
+          <div id="lista-mural-conquistas" style="display: flex; flex-direction: column; gap: 10px;">
+            <!-- Injetado via JS -->
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
 </div>
 
 <!-- ======================================================================
@@ -2330,6 +2486,155 @@
         </button>
       </div>
     </form>
+  </div>
+</div>
+
+<!-- ======================================================================
+     MODAL: CRIAR / EDITAR CONTEÚDO DA BIBLIOTECA
+     ====================================================================== -->
+<div class="wa-modal-overlay" id="modal-conteudo-biblioteca">
+  <div class="wa-modal-sheet">
+    <div class="wa-modal-header">
+      <h3 class="wa-modal-title" id="modal-biblioteca-title"><i class="fa-solid fa-book-open" style="color:var(--shanti-terracotta);"></i> Nova Leitura</h3>
+      <button class="wa-modal-close" data-close-modal="modal-conteudo-biblioteca">&times;</button>
+    </div>
+
+    <form id="form-conteudo-biblioteca" onsubmit="salvarConteudoBibliotecaForm(event)">
+      <input type="hidden" id="bib-conteudo-id" value="">
+
+      <div class="wa-form-group">
+        <label>Título do Conteúdo *</label>
+        <input type="text" class="wa-form-control" id="bib-titulo" required placeholder="Ex: O Poder da Respiração Consciente (Pranayama)">
+      </div>
+
+      <div class="wa-form-group">
+        <label>Subtítulo ou Categoria</label>
+        <input type="text" class="wa-form-control" id="bib-subtitulo" placeholder="Ex: Filosofia do Yoga, Meditação, Posturas...">
+      </div>
+
+      <div class="wa-form-group">
+        <label>Tipo de Conteúdo *</label>
+        <select class="wa-form-control" id="bib-tipo" onchange="alternarTipoConteudoBiblioteca()">
+          <option value="texto" selected>Artigo em Texto</option>
+          <option value="pdf">Material em Arquivo / PDF</option>
+        </select>
+      </div>
+
+      <div class="wa-form-group" id="group-bib-texto">
+        <label>Texto Completo / Artigo</label>
+        <textarea class="wa-form-control" id="bib-conteudo" rows="6" placeholder="Escreva aqui a mensagem ou reflexão para os alunos..."></textarea>
+      </div>
+
+      <div class="wa-form-group" id="group-bib-arquivo" style="display: none;">
+        <label>Upload de Arquivo (PDF ou Imagem)</label>
+        <input type="file" class="wa-form-control" id="bib-arquivo-file" accept=".pdf,image/*">
+        <small style="color: var(--shanti-stone); font-size: 11px;">PDFs, manuais de prática ou textos complementares.</small>
+      </div>
+
+      <div class="wa-form-group">
+        <label>Status de Publicação</label>
+        <select class="wa-form-control" id="bib-status">
+          <option value="publicado" selected>Publicado (visível no App do Aluno)</option>
+          <option value="rascunho">Rascunho (apenas visível para Natália)</option>
+        </select>
+      </div>
+
+      <div style="display: flex; gap: 8px; margin-top: 14px;">
+        <button type="button" class="wa-btn-primary" data-close-modal="modal-conteudo-biblioteca" style="flex: 1; background: var(--shanti-sand-light); color: var(--shanti-charcoal); border: 1px solid var(--shanti-sand-border); box-shadow: none;">
+          Cancelar
+        </button>
+        <button type="submit" class="wa-btn-primary" id="btn-salvar-conteudo-bib" style="flex: 1; background: var(--shanti-terracotta); border: none;">
+          <i class="fa-solid fa-check"></i> Salvar Leitura
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ======================================================================
+     MODAL: RESPONDER SOLICITAÇÃO DE REPOSIÇÃO
+     ====================================================================== -->
+<div class="wa-modal-overlay" id="modal-responder-reposicao">
+  <div class="wa-modal-sheet">
+    <div class="wa-modal-header">
+      <h3 class="wa-modal-title"><i class="fa-solid fa-arrow-rotate-right" style="color:var(--shanti-terracotta);"></i> Responder Reposição</h3>
+      <button class="wa-modal-close" data-close-modal="modal-responder-reposicao">&times;</button>
+    </div>
+
+    <form id="form-responder-reposicao" onsubmit="processarRespostaReposicao(event)">
+      <input type="hidden" id="resp-repo-id" value="">
+      <input type="hidden" id="resp-repo-telefone" value="">
+      <input type="hidden" id="resp-repo-alunonome" value="">
+
+      <div style="background: var(--shanti-sand-light); border: 1px solid var(--shanti-sand-border); border-radius: 12px; padding: 12px; margin-bottom: 12px; font-size: 12.5px;">
+        <strong id="resp-repo-aluno">Aluno</strong><br>
+        <span>Falta informada: <b id="resp-repo-data-falta">--</b></span><br>
+        <span id="resp-repo-motivo" style="color: var(--shanti-stone);">Motivo</span>
+      </div>
+
+      <div class="wa-form-group">
+        <label>Decisão *</label>
+        <select class="wa-form-control" id="resp-repo-status" required>
+          <option value="aprovada" selected>Aprovar Reposição</option>
+          <option value="rejeitada">Recusar Reposição (sem vagas/fora do prazo)</option>
+        </select>
+      </div>
+
+      <div class="wa-form-group">
+        <label>Turma de Reposição Alocada (se aprovada)</label>
+        <select class="wa-form-control" id="resp-repo-turma">
+          <!-- Injetado via JS -->
+        </select>
+      </div>
+
+      <div class="wa-form-group">
+        <label>Data Combinada para Reposição</label>
+        <input type="date" class="wa-form-control" id="resp-repo-data-sugerida">
+      </div>
+
+      <div class="wa-form-group">
+        <label>Mensagem / Justificativa para o Aluno</label>
+        <textarea class="wa-form-control" id="resp-repo-msg" rows="2" placeholder="Ex: Reposição confirmada para terça às 18:30! Te esperamos."></textarea>
+      </div>
+
+      <div style="display: flex; gap: 8px; margin-top: 14px;">
+        <button type="button" class="wa-btn-primary" data-close-modal="modal-responder-reposicao" style="flex: 1; background: var(--shanti-sand-light); color: var(--shanti-charcoal); border: 1px solid var(--shanti-sand-border); box-shadow: none;">
+          Cancelar
+        </button>
+        <button type="submit" class="wa-btn-primary" style="flex: 1; background: var(--shanti-forest); border: none;">
+          <i class="fa-solid fa-check"></i> Concluir Resposta
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ======================================================================
+     MODAL: SENHA TEMPORÁRIA GERADA & LINK WHATSAPP
+     ====================================================================== -->
+<div class="wa-modal-overlay" id="modal-senha-temp-gerada">
+  <div class="wa-modal-sheet" style="text-align: center;">
+    <div class="wa-modal-header">
+      <h3 class="wa-modal-title" style="margin: 0 auto;"><i class="fa-solid fa-key" style="color:var(--shanti-forest);"></i> Acesso Criado!</h3>
+      <button class="wa-modal-close" data-close-modal="modal-senha-temp-gerada">&times;</button>
+    </div>
+
+    <div style="margin: 14px 0;">
+      <p style="font-size: 13.5px; color: var(--shanti-charcoal); margin-bottom: 8px;">
+        Senha temporária para <b id="st-aluno-nome">Aluno</b>:
+      </p>
+      <div style="display: inline-block; font-size: 26px; font-weight: 800; letter-spacing: 0.12em; color: var(--shanti-forest); background: #FAF7F2; border: 2px dashed var(--shanti-forest); padding: 8px 24px; border-radius: 12px;" id="st-senha-temp">
+        SH0000
+      </div>
+    </div>
+
+    <p style="font-size: 12px; color: var(--shanti-stone); line-height: 1.4; margin-bottom: 16px;">
+      Envie a mensagem de convite no WhatsApp do aluno com um toque. No primeiro acesso, o sistema pedirá para ele definir uma senha pessoal definitiva.
+    </p>
+
+    <a id="st-btn-whatsapp" href="#" target="_blank" class="wa-btn-primary" style="background: var(--shanti-whatsapp-green); color: #ffffff; text-decoration: none; padding: 12px; border-radius: 24px; font-weight: 700; font-size: 13.5px; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 14px rgba(37,211,102,0.3);">
+      <i class="fa-brands fa-whatsapp" style="font-size: 18px;"></i> Enviar Acesso pelo WhatsApp
+    </a>
   </div>
 </div>
 

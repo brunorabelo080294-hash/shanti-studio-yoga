@@ -199,6 +199,62 @@ class LiveChatRequest(BaseModel):
     mensagem: str
     voz: Optional[str] = "Aoede"
 
+# --- Modelos da Área do Aluno, Conquistas e Biblioteca ---
+
+class AlunoLoginRequest(BaseModel):
+    login: str
+    senha: str
+
+class AlunoPrimeiroAcessoRequest(BaseModel):
+    aluno_id: int
+    nova_senha: str
+
+class AlunoEsqueciSenhaRequest(BaseModel):
+    login: str
+
+class AlunoRedefinirSenhaRequest(BaseModel):
+    login: str
+    codigo: str
+    nova_senha: str
+
+class SolicitacaoReposicaoCreate(BaseModel):
+    data_falta: str
+    motivo: Optional[str] = ""
+    turma_origem_id: Optional[int] = None
+    turma_destino_id: Optional[int] = None
+    data_sugerida: Optional[str] = None
+
+class SolicitacaoReposicaoResposta(BaseModel):
+    status: str  # aprovada, rejeitada, concluida
+    resposta_admin: Optional[str] = ""
+    turma_destino_id: Optional[int] = None
+    data_sugerida: Optional[str] = None
+
+class ConteudoBibliotecaCreate(BaseModel):
+    titulo: str
+    subtitulo: Optional[str] = ""
+    tipo: Optional[str] = "texto"
+    conteudo: Optional[str] = ""
+    arquivo_url: Optional[str] = None
+    arquivo_nome: Optional[str] = None
+    arquivo_tipo: Optional[str] = None
+    tamanho_bytes: Optional[int] = 0
+    status: Optional[str] = "publicado"
+
+class ConteudoBibliotecaUpdate(BaseModel):
+    titulo: Optional[str] = None
+    subtitulo: Optional[str] = None
+    tipo: Optional[str] = None
+    conteudo: Optional[str] = None
+    arquivo_url: Optional[str] = None
+    arquivo_nome: Optional[str] = None
+    arquivo_tipo: Optional[str] = None
+    tamanho_bytes: Optional[int] = None
+    status: Optional[str] = None
+
+class GerarSenhaTemporariaRequest(BaseModel):
+    aluno_id: int
+
 class TTSRequest(BaseModel):
     texto: str
     voz: Optional[str] = "Aoede"
@@ -1403,11 +1459,374 @@ async def api_salvar_icone(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro ao processar ícone: {str(e)}")
 
-# --- Montar Arquivos Estáticos do Frontend (PWA) ---
-
 FRONTEND_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "frontend")
 
 if not os.path.exists(FRONTEND_DIR):
     os.makedirs(FRONTEND_DIR, exist_ok=True)
 
+# ==============================================================================
+# --- ROTAS DA ÁREA DO ALUNO (PWA INDEPENDENTE /aluno) & AUTENTICAÇÃO ---
+# ==============================================================================
+
+STUDENT_AUTH_SECRET = os.environ.get("STUDENT_AUTH_SECRET", "shanti_yoga_student_auth_secret_key_2026")
+
+def gerar_token_aluno(aluno_id: int) -> str:
+    timestamp = int(time.time())
+    payload = f"{aluno_id}:{timestamp}"
+    signature = hmac.new(STUDENT_AUTH_SECRET.encode(), payload.encode(), hashlib.sha256).hexdigest()
+    raw = f"{payload}:{signature}"
+    return base64.urlsafe_b64encode(raw.encode()).decode()
+
+def verificar_token_aluno(token: str) -> Optional[int]:
+    try:
+        raw = base64.urlsafe_b64decode(token.encode()).decode()
+        parts = raw.split(":")
+        if len(parts) != 3:
+            return None
+        aluno_id_str, ts_str, sig = parts
+        payload = f"{aluno_id_str}:{ts_str}"
+        expected_sig = hmac.new(STUDENT_AUTH_SECRET.encode(), payload.encode(), hashlib.sha256).hexdigest()
+        if not hmac.compare_digest(sig, expected_sig):
+            return None
+        # Válido por 30 dias
+        if time.time() - int(ts_str) > 30 * 86400:
+            return None
+        return int(aluno_id_str)
+    except Exception:
+        return None
+
+def obter_aluno_autenticado(request: Request) -> int:
+    auth_header = request.headers.get("Authorization", "")
+    token = ""
+    if auth_header.startswith("Bearer "):
+        token = auth_header.split(" ", 1)[1].strip()
+    elif "token" in request.query_params:
+        token = request.query_params["token"]
+    
+    if not token:
+        raise HTTPException(status_code=401, detail="Token de autenticação não fornecido.")
+    
+    aluno_id = verificar_token_aluno(token)
+    if not aluno_id:
+        raise HTTPException(status_code=401, detail="Sessão expirada ou inválida. Faça login novamente.")
+    return aluno_id
+
+@app.get("/aluno")
+def servico_pagina_aluno():
+    aluno_html = os.path.join(FRONTEND_DIR, "aluno.html")
+    if os.path.exists(aluno_html):
+        return FileResponse(aluno_html, media_type="text/html")
+    raise HTTPException(status_code=404, detail="Página do aluno não encontrada.")
+
+@app.get("/manifest-aluno.json")
+def servico_manifest_aluno():
+    manifest_path = os.path.join(FRONTEND_DIR, "manifest-aluno.json")
+    if os.path.exists(manifest_path):
+        return FileResponse(manifest_path, media_type="application/json")
+    raise HTTPException(status_code=404, detail="Manifest do aluno não encontrado.")
+
+@app.post("/api/aluno/auth/login")
+def api_aluno_login(dados: AlunoLoginRequest):
+    res = db.autenticar_aluno(dados.login, dados.senha)
+    if not res.get("sucesso"):
+        return res
+    aluno_id = res.get("aluno_id") or (res.get("aluno") and res["aluno"].get("id"))
+    token = gerar_token_aluno(aluno_id)
+    return {
+        "sucesso": True,
+        "token": token,
+        "primeiro_acesso": res.get("primeiro_acesso", False),
+        "aluno": res.get("aluno")
+    }
+
+@app.post("/api/aluno/auth/primeiro-acesso")
+def api_aluno_primeiro_acesso(dados: AlunoPrimeiroAcessoRequest):
+    res = db.cadastrar_senha_primeiro_acesso(dados.aluno_id, dados.nova_senha)
+    if res.get("sucesso"):
+        token = gerar_token_aluno(dados.aluno_id)
+        res["token"] = token
+    return res
+
+@app.post("/api/aluno/auth/esqueci-senha")
+def api_aluno_esqueci_senha(dados: AlunoEsqueciSenhaRequest):
+    return db.solicitar_recuperacao_senha_aluno(dados.login)
+
+@app.post("/api/aluno/auth/redefinir-senha")
+def api_aluno_redefinir_senha(dados: AlunoRedefinirSenhaRequest):
+    return db.redefinir_senha_com_codigo(dados.login, dados.codigo, dados.nova_senha)
+
+@app.get("/api/aluno/me")
+def api_aluno_me(request: Request):
+    aluno_id = obter_aluno_autenticado(request)
+    aluno = db.obter_aluno(aluno_id)
+    if not aluno:
+        raise HTTPException(status_code=404, detail="Aluno não encontrado.")
+    aluno.pop("senha_hash", None)
+    aluno.pop("salt", None)
+    aluno.pop("codigo_recuperacao", None)
+    return aluno
+
+@app.get("/api/aluno/dashboard")
+def api_aluno_dashboard(request: Request):
+    aluno_id = obter_aluno_autenticado(request)
+    return db.obter_resumo_aluno_dashboard(aluno_id)
+
+@app.get("/api/aluno/aulas")
+def api_aluno_aulas(request: Request):
+    aluno_id = obter_aluno_autenticado(request)
+    aluno = db.obter_aluno(aluno_id)
+    if not aluno:
+        raise HTTPException(status_code=404, detail="Aluno não encontrado.")
+    
+    turmas = aluno.get("turmas", [])
+    conn = db.get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT data, status, justificativa, turma_id
+        FROM historico_presenca
+        WHERE aluno_id = ?
+        ORDER BY data DESC
+        LIMIT 30
+    """, (aluno_id,))
+    rows = cursor.fetchall()
+    conn.close()
+    historico = [dict(r) for r in rows]
+    
+    return {
+        "turmas": turmas,
+        "historico": historico,
+        "plano": aluno.get("plano", "2x na semana")
+    }
+
+@app.get("/api/aluno/conquistas")
+def api_aluno_conquistas(request: Request):
+    aluno_id = obter_aluno_autenticado(request)
+    return db.obter_conquistas_aluno(aluno_id)
+
+@app.get("/api/aluno/leituras")
+def api_aluno_leituras(request: Request):
+    obter_aluno_autenticado(request)
+    return db.listar_biblioteca(status="publicado")
+
+@app.get("/api/aluno/leituras/{conteudo_id}")
+def api_aluno_leitura_item(conteudo_id: int, request: Request):
+    obter_aluno_autenticado(request)
+    item = db.obter_conteudo_biblioteca(conteudo_id)
+    if not item or item.get("status") != "publicado":
+        raise HTTPException(status_code=404, detail="Conteúdo não encontrado.")
+    return item
+
+@app.get("/api/aluno/reposicoes")
+def api_aluno_listar_reposicoes(request: Request):
+    aluno_id = obter_aluno_autenticado(request)
+    return db.listar_solicitacoes_reposicao(aluno_id=aluno_id)
+
+@app.post("/api/aluno/reposicoes")
+def api_aluno_criar_reposicao(dados: SolicitacaoReposicaoCreate, request: Request):
+    aluno_id = obter_aluno_autenticado(request)
+    sid = db.criar_solicitacao_reposicao(
+        aluno_id=aluno_id,
+        data_falta=dados.data_falta,
+        motivo=dados.motivo or "",
+        turma_origem_id=dados.turma_origem_id,
+        turma_destino_id=dados.turma_destino_id,
+        data_sugerida=dados.data_sugerida
+    )
+    return {
+        "sucesso": True,
+        "id": sid,
+        "mensagem": "Solicitação de reposição enviada com sucesso para a Natália."
+    }
+
+@app.get("/api/aluno/contrato")
+def api_aluno_contrato(request: Request):
+    aluno_id = obter_aluno_autenticado(request)
+    aluno = db.obter_aluno(aluno_id)
+    if not aluno:
+        raise HTTPException(status_code=404, detail="Aluno não encontrado.")
+    return {
+        "status": aluno.get("status_contrato", "pendente"),
+        "autentique_link": aluno.get("autentique_link"),
+        "autentique_document_id": aluno.get("autentique_document_id"),
+        "data_contrato": aluno.get("data_contrato")
+    }
+
+# ==============================================================================
+# --- GESTÃO ADMIN: ÁREA DO ALUNO, BIBLIOTECA, CONQUISTAS E REPOSIÇÕES ---
+# ==============================================================================
+
+@app.get("/api/admin/biblioteca")
+def api_admin_listar_biblioteca():
+    return db.listar_biblioteca(status=None)
+
+@app.post("/api/admin/biblioteca")
+def api_admin_criar_conteudo(dados: ConteudoBibliotecaCreate):
+    cid = db.salvar_conteudo_biblioteca(dados.model_dump())
+    return {"sucesso": True, "id": cid, "mensagem": "Conteúdo salvo com sucesso!"}
+
+@app.post("/api/admin/biblioteca/upload")
+async def api_admin_upload_arquivo_biblioteca(
+    arquivo: UploadFile = File(...),
+    titulo: str = Form(...),
+    subtitulo: Optional[str] = Form(""),
+    tipo: Optional[str] = Form("pdf"),
+    conteudo: Optional[str] = Form(""),
+    status: Optional[str] = Form("publicado")
+):
+    upload_dir = os.path.join(FRONTEND_DIR, "uploads", "biblioteca")
+    os.makedirs(upload_dir, exist_ok=True)
+
+    timestamp = int(datetime.datetime.now().timestamp())
+    nome_seguro = re.sub(r'[^a-zA-Z0-9_.-]', '_', arquivo.filename)
+    nome_final = f"{timestamp}_{nome_seguro}"
+    caminho_final = os.path.join(upload_dir, nome_final)
+
+    conteudo_bytes = await arquivo.read()
+    with open(caminho_final, "wb") as f:
+        f.write(conteudo_bytes)
+
+    arquivo_url = f"/uploads/biblioteca/{nome_final}"
+    dados_conteudo = {
+        "titulo": titulo,
+        "subtitulo": subtitulo or "",
+        "tipo": tipo or "pdf",
+        "conteudo": conteudo or "",
+        "arquivo_url": arquivo_url,
+        "arquivo_nome": arquivo.filename,
+        "arquivo_tipo": arquivo.content_type,
+        "tamanho_bytes": len(conteudo_bytes),
+        "status": status or "publicado"
+    }
+    cid = db.salvar_conteudo_biblioteca(dados_conteudo)
+    return {"sucesso": True, "id": cid, "arquivo_url": arquivo_url, "mensagem": "Arquivo publicado com sucesso!"}
+
+@app.put("/api/admin/biblioteca/{conteudo_id}")
+def api_admin_atualizar_conteudo(conteudo_id: int, dados: ConteudoBibliotecaUpdate):
+    ok = db.atualizar_conteudo_biblioteca(conteudo_id, dados.model_dump(exclude_unset=True))
+    if not ok:
+        raise HTTPException(status_code=404, detail="Conteúdo não encontrado para atualização.")
+    return {"sucesso": True, "mensagem": "Conteúdo atualizado com sucesso!"}
+
+@app.delete("/api/admin/biblioteca/{conteudo_id}")
+def api_admin_excluir_conteudo(conteudo_id: int):
+    ok = db.excluir_conteudo_biblioteca(conteudo_id)
+    if not ok:
+        raise HTTPException(status_code=404, detail="Conteúdo não encontrado para exclusão.")
+    return {"sucesso": True, "mensagem": "Conteúdo excluído com sucesso!"}
+
+@app.get("/api/admin/conquistas")
+def api_admin_conquistas():
+    alunos = db.listar_alunos(apenas_ativos=True)
+    resultado = []
+    for al in alunos:
+        aid = al["id"]
+        conq = db.obter_conquistas_aluno(aid)
+        
+        primeiro_nome = al["nome"].split()[0]
+        tel_dig = db._extrair_digitos(al.get("telefone", ""))
+        prox = conq["proximo_marco"]
+        total = conq["total_presencas"]
+        
+        msg_wa = (
+            f"Olá {primeiro_nome}! 🧘‍♀️ Parabéns pela dedicação no Shanti Studio! "
+            f"Você já completou {total} aulas e está quase alcançando o marco de {prox} aulas. "
+            f"Continue firme na prática! Namastê 🙏✨"
+        )
+        link_wa = f"https://wa.me/55{tel_dig}?text={urllib.parse.quote(msg_wa)}" if tel_dig else None
+
+        resultado.append({
+            "aluno_id": aid,
+            "nome": al["nome"],
+            "telefone": al["telefone"],
+            "plano": al.get("plano", ""),
+            "total_presencas": conq["total_presencas"],
+            "proximo_marco": conq["proximo_marco"],
+            "progresso_str": conq["progresso_str"],
+            "progresso_pct": conq["progresso_pct"],
+            "marcos": conq["marcos"],
+            "link_whatsapp_incentivo": link_wa
+        })
+    resultado.sort(key=lambda x: x["total_presencas"], reverse=True)
+    return resultado
+
+@app.get("/api/admin/reposicoes")
+def api_admin_listar_reposicoes(status: Optional[str] = None):
+    return db.listar_solicitacoes_reposicao(status=status)
+
+@app.put("/api/admin/reposicoes/{solicitacao_id}")
+def api_admin_responder_reposicao(solicitacao_id: int, dados: SolicitacaoReposicaoResposta):
+    ok = db.responder_solicitacao_reposicao(
+        solicitacao_id=solicitacao_id,
+        novo_status=dados.status,
+        resposta_admin=dados.resposta_admin or "",
+        turma_alocada_id=dados.turma_destino_id,
+        data_alocada=dados.data_sugerida
+    )
+    if not ok:
+        raise HTTPException(status_code=404, detail="Solicitação de reposição não encontrada.")
+    return {"sucesso": True, "mensagem": f"Solicitação marcada como {dados.status}!"}
+
+@app.get("/api/admin/aluno-app/configuracoes")
+def api_admin_aluno_config():
+    alunos = db.listar_alunos(apenas_ativos=True)
+    com_acesso = sum(1 for a in alunos if a.get("senha_hash"))
+    primeiro_acesso_pendente = sum(1 for a in alunos if a.get("primeiro_acesso") == 1)
+    
+    app_url = os.environ.get("RENDER_EXTERNAL_URL", "https://shanti-studio-yoga.onrender.com")
+    aluno_url = f"{app_url.rstrip('/')}/aluno"
+    
+    return {
+        "total_alunos_ativos": len(alunos),
+        "alunos_com_senha": com_acesso,
+        "alunos_primeiro_acesso": primeiro_acesso_pendente,
+        "app_aluno_url": aluno_url
+    }
+
+@app.post("/api/admin/aluno-app/gerar-senha-temporaria")
+def api_admin_gerar_senha_temp(dados: GerarSenhaTemporariaRequest):
+    aluno = db.obter_aluno(dados.aluno_id)
+    if not aluno:
+        raise HTTPException(status_code=404, detail="Aluno não encontrado.")
+    
+    senha_temp = db.gerar_senha_temporaria()
+    salt = db._gerar_salt()
+    senha_hash = db._hash_senha(senha_temp, salt)
+    
+    conn = db.get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        UPDATE alunos
+        SET senha_hash = ?, salt = ?, primeiro_acesso = 1,
+            tentativas_login = 0, bloqueado_ate = NULL
+        WHERE id = ?
+    """, (senha_hash, salt, dados.aluno_id))
+    conn.commit()
+    conn.close()
+
+    app_url = os.environ.get("RENDER_EXTERNAL_URL", "https://shanti-studio-yoga.onrender.com")
+    aluno_url = f"{app_url.rstrip('/')}/aluno"
+    primeiro_nome = aluno["nome"].split()[0]
+    tel_dig = db._extrair_digitos(aluno.get("telefone", ""))
+
+    msg_whatsapp = (
+        f"Olá, {primeiro_nome}! 🧘‍♀️ Seu acesso ao novo App do Aluno do Shanti Studio está pronto!\n\n"
+        f"📱 Acesse: {aluno_url}\n"
+        f"👤 Login: seu telefone ({aluno.get('telefone')}) ou CPF\n"
+        f"🔑 Senha temporária: *{senha_temp}*\n\n"
+        f"No primeiro acesso você definirá sua senha pessoal. Namastê! 🙏✨"
+    )
+    link_wa = f"https://wa.me/55{tel_dig}?text={urllib.parse.quote(msg_whatsapp)}" if tel_dig else None
+
+    return {
+        "sucesso": True,
+        "aluno_id": dados.aluno_id,
+        "aluno_nome": aluno["nome"],
+        "senha_temporaria": senha_temp,
+        "mensagem_whatsapp": msg_whatsapp,
+        "link_whatsapp": link_wa
+    }
+
+# --- Montar Arquivos Estáticos do Frontend (PWA) ---
+
 app.mount("/", StaticFiles(directory=FRONTEND_DIR, html=True), name="frontend")
+

@@ -1,0 +1,1978 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Shanti Studio · Aluno</title>
+  
+  <!-- PWA & Mobile Meta -->
+  <link rel="manifest" href="/manifest-aluno.json">
+  <meta name="theme-color" content="#3F4E3A">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Shanti Aluno">
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="apple-touch-icon" href="/icons/icon-192.png">
+
+  <!-- Typography & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;1,400;1,600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <style>
+    /* ==========================================================================
+       DESIGN SYSTEM & CSS VARIABLES (Aprovado em media_1789600495818.png)
+       ========================================================================== */
+    :root {
+      --bg-warm: #FAF7F2;
+      --forest-green: #3F4E3A;
+      --forest-green-dark: #2C3828;
+      --forest-green-light: #52654C;
+      --status-green: #4F6B45;
+      --terracotta: #B8674A;
+      --terracotta-light: #F7EFE9;
+      --white: #FFFFFF;
+      --text-main: #232D20;
+      --text-muted: #7D8878;
+      --text-light: #9DA899;
+      --border-subtle: #ECE7DE;
+      --border-card: rgba(63, 78, 58, 0.08);
+      --shadow-card: 0 10px 28px rgba(44, 56, 40, 0.07), 0 2px 6px rgba(0, 0, 0, 0.02);
+      --shadow-float: 0 14px 34px rgba(44, 56, 40, 0.12);
+      --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-serif: 'Playfair Display', Georgia, serif;
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 20px;
+      --radius-full: 9999px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background-color: var(--bg-warm);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    #app-container {
+      width: 100%;
+      max-width: 480px;
+      min-height: 100vh;
+      background-color: var(--bg-warm);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      padding-bottom: 84px; /* espaço para a bottom nav */
+    }
+
+    /* --- TOPO / HEADER VERDE FLORESTA SÓLIDO (#3F4E3A) --- */
+    .top-header {
+      background-color: var(--forest-green);
+      color: var(--white);
+      padding: 48px 24px 72px 24px;
+      position: relative;
+      border-bottom-left-radius: 28px;
+      border-bottom-right-radius: 28px;
+    }
+
+    .top-header-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+
+    .logo-container {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-badge {
+      width: 40px;
+      height: 40px;
+      background-color: var(--bg-warm);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    }
+
+    .logo-badge i {
+      color: var(--forest-green);
+      font-size: 20px;
+    }
+
+    .logo-badge img {
+      width: 26px;
+      height: 26px;
+      object-fit: contain;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .icon-btn-header {
+      width: 40px;
+      height: 40px;
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 12px;
+      color: var(--white);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      cursor: pointer;
+      position: relative;
+      transition: all 0.2s ease;
+    }
+
+    .icon-btn-header:active {
+      transform: scale(0.95);
+      background: rgba(255, 255, 255, 0.22);
+    }
+
+    .notification-dot {
+      position: absolute;
+      top: 9px;
+      right: 9px;
+      width: 7px;
+      height: 7px;
+      background-color: var(--terracotta);
+      border-radius: 50%;
+      border: 1.5px solid var(--forest-green);
+    }
+
+    .header-content {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .date-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #E2E8DF;
+      opacity: 0.92;
+    }
+
+    .greeting-title {
+      font-size: 26px;
+      font-weight: 700;
+      color: var(--white);
+      letter-spacing: -0.02em;
+    }
+
+    /* --- CONTEÚDO PRINCIPAL E CARTÕES FLUTUANTES --- */
+    .main-body {
+      padding: 0 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      position: relative;
+      margin-top: -46px; /* Efeito flutuante sobre o verde */
+    }
+
+    /* 1. CARTÃO "PRÓXIMA AULA" */
+    .card-proxima-aula {
+      background: var(--white);
+      border-radius: var(--radius-lg);
+      padding: 22px 24px;
+      box-shadow: var(--shadow-float);
+      border: 1px solid var(--border-card);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .card-proxima-aula-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .aula-nome {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .aula-status-badge {
+      background: var(--status-green);
+      color: var(--white);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 5px 12px;
+      border-radius: var(--radius-full);
+      letter-spacing: 0.02em;
+    }
+
+    .card-proxima-aula-bottom {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--text-muted);
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .card-proxima-aula-bottom i {
+      font-size: 14px;
+      color: var(--forest-green-light);
+    }
+
+    /* 2. BLOCO DE MÉTRICAS (3 COLUNAS COM LINHAS FINAS) */
+    .metrics-container {
+      background: var(--white);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-card);
+      border: 1px solid var(--border-card);
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      padding: 20px 0;
+    }
+
+    .metric-col {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      position: relative;
+    }
+
+    .metric-col:not(:last-child)::after {
+      content: "";
+      position: absolute;
+      right: 0;
+      top: 15%;
+      height: 70%;
+      width: 1px;
+      background-color: var(--border-subtle);
+    }
+
+    .metric-label {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-muted);
+    }
+
+    .metric-value {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text-main);
+      display: flex;
+      align-items: baseline;
+      gap: 2px;
+    }
+
+    .metric-value-accent {
+      color: var(--terracotta);
+    }
+
+    .metric-value-muted {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-light);
+    }
+
+    /* 3. CARTÃO "MENSAGEM DO DIA" COM BORDA TERRACOTA DE 3px */
+    .card-mensagem-dia {
+      background: var(--white);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-card);
+      border: 1px solid var(--border-card);
+      border-left: 3.5px solid var(--terracotta);
+      padding: 20px 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .mensagem-dia-header {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--terracotta);
+    }
+
+    .mensagem-dia-texto {
+      font-family: var(--font-serif);
+      font-size: 16px;
+      line-height: 1.55;
+      color: #2D3728;
+      font-style: italic;
+    }
+
+    /* 4. ATALHOS RÁPIDOS NO INÍCIO */
+    .quick-actions-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 4px;
+    }
+
+    .quick-action-card {
+      background: var(--white);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      box-shadow: var(--shadow-card);
+      border: 1px solid var(--border-card);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .quick-action-card:active {
+      transform: scale(0.98);
+      background-color: #FDFBF8;
+    }
+
+    .quick-action-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+    }
+
+    .qa-green {
+      background: rgba(63, 78, 58, 0.1);
+      color: var(--forest-green);
+    }
+
+    .qa-terracotta {
+      background: rgba(184, 103, 74, 0.12);
+      color: var(--terracotta);
+    }
+
+    .quick-action-info h4 {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .quick-action-info p {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    /* --- BOTTOM NAVIGATION BAR COM 4 ABAS --- */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 480px;
+      height: 72px;
+      background: var(--white);
+      border-top: 1px solid var(--border-subtle);
+      box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.04);
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      z-index: 100;
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+
+    .nav-tab-btn {
+      background: none;
+      border: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      color: var(--text-light);
+      font-family: var(--font-sans);
+      font-size: 11px;
+      font-weight: 500;
+      cursor: pointer;
+      padding: 8px 12px;
+      position: relative;
+      transition: all 0.2s ease;
+      width: 25%;
+    }
+
+    .nav-tab-btn i {
+      font-size: 18px;
+      transition: all 0.2s ease;
+    }
+
+    /* Aba ativa: Verde Floresta + tracinho sutil em terracota */
+    .nav-tab-btn.active {
+      color: var(--forest-green);
+      font-weight: 700;
+    }
+
+    .nav-tab-btn.active i {
+      transform: translateY(-2px);
+      color: var(--forest-green);
+    }
+
+    .nav-tab-btn.active::after {
+      content: "";
+      position: absolute;
+      bottom: 2px;
+      width: 22px;
+      height: 2.5px;
+      background-color: var(--terracotta);
+      border-radius: var(--radius-full);
+    }
+
+    /* --- TELAS SECUNDÁRIAS (Aulas, Conquistas, Leituras) --- */
+    .tab-screen {
+      display: none;
+      flex-direction: column;
+      gap: 20px;
+      padding: 0 20px 24px 20px;
+    }
+
+    .tab-screen.active {
+      display: flex;
+    }
+
+    .screen-header-inner {
+      padding: 32px 4px 12px 4px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .screen-title {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--forest-green);
+      letter-spacing: -0.01em;
+    }
+
+    /* Cards de Aulas & Turmas */
+    .turma-card {
+      background: var(--white);
+      border-radius: var(--radius-md);
+      padding: 18px 20px;
+      box-shadow: var(--shadow-card);
+      border: 1px solid var(--border-card);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .turma-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .turma-card-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .turma-dias-badge {
+      background: rgba(63, 78, 58, 0.09);
+      color: var(--forest-green);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: var(--radius-full);
+    }
+
+    .turma-card-details {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .turma-card-details span {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .turma-card-details i {
+      color: var(--forest-green);
+      width: 16px;
+    }
+
+    /* Botão Primário Estilizado */
+    .btn-primary {
+      background: var(--forest-green);
+      color: var(--white);
+      border: none;
+      padding: 14px 20px;
+      border-radius: var(--radius-md);
+      font-family: var(--font-sans);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 12px rgba(63, 78, 58, 0.2);
+    }
+
+    .btn-primary:active {
+      transform: scale(0.98);
+      background: var(--forest-green-dark);
+    }
+
+    .btn-terracotta {
+      background: var(--terracotta);
+      color: var(--white);
+      border: none;
+      padding: 14px 20px;
+      border-radius: var(--radius-md);
+      font-family: var(--font-sans);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 12px rgba(184, 103, 74, 0.25);
+    }
+
+    .btn-terracotta:active {
+      transform: scale(0.98);
+      background: #A3573C;
+    }
+
+    .btn-secondary {
+      background: var(--white);
+      color: var(--forest-green);
+      border: 1px solid var(--border-subtle);
+      padding: 12px 18px;
+      border-radius: var(--radius-md);
+      font-family: var(--font-sans);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+    }
+
+    /* Histórico de Frequência */
+    .historico-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .historico-item {
+      background: var(--white);
+      border-radius: var(--radius-sm);
+      padding: 12px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border: 1px solid var(--border-card);
+      font-size: 13px;
+    }
+
+    .hist-presente {
+      color: var(--status-green);
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .hist-faltou {
+      color: var(--terracotta);
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* TELA CONQUISTAS (MARCOS DE FREQUÊNCIA) */
+    .conquistas-progresso-card {
+      background: var(--white);
+      border-radius: var(--radius-lg);
+      padding: 22px;
+      box-shadow: var(--shadow-card);
+      border: 1px solid var(--border-card);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .progresso-bar-bg {
+      width: 100%;
+      height: 10px;
+      background-color: var(--border-subtle);
+      border-radius: var(--radius-full);
+      overflow: hidden;
+    }
+
+    .progresso-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--forest-green), var(--terracotta));
+      border-radius: var(--radius-full);
+      transition: width 0.6s ease;
+    }
+
+    .marcos-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    .marco-card {
+      background: var(--white);
+      border-radius: var(--radius-md);
+      padding: 18px 16px;
+      box-shadow: var(--shadow-card);
+      border: 1px solid var(--border-card);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 10px;
+      position: relative;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .marco-card.desbloqueado {
+      border: 1.5px solid rgba(63, 78, 58, 0.25);
+    }
+
+    .marco-card.desbloqueado .marco-icon {
+      background: rgba(63, 78, 58, 0.1);
+      color: var(--forest-green);
+    }
+
+    .marco-card.bloqueado {
+      opacity: 0.65;
+      background: #F8F5F0;
+    }
+
+    .marco-card.bloqueado .marco-icon {
+      background: #EAE5DC;
+      color: #9BA596;
+    }
+
+    .marco-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+    }
+
+    .marco-qtd {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .marco-status-label {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    /* TELA LEITURAS & ARTIGOS */
+    .biblioteca-list {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .leitura-card {
+      background: var(--white);
+      border-radius: var(--radius-md);
+      padding: 18px 20px;
+      box-shadow: var(--shadow-card);
+      border: 1px solid var(--border-card);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .leitura-card:active {
+      transform: scale(0.99);
+      background: #FDFBF8;
+    }
+
+    .leitura-tag {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--terracotta);
+    }
+
+    .leitura-titulo {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-main);
+      line-height: 1.35;
+    }
+
+    .leitura-subtitulo {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.45;
+    }
+
+    .leitura-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      color: var(--text-light);
+      margin-top: 4px;
+    }
+
+    /* --- MODAIS (Login, Reposição, Leitor, Perfil) --- */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(35, 45, 32, 0.6);
+      backdrop-filter: blur(4px);
+      z-index: 200;
+      justify-content: center;
+      align-items: flex-end; /* Abre como bottom sheet no mobile */
+      padding: 0;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal-sheet {
+      width: 100%;
+      max-width: 480px;
+      max-height: 90vh;
+      background: var(--white);
+      border-top-left-radius: 24px;
+      border-top-right-radius: 24px;
+      padding: 24px 24px 36px 24px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.15);
+      animation: slideUp 0.25s ease-out;
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(100%); }
+      to { transform: translateY(0); }
+    }
+
+    .modal-sheet-handle {
+      width: 40px;
+      height: 4px;
+      background: #D8D2C6;
+      border-radius: 2px;
+      align-self: center;
+      margin-bottom: 4px;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-title {
+      font-size: 19px;
+      font-weight: 700;
+      color: var(--forest-green);
+    }
+
+    .modal-close-btn {
+      background: none;
+      border: none;
+      font-size: 20px;
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 4px;
+    }
+
+    /* Form Inputs */
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .form-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .form-input, .form-select, .form-textarea {
+      width: 100%;
+      padding: 13px 15px;
+      border: 1.5px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      font-family: var(--font-sans);
+      font-size: 14px;
+      color: var(--text-main);
+      background-color: var(--bg-warm);
+      outline: none;
+      transition: border-color 0.2s ease;
+    }
+
+    .form-input:focus, .form-select:focus, .form-textarea:focus {
+      border-color: var(--forest-green);
+      background-color: var(--white);
+    }
+
+    /* TELA CHEIA DE LOGIN / AUTH OVERLAY */
+    #auth-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: var(--bg-warm);
+      z-index: 300;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    #auth-screen.active {
+      display: flex;
+    }
+
+    .auth-card {
+      width: 100%;
+      max-width: 390px;
+      background: var(--white);
+      border-radius: var(--radius-lg);
+      padding: 32px 26px;
+      box-shadow: var(--shadow-float);
+      border: 1px solid var(--border-card);
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      text-align: center;
+    }
+
+    .auth-logo {
+      width: 58px;
+      height: 58px;
+      background: var(--forest-green);
+      color: var(--white);
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+      margin: 0 auto 4px auto;
+    }
+
+    .auth-title {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--forest-green);
+    }
+
+    .auth-subtitle {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    .auth-links {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 4px;
+    }
+
+    .auth-link-btn {
+      background: none;
+      border: none;
+      color: var(--terracotta);
+      font-family: var(--font-sans);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: underline;
+    }
+
+    /* Toast Notification */
+    #toast-msg {
+      position: fixed;
+      bottom: 90px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: var(--forest-green-dark);
+      color: var(--white);
+      padding: 12px 22px;
+      border-radius: var(--radius-full);
+      font-size: 13px;
+      font-weight: 500;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+      z-index: 400;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.3s ease;
+      white-space: nowrap;
+    }
+
+    #toast-msg.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+  </style>
+</head>
+<body>
+
+  <div id="app-container">
+    
+    <!-- 1. TOPO / HEADER VERDE FLORESTA SÓLIDO (#3F4E3A) -->
+    <header class="top-header">
+      <div class="top-header-bar">
+        <div class="logo-container">
+          <div class="logo-badge">
+            <i class="fa-solid fa-seedling"></i>
+          </div>
+        </div>
+        <div class="header-actions">
+          <button class="icon-btn-header" id="btn-notificacoes" title="Notificações">
+            <i class="fa-regular fa-bell"></i>
+            <span class="notification-dot"></span>
+          </button>
+          <button class="icon-btn-header" id="btn-perfil" title="Meu Perfil">
+            <i class="fa-regular fa-user"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="header-content">
+        <span class="date-label" id="header-data-extenso">SEGUNDA-FEIRA, 14 DE SETEMBRO</span>
+        <h1 class="greeting-title" id="header-greeting">Olá, Aluno(a)</h1>
+      </div>
+    </header>
+
+    <!-- 2. CONTEÚDO PRINCIPAL (COM AS 4 TELAS) -->
+    
+    <!-- TAB 1: INÍCIO (Design exato aprovado em media_1789600495818.png) -->
+    <div id="screen-inicio" class="tab-screen active">
+      <div class="main-body">
+        
+        <!-- Cartão Flutuante Próxima Aula -->
+        <div class="card-proxima-aula" id="card-proxima-aula">
+          <div class="card-proxima-aula-top">
+            <h2 class="aula-nome" id="proxima-aula-nome">Essência · Hatha Yoga</h2>
+            <span class="aula-status-badge" id="proxima-aula-status">Confirmada</span>
+          </div>
+          <div class="card-proxima-aula-bottom">
+            <i class="fa-regular fa-clock"></i>
+            <span id="proxima-aula-horario">Hoje, 18:30</span>
+          </div>
+        </div>
+
+        <!-- Bloco de 3 Métricas (Frequência, Pagamento, Conquista) -->
+        <div class="metrics-container">
+          <div class="metric-col">
+            <span class="metric-label">Frequência</span>
+            <span class="metric-value" id="metric-frequencia">72%</span>
+          </div>
+          <div class="metric-col">
+            <span class="metric-label">Pagamento</span>
+            <span class="metric-value" id="metric-pagamento">Em dia</span>
+          </div>
+          <div class="metric-col">
+            <span class="metric-label">Conquista</span>
+            <span class="metric-value" id="metric-conquista">
+              <span class="metric-value-accent" id="metric-conq-num">18</span><span class="metric-value-muted" id="metric-conq-total">/25</span>
+            </span>
+          </div>
+        </div>
+
+        <!-- Mensagem do Dia com Borda Terracota 3px -->
+        <div class="card-mensagem-dia">
+          <span class="mensagem-dia-header">MENSAGEM DO DIA</span>
+          <p class="mensagem-dia-texto" id="mensagem-dia-texto">
+            "A respiração é a ponte entre o corpo e a mente."
+          </p>
+        </div>
+
+        <!-- Atalhos Rápidos -->
+        <div class="quick-actions-row">
+          <div class="quick-action-card" onclick="mudarAba('aulas'); abrirModalReposicao();">
+            <div class="quick-action-icon qa-terracotta">
+              <i class="fa-solid fa-arrow-rotate-right"></i>
+            </div>
+            <div class="quick-action-info">
+              <h4>Reposição</h4>
+              <p>Solicitar aula</p>
+            </div>
+          </div>
+          <div class="quick-action-card" onclick="mudarAba('conquistas');">
+            <div class="quick-action-icon qa-green">
+              <i class="fa-solid fa-award"></i>
+            </div>
+            <div class="quick-action-info">
+              <h4>Conquistas</h4>
+              <p>Ver seus marcos</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- TAB 2: AULAS & REPOSIÇÕES -->
+    <div id="screen-aulas" class="tab-screen">
+      <div class="screen-header-inner">
+        <h2 class="screen-title">Minhas Aulas</h2>
+        <span class="turma-dias-badge" id="aulas-plano-badge">Plano Ativo</span>
+      </div>
+
+      <!-- Turmas Matriculadas -->
+      <div id="lista-turmas-aluno" style="display: flex; flex-direction: column; gap: 12px;">
+        <!-- Injetado via JS -->
+      </div>
+
+      <!-- Botão Solicitar Reposição -->
+      <button class="btn-primary" onclick="abrirModalReposicao()">
+        <i class="fa-solid fa-plus"></i> Solicitar Reposição de Aula
+      </button>
+
+      <!-- Minhas Solicitações de Reposição Recentes -->
+      <h3 style="font-size: 15px; font-weight: 700; color: var(--forest-green); margin-top: 10px;">
+        Solicitações de Reposição
+      </h3>
+      <div id="lista-reposicoes-aluno" style="display: flex; flex-direction: column; gap: 10px;">
+        <p style="font-size: 13px; color: var(--text-muted);">Nenhuma solicitação em andamento.</p>
+      </div>
+
+      <!-- Histórico de Presenças -->
+      <h3 style="font-size: 15px; font-weight: 700; color: var(--forest-green); margin-top: 10px;">
+        Histórico Recente de Presenças
+      </h3>
+      <div class="historico-list" id="lista-historico-presencas">
+        <!-- Injetado via JS -->
+      </div>
+    </div>
+
+    <!-- TAB 3: CONQUISTAS (MARCOS DE FREQUÊNCIA 10, 25, 50, 100, 200) -->
+    <div id="screen-conquistas" class="tab-screen">
+      <div class="screen-header-inner">
+        <h2 class="screen-title">Sua Jornada</h2>
+        <span class="turma-dias-badge" id="conquistas-total-badge">0 Aulas</span>
+      </div>
+
+      <!-- Cartão de Progresso até o Próximo Marco -->
+      <div class="conquistas-progresso-card">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span style="font-size: 14px; font-weight: 600; color: var(--text-main);">Próxima Conquista</span>
+          <span style="font-size: 14px; font-weight: 700; color: var(--terracotta);" id="conq-prox-label">18/25 aulas</span>
+        </div>
+        <div class="progresso-bar-bg">
+          <div class="progresso-bar-fill" id="conq-progresso-fill" style="width: 72%;"></div>
+        </div>
+        <p style="font-size: 12px; color: var(--text-muted); line-height: 1.4;" id="conq-incentivo-texto">
+          Cada aula no tatame é um passo de autoconhecimento e constância.
+        </p>
+      </div>
+
+      <!-- Grade dos 5 Marcos -->
+      <h3 style="font-size: 15px; font-weight: 700; color: var(--forest-green); margin-top: 8px;">
+        Marcos de Prática
+      </h3>
+      <div class="marcos-grid" id="grid-marcos-conquistas">
+        <!-- Injetado via JS -->
+      </div>
+    </div>
+
+    <!-- TAB 4: LEITURAS (BIBLIOTECA DE CONTEÚDOS DE NATÁLIA) -->
+    <div id="screen-leituras" class="tab-screen">
+      <div class="screen-header-inner">
+        <h2 class="screen-title">Biblioteca</h2>
+        <span class="turma-dias-badge">Inspiração & Filosofia</span>
+      </div>
+
+      <div class="biblioteca-list" id="lista-artigos-biblioteca">
+        <!-- Injetado via JS -->
+      </div>
+    </div>
+
+    <!-- 3. BOTTOM NAVIGATION BAR FIXA COM 4 ITENS -->
+    <nav class="bottom-nav">
+      <button class="nav-tab-btn active" data-tab="inicio" onclick="mudarAba('inicio')">
+        <i class="fa-solid fa-leaf"></i>
+        <span>Início</span>
+      </button>
+      <button class="nav-tab-btn" data-tab="aulas" onclick="mudarAba('aulas')">
+        <i class="fa-solid fa-calendar-days"></i>
+        <span>Aulas</span>
+      </button>
+      <button class="nav-tab-btn" data-tab="conquistas" onclick="mudarAba('conquistas')">
+        <i class="fa-solid fa-award"></i>
+        <span>Conquistas</span>
+      </button>
+      <button class="nav-tab-btn" data-tab="leituras" onclick="mudarAba('leituras')">
+        <i class="fa-solid fa-book-open"></i>
+        <span>Leituras</span>
+      </button>
+    </nav>
+
+    <!-- MODAL: SOLICITAR REPOSIÇÃO -->
+    <div class="modal-overlay" id="modal-reposicao">
+      <div class="modal-sheet">
+        <div class="modal-sheet-handle"></div>
+        <div class="modal-header">
+          <h3 class="modal-title">Solicitar Reposição</h3>
+          <button class="modal-close-btn" onclick="fecharModalReposicao()">&times;</button>
+        </div>
+        <p style="font-size: 13px; color: var(--text-muted); line-height: 1.4;">
+          Informe a data em que faltou (ou faltará) para combinarmos uma turma de reposição.
+        </p>
+        <div class="form-group">
+          <label class="form-label">Data da Falta *</label>
+          <input type="date" class="form-input" id="repo-data-falta" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Data Pretendida para Reposição (opcional)</label>
+          <input type="date" class="form-input" id="repo-data-sugerida">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Motivo / Observações</label>
+          <textarea class="form-textarea" id="repo-motivo" rows="2" placeholder="Ex: Viagem de trabalho, consulta médica..."></textarea>
+        </div>
+        <button class="btn-terracotta" onclick="enviarSolicitacaoReposicao()">
+          <i class="fa-solid fa-paper-plane"></i> Enviar Solicitação
+        </button>
+      </div>
+    </div>
+
+    <!-- MODAL: DETALHES DA CONQUISTA (CELEBRAÇÃO NO WHATSAPP) -->
+    <div class="modal-overlay" id="modal-conquista-detalhe">
+      <div class="modal-sheet" style="text-align: center;">
+        <div class="modal-sheet-handle"></div>
+        <div class="modal-header">
+          <h3 class="modal-title" id="modal-conq-titulo">Conquista</h3>
+          <button class="modal-close-btn" onclick="fecharModalConquista()">&times;</button>
+        </div>
+        <div style="margin: 12px 0;">
+          <div class="marco-icon" id="modal-conq-icon" style="margin: 0 auto; width: 72px; height: 72px; font-size: 32px; background: rgba(184, 103, 74, 0.12); color: var(--terracotta);">
+            <i class="fa-solid fa-trophy"></i>
+          </div>
+        </div>
+        <h4 style="font-size: 18px; font-weight: 700; color: var(--text-main);" id="modal-conq-marco-nome">25 Aulas Praticadas</h4>
+        <p style="font-size: 14px; color: var(--text-muted); line-height: 1.5; margin: 6px 0;" id="modal-conq-mensagem">
+          Parabéns pela sua dedicação e constância no Shanti Studio!
+        </p>
+        <button class="btn-primary" id="btn-conq-whatsapp" style="margin-top: 8px;">
+          <i class="fa-brands fa-whatsapp"></i> Comemorar com Natália no WhatsApp
+        </button>
+      </div>
+    </div>
+
+    <!-- MODAL: LEITOR IMERSIVO DE ARTIGO -->
+    <div class="modal-overlay" id="modal-leitura">
+      <div class="modal-sheet" style="max-height: 95vh;">
+        <div class="modal-sheet-handle"></div>
+        <div class="modal-header">
+          <span class="leitura-tag" id="leitor-tag">FILOSOFIA DO YOGA</span>
+          <button class="modal-close-btn" onclick="fecharModalLeitura()">&times;</button>
+        </div>
+        <h3 class="modal-title" id="leitor-titulo" style="font-size: 21px; line-height: 1.35;">Título</h3>
+        <p style="font-size: 13px; color: var(--text-muted);" id="leitor-subtitulo">Subtítulo</p>
+        <hr style="border: none; border-top: 1px solid var(--border-subtle); margin: 4px 0;">
+        <div id="leitor-conteudo" style="font-size: 14px; line-height: 1.7; color: var(--text-main); white-space: pre-line;">
+          <!-- Texto -->
+        </div>
+        <div id="leitor-anexo-box" style="display: none; margin-top: 12px;">
+          <a id="leitor-anexo-btn" href="#" target="_blank" class="btn-secondary" style="text-decoration: none;">
+            <i class="fa-solid fa-file-pdf"></i> Baixar Anexo em PDF
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: PERFIL DO ALUNO & CONTRATO -->
+    <div class="modal-overlay" id="modal-perfil">
+      <div class="modal-sheet">
+        <div class="modal-sheet-handle"></div>
+        <div class="modal-header">
+          <h3 class="modal-title">Meu Perfil</h3>
+          <button class="modal-close-btn" onclick="fecharModalPerfil()">&times;</button>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px; font-size: 14px;">
+          <div style="background: var(--bg-warm); padding: 14px; border-radius: var(--radius-sm);">
+            <strong id="perfil-nome">Nome do Aluno</strong><br>
+            <span style="color: var(--text-muted); font-size: 12px;" id="perfil-contato">telefone · cpf</span><br>
+            <span style="color: var(--forest-green); font-weight: 600; font-size: 12px;" id="perfil-plano">Plano</span>
+          </div>
+
+          <div id="perfil-contrato-box" style="background: var(--bg-warm); padding: 14px; border-radius: var(--radius-sm); display: flex; flex-direction: column; gap: 6px;">
+            <strong style="font-size: 13px;">Contrato de Prestação de Serviços</strong>
+            <span id="perfil-contrato-status" style="font-size: 12px; color: var(--text-muted);">Status: Pendente</span>
+            <a id="perfil-contrato-btn" href="#" target="_blank" class="btn-secondary" style="text-decoration: none; margin-top: 4px; display: none;">
+              <i class="fa-solid fa-signature"></i> Assinar no Autentique
+            </a>
+          </div>
+
+          <button class="btn-secondary" onclick="fazerLogout()" style="color: #B83A3A; border-color: rgba(184, 58, 58, 0.2); margin-top: 8px;">
+            <i class="fa-solid fa-arrow-right-from-bracket"></i> Sair da Conta
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: NOTIFICAÇÕES & AVISOS -->
+    <div class="modal-overlay" id="modal-notificacoes">
+      <div class="modal-sheet">
+        <div class="modal-sheet-handle"></div>
+        <div class="modal-header">
+          <h3 class="modal-title">Notificações</h3>
+          <button class="modal-close-btn" onclick="fecharModalNotificacoes()">&times;</button>
+        </div>
+        <div id="lista-notificacoes" style="display: flex; flex-direction: column; gap: 10px; font-size: 13px;">
+          <div style="background: var(--bg-warm); padding: 12px; border-radius: var(--radius-sm); border-left: 3px solid var(--forest-green);">
+            <strong>Boas-vindas ao App do Aluno! 🧘‍♀️</strong><br>
+            <span style="color: var(--text-muted); font-size: 12px;">Acompanhe aqui sua frequência, conquistas e leituras.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div> <!-- /#app-container -->
+
+  <!-- ==========================================================================
+       TELA DE LOGIN / AUTENTICAÇÃO DO ALUNO (TELA CHEIA SE DESLOGADO)
+       ========================================================================== -->
+  <div id="auth-screen">
+    <div class="auth-card">
+      <div class="auth-logo">
+        <i class="fa-solid fa-spa"></i>
+      </div>
+      <div>
+        <h2 class="auth-title">Shanti Studio</h2>
+        <p class="auth-subtitle">Espaço de prática, presença e conexão</p>
+      </div>
+
+      <form id="form-login" onsubmit="realizarLogin(event)" style="display: flex; flex-direction: column; gap: 14px; text-align: left;">
+        <div class="form-group">
+          <label class="form-label">Telefone ou CPF</label>
+          <input type="text" class="form-input" id="auth-login-input" placeholder="(11) 99999-9999 ou CPF" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Senha</label>
+          <input type="password" class="form-input" id="auth-senha-input" placeholder="Sua senha" required>
+        </div>
+        <button type="submit" class="btn-primary" style="margin-top: 6px;">
+          <i class="fa-solid fa-door-open"></i> Entrar
+        </button>
+      </form>
+
+      <div class="auth-links">
+        <button class="auth-link-btn" onclick="abrirModalEsqueciSenha()">
+          Esqueci minha senha
+        </button>
+        <span style="font-size: 11px; color: var(--text-light);">
+          Primeiro acesso? Use a senha temporária gerada no estúdio.
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: ESQUECI SENHA (CÓDIGO DE RECUPERAÇÃO WHATSAPP) -->
+  <div class="modal-overlay" id="modal-esqueci-senha">
+    <div class="modal-sheet">
+      <div class="modal-sheet-handle"></div>
+      <div class="modal-header">
+        <h3 class="modal-title">Recuperar Senha</h3>
+        <button class="modal-close-btn" onclick="fecharModalEsqueciSenha()">&times;</button>
+      </div>
+      <p style="font-size: 13px; color: var(--text-muted); line-height: 1.4;">
+        Informe seu Telefone ou CPF cadastrado para receber um código de validação via WhatsApp.
+      </p>
+      
+      <div id="etapa-esqueci-1" style="display: flex; flex-direction: column; gap: 12px;">
+        <div class="form-group">
+          <label class="form-label">Telefone ou CPF</label>
+          <input type="text" class="form-input" id="recup-login-input" placeholder="Seu telefone ou CPF" required>
+        </div>
+        <button class="btn-primary" onclick="solicitarCodigoRecuperacao()">
+          <i class="fa-brands fa-whatsapp"></i> Enviar Código no WhatsApp
+        </button>
+      </div>
+
+      <div id="etapa-esqueci-2" style="display: none; flex-direction: column; gap: 12px;">
+        <div class="form-group">
+          <label class="form-label">Código de 6 dígitos recebido</label>
+          <input type="text" class="form-input" id="recup-codigo-input" placeholder="123456" maxlength="6">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Nova Senha</label>
+          <input type="password" class="form-input" id="recup-nova-senha" placeholder="Mínimo 6 dígitos">
+        </div>
+        <button class="btn-terracotta" onclick="confirmarRedefinicaoSenha()">
+          <i class="fa-solid fa-check"></i> Redefinir Senha
+        </button>
+        <a id="link-whatsapp-recup" href="#" target="_blank" style="display:none; font-size:12px; color:var(--forest-green); text-align:center;">
+          Abrir mensagem no WhatsApp
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: PRIMEIRO ACESSO (CADASTRAR SENHA PESSOAL) -->
+  <div class="modal-overlay" id="modal-primeiro-acesso">
+    <div class="modal-sheet">
+      <div class="modal-sheet-handle"></div>
+      <div class="modal-header">
+        <h3 class="modal-title">Defina sua Senha</h3>
+      </div>
+      <p style="font-size: 13px; color: var(--text-muted); line-height: 1.4;">
+        Bem-vindo(a) ao Shanti Studio! Para sua segurança, defina uma nova senha pessoal para os próximos acessos.
+      </p>
+      <div class="form-group">
+        <label class="form-label">Nova Senha Pessoal</label>
+        <input type="password" class="form-input" id="pa-nova-senha" placeholder="Mínimo 6 caracteres" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Confirmar Nova Senha</label>
+        <input type="password" class="form-input" id="pa-conf-senha" placeholder="Repita a senha" required>
+      </div>
+      <button class="btn-primary" onclick="salvarSenhaPrimeiroAcesso()">
+        <i class="fa-solid fa-lock"></i> Gravar Senha e Entrar
+      </button>
+    </div>
+  </div>
+
+  <div id="toast-msg">Mensagem</div>
+
+  <!-- ==========================================================================
+       JAVASCRIPT DO APP DO ALUNO
+       ========================================================================== -->
+  <script>
+    // Estado do Aluno
+    let alunoToken = localStorage.getItem("shanti_aluno_token") || "";
+    let alunoDados = null;
+    let pendentePrimeiroAcessoAlunoId = null;
+
+    // Toast helper
+    function showToast(msg) {
+      const t = document.getElementById("toast-msg");
+      t.textContent = msg;
+      t.classList.add("show");
+      setTimeout(() => t.classList.remove("show"), 3200);
+    }
+
+    // Navegação entre abas
+    function mudarAba(nomeAba) {
+      document.querySelectorAll(".tab-screen").forEach(s => s.classList.remove("active"));
+      document.querySelectorAll(".nav-tab-btn").forEach(b => b.classList.remove("active"));
+
+      const targetScreen = document.getElementById(`screen-${nomeAba}`);
+      const targetBtn = document.querySelector(`.nav-tab-btn[data-tab="${nomeAba}"]`);
+
+      if (targetScreen) targetScreen.classList.add("active");
+      if (targetBtn) targetBtn.classList.add("active");
+
+      window.scrollTo({ top: 0, behavior: "smooth" });
+
+      if (nomeAba === "aulas") carregarAulasAluno();
+      if (nomeAba === "conquistas") carregarConquistasAluno();
+      if (nomeAba === "leituras") carregarLeiturasAluno();
+    }
+
+    // Cabeçalho de autorização
+    function getAuthHeaders() {
+      return {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${alunoToken}`
+      };
+    }
+
+    // Inicialização
+    window.addEventListener("DOMContentLoaded", () => {
+      verificarSessao();
+      configurarEventosHeader();
+      registrarServiceWorker();
+    });
+
+    async function verificarSessao() {
+      if (!alunoToken) {
+        document.getElementById("auth-screen").classList.add("active");
+        return;
+      }
+      try {
+        const resp = await fetch("/api/aluno/me", { headers: getAuthHeaders() });
+        if (!resp.ok) {
+          fazerLogout();
+          return;
+        }
+        alunoDados = await resp.json();
+        document.getElementById("auth-screen").classList.remove("active");
+        carregarDashboard();
+      } catch (e) {
+        console.error("Erro ao verificar sessão:", e);
+      }
+    }
+
+    // 1. CARREGAR DASHBOARD (Design Aprovado)
+    async function carregarDashboard() {
+      try {
+        const resp = await fetch("/api/aluno/dashboard", { headers: getAuthHeaders() });
+        if (!resp.ok) return;
+        const data = await resp.json();
+
+        // Data por extenso
+        if (data.data_formatada) {
+          document.getElementById("header-data-extenso").textContent = data.data_formatada;
+        }
+        // Saudação
+        if (data.primeiro_nome) {
+          document.getElementById("header-greeting").textContent = `Olá, ${data.primeiro_nome}`;
+        }
+
+        // Cartão Próxima Aula
+        if (data.proxima_aula) {
+          document.getElementById("proxima-aula-nome").textContent = data.proxima_aula.turma || "Aula de Yoga";
+          document.getElementById("proxima-aula-horario").textContent = data.proxima_aula.horario || "Hoje, 18:30";
+          document.getElementById("proxima-aula-status").textContent = data.proxima_aula.status || "Confirmada";
+        }
+
+        // Métricas
+        if (data.metricas) {
+          document.getElementById("metric-frequencia").textContent = data.metricas.frequencia || "72%";
+          document.getElementById("metric-pagamento").textContent = data.metricas.pagamento || "Em dia";
+          
+          if (data.metricas.conquista) {
+            const parts = data.metricas.conquista.split("/");
+            if (parts.length === 2) {
+              document.getElementById("metric-conq-num").textContent = parts[0];
+              document.getElementById("metric-conq-total").textContent = `/${parts[1]}`;
+            }
+          }
+        }
+
+        // Mensagem do Dia
+        if (data.mensagem_dia) {
+          document.getElementById("mensagem-dia-texto").textContent = `"${data.mensagem_dia}"`;
+        }
+
+      } catch (e) {
+        console.error("Erro ao carregar dashboard:", e);
+      }
+    }
+
+    // 2. CARREGAR AULAS DO ALUNO
+    async function carregarAulasAluno() {
+      try {
+        const resp = await fetch("/api/aluno/aulas", { headers: getAuthHeaders() });
+        if (!resp.ok) return;
+        const data = await resp.json();
+
+        // Badge do plano
+        document.getElementById("aulas-plano-badge").textContent = data.plano || "Plano Ativo";
+
+        // Turmas
+        const cTurmas = document.getElementById("lista-turmas-aluno");
+        cTurmas.innerHTML = "";
+        if (data.turmas && data.turmas.length > 0) {
+          data.turmas.forEach(t => {
+            const card = document.createElement("div");
+            card.className = "turma-card";
+            card.innerHTML = `
+              <div class="turma-card-header">
+                <span class="turma-card-title">${t.nome || "Aula de Yoga"}</span>
+                <span class="turma-dias-badge">${t.dias_semana || "Semanal"}</span>
+              </div>
+              <div class="turma-card-details">
+                <span><i class="fa-regular fa-clock"></i> ${t.horario || "18:30"}</span>
+                <span><i class="fa-regular fa-compass"></i> ${t.sala || "Sala Principal"}</span>
+                <span><i class="fa-solid fa-chalkboard-user"></i> Professora Natália</span>
+              </div>
+            `;
+            cTurmas.appendChild(card);
+          });
+        } else {
+          cTurmas.innerHTML = `<div class="turma-card"><p style="font-size:13px; color:var(--text-muted);">Nenhuma turma regular vinculada.</p></div>`;
+        }
+
+        // Histórico de Presenças
+        const cHist = document.getElementById("lista-historico-presencas");
+        cHist.innerHTML = "";
+        if (data.historico && data.historico.length > 0) {
+          data.historico.forEach(h => {
+            const row = document.createElement("div");
+            row.className = "historico-item";
+            const isPres = h.status === "presente";
+            row.innerHTML = `
+              <span>${formatarDataBr(h.data)}</span>
+              <span class="${isPres ? 'hist-presente' : 'hist-faltou'}">
+                <i class="fa-solid ${isPres ? 'fa-circle-check' : 'fa-circle-xmark'}"></i>
+                ${isPres ? 'Presente' : 'Falta'}
+              </span>
+            `;
+            cHist.appendChild(row);
+          });
+        } else {
+          cHist.innerHTML = `<p style="font-size:13px; color:var(--text-muted);">Nenhuma presença registrada ainda.</p>`;
+        }
+
+        // Solicitações de Reposição
+        carregarReposicoesAluno();
+
+      } catch (e) {
+        console.error("Erro ao carregar aulas:", e);
+      }
+    }
+
+    // 3. CARREGAR REPOSIÇÕES
+    async function carregarReposicoesAluno() {
+      try {
+        const resp = await fetch("/api/aluno/reposicoes", { headers: getAuthHeaders() });
+        if (!resp.ok) return;
+        const repos = await resp.json();
+        const c = document.getElementById("lista-reposicoes-aluno");
+        c.innerHTML = "";
+        if (repos.length === 0) {
+          c.innerHTML = `<p style="font-size: 13px; color: var(--text-muted);">Nenhuma solicitação de reposição.</p>`;
+          return;
+        }
+        repos.forEach(r => {
+          const div = document.createElement("div");
+          div.className = "historico-item";
+          const st = r.status || "pendente";
+          let badgeColor = "var(--terracotta)";
+          let statusLabel = "Pendente";
+          if (st === "aprovada") {
+            badgeColor = "var(--status-green)";
+            statusLabel = "Aprovada";
+          } else if (st === "rejeitada") {
+            badgeColor = "#A83232";
+            statusLabel = "Não disponível";
+          }
+
+          div.innerHTML = `
+            <div>
+              <strong>Falta em: ${formatarDataBr(r.data_falta)}</strong><br>
+              <span style="font-size:11px; color:var(--text-muted);">${r.motivo || "Sem motivo informado"}</span>
+            </div>
+            <span style="font-size:12px; font-weight:700; color:${badgeColor};">
+              ${statusLabel}
+            </span>
+          `;
+          c.appendChild(div);
+        });
+      } catch (e) {
+        console.error("Erro ao carregar reposições:", e);
+      }
+    }
+
+    // 4. CARREGAR CONQUISTAS (MARCOS 10, 25, 50, 100, 200 AULAS)
+    async function carregarConquistasAluno() {
+      try {
+        const resp = await fetch("/api/aluno/conquistas", { headers: getAuthHeaders() });
+        if (!resp.ok) return;
+        const data = await resp.json();
+
+        document.getElementById("conquistas-total-badge").textContent = `${data.total_presencas} Aulas Praticadas`;
+        document.getElementById("conq-prox-label").textContent = `${data.progresso_str} aulas`;
+        document.getElementById("conq-progresso-fill").style.width = `${data.progresso_pct}%`;
+
+        const grid = document.getElementById("grid-marcos-conquistas");
+        grid.innerHTML = "";
+
+        if (data.marcos && data.marcos.length > 0) {
+          data.marcos.forEach(m => {
+            const card = document.createElement("div");
+            const desbloq = m.desbloqueado;
+            card.className = `marco-card ${desbloq ? 'desbloqueado' : 'bloqueado'}`;
+            
+            card.innerHTML = `
+              <div class="marco-icon">
+                <i class="fa-solid ${desbloq ? m.icone : 'fa-lock'}"></i>
+              </div>
+              <span class="marco-qtd">${m.marco} Aulas</span>
+              <span class="marco-status-label">${desbloq ? (m.data_alcancada ? 'Alcançado em ' + formatarDataBr(m.data_alcancada) : 'Conquistado!') : 'Bloqueado'}</span>
+            `;
+
+            if (desbloq) {
+              card.onclick = () => abrirModalConquista(m);
+            }
+
+            grid.appendChild(card);
+          });
+        }
+      } catch (e) {
+        console.error("Erro ao carregar conquistas:", e);
+      }
+    }
+
+    // 5. CARREGAR BIBLIOTECA DE LEITURAS
+    async function carregarLeiturasAluno() {
+      try {
+        const resp = await fetch("/api/aluno/leituras", { headers: getAuthHeaders() });
+        if (!resp.ok) return;
+        const artigos = await resp.json();
+        const c = document.getElementById("lista-artigos-biblioteca");
+        c.innerHTML = "";
+
+        if (artigos.length === 0) {
+          c.innerHTML = `<div class="leitura-card"><p style="font-size:13px; color:var(--text-muted);">Nenhuma leitura publicada no momento.</p></div>`;
+          return;
+        }
+
+        artigos.forEach(a => {
+          const card = document.createElement("div");
+          card.className = "leitura-card";
+          card.innerHTML = `
+            <span class="leitura-tag">${a.tipo === 'pdf' ? 'MATERIAL EM PDF' : 'LEITURA & REFLEXÃO'}</span>
+            <h3 class="leitura-titulo">${a.titulo}</h3>
+            ${a.subtitulo ? `<p class="leitura-subtitulo">${a.subtitulo}</p>` : ''}
+            <div class="leitura-footer">
+              <span>Studio Shanti · Natália</span>
+              <span><i class="fa-solid fa-chevron-right"></i></span>
+            </div>
+          `;
+          card.onclick = () => abrirModalLeitura(a);
+          c.appendChild(card);
+        });
+      } catch (e) {
+        console.error("Erro ao carregar leituras:", e);
+      }
+    }
+
+    // --- AUTENTICAÇÃO DO ALUNO ---
+    async function realizarLogin(e) {
+      e.preventDefault();
+      const login = document.getElementById("auth-login-input").value.trim();
+      const senha = document.getElementById("auth-senha-input").value.trim();
+
+      if (!login || !senha) return;
+
+      try {
+        const resp = await fetch("/api/aluno/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ login, senha })
+        });
+        const data = await resp.json();
+
+        if (!data.sucesso) {
+          showToast(data.mensagem || "Erro ao entrar.");
+          return;
+        }
+
+        if (data.primeiro_acesso) {
+          pendentePrimeiroAcessoAlunoId = data.aluno.id;
+          document.getElementById("modal-primeiro-acesso").classList.add("active");
+          return;
+        }
+
+        alunoToken = data.token;
+        localStorage.setItem("shanti_aluno_token", alunoToken);
+        alunoDados = data.aluno;
+        document.getElementById("auth-screen").classList.remove("active");
+        showToast("Login realizado com sucesso! 🙏");
+        carregarDashboard();
+
+      } catch (err) {
+        showToast("Erro na conexão com o servidor.");
+      }
+    }
+
+    async function salvarSenhaPrimeiroAcesso() {
+      const s1 = document.getElementById("pa-nova-senha").value.trim();
+      const s2 = document.getElementById("pa-conf-senha").value.trim();
+
+      if (s1.length < 6) {
+        showToast("A senha deve ter pelo menos 6 caracteres.");
+        return;
+      }
+      if (s1 !== s2) {
+        showToast("As senhas não coincidem.");
+        return;
+      }
+
+      try {
+        const resp = await fetch("/api/aluno/auth/primeiro-acesso", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ aluno_id: pendentePrimeiroAcessoAlunoId, nova_senha: s1 })
+        });
+        const data = await resp.json();
+        if (data.sucesso) {
+          alunoToken = data.token;
+          localStorage.setItem("shanti_aluno_token", alunoToken);
+          document.getElementById("modal-primeiro-acesso").classList.remove("active");
+          document.getElementById("auth-screen").classList.remove("active");
+          showToast("Senha cadastrada com sucesso! Bem-vindo(a)!");
+          verificarSessao();
+        } else {
+          showToast(data.mensagem || "Erro ao cadastrar senha.");
+        }
+      } catch (err) {
+        showToast("Erro na conexão.");
+      }
+    }
+
+    function fazerLogout() {
+      alunoToken = "";
+      alunoDados = null;
+      localStorage.removeItem("shanti_aluno_token");
+      fecharModalPerfil();
+      document.getElementById("auth-screen").classList.add("active");
+    }
+
+    // --- RECUPERAÇÃO DE SENHA WHATSAPP ---
+    function abrirModalEsqueciSenha() {
+      document.getElementById("modal-esqueci-senha").classList.add("active");
+      document.getElementById("etapa-esqueci-1").style.display = "flex";
+      document.getElementById("etapa-esqueci-2").style.display = "none";
+    }
+
+    function fecharModalEsqueciSenha() {
+      document.getElementById("modal-esqueci-senha").classList.remove("active");
+    }
+
+    async function solicitarCodigoRecuperacao() {
+      const login = document.getElementById("recup-login-input").value.trim();
+      if (!login) return;
+      try {
+        const resp = await fetch("/api/aluno/auth/esqueci-senha", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ login })
+        });
+        const data = await resp.json();
+        if (data.sucesso) {
+          showToast(data.mensagem);
+          document.getElementById("etapa-esqueci-1").style.display = "none";
+          document.getElementById("etapa-esqueci-2").style.display = "flex";
+
+          if (data.link_whatsapp) {
+            const linkWa = document.getElementById("link-whatsapp-recup");
+            linkWa.href = data.link_whatsapp;
+            linkWa.style.display = "block";
+          }
+        } else {
+          showToast(data.mensagem || "Aluno não encontrado.");
+        }
+      } catch (err) {
+        showToast("Erro ao solicitar código.");
+      }
+    }
+
+    async function confirmarRedefinicaoSenha() {
+      const login = document.getElementById("recup-login-input").value.trim();
+      const codigo = document.getElementById("recup-codigo-input").value.trim();
+      const nova_senha = document.getElementById("recup-nova-senha").value.trim();
+
+      if (!codigo || nova_senha.length < 6) {
+        showToast("Preencha o código e uma senha de no mínimo 6 caracteres.");
+        return;
+      }
+
+      try {
+        const resp = await fetch("/api/aluno/auth/redefinir-senha", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ login, codigo, nova_senha })
+        });
+        const data = await resp.json();
+        if (data.sucesso) {
+          showToast(data.mensagem);
+          fecharModalEsqueciSenha();
+        } else {
+          showToast(data.mensagem || "Erro ao redefinir.");
+        }
+      } catch (err) {
+        showToast("Erro na conexão.");
+      }
+    }
+
+    // --- MODAIS DE NEGÓCIO ---
+    function abrirModalReposicao() {
+      document.getElementById("modal-reposicao").classList.add("active");
+    }
+
+    function fecharModalReposicao() {
+      document.getElementById("modal-reposicao").classList.remove("active");
+    }
+
+    async function enviarSolicitacaoReposicao() {
+      const dtFalta = document.getElementById("repo-data-falta").value;
+      const dtSug = document.getElementById("repo-data-sugerida").value;
+      const motivo = document.getElementById("repo-motivo").value.trim();
+
+      if (!dtFalta) {
+        showToast("Selecione a data da falta.");
+        return;
+      }
+
+      try {
+        const resp = await fetch("/api/aluno/reposicoes", {
+          method: "POST",
+          headers: getAuthHeaders(),
+          body: JSON.stringify({
+            data_falta: dtFalta,
+            data_sugerida: dtSug || null,
+            motivo: motivo
+          })
+        });
+        const data = await resp.json();
+        if (data.sucesso) {
+          showToast("Solicitação enviada com sucesso para a Natália! 🙏");
+          fecharModalReposicao();
+          carregarReposicoesAluno();
+        } else {
+          showToast(data.mensagem || "Erro ao solicitar.");
+        }
+      } catch (err) {
+        showToast("Erro ao enviar reposição.");
+      }
+    }
+
+    function abrirModalConquista(m) {
+      document.getElementById("modal-conquista-detalhe").classList.add("active");
+      document.getElementById("modal-conq-titulo").textContent = m.titulo;
+      document.getElementById("modal-conq-marco-nome").textContent = `${m.marco} Aulas Praticadas`;
+      
+      const pNome = alunoDados && alunoDados.nome ? alunoDados.nome.split(" ")[0] : "Aluno";
+      const textoMsg = `Oi Natália! 🧘‍♀️ Acabei de alcançar o marco de ${m.marco} aulas praticadas no Shanti Studio! Estou muito feliz com a minha prática. Namastê! 🙏✨`;
+      document.getElementById("modal-conq-mensagem").textContent = `Parabéns, ${pNome}! Sua jornada de ${m.marco} aulas é uma inspiração de constância e presença.`;
+
+      const btnWa = document.getElementById("btn-conq-whatsapp");
+      btnWa.onclick = () => {
+        window.open(`https://wa.me/5511999999999?text=${encodeURIComponent(textoMsg)}`, "_blank");
+      };
+    }
+
+    function fecharModalConquista() {
+      document.getElementById("modal-conquista-detalhe").classList.remove("active");
+    }
+
+    function abrirModalLeitura(item) {
+      document.getElementById("modal-leitura").classList.add("active");
+      document.getElementById("leitor-titulo").textContent = item.titulo;
+      document.getElementById("leitor-subtitulo").textContent = item.subtitulo || "";
+      document.getElementById("leitor-conteudo").textContent = item.conteudo || "";
+
+      const boxAnexo = document.getElementById("leitor-anexo-box");
+      const btnAnexo = document.getElementById("leitor-anexo-btn");
+      if (item.arquivo_url) {
+        boxAnexo.style.display = "block";
+        btnAnexo.href = item.arquivo_url;
+      } else {
+        boxAnexo.style.display = "none";
+      }
+    }
+
+    function fecharModalLeitura() {
+      document.getElementById("modal-leitura").classList.remove("active");
+    }
+
+    // Modal Perfil
+    function configurarEventosHeader() {
+      document.getElementById("btn-perfil").onclick = () => {
+        if (!alunoDados) return;
+        document.getElementById("modal-perfil").classList.add("active");
+        document.getElementById("perfil-nome").textContent = alunoDados.nome || "Aluno";
+        document.getElementById("perfil-contato").textContent = `${alunoDados.telefone || ''} · CPF: ${alunoDados.cpf || 'Não informado'}`;
+        document.getElementById("perfil-plano").textContent = `Plano: ${alunoDados.plano || '2x na semana'}`;
+
+        const stContrato = alunoDados.status_contrato || "pendente";
+        const txtStatus = stContrato === "assinado" ? "Assinado e Válido ✓" : "Assinatura Pendente";
+        document.getElementById("perfil-contrato-status").textContent = `Status: ${txtStatus}`;
+
+        const btnContrato = document.getElementById("perfil-contrato-btn");
+        if (alunoDados.autentique_link) {
+          btnContrato.style.display = "flex";
+          btnContrato.href = alunoDados.autentique_link;
+        } else {
+          btnContrato.style.display = "none";
+        }
+      };
+
+      document.getElementById("btn-notificacoes").onclick = () => {
+        document.getElementById("modal-notificacoes").classList.add("active");
+      };
+    }
+
+    function fecharModalPerfil() {
+      document.getElementById("modal-perfil").classList.remove("active");
+    }
+
+    function fecharModalNotificacoes() {
+      document.getElementById("modal-notificacoes").classList.remove("active");
+    }
+
+    // Utilitários
+    function formatarDataBr(dataIso) {
+      if (!dataIso) return "";
+      const partes = dataIso.split("-");
+      if (partes.length === 3) return `${partes[2]}/${partes[1]}/${partes[0]}`;
+      return dataIso;
+    }
+
+    // Service Worker PWA
+    function registrarServiceWorker() {
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker.register("/sw.js").catch(e => {
+            console.log("Service Worker registro opcional:", e);
+          });
+        });
+      }
+    }
+  </script>
+</body>
+</html>
