@@ -353,6 +353,16 @@ body {
   display: flex;
 }
 
+#screen-gestao-aluno {
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch;
+}
+
+#screen-gestao-aluno .wa-settings-container {
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch;
+}
+
 /* ==========================================================================
    Aba 1: Conversa com IA (Chat WhatsApp Sofisticado)
    ========================================================================== */
