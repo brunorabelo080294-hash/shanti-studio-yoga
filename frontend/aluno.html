@@ -947,6 +947,108 @@
       text-decoration: underline;
     }
 
+    /* Estilos do fluxo de Instalação PWA */
+    .install-box {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      text-align: center;
+    }
+
+    .install-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      background: rgba(79, 107, 69, 0.12);
+      color: var(--status-green);
+      font-size: 11px;
+      font-weight: 700;
+      border-radius: var(--radius-full);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin: 0 auto;
+    }
+
+    .install-instructions-card {
+      background: var(--bg-warm);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      text-align: left;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .install-device-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--forest-green);
+      border-bottom: 1px solid var(--border-subtle);
+      padding-bottom: 8px;
+    }
+
+    .install-step-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 12px;
+      line-height: 1.45;
+      color: var(--text-main);
+    }
+
+    .install-step-num {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--forest-green);
+      color: var(--white);
+      font-size: 11px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .btn-install-cta {
+      background-color: var(--forest-green);
+      color: var(--white);
+      border: none;
+      padding: 16px 20px;
+      border-radius: var(--radius-sm);
+      font-family: var(--font-sans);
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      box-shadow: 0 8px 20px rgba(63, 78, 58, 0.25);
+      transition: all 0.2s ease;
+      width: 100%;
+    }
+
+    .btn-install-cta:active {
+      transform: scale(0.98);
+      background-color: var(--forest-green-dark);
+    }
+
+    @keyframes pulseSoft {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.02); box-shadow: 0 10px 26px rgba(63, 78, 58, 0.35); }
+    }
+
+    .btn-install-cta.anim-pulse {
+      animation: pulseSoft 2s infinite ease-in-out;
+    }
+
     /* Toast Notification */
     #toast-msg {
       position: fixed;
@@ -1296,17 +1398,101 @@
   <div id="auth-screen">
     <div class="auth-card">
       <div class="auth-logo">
-        <i class="fa-solid fa-spa"></i>
+        <i class="fa-solid fa-seedling"></i>
       </div>
       <div>
         <h2 class="auth-title">Shanti Studio</h2>
         <p class="auth-subtitle">Espaço de prática, presença e conexão</p>
       </div>
 
-      <!-- TELA 1: CRIAR CONTA (PADRÃO AO INSTALAR) -->
-      <form id="form-cadastrar" onsubmit="realizarCadastro(event)" style="display: flex; flex-direction: column; gap: 14px; text-align: left;">
+      <!-- TELA 0: BAIXAR E INSTALAR APLICATIVO (EXIBIDO NO NAVEGADOR) -->
+      <div id="view-instalar" class="install-box">
+        <div class="install-pill">
+          <i class="fa-solid fa-mobile-screen"></i> App Exclusivo do Aluno
+        </div>
+
+        <p style="font-size: 13.5px; color: var(--text-main); line-height: 1.5; font-weight: 500;">
+          Para criar sua conta e acessar suas aulas, <strong>baixe e instale o aplicativo</strong> no seu celular.
+        </p>
+
+        <button id="btn-instalar-app" class="btn-install-cta anim-pulse" onclick="clicarInstalarApp()">
+          <i class="fa-solid fa-cloud-arrow-down"></i> Baixar e Instalar Aplicativo
+        </button>
+
+        <!-- Instruções Dinâmicas por Dispositivo -->
+        <!-- 1. Android (Chrome) -->
+        <div id="instrucoes-android" class="install-instructions-card">
+          <div class="install-device-header">
+            <i class="fa-brands fa-android" style="font-size: 16px; color: #3DDC84;"></i>
+            <span>Como baixar no Android (Chrome)</span>
+          </div>
+          <div class="install-step-item">
+            <div class="install-step-num">1</div>
+            <div>Toque no botão verde <strong>"Baixar e Instalar"</strong> acima (ou nos três pontinhos <strong>⋮</strong> no topo do Chrome).</div>
+          </div>
+          <div class="install-step-item">
+            <div class="install-step-num">2</div>
+            <div>Selecione <strong>"Instalar aplicativo"</strong> ou <strong>"Adicionar à tela inicial"</strong>.</div>
+          </div>
+          <div class="install-step-item">
+            <div class="install-step-num">3</div>
+            <div>Abra o aplicativo pelo ícone na tela do celular para <strong>criar sua conta</strong>.</div>
+          </div>
+        </div>
+
+        <!-- 2. iPhone (Safari) -->
+        <div id="instrucoes-ios" class="install-instructions-card" style="display: none;">
+          <div class="install-device-header">
+            <i class="fa-brands fa-apple" style="font-size: 16px; color: var(--text-main);"></i>
+            <span>Como baixar no iPhone (Safari)</span>
+          </div>
+          <div class="install-step-item">
+            <div class="install-step-num">1</div>
+            <div>No Safari, toque no ícone de <strong>Compartilhar <i class="fa-solid fa-arrow-up-from-bracket"></i></strong> na barra inferior.</div>
+          </div>
+          <div class="install-step-item">
+            <div class="install-step-num">2</div>
+            <div>Role para baixo e toque em <strong>"Adicionar à Tela de Início (+)"</strong>.</div>
+          </div>
+          <div class="install-step-item">
+            <div class="install-step-num">3</div>
+            <div>Toque em <strong>Adicionar</strong> e abra o app instalado para <strong>criar sua senha</strong>.</div>
+          </div>
+        </div>
+
+        <!-- 3. Computador / Desktop (Chrome / Edge) -->
+        <div id="instrucoes-desktop" class="install-instructions-card" style="display: none;">
+          <div class="install-device-header">
+            <i class="fa-solid fa-desktop" style="font-size: 15px; color: var(--forest-green);"></i>
+            <span>No Computador (Chrome / Edge)</span>
+          </div>
+          <div class="install-step-item">
+            <div class="install-step-num">1</div>
+            <div>Clique no botão <strong>"Baixar e Instalar"</strong> acima (ou no ícone de instalar aplicativo na barra de endereços, ao lado da estrela).</div>
+          </div>
+          <div class="install-step-item">
+            <div class="install-step-num">2</div>
+            <div>Confirme a instalação para abrir o app em tela cheia e criar sua conta.</div>
+          </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 4px;">
+          <button class="auth-link-btn" onclick="liberarTelaCadastro()" style="font-weight: 700; color: var(--terracotta); font-size: 13px;">
+            Já instalei o app · Criar minha conta
+          </button>
+          <button class="auth-link-btn" onclick="mostrarLoginDireto()" style="font-size: 12px; color: var(--text-muted); text-decoration: none;">
+            Já tenho conta cadastrada · Entrar
+          </button>
+        </div>
+      </div>
+
+      <!-- TELA 1: CRIAR CONTA (DENTRO DO APP INSTALADO) -->
+      <form id="form-cadastrar" onsubmit="realizarCadastro(event)" style="display: none; flex-direction: column; gap: 14px; text-align: left;">
+        <div class="install-pill" style="margin-bottom: 2px;">
+          <i class="fa-solid fa-user-plus"></i> Novo Acesso
+        </div>
         <p style="font-size: 13px; color: var(--forest-green); font-weight: 600; text-align: center; margin-bottom: 2px;">
-          Crie sua conta para acessar o app
+          Crie sua senha no app
         </p>
         <div class="form-group">
           <label class="form-label">Telefone ou CPF cadastrado no estúdio</label>
@@ -1327,6 +1513,9 @@
 
       <!-- TELA 2: LOGIN (OCULTA POR PADRÃO) -->
       <form id="form-login" onsubmit="realizarLogin(event)" style="display: none; flex-direction: column; gap: 14px; text-align: left;">
+        <div class="install-pill" style="margin-bottom: 2px;">
+          <i class="fa-solid fa-lock"></i> Acesso ao Studio
+        </div>
         <div class="form-group">
           <label class="form-label">Telefone ou CPF</label>
           <input type="text" class="form-input" id="auth-login-input" placeholder="(11) 99999-9999 ou CPF" required>
@@ -1340,12 +1529,15 @@
         </button>
       </form>
 
-      <div class="auth-links">
+      <div class="auth-links" id="auth-links-container" style="display: none;">
         <button class="auth-link-btn" id="btn-toggle-auth" onclick="alternarTelaAuth()">
           Já tenho conta · Entrar
         </button>
         <button class="auth-link-btn" id="btn-esqueci-senha" onclick="abrirModalEsqueciSenha()" style="display: none;">
           Esqueci minha senha
+        </button>
+        <button class="auth-link-btn" onclick="voltarParaInstalacao()" style="font-size: 11px; color: var(--text-light); text-decoration: none; margin-top: 4px;">
+          <i class="fa-solid fa-arrow-left"></i> Voltar para instruções de instalação
         </button>
       </div>
     </div>
@@ -1471,6 +1663,7 @@
     async function verificarSessao() {
       if (!alunoToken) {
         document.getElementById("auth-screen").classList.add("active");
+        ajustarTelaAuthInicial();
         return;
       }
       try {
@@ -1711,6 +1904,119 @@
       } catch (e) {
         console.error("Erro ao carregar leituras:", e);
       }
+    }
+
+    // --- CONTROLE DE INSTALAÇÃO PWA E ACESSO DO ALUNO ---
+    let deferredPrompt = null;
+    window.addEventListener("beforeinstallprompt", (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      const btn = document.getElementById("btn-instalar-app");
+      if (btn) btn.classList.add("anim-pulse");
+    });
+
+    window.addEventListener("appinstalled", () => {
+      localStorage.setItem("shanti_aluno_installed", "true");
+      showToast("Aplicativo instalado com sucesso! 🎉");
+      liberarTelaCadastro();
+    });
+
+    function isRunningStandalone() {
+      const isStandaloneMatch = window.matchMedia("(display-mode: standalone)").matches;
+      const isNavStandalone = window.navigator.standalone === true;
+      const isPwaParam = window.location.search.includes("source=pwa");
+      const isInstalledLocal = localStorage.getItem("shanti_aluno_installed") === "true";
+      return isStandaloneMatch || isNavStandalone || isPwaParam || isInstalledLocal;
+    }
+
+    function detectarEAjustarGuiaDispositivo() {
+      const ua = navigator.userAgent || navigator.vendor || window.opera || "";
+      const isIos = /iPad|iPhone|iPod/.test(ua) && !window.MSStream;
+      const isAndroid = /android/i.test(ua);
+
+      const boxIos = document.getElementById("instrucoes-ios");
+      const boxAndroid = document.getElementById("instrucoes-android");
+      const boxDesktop = document.getElementById("instrucoes-desktop");
+
+      if (boxIos) boxIos.style.display = isIos ? "flex" : "none";
+      if (boxAndroid) boxAndroid.style.display = isAndroid ? "flex" : "none";
+      if (boxDesktop) boxDesktop.style.display = (!isIos && !isAndroid) ? "flex" : "none";
+    }
+
+    function ajustarTelaAuthInicial() {
+      const viewInstalar = document.getElementById("view-instalar");
+      const formCadastro = document.getElementById("form-cadastrar");
+      const formLogin = document.getElementById("form-login");
+      const authLinks = document.getElementById("auth-links-container");
+
+      detectarEAjustarGuiaDispositivo();
+
+      if (isRunningStandalone()) {
+        // Se já está no app instalado (ou confirmou instalação): vai direto para criar senha
+        if (viewInstalar) viewInstalar.style.display = "none";
+        if (formCadastro) formCadastro.style.display = "flex";
+        if (formLogin) formLogin.style.display = "none";
+        if (authLinks) authLinks.style.display = "flex";
+      } else {
+        // No navegador normal: orienta e exige o download do app primeiro
+        if (viewInstalar) viewInstalar.style.display = "flex";
+        if (formCadastro) formCadastro.style.display = "none";
+        if (formLogin) formLogin.style.display = "none";
+        if (authLinks) authLinks.style.display = "none";
+      }
+    }
+
+    async function clicarInstalarApp() {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === "accepted") {
+          localStorage.setItem("shanti_aluno_installed", "true");
+          showToast("Instalação iniciada! Abra o app na tela inicial.");
+          setTimeout(() => {
+            liberarTelaCadastro();
+          }, 1200);
+        }
+        deferredPrompt = null;
+      } else {
+        const ua = navigator.userAgent || "";
+        const isIos = /iPad|iPhone|iPod/.test(ua);
+        if (isIos) {
+          showToast("No iPhone: toque no ícone de Compartilhar ⎋ e em 'Adicionar à Tela de Início'!");
+        } else {
+          showToast("Toque no ícone de instalar no topo do navegador ou no menu ⋮ para baixar!");
+        }
+      }
+    }
+
+    function liberarTelaCadastro() {
+      localStorage.setItem("shanti_aluno_installed", "true");
+      document.getElementById("view-instalar").style.display = "none";
+      document.getElementById("form-cadastrar").style.display = "flex";
+      document.getElementById("form-login").style.display = "none";
+      document.getElementById("auth-links-container").style.display = "flex";
+      authModoCadastro = true;
+      document.getElementById("btn-toggle-auth").textContent = "Já tenho conta · Entrar";
+      document.getElementById("btn-esqueci-senha").style.display = "none";
+    }
+
+    function mostrarLoginDireto() {
+      localStorage.setItem("shanti_aluno_installed", "true");
+      document.getElementById("view-instalar").style.display = "none";
+      document.getElementById("form-cadastrar").style.display = "none";
+      document.getElementById("form-login").style.display = "flex";
+      document.getElementById("auth-links-container").style.display = "flex";
+      authModoCadastro = false;
+      document.getElementById("btn-toggle-auth").textContent = "Não tenho conta · Criar agora";
+      document.getElementById("btn-esqueci-senha").style.display = "block";
+    }
+
+    function voltarParaInstalacao() {
+      localStorage.removeItem("shanti_aluno_installed");
+      document.getElementById("view-instalar").style.display = "flex";
+      document.getElementById("form-cadastrar").style.display = "none";
+      document.getElementById("form-login").style.display = "none";
+      document.getElementById("auth-links-container").style.display = "none";
     }
 
     // --- AUTENTICAÇÃO DO ALUNO ---
