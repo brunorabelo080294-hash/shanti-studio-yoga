@@ -209,6 +209,10 @@ class AlunoPrimeiroAcessoRequest(BaseModel):
     aluno_id: int
     nova_senha: str
 
+class AlunoCadastrarContaRequest(BaseModel):
+    login: str
+    nova_senha: str
+
 class AlunoEsqueciSenhaRequest(BaseModel):
     login: str
 
@@ -1544,6 +1548,16 @@ def api_aluno_primeiro_acesso(dados: AlunoPrimeiroAcessoRequest):
     res = db.cadastrar_senha_primeiro_acesso(dados.aluno_id, dados.nova_senha)
     if res.get("sucesso"):
         token = gerar_token_aluno(dados.aluno_id)
+        res["token"] = token
+    return res
+
+@app.post("/api/aluno/auth/cadastrar")
+def api_aluno_cadastrar_conta(dados: AlunoCadastrarContaRequest):
+    """Permite ao aluno criar sua conta ao instalar o app, sem precisar de senha temporária."""
+    res = db.cadastrar_conta_aluno(dados.login, dados.nova_senha)
+    if res.get("sucesso"):
+        aluno_id = res.get("aluno_id")
+        token = gerar_token_aluno(aluno_id)
         res["token"] = token
     return res
 

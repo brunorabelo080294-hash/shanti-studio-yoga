@@ -1303,7 +1303,30 @@
         <p class="auth-subtitle">Espaço de prática, presença e conexão</p>
       </div>
 
-      <form id="form-login" onsubmit="realizarLogin(event)" style="display: flex; flex-direction: column; gap: 14px; text-align: left;">
+      <!-- TELA 1: CRIAR CONTA (PADRÃO AO INSTALAR) -->
+      <form id="form-cadastrar" onsubmit="realizarCadastro(event)" style="display: flex; flex-direction: column; gap: 14px; text-align: left;">
+        <p style="font-size: 13px; color: var(--forest-green); font-weight: 600; text-align: center; margin-bottom: 2px;">
+          Crie sua conta para acessar o app
+        </p>
+        <div class="form-group">
+          <label class="form-label">Telefone ou CPF cadastrado no estúdio</label>
+          <input type="text" class="form-input" id="cadastro-login-input" placeholder="(11) 99999-9999 ou CPF" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Crie sua senha</label>
+          <input type="password" class="form-input" id="cadastro-senha-input" placeholder="Mínimo 6 caracteres" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Confirme sua senha</label>
+          <input type="password" class="form-input" id="cadastro-senha-conf" placeholder="Repita a senha" required>
+        </div>
+        <button type="submit" class="btn-primary" style="margin-top: 6px;">
+          <i class="fa-solid fa-user-plus"></i> Criar minha conta
+        </button>
+      </form>
+
+      <!-- TELA 2: LOGIN (OCULTA POR PADRÃO) -->
+      <form id="form-login" onsubmit="realizarLogin(event)" style="display: none; flex-direction: column; gap: 14px; text-align: left;">
         <div class="form-group">
           <label class="form-label">Telefone ou CPF</label>
           <input type="text" class="form-input" id="auth-login-input" placeholder="(11) 99999-9999 ou CPF" required>
@@ -1318,12 +1341,12 @@
       </form>
 
       <div class="auth-links">
-        <button class="auth-link-btn" onclick="abrirModalEsqueciSenha()">
+        <button class="auth-link-btn" id="btn-toggle-auth" onclick="alternarTelaAuth()">
+          Já tenho conta · Entrar
+        </button>
+        <button class="auth-link-btn" id="btn-esqueci-senha" onclick="abrirModalEsqueciSenha()" style="display: none;">
           Esqueci minha senha
         </button>
-        <span style="font-size: 11px; color: var(--text-light);">
-          Primeiro acesso? Use a senha temporária gerada no estúdio.
-        </span>
       </div>
     </div>
   </div>
@@ -1691,6 +1714,75 @@
     }
 
     // --- AUTENTICAÇÃO DO ALUNO ---
+    let authModoCadastro = true; // true = tela de cadastro, false = tela de login
+
+    function alternarTelaAuth() {
+      authModoCadastro = !authModoCadastro;
+      const formCadastro = document.getElementById("form-cadastrar");
+      const formLogin = document.getElementById("form-login");
+      const btnToggle = document.getElementById("btn-toggle-auth");
+      const btnEsqueci = document.getElementById("btn-esqueci-senha");
+
+      if (authModoCadastro) {
+        formCadastro.style.display = "flex";
+        formLogin.style.display = "none";
+        btnToggle.textContent = "Já tenho conta · Entrar";
+        btnEsqueci.style.display = "none";
+      } else {
+        formCadastro.style.display = "none";
+        formLogin.style.display = "flex";
+        btnToggle.textContent = "Não tenho conta · Criar agora";
+        btnEsqueci.style.display = "block";
+      }
+    }
+
+    async function realizarCadastro(e) {
+      e.preventDefault();
+      const login = document.getElementById("cadastro-login-input").value.trim();
+      const senha = document.getElementById("cadastro-senha-input").value.trim();
+      const senhaConf = document.getElementById("cadastro-senha-conf").value.trim();
+
+      if (!login || !senha) return;
+
+      if (senha.length < 6) {
+        showToast("A senha deve ter pelo menos 6 caracteres.");
+        return;
+      }
+
+      if (senha !== senhaConf) {
+        showToast("As senhas não coincidem.");
+        return;
+      }
+
+      try {
+        const resp = await fetch("/api/aluno/auth/cadastrar", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ login, nova_senha: senha })
+        });
+        const data = await resp.json();
+
+        if (!data.sucesso) {
+          if (data.ja_cadastrado) {
+            showToast(data.mensagem);
+            alternarTelaAuth(); // Muda para tela de login
+          } else {
+            showToast(data.mensagem || "Erro ao criar conta.");
+          }
+          return;
+        }
+
+        alunoToken = data.token;
+        localStorage.setItem("shanti_aluno_token", alunoToken);
+        alunoDados = data.aluno;
+        document.getElementById("auth-screen").classList.remove("active");
+        showToast("Conta criada com sucesso! Bem-vindo(a)! 🧘‍♀️");
+        carregarDashboard();
+      } catch (err) {
+        showToast("Erro na conexão com o servidor.");
+      }
+    }
+
     async function realizarLogin(e) {
       e.preventDefault();
       const login = document.getElementById("auth-login-input").value.trim();

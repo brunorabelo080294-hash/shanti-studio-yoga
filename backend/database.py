@@ -3371,6 +3371,77 @@ def cadastrar_senha_primeiro_acesso(aluno_id: int, nova_senha: str) -> Dict[str,
     conn.close()
     return {"sucesso": True, "mensagem": "Senha definitiva cadastrada com sucesso!"}
 
+def cadastrar_conta_aluno(login_input: str, nova_senha: str) -> Dict[str, Any]:
+    """
+    Permite ao aluno criar sua conta diretamente ao instalar o app.
+    Localiza o aluno pelo telefone ou CPF cadastrado no estúdio e define a senha pessoal.
+    Se o aluno já possui senha cadastrada, orienta a fazer login.
+    """
+    if not login_input or not nova_senha:
+        return {"sucesso": False, "mensagem": "Informe seu telefone ou CPF e crie uma senha."}
+
+    nova_senha_str = str(nova_senha).strip()
+    if len(nova_senha_str) < 6:
+        return {"sucesso": False, "mensagem": "A senha deve ter pelo menos 6 caracteres."}
+
+    login_limpo = str(login_input).strip()
+    digitos = _extrair_digitos(login_limpo)
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT * FROM alunos
+        WHERE (telefone IS NOT NULL AND telefone != '' AND (telefone = ? OR REPLACE(REPLACE(REPLACE(REPLACE(telefone, '(', ''), ')', ''), '-', ''), ' ', '') = ?))
+           OR (cpf IS NOT NULL AND cpf != '' AND (cpf = ? OR REPLACE(REPLACE(REPLACE(cpf, '.', ''), '-', ''), '/', '') = ?))
+        LIMIT 1
+    """, (login_limpo, digitos, login_limpo, digitos))
+
+    row = cursor.fetchone()
+    if not row:
+        conn.close()
+        return {
+            "sucesso": False,
+            "mensagem": "Nenhum aluno encontrado com este telefone ou CPF. Verifique se o dado está correto ou entre em contato com o estúdio."
+        }
+
+    aluno = dict(row)
+    aluno_id = aluno["id"]
+
+    # Se já possui senha cadastrada e não é primeiro acesso, orientar a fazer login
+    if aluno.get("senha_hash") and not bool(aluno.get("primeiro_acesso", 1)):
+        conn.close()
+        return {
+            "sucesso": False,
+            "ja_cadastrado": True,
+            "mensagem": "Você já possui uma conta cadastrada. Use a tela de login para entrar."
+        }
+
+    # Criar a senha
+    novo_salt = _gerar_salt()
+    novo_hash = _hash_senha(nova_senha_str, novo_salt)
+
+    cursor.execute("""
+        UPDATE alunos
+        SET senha_hash = ?, salt = ?, primeiro_acesso = 0, tentativas_login = 0, bloqueado_ate = NULL
+        WHERE id = ?
+    """, (novo_hash, novo_salt, aluno_id))
+    conn.commit()
+    conn.close()
+
+    return {
+        "sucesso": True,
+        "aluno_id": aluno_id,
+        "aluno": {
+            "id": aluno["id"],
+            "nome": aluno["nome"],
+            "telefone": aluno.get("telefone"),
+            "cpf": aluno.get("cpf"),
+            "plano": aluno.get("plano")
+        },
+        "mensagem": "Conta criada com sucesso! Bem-vindo(a) ao Shanti Studio!"
+    }
+
 def solicitar_recuperacao_senha_aluno(login_input: str) -> Dict[str, Any]:
     """Gera código de uso único com expiração de 10 minutos e link do WhatsApp."""
     if not login_input:
