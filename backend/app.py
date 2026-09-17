@@ -234,6 +234,15 @@ class SolicitacaoReposicaoResposta(BaseModel):
     turma_destino_id: Optional[int] = None
     data_sugerida: Optional[str] = None
 
+class AlunoConfirmarAulaRequest(BaseModel):
+    turma_id: int
+    data: str
+
+class AlunoDesmarcarAulaRequest(BaseModel):
+    turma_id: int
+    data: str
+    motivo: Optional[str] = ""
+
 class ConteudoBibliotecaCreate(BaseModel):
     titulo: str
     subtitulo: Optional[str] = ""
@@ -1664,6 +1673,21 @@ def api_aluno_contrato(request: Request):
         "autentique_document_id": aluno.get("autentique_document_id"),
         "data_contrato": aluno.get("data_contrato")
     }
+
+@app.post("/api/aluno/aulas/confirmar")
+def api_aluno_confirmar_aula(dados: AlunoConfirmarAulaRequest, request: Request):
+    aluno_id = obter_aluno_autenticado(request)
+    return db.aluno_confirmar_presenca(aluno_id, dados.turma_id, dados.data)
+
+@app.post("/api/aluno/aulas/desmarcar")
+def api_aluno_desmarcar_aula(dados: AlunoDesmarcarAulaRequest, request: Request):
+    aluno_id = obter_aluno_autenticado(request)
+    return db.aluno_desmarcar_aula(aluno_id, dados.turma_id, dados.data, dados.motivo or "")
+
+@app.post("/api/aluno/contrato/assinar")
+def api_aluno_assinar_contrato(request: Request):
+    aluno_id = obter_aluno_autenticado(request)
+    return db.aluno_assinar_contrato(aluno_id)
 
 # ==============================================================================
 # --- GESTÃO ADMIN: ÁREA DO ALUNO, BIBLIOTECA, CONQUISTAS E REPOSIÇÕES ---

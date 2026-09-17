@@ -3835,20 +3835,158 @@ def responder_solicitacao_reposicao(solicitacao_id: int, novo_status: str, respo
 
 # --- Resumo Completo do Dashboard do Aluno (Design Aprovado) ---
 
+# --- Métodos de Interação do Aluno: Confirmação, Desmarcação, Contrato e Streak ---
+
+def _calcular_streak_semanal(aluno_id: int) -> int:
+    """
+    Calcula quantas semanas consecutivas o aluno praticou yoga (com status 'presente').
+    Retorna um número inteiro de semanas seguidas.
+    """
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT DISTINCT data FROM historico_presenca
+        WHERE aluno_id = ? AND status = 'presente'
+        UNION
+        SELECT DISTINCT data FROM frequencias
+        WHERE aluno_id = ?
+    """, (aluno_id, aluno_id))
+    rows = cursor.fetchall()
+    conn.close()
+
+    if not rows:
+        return 1
+
+    semanas_praticadas = set()
+    for r in rows:
+        data_str = r[0] if isinstance(r, (list, tuple)) else r["data"]
+        try:
+            dt = datetime.datetime.strptime(data_str[:10], "%Y-%m-%d").date()
+            semanas_praticadas.add(dt.isocalendar()[:2])
+        except Exception:
+            continue
+
+    if not semanas_praticadas:
+        return 1
+
+    hoje = obter_hoje_sp()
+    curr_week = hoje.isocalendar()[:2]
+    streak = 0
+    test_date = hoje
+
+    if curr_week in semanas_praticadas:
+        streak += 1
+        test_date = hoje - datetime.timedelta(days=7)
+    else:
+        prev_week = (hoje - datetime.timedelta(days=7)).isocalendar()[:2]
+        if prev_week in semanas_praticadas:
+            streak += 1
+            test_date = hoje - datetime.timedelta(days=14)
+        else:
+            return 1
+
+    for _ in range(52):
+        w = test_date.isocalendar()[:2]
+        if w in semanas_praticadas:
+            streak += 1
+            test_date -= datetime.timedelta(days=7)
+        else:
+            break
+
+    return max(1, streak)
+
+def aluno_confirmar_presenca(aluno_id: int, turma_id: int, data_str: str) -> Dict[str, Any]:
+    """
+    O aluno confirma presença na aula pelo app.
+    Salva status='pendente' com justificativa='Confirmado pelo aluno no app'.
+    No app de gestão (Natália), fica indicado como Pendente (Confirmado pelo Aluno) até a validação da presença.
+    """
+    salvar_status_presenca(
+        aluno_id=aluno_id,
+        turma_id=turma_id,
+        data_str=data_str,
+        status="pendente",
+        justificativa="Confirmado pelo aluno no app"
+    )
+    return {
+        "sucesso": True,
+        "mensagem": "Presença confirmada! Aguardando validação da Natália.",
+        "status": "pendente",
+        "data": data_str,
+        "turma_id": turma_id
+    }
+
+def aluno_desmarcar_aula(aluno_id: int, turma_id: int, data_str: str, motivo: str = "") -> Dict[str, Any]:
+    """
+    O aluno desmarca a aula pelo app.
+    Computa imediatamente como 'faltou' com justificativa='Desmarcado pelo aluno no app'.
+    Permite solicitar reposição logo em seguida.
+    """
+    just = "Desmarcado pelo aluno no app"
+    if motivo:
+        just += f": {motivo}"
+
+    salvar_status_presenca(
+        aluno_id=aluno_id,
+        turma_id=turma_id,
+        data_str=data_str,
+        status="faltou",
+        justificativa=just
+    )
+    return {
+        "sucesso": True,
+        "mensagem": "Aula desmarcada com sucesso. Você pode solicitar uma reposição quando desejar.",
+        "status": "faltou",
+        "data": data_str,
+        "turma_id": turma_id
+    }
+
+def aluno_assinar_contrato(aluno_id: int) -> Dict[str, Any]:
+    """
+    Registra a assinatura digital do contrato pelo aluno no app.
+    Atualiza status_contrato para 'em_dia' com vigência de 1 ano.
+    """
+    hoje = obter_hoje_sp()
+    hoje_str = hoje.strftime("%Y-%m-%d")
+    vigencia_str = (hoje + datetime.timedelta(days=365)).strftime("%Y-%m-%d")
+
+    atualizar_aluno(aluno_id, {
+        "status_contrato": "em_dia",
+        "data_assinatura_contrato": hoje_str,
+        "data_vigencia_contrato": vigencia_str,
+        "autentique_status": "assinado"
+    })
+    return {
+        "sucesso": True,
+        "mensagem": "Contrato assinado digitalmente com sucesso!",
+        "status_contrato": "em_dia",
+        "data_assinatura": hoje_str,
+        "data_vigencia": vigencia_str
+    }
+
+# --- Resumo Completo do Dashboard do Aluno (Design Aprovado em media_1789606846595.png) ---
+
 def obter_resumo_aluno_dashboard(aluno_id: int) -> Dict[str, Any]:
     """
     Retorna todos os dados consolidados para alimentar a tela de Início do App do Aluno:
-    - Saudação personalizada (Olá, Camila)
-    - Data por extenso formatada em maiúsculas (SEGUNDA-FEIRA, 14 DE SETEMBRO)
-    - Cartão flutuante da Próxima Aula (nome, horário, status 'Confirmada')
-    - 3 Colunas de Métricas (Frequência %, Pagamento 'Em dia', Conquista '18/25')
-    - Mensagem do Dia
+    - Saudação ("Bom dia,", "Boa tarde,") + Nome do Aluno
+    - Avatar circular em terracota com inicial
+    - Sua semana com streak de semanas consecutivas
+    - Próximas aulas em lista horizontal com botões Confirmar / Desmarcar
+    - Rumo à próxima conquista (progresso e badges de marcos)
+    - Situação da Mensalidade (Em dia / Em atraso)
+    - Situação do Contrato (Vigente / Pendente de Assinatura com botão)
+    - Frase do dia
+    - Nova leitura recente
     """
     aluno = obter_aluno(aluno_id)
     if not aluno:
         return {}
 
     agora = obter_agora_sp()
+    hora = agora.hour
+    saudacao = "Bom dia," if hora < 12 else ("Boa tarde," if hora < 18 else "Boa noite,")
+
     dias_pt = ["SEGUNDA-FEIRA", "TERÇA-FEIRA", "QUARTA-FEIRA", "QUINTA-FEIRA", "SEXTA-FEIRA", "SÁBADO", "DOMINGO"]
     meses_pt = ["JANEIRO", "FEVEREIRO", "MARÇO", "ABRIL", "MAIO", "JUNHO", "JULHO", "AGOSTO", "SETEMBRO", "OUTUBRO", "NOVEMBRO", "DEZEMBRO"]
     dia_semana_nome = dias_pt[agora.weekday()]
@@ -3857,29 +3995,136 @@ def obter_resumo_aluno_dashboard(aluno_id: int) -> Dict[str, Any]:
 
     nome_completo = aluno.get("nome", "Aluno")
     primeiro_nome = nome_completo.split()[0]
+    inicial = primeiro_nome[0].upper() if primeiro_nome else "Y"
 
-    # 1. Próxima Aula da turma matriculada
+    # 1. Streak Semanal
+    streak_semanas = _calcular_streak_semanal(aluno_id)
+
+    # 2. Próximas Aulas (Próximos 14 dias)
     turmas = aluno.get("turmas", [])
-    proxima_aula = {
-        "turma": "Essência · Hatha Yoga" if not turmas else turmas[0].get("nome", "Aula de Yoga"),
-        "horario": "Hoje, 18:30",
-        "status": "Confirmada"
-    }
+    proximas_aulas = []
+    hoje_date = agora.date()
+    dias_abrev = ["SEG", "TER", "QUA", "QUI", "SEX", "SÁB", "DOM"]
 
     if turmas:
-        t = turmas[0]
-        horario_t = t.get("horario", "18:30")
-        dias_sem_t = t.get("dias_semana", "")
-        weekday_atual = agora.weekday()
-        proxima_aula["turma"] = t.get("nome", "Aula de Yoga")
-        proxima_aula["horario"] = f"Hoje, {horario_t}" if str(weekday_atual) in dias_sem_t or "seg" in dias_sem_t.lower() else f"Esta semana, {horario_t}"
-        proxima_aula["status"] = "Confirmada"
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT turma_id, data, status, justificativa
+            FROM historico_presenca
+            WHERE aluno_id = ? AND data >= ?
+        """, (aluno_id, hoje_date.strftime("%Y-%m-%d")))
+        rows = cursor.fetchall()
+        presencas_futuras = {
+            ((r[0] if isinstance(r, (list, tuple)) else r["turma_id"]),
+             (r[1] if isinstance(r, (list, tuple)) else r["data"])): (
+                (r[2] if isinstance(r, (list, tuple)) else r["status"]),
+                (r[3] if isinstance(r, (list, tuple)) else r["justificativa"])
+            )
+            for r in rows
+        }
+        conn.close()
 
-    # 2. Métricas: Frequência do mês, Pagamento, Conquistas
+        dias_1x = parse_dias_semana(aluno.get("dia_semana_1x")) if aluno.get("dia_semana_1x") else []
+
+        for offset in range(14):
+            dt = hoje_date + datetime.timedelta(days=offset)
+            w = dt.weekday()
+            if dias_1x and (w not in dias_1x):
+                continue
+
+            dt_str = dt.strftime("%Y-%m-%d")
+
+            for t in turmas:
+                t_dias = parse_dias_semana(t.get("dias_semana"))
+                if w in t_dias:
+                    reg = presencas_futuras.get((t["id"], dt_str))
+                    st = reg[0] if reg else "agendada"
+                    just = reg[1] if reg else ""
+
+                    if st == "pendente" and "Confirmado pelo aluno" in (just or ""):
+                        st_pres = "confirmado_aluno"
+                        st_label = "Confirmado"
+                    elif st == "faltou" and "Desmarcado pelo aluno" in (just or ""):
+                        st_pres = "desmarcado"
+                        st_label = "Desmarcada"
+                    elif st == "presente":
+                        st_pres = "presente"
+                        st_label = "Presente"
+                    elif st == "faltou":
+                        st_pres = "faltou"
+                        st_label = "Falta"
+                    else:
+                        st_pres = "agendada"
+                        st_label = "Agendada"
+
+                    if offset == 0:
+                        tag_dia = "HOJE"
+                    elif offset == 1:
+                        tag_dia = "AMANHÃ"
+                    else:
+                        tag_dia = dias_abrev[w]
+
+                    proximas_aulas.append({
+                        "turma_id": t["id"],
+                        "turma_nome": t.get("nome", "Aula de Yoga"),
+                        "horario": t.get("horario", "18:30"),
+                        "data": dt_str,
+                        "data_formatada": dt.strftime("%d/%m"),
+                        "tag_dia": tag_dia,
+                        "status_presenca": st_pres,
+                        "status_label": st_label,
+                        "justificativa": just
+                    })
+                    if len(proximas_aulas) >= 3:
+                        break
+            if len(proximas_aulas) >= 3:
+                break
+
+    if not proximas_aulas:
+        turma_padrao_id = turmas[0]["id"] if turmas else 1
+        turma_padrao_nome = turmas[0].get("nome", "Essência") if turmas else "Essência"
+        horario_padrao = turmas[0].get("horario", "18:30") if turmas else "18:30"
+        proximas_aulas = [
+            {
+                "turma_id": turma_padrao_id,
+                "turma_nome": turma_padrao_nome,
+                "horario": horario_padrao,
+                "data": hoje_date.strftime("%Y-%m-%d"),
+                "data_formatada": hoje_date.strftime("%d/%m"),
+                "tag_dia": "HOJE",
+                "status_presenca": "agendada",
+                "status_label": "Agendada",
+                "justificativa": ""
+            },
+            {
+                "turma_id": turma_padrao_id,
+                "turma_nome": turma_padrao_nome,
+                "horario": horario_padrao,
+                "data": (hoje_date + datetime.timedelta(days=2)).strftime("%Y-%m-%d"),
+                "data_formatada": (hoje_date + datetime.timedelta(days=2)).strftime("%d/%m"),
+                "tag_dia": dias_abrev[(hoje_date.weekday() + 2) % 7],
+                "status_presenca": "agendada",
+                "status_label": "Agendada",
+                "justificativa": ""
+            }
+        ]
+
+    # Objeto compatível de próxima aula única para integrações anteriores
+    primeira_aula = proximas_aulas[0]
+    proxima_aula = {
+        "turma": primeira_aula["turma_nome"],
+        "horario": f"{primeira_aula['tag_dia']}, {primeira_aula['horario']}",
+        "status": primeira_aula["status_label"],
+        "turma_id": primeira_aula["turma_id"],
+        "data": primeira_aula["data"]
+    }
+
+    # 3. Conquistas
     conq_info = obter_conquistas_aluno(aluno_id)
-    total_presencas = conq_info["total_presencas"]
     progresso_conquista = conq_info["progresso_str"]
 
+    # 4. Frequência do Mês
     mes_atual_str = agora.strftime("%Y-%m")
     conn = get_connection()
     cursor = conn.cursor()
@@ -3893,33 +4138,123 @@ def obter_resumo_aluno_dashboard(aluno_id: int) -> Dict[str, Any]:
 
     freq_pct_str = f"{max(15, min(100, presencas_mes * 12 + 40))}%" if presencas_mes > 0 else "72%"
 
-    aprov_pag = aluno.get("aprovacao_pagamento")
-    status_pag = "Em dia" if aprov_pag != "atrasado" else "Pendente"
+    # 5. Situação Financeira (Mensalidade)
+    dia_venc = aluno.get("dia_vencimento", 10) or 10
+    pagou = verificar_pagamento_mes(aluno_id, mes_atual_str)
+    data_matricula = aluno.get("data_matricula", "")
+    mes_matricula = aluno.get("mes_matricula") or (data_matricula[:7] if data_matricula else "")
 
+    if pagou or aluno.get("aprovacao_pagamento") == "aprovado":
+        if pagou:
+            sit_fin_status = "em_dia"
+            sit_fin_label = "Mensalidade em Dia"
+            dias_atraso = 0
+        elif mes_matricula and mes_matricula > mes_atual_str:
+            sit_fin_status = "em_dia"
+            sit_fin_label = "Matrícula Futura"
+            dias_atraso = 0
+        elif agora.day > dia_venc:
+            if mes_matricula == mes_atual_str and len(data_matricula) >= 10 and int(data_matricula[8:10]) >= dia_venc:
+                sit_fin_status = "em_dia"
+                sit_fin_label = "Matrícula Recente (Em dia)"
+                dias_atraso = 0
+            else:
+                dias_atraso = agora.day - dia_venc
+                sit_fin_status = "atrasado"
+                sit_fin_label = f"Mensalidade em Atraso ({dias_atraso}d)"
+        elif agora.day == dia_venc:
+            sit_fin_status = "vence_hoje"
+            sit_fin_label = "Mensalidade Vence Hoje"
+            dias_atraso = 0
+        else:
+            dias_rest = dia_venc - agora.day
+            sit_fin_status = "em_dia"
+            sit_fin_label = f"Vence em {dias_rest} dias"
+            dias_atraso = 0
+    else:
+        if agora.day > dia_venc:
+            dias_atraso = agora.day - dia_venc
+            sit_fin_status = "atrasado"
+            sit_fin_label = f"Mensalidade em Atraso ({dias_atraso}d)"
+        else:
+            sit_fin_status = "em_dia"
+            sit_fin_label = "Mensalidade em Dia"
+            dias_atraso = 0
+
+    situacao_financeira = {
+        "status": sit_fin_status,
+        "label": sit_fin_label,
+        "dias_atraso": dias_atraso,
+        "dia_vencimento": dia_venc,
+        "valor": aluno.get("valor_mensalidade", 150.0)
+    }
+
+    # 6. Situação do Contrato
+    status_contrato = aluno.get("status_contrato") or "pendente"
+    if status_contrato == "em_dia":
+        contrato_label = "Contrato Vigente ✓"
+        pode_assinar = False
+    elif status_contrato == "a_vencer":
+        contrato_label = "Contrato a Renovar"
+        pode_assinar = True
+    elif status_contrato == "vencido":
+        contrato_label = "Contrato Vencido"
+        pode_assinar = True
+    else:
+        contrato_label = "Contrato Pendente de Assinatura ✍️"
+        pode_assinar = True
+
+    contrato = {
+        "status": status_contrato,
+        "label": contrato_label,
+        "autentique_link": aluno.get("autentique_link") or "",
+        "pode_assinar": pode_assinar,
+        "data_vigencia": aluno.get("data_vigencia_contrato") or ""
+    }
+
+    # 7. Frase do Dia
     citacoes_padrao = [
         "A respiração é a ponte entre o corpo e a mente.",
         "O yoga é a jornada do eu, através do eu, para o eu.",
         "Aquiete a mente e a alma falará.",
         "A postura física é apenas o início do mergulho interior.",
-        "Presente no agora, em paz consigo mesmo."
+        "Presente no agora, em paz consigo mesmo.",
+        "A constância na prática transforma esforço em leveza.",
+        "Sua respiração é a sua âncora no momento presente."
     ]
     idx_dia = agora.day % len(citacoes_padrao)
     mensagem_dia = citacoes_padrao[idx_dia]
+
+    # 8. Nova Leitura Recente
+    leituras = listar_biblioteca(status="publicado")
+    leitura_recente = {
+        "id": leituras[0]["id"] if leituras else None,
+        "titulo": leituras[0]["titulo"] if leituras else "Respiração Consciente: Pranayamas no Dia a Dia",
+        "categoria": leituras[0].get("categoria", "Filosofia") if leituras else "Filosofia"
+    }
 
     return {
         "aluno_id": aluno_id,
         "primeiro_nome": primeiro_nome,
         "nome_completo": nome_completo,
+        "inicial": inicial,
+        "saudacao": saudacao,
         "data_formatada": data_formatada,
+        "streak_semanas": streak_semanas,
+        "proximas_aulas": proximas_aulas,
         "proxima_aula": proxima_aula,
+        "conquistas": conq_info,
+        "situacao_financeira": situacao_financeira,
+        "contrato": contrato,
+        "leitura_recente": leitura_recente,
         "metricas": {
             "frequencia": freq_pct_str,
-            "pagamento": status_pag,
+            "pagamento": "Em dia" if sit_fin_status == "em_dia" else "Pendente",
             "conquista": progresso_conquista
         },
         "mensagem_dia": mensagem_dia,
         "plano": aluno.get("plano", "2x na semana"),
-        "contrato_status": aluno.get("status_contrato", "pendente"),
+        "contrato_status": status_contrato,
         "autentique_link": aluno.get("autentique_link")
     }
 

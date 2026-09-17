@@ -324,6 +324,78 @@ class TestAreaAlunoEConquistas(unittest.TestCase):
             conn.commit()
             conn.close()
 
+    def test_10_confirmar_e_desmarcar_aula_aluno(self):
+        """Testa o aluno confirmando e desmarcando sua aula pelo app."""
+        token = gerar_token_aluno(self.aluno_teste_id)
+        headers = {"Authorization": f"Bearer {token}"}
+
+        # 1. Conferir se o dashboard retorna os dados do novo visual
+        res_dash = self.client.get("/api/aluno/dashboard", headers=headers)
+        self.assertEqual(res_dash.status_code, 200)
+        data_dash = res_dash.json()
+        self.assertIn("streak_semanas", data_dash)
+        self.assertIn("proximas_aulas", data_dash)
+        self.assertIn("situacao_financeira", data_dash)
+        self.assertIn("contrato", data_dash)
+        self.assertIn("mensagem_dia", data_dash)
+
+        # 2. Confirmar presença na aula
+        hoje_str = datetime.date.today().strftime("%Y-%m-%d")
+        res_conf = self.client.post("/api/aluno/aulas/confirmar", json={
+            "turma_id": 1,
+            "data": hoje_str
+        }, headers=headers)
+        self.assertEqual(res_conf.status_code, 200)
+        self.assertTrue(res_conf.json()["sucesso"])
+        self.assertEqual(res_conf.json()["status"], "pendente")
+
+        # Verificar no banco se ficou pendente com justificativa do aluno
+        conn = db.get_connection()
+        cur = conn.cursor()
+        cur.execute("SELECT status, justificativa FROM historico_presenca WHERE aluno_id = ? AND turma_id = ? AND data = ?", (self.aluno_teste_id, 1, hoje_str))
+        row = cur.fetchone()
+        self.assertIsNotNone(row)
+        st = row[0] if isinstance(row, (list, tuple)) else row["status"]
+        just = row[1] if isinstance(row, (list, tuple)) else row["justificativa"]
+        self.assertEqual(st, "pendente")
+        self.assertIn("Confirmado pelo aluno", just)
+
+        # 3. Desmarcar a aula
+        res_desm = self.client.post("/api/aluno/aulas/desmarcar", json={
+            "turma_id": 1,
+            "data": hoje_str,
+            "motivo": "Compromisso médico"
+        }, headers=headers)
+        self.assertEqual(res_desm.status_code, 200)
+        self.assertTrue(res_desm.json()["sucesso"])
+        self.assertEqual(res_desm.json()["status"], "faltou")
+
+        # Verificar no banco se computou falta com justificativa
+        cur.execute("SELECT status, justificativa FROM historico_presenca WHERE aluno_id = ? AND turma_id = ? AND data = ?", (self.aluno_teste_id, 1, hoje_str))
+        row_desm = cur.fetchone()
+        cur.close()
+        conn.close()
+        self.assertIsNotNone(row_desm)
+        st_desm = row_desm[0] if isinstance(row_desm, (list, tuple)) else row_desm["status"]
+        just_desm = row_desm[1] if isinstance(row_desm, (list, tuple)) else row_desm["justificativa"]
+        self.assertEqual(st_desm, "faltou")
+        self.assertIn("Desmarcado pelo aluno", just_desm)
+
+    def test_11_assinar_contrato_digitalmente(self):
+        """Testa assinatura digital do contrato pelo aluno no app."""
+        token = gerar_token_aluno(self.aluno_teste_id)
+        headers = {"Authorization": f"Bearer {token}"}
+
+        res_ass = self.client.post("/api/aluno/contrato/assinar", headers=headers)
+        self.assertEqual(res_ass.status_code, 200)
+        data_ass = res_ass.json()
+        self.assertTrue(data_ass["sucesso"])
+        self.assertEqual(data_ass["status_contrato"], "em_dia")
+
+        aluno = db.obter_aluno(self.aluno_teste_id)
+        self.assertEqual(aluno["status_contrato"], "em_dia")
+        self.assertIsNotNone(aluno.get("data_assinatura_contrato"))
+
     def test_08_regra_5_nao_regressao_endpoints_existentes(self):
         """Regra 5: Garante que rotas essenciais existentes permanecem 100% operacionais."""
         # 1. Rota de alunos

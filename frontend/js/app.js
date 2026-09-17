@@ -4935,6 +4935,16 @@ function renderizarTurmasChamada(chamada, turmaIdFocus = null) {
         const st = al.status || 'pendente';
         const isPausado = al.pausar_alerta_ausencia;
 
+        const just = al.justificativa || '';
+        const isConfirmadoAluno = (st === 'pendente' && just.includes('Confirmado pelo aluno'));
+        const isDesmarcadoAluno = (st === 'faltou' && just.includes('Desmarcado pelo aluno'));
+
+        const badgeAlunoStatusHtml = isConfirmadoAluno
+          ? `<span style="font-size:11px; font-weight:700; background:rgba(79, 107, 69, 0.15); color:#2C3828; padding:3px 8px; border-radius:8px; border:1px solid rgba(79, 107, 69, 0.3); margin-left:6px; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-circle-check" style="color:#4F6B45;"></i> Confirmado pelo Aluno (Pendente)</span>`
+          : (isDesmarcadoAluno 
+              ? `<span style="font-size:11px; font-weight:700; background:rgba(184, 103, 74, 0.15); color:#8F3E22; padding:3px 8px; border-radius:8px; border:1px solid rgba(184, 103, 74, 0.3); margin-left:6px; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-calendar-xmark" style="color:#B8674A;"></i> Desmarcado pelo Aluno (Falta)</span>`
+              : '');
+
         const badgePausaHtml = isPausado 
           ? `<span class="cal-aluno-pausa-badge" title="Alertas de falta pausados: ${al.motivo_pausa_alerta || 'Viagem'}"><i class="fa-solid fa-umbrella-beach"></i> Pausado: ${al.motivo_pausa_alerta || 'Viagem'}</span>` 
           : '';
@@ -4948,6 +4958,7 @@ function renderizarTurmasChamada(chamada, turmaIdFocus = null) {
               <div class="cal-aluno-info">
                 <div class="cal-aluno-nome">
                   <span>${al.nome}</span>
+                  ${badgeAlunoStatusHtml}
                   ${badgePausaHtml}
                 </div>
                 <div class="cal-aluno-detalhe">
