@@ -1840,6 +1840,14 @@ def api_admin_gerar_senha_temp(dados: GerarSenhaTemporariaRequest):
         "link_whatsapp": link_wa
     }
 
+@app.delete("/api/admin/aluno-app/excluir-acesso/{aluno_id}")
+def api_admin_excluir_acesso_aluno(aluno_id: int):
+    """Exclui a senha e revoga o acesso do aluno ao aplicativo."""
+    res = db.excluir_acesso_aluno(aluno_id)
+    if not res.get("sucesso"):
+        raise HTTPException(status_code=404, detail=res.get("mensagem", "Aluno não encontrado."))
+    return res
+
 # --- Montar Arquivos Estáticos do Frontend (PWA) ---
 
 app.mount("/", StaticFiles(directory=FRONTEND_DIR, html=True), name="frontend")

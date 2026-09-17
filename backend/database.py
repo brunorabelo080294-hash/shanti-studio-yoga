@@ -3442,6 +3442,40 @@ def cadastrar_conta_aluno(login_input: str, nova_senha: str) -> Dict[str, Any]:
         "mensagem": "Conta criada com sucesso! Bem-vindo(a) ao Shanti Studio!"
     }
 
+def excluir_acesso_aluno(aluno_id: int) -> Dict[str, Any]:
+    """
+    Exclui a senha e revoga o acesso do aluno ao aplicativo.
+    O cadastro do aluno (dados cadastrais, planos, presenças) permanece 100% intacto,
+    mas ele não poderá mais se autenticar no aplicativo.
+    """
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, nome FROM alunos WHERE id = ?", (aluno_id,))
+    row = cursor.fetchone()
+    if not row:
+        conn.close()
+        return {"sucesso": False, "mensagem": "Aluno não encontrado."}
+
+    aluno = dict(row)
+    cursor.execute("""
+        UPDATE alunos
+        SET senha_hash = NULL,
+            salt = NULL,
+            primeiro_acesso = 1,
+            tentativas_login = 0,
+            bloqueado_ate = NULL,
+            codigo_recuperacao = NULL,
+            codigo_recuperacao_expira = NULL
+        WHERE id = ?
+    """, (aluno_id,))
+    conn.commit()
+    conn.close()
+
+    return {
+        "sucesso": True,
+        "mensagem": f"Acesso do(a) aluno(a) {aluno['nome']} ao aplicativo foi excluído com sucesso!"
+    }
+
 def solicitar_recuperacao_senha_aluno(login_input: str) -> Dict[str, Any]:
     """Gera código de uso único com expiração de 10 minutos e link do WhatsApp."""
     if not login_input:

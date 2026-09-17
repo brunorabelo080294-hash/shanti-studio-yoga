@@ -5805,14 +5805,40 @@ function renderizarAlunosAcesso(lista) {
             WhatsApp: <b>${al.telefone || 'Não informado'}</b> • Plano: ${al.plano || 'Regular'}
           </div>
         </div>
-        <div>
+        <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap; justify-content:flex-end;">
           <button type="button" class="wa-btn-primary" onclick="gerarSenhaTempAlunoClick(${al.id})" style="background:var(--shanti-forest); color:#ffffff; border:none; padding:6px 12px; border-radius:16px; font-size:11.5px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:5px; white-space:nowrap;">
             <i class="fa-solid fa-key"></i> ${al.senha_hash ? 'Resetar Senha' : 'Criar Senha'}
           </button>
+          ${al.senha_hash ? `
+            <button type="button" class="wa-btn-primary" onclick="excluirAcessoAlunoClick(${al.id}, '${(al.nome || '').replace(/'/g, "\\'")}')" style="background:#fee2e2; color:#b91c1c; border:1px solid #fca5a5; padding:6px 10px; border-radius:16px; font-size:11.5px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:5px; white-space:nowrap;" title="Excluir o acesso do aluno ao aplicativo">
+              <i class="fa-solid fa-user-slash"></i> Excluir Acesso
+            </button>
+          ` : ''}
         </div>
       </div>
     `;
   }).join('');
+}
+
+async function excluirAcessoAlunoClick(alunoId, alunoNome) {
+  const confirmacao = confirm(`Deseja realmente EXCLUIR o acesso do(a) aluno(a) ${alunoNome} ao aplicativo?\n\nA senha atual será apagada e o aluno não conseguirá mais entrar até que um novo cadastro seja realizado.`);
+  if (!confirmacao) return;
+
+  try {
+    const res = await fetch(`/api/admin/aluno-app/excluir-acesso/${alunoId}`, {
+      method: 'DELETE'
+    });
+    const data = await res.json();
+    if (res.ok && data.sucesso) {
+      alert(data.mensagem || 'Acesso excluído com sucesso!');
+      await carregarAlunosAcesso();
+    } else {
+      alert(data.detail || data.mensagem || 'Erro ao excluir acesso.');
+    }
+  } catch (err) {
+    console.error('Erro ao excluir acesso:', err);
+    alert('Erro de conexão ao excluir acesso.');
+  }
 }
 
 async function gerarSenhaTempAlunoClick(alunoId) {

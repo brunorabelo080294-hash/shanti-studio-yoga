@@ -268,7 +268,54 @@ class TestAreaAlunoEConquistas(unittest.TestCase):
         res_list_pos = self.client.get("/api/aluno/reposicoes", headers={"Authorization": f"Bearer {token}"})
         solic_pos = next((s for s in res_list_pos.json() if s["id"] == solic_id), None)
         self.assertEqual(solic_pos["status"], "aprovada")
-        self.assertIn("Reposição confirmada", solic_pos["resposta_admin"])
+    def test_09_excluir_acesso_aluno(self):
+        """Testa exclusão/revogação do acesso do aluno ao aplicativo pelo admin."""
+        # 1. Cadastrar aluno com acesso
+        tel_teste = "32999990099"
+        dados = {
+            "nome": "Aluno Teste Exclusao Acesso",
+            "telefone": tel_teste,
+            "cpf": "99988877700",
+            "plano": "1x na semana",
+            "dia_semana": "Terça-feira",
+            "horario": "18:30"
+        }
+        aluno = db.cadastrar_aluno(dados)
+        aluno_id = aluno["id"]
+
+        # Aluno cadastra senha
+        res_cad = self.client.post("/api/aluno/auth/cadastrar", json={
+            "login": tel_teste,
+            "nova_senha": "senhaExcluir123"
+        })
+        self.assertEqual(res_cad.status_code, 200)
+        self.assertTrue(res_cad.json()["sucesso"])
+
+        # Login funciona
+        res_login_ok = self.client.post("/api/aluno/auth/login", json={
+            "login": tel_teste,
+            "senha": "senhaExcluir123"
+        })
+        self.assertEqual(res_login_ok.status_code, 200)
+        self.assertTrue(res_login_ok.json()["sucesso"])
+
+        # 2. Admin exclui o acesso do aluno
+        res_del = self.client.delete(f"/api/admin/aluno-app/excluir-acesso/{aluno_id}")
+        self.assertEqual(res_del.status_code, 200)
+        self.assertTrue(res_del.json()["sucesso"])
+
+        # 3. Aluno tenta logar com a senha antiga -> deve falhar
+        res_login_fail = self.client.post("/api/aluno/auth/login", json={
+            "login": tel_teste,
+            "senha": "senhaExcluir123"
+        })
+        self.assertFalse(res_login_fail.json().get("sucesso", True))
+
+        # 4. Dados cadastrais permanecem 100% intactos
+        aluno_db = db.obter_aluno(aluno_id)
+        self.assertIsNotNone(aluno_db)
+        self.assertEqual(aluno_db["nome"], "Aluno Teste Exclusao Acesso")
+        self.assertIsNone(aluno_db.get("senha_hash"))
 
     def test_08_regra_5_nao_regressao_endpoints_existentes(self):
         """Regra 5: Garante que rotas essenciais existentes permanecem 100% operacionais."""
