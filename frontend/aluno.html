@@ -1861,13 +1861,10 @@
           </div>
         </div>
 
-        <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 4px;">
-          <button class="auth-link-btn" onclick="liberarTelaCadastro()" style="font-weight: 700; color: var(--terracotta); font-size: 13px;">
-            Já instalei o app · Criar minha conta
-          </button>
-          <button class="auth-link-btn" onclick="mostrarLoginDireto()" style="font-size: 12px; color: var(--text-muted); text-decoration: none;">
-            Já tenho conta cadastrada · Entrar
-          </button>
+        <div style="background: var(--bg-warm); border-radius: var(--radius-sm); padding: 12px 14px; border: 1.5px solid var(--border-subtle); margin-top: 8px; text-align: center;">
+          <span style="font-size: 12.5px; color: var(--forest-green); font-weight: 600; line-height: 1.45; display: block;">
+            <i class="fa-solid fa-mobile-screen-button"></i> Após baixar, abra o aplicativo <strong>"Shanti Aluno"</strong> pelo ícone na tela inicial para fazer login ou criar sua senha.
+          </span>
         </div>
       </div>
 
@@ -2683,18 +2680,16 @@
     });
 
     window.addEventListener("appinstalled", () => {
-      showToast("Aplicativo instalado com sucesso! 🎉");
-      liberarTelaCadastro();
+      showToast("Aplicativo instalado com sucesso! 🎉 Abra pelo ícone na tela inicial.");
     });
 
     function isRunningRealStandalone() {
       // Verifica estritamente se está rodando dentro do PWA instalado (standalone/fullscreen)
       const isStandaloneMatch = window.matchMedia("(display-mode: standalone)").matches;
       const isFullscreenMatch = window.matchMedia("(display-mode: fullscreen)").matches;
+      const isMinimalUiMatch = window.matchMedia("(display-mode: minimal-ui)").matches;
       const isNavStandalone = window.navigator.standalone === true;
-      const isPwaParam = window.location.search.includes("source=pwa");
-      const isWebApk = document.referrer && document.referrer.includes("android-app://");
-      return isStandaloneMatch || isFullscreenMatch || isNavStandalone || isPwaParam || isWebApk;
+      return isStandaloneMatch || isFullscreenMatch || isMinimalUiMatch || isNavStandalone;
     }
     const isRunningStandalone = isRunningRealStandalone;
 
@@ -2740,10 +2735,7 @@
         deferredPrompt.prompt();
         const { outcome } = await deferredPrompt.userChoice;
         if (outcome === "accepted") {
-          showToast("Instalação iniciada! Abra o app na tela inicial.");
-          setTimeout(() => {
-            liberarTelaCadastro();
-          }, 1200);
+          showToast("Instalação iniciada! Abra o app na tela inicial do celular.");
         }
         deferredPrompt = null;
       } else {
@@ -3124,6 +3116,11 @@
       const partes = dataIso.split("-");
       if (partes.length === 3) return `${partes[2]}/${partes[1]}/${partes[0]}`;
       return dataIso;
+    }
+
+    // Normaliza URL para garantir o escopo /aluno/ com barra final
+    if (window.location.pathname === '/aluno') {
+      window.history.replaceState({}, '', '/aluno/' + window.location.search);
     }
 
     // Service Worker PWA Exclusivo do Aluno (/aluno/)

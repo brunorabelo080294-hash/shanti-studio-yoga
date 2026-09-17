@@ -1,5 +1,5 @@
 // Service Worker Exclusivo - Studio Shanti Gestão (/gestao/)
-const CACHE_NAME = 'shanti-gestao-pwa-v36';
+const CACHE_NAME = 'shanti-gestao-pwa-v37';
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();
@@ -10,7 +10,7 @@ self.addEventListener('activate', (event) => {
     caches.keys().then((keys) => {
       return Promise.all(
         keys.map((key) => {
-          if (key.startsWith('shanti-gestao') && key !== CACHE_NAME) {
+          if (key !== CACHE_NAME && (key.startsWith('shanti-gestao') || key.startsWith('shanti-pwa'))) {
             return caches.delete(key);
           }
         })
@@ -21,7 +21,12 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  if (event.request.method !== 'GET' || event.request.url.includes('/api/')) {
+  // Ignora chamadas de API, métodos não-GET e qualquer requisição direcionada ao app do Aluno
+  if (
+    event.request.method !== 'GET' ||
+    event.request.url.includes('/api/') ||
+    event.request.url.includes('/aluno')
+  ) {
     return;
   }
   event.respondWith(

@@ -1,9 +1,9 @@
 {
-  "id": "shanti-studio-gestao-pwa",
+  "id": "/gestao/",
   "name": "Studio Shanti · Gestão",
   "short_name": "Shanti Gestão",
   "description": "Aplicativo de Gestão para o Studio Shanti Yoga",
-  "start_url": "/gestao?source=pwa",
+  "start_url": "/gestao/?source=pwa",
   "scope": "/gestao/",
   "display": "standalone",
   "orientation": "portrait",

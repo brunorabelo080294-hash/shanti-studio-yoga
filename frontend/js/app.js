@@ -510,6 +510,23 @@ window.navegarParaAba = navegarParaAba;
 })();
 
 async function setupAuth() {
+  // REGRA ESTRITA: No navegador comum, NUNCA exibe formulário de login e nem entra no painel,
+  // mesmo que o usuário já tenha sessão salva. Exibe exclusivamente a tela de baixar o app!
+  const isGestaoStandalone = typeof isPwaGestaoStandalone === 'function' ? isPwaGestaoStandalone() : (
+    window.matchMedia('(display-mode: standalone)').matches ||
+    window.matchMedia('(display-mode: fullscreen)').matches ||
+    window.matchMedia('(display-mode: minimal-ui)').matches ||
+    window.navigator.standalone === true
+  );
+
+  if (!isGestaoStandalone) {
+    console.log("Acesso via navegador comum detectado. Bloqueando login e exibindo exclusivamente tela de download do PWA Gestão.");
+    if (typeof ajustarGatekeeperGestao === 'function') {
+      ajustarGatekeeperGestao();
+    }
+    return;
+  }
+
   // 1. Verificar se há sessão salva no localStorage (lembrar de mim) ou sessionStorage
   const savedToken = localStorage.getItem('shanti_auth_token') || sessionStorage.getItem('shanti_auth_token');
   const savedUserStr = localStorage.getItem('shanti_auth_user') || sessionStorage.getItem('shanti_auth_user');

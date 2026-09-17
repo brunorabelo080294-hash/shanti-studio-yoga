@@ -14,7 +14,7 @@ import hashlib
 import base64
 from typing import Optional, Dict, Any, List
 from fastapi import FastAPI, HTTPException, UploadFile, File, Form, Response, Request
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -1524,20 +1524,30 @@ def obter_aluno_autenticado(request: Request) -> int:
         raise HTTPException(status_code=401, detail="Sessão expirada ou inválida. Faça login novamente.")
     return aluno_id
 
+@app.get("/")
+def servico_raiz():
+    return RedirectResponse(url="/gestao/", status_code=302)
+
 @app.get("/gestao")
+def servico_pagina_gestao_redirect():
+    return RedirectResponse(url="/gestao/", status_code=301)
+
 @app.get("/gestao/")
 def servico_pagina_gestao():
     index_html = os.path.join(FRONTEND_DIR, "index.html")
     if os.path.exists(index_html):
-        return FileResponse(index_html, media_type="text/html")
+        return FileResponse(index_html, media_type="text/html", headers={"Cache-Control": "no-cache"})
     raise HTTPException(status_code=404, detail="Página de gestão não encontrada.")
 
 @app.get("/aluno")
+def servico_pagina_aluno_redirect():
+    return RedirectResponse(url="/aluno/", status_code=301)
+
 @app.get("/aluno/")
 def servico_pagina_aluno():
     aluno_html = os.path.join(FRONTEND_DIR, "aluno.html")
     if os.path.exists(aluno_html):
-        return FileResponse(aluno_html, media_type="text/html")
+        return FileResponse(aluno_html, media_type="text/html", headers={"Cache-Control": "no-cache"})
     raise HTTPException(status_code=404, detail="Página do aluno não encontrada.")
 
 @app.get("/manifest.json")
@@ -1545,28 +1555,28 @@ def servico_pagina_aluno():
 def servico_manifest_gestao():
     manifest_path = os.path.join(FRONTEND_DIR, "manifest.json")
     if os.path.exists(manifest_path):
-        return FileResponse(manifest_path, media_type="application/json")
+        return FileResponse(manifest_path, media_type="application/manifest+json", headers={"Cache-Control": "no-cache"})
     raise HTTPException(status_code=404, detail="Manifest de gestão não encontrado.")
 
 @app.get("/manifest-aluno.json")
 def servico_manifest_aluno():
     manifest_path = os.path.join(FRONTEND_DIR, "manifest-aluno.json")
     if os.path.exists(manifest_path):
-        return FileResponse(manifest_path, media_type="application/json")
+        return FileResponse(manifest_path, media_type="application/manifest+json", headers={"Cache-Control": "no-cache"})
     raise HTTPException(status_code=404, detail="Manifest do aluno não encontrado.")
 
 @app.get("/service-worker-gestao.js")
 def servico_sw_gestao():
     sw_path = os.path.join(FRONTEND_DIR, "service-worker-gestao.js")
     if os.path.exists(sw_path):
-        return FileResponse(sw_path, media_type="application/javascript")
+        return FileResponse(sw_path, media_type="application/javascript", headers={"Cache-Control": "no-cache", "Service-Worker-Allowed": "/gestao/"})
     raise HTTPException(status_code=404, detail="Service worker de gestão não encontrado.")
 
 @app.get("/service-worker-aluno.js")
 def servico_sw_aluno():
     sw_path = os.path.join(FRONTEND_DIR, "service-worker-aluno.js")
     if os.path.exists(sw_path):
-        return FileResponse(sw_path, media_type="application/javascript")
+        return FileResponse(sw_path, media_type="application/javascript", headers={"Cache-Control": "no-cache", "Service-Worker-Allowed": "/aluno/"})
     raise HTTPException(status_code=404, detail="Service worker do aluno não encontrado.")
 
 @app.post("/api/aluno/auth/login")
@@ -1905,5 +1915,5 @@ def api_admin_excluir_acesso_aluno(aluno_id: int):
 
 # --- Montar Arquivos Estáticos do Frontend (PWA) ---
 
-app.mount("/", StaticFiles(directory=FRONTEND_DIR, html=True), name="frontend")
+app.mount("/", StaticFiles(directory=FRONTEND_DIR, html=False), name="frontend")
 

@@ -12,8 +12,8 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Studio Shanti">
-  <meta name="application-name" content="Studio Shanti">
+  <meta name="apple-mobile-web-app-title" content="Shanti Gestão">
+  <meta name="application-name" content="Shanti Gestão">
   <link rel="apple-touch-icon" href="/icons/icon-192.png?v=30">
 
   <!-- Fontes Google & Ícones FontAwesome -->
@@ -51,6 +51,110 @@
     setTimeout(fecharSplashImediato, 1800);
   })();
 </script>
+
+<!-- ======================================================================
+     TELA DE DOWNLOAD / INSTALAÇÃO DO APP DE GESTÃO (EXIBIDO NO NAVEGADOR)
+     ====================================================================== -->
+<div id="pwa-install-screen-gestao" class="pwa-login-screen" style="display: none;">
+  <div class="pwa-login-card" style="max-width: 420px; padding: 26px 22px;">
+    
+    <!-- Logo & Marca Boutique Gestão -->
+    <div class="pwa-login-header">
+      <div class="pwa-login-logo-wrapper">
+        <img src="/icons/lotus-brand.png?v=1" alt="Studio Shanti Gestão" class="pwa-login-logo">
+      </div>
+      <h2 class="pwa-login-brand">Studio Shanti</h2>
+      <p class="pwa-login-tagline">Gestão Integrada & Administração</p>
+      <div class="pwa-login-badge" style="background: var(--shanti-sage-light); color: var(--shanti-forest); border-color: var(--shanti-sage-border);">
+        <i class="fa-solid fa-shield-halved"></i> App Exclusivo de Gestão
+      </div>
+    </div>
+
+    <!-- Mensagem de Orientação -->
+    <div style="background: var(--shanti-sand-light); border-radius: 16px; padding: 14px 16px; border: 1.5px solid var(--shanti-sand-border); margin-bottom: 18px; text-align: center;">
+      <p style="font-size: 13.5px; color: var(--shanti-forest); line-height: 1.5; font-weight: 700; margin: 0 0 6px 0;">
+        Acesso exclusivo pelo aplicativo instalado
+      </p>
+      <p style="font-size: 12.5px; color: var(--shanti-stone); line-height: 1.45; margin: 0;">
+        Por segurança e para evitar conflitos, o acesso ao painel e a tela de login só funcionam no <strong>aplicativo instalado no seu celular</strong>.
+      </p>
+    </div>
+
+    <!-- Botão de Instalação com Destaque -->
+    <button id="btn-instalar-gestao" type="button" class="pwa-btn-enter" onclick="clicarInstalarAppGestao()" style="margin-bottom: 16px; background: linear-gradient(135deg, var(--shanti-forest), #283624); box-shadow: 0 8px 24px rgba(63, 78, 58, 0.4); justify-content: center;">
+      <i class="fa-solid fa-cloud-arrow-down" style="font-size: 18px; margin-right: 8px;"></i>
+      <span style="font-weight: 700; font-size: 14px;">Baixar e Instalar App de Gestão</span>
+    </button>
+
+    <!-- Instruções por Dispositivo -->
+    <!-- Android (Chrome) -->
+    <div id="gestao-instrucoes-android" style="display: none; background: #FFFFFF; border-radius: 14px; padding: 14px; border: 1.5px solid var(--shanti-sand-border); margin-bottom: 14px; text-align: left;">
+      <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; color: var(--shanti-forest); margin-bottom: 10px;">
+        <i class="fa-brands fa-android" style="font-size: 17px; color: #3DDC84;"></i>
+        <span>Como baixar no Android (Chrome):</span>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 8px; font-size: 12px; color: var(--shanti-charcoal);">
+        <div style="display: flex; gap: 8px; align-items: flex-start;">
+          <span style="background: var(--shanti-forest); color: #fff; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0;">1</span>
+          <span>Toque no botão <strong>"Baixar e Instalar"</strong> acima (ou nos três pontinhos <strong>⋮</strong> no topo do Chrome).</span>
+        </div>
+        <div style="display: flex; gap: 8px; align-items: flex-start;">
+          <span style="background: var(--shanti-forest); color: #fff; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0;">2</span>
+          <span>Selecione <strong>"Instalar aplicativo"</strong> ou <strong>"Adicionar à tela inicial"</strong>.</span>
+        </div>
+        <div style="display: flex; gap: 8px; align-items: flex-start;">
+          <span style="background: var(--shanti-forest); color: #fff; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0;">3</span>
+          <span>Abra o app <strong>"Shanti Gestão"</strong> pela tela inicial do celular para fazer login.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- iPhone (Safari) -->
+    <div id="gestao-instrucoes-ios" style="display: none; background: #FFFFFF; border-radius: 14px; padding: 14px; border: 1.5px solid var(--shanti-sand-border); margin-bottom: 14px; text-align: left;">
+      <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; color: var(--shanti-forest); margin-bottom: 10px;">
+        <i class="fa-brands fa-apple" style="font-size: 17px; color: #111;"></i>
+        <span>Como baixar no iPhone (Safari):</span>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 8px; font-size: 12px; color: var(--shanti-charcoal);">
+        <div style="display: flex; gap: 8px; align-items: flex-start;">
+          <span style="background: var(--shanti-forest); color: #fff; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0;">1</span>
+          <span>No Safari, toque no ícone de <strong>Compartilhar <i class="fa-solid fa-arrow-up-from-bracket"></i></strong> na barra inferior.</span>
+        </div>
+        <div style="display: flex; gap: 8px; align-items: flex-start;">
+          <span style="background: var(--shanti-forest); color: #fff; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0;">2</span>
+          <span>Role para baixo e toque em <strong>"Adicionar à Tela de Início (+)"</strong>.</span>
+        </div>
+        <div style="display: flex; gap: 8px; align-items: flex-start;">
+          <span style="background: var(--shanti-forest); color: #fff; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0;">3</span>
+          <span>Toque em <strong>Adicionar</strong> e abra o app instalado pela tela inicial.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Desktop / Computador -->
+    <div id="gestao-instrucoes-desktop" style="display: none; background: #FFFFFF; border-radius: 14px; padding: 14px; border: 1.5px solid var(--shanti-sand-border); margin-bottom: 14px; text-align: left;">
+      <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; color: var(--shanti-forest); margin-bottom: 10px;">
+        <i class="fa-solid fa-desktop" style="font-size: 15px; color: var(--shanti-forest);"></i>
+        <span>No Computador (Chrome / Edge):</span>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 8px; font-size: 12px; color: var(--shanti-charcoal);">
+        <div style="display: flex; gap: 8px; align-items: flex-start;">
+          <span style="background: var(--shanti-forest); color: #fff; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0;">1</span>
+          <span>Clique em <strong>"Baixar e Instalar"</strong> acima ou no ícone de instalar na barra de endereços (ao lado da estrela).</span>
+        </div>
+        <div style="display: flex; gap: 8px; align-items: flex-start;">
+          <span style="background: var(--shanti-forest); color: #fff; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0;">2</span>
+          <span>Confirme para instalar e abrir a janela independente de Gestão.</span>
+        </div>
+      </div>
+    </div>
+
+    <div style="text-align: center; font-size: 11.5px; color: var(--shanti-stone);">
+      <i class="fa-solid fa-shield-halved"></i> Ambiente de Gestão Seguro · Studio Shanti
+    </div>
+
+  </div>
+</div>
 
 <!-- ======================================================================
      TELA DE ACESSO SEGURO / LOGIN (BOUTIQUE SHANTI)
@@ -2645,10 +2749,88 @@
 <script src="/js/app.js?v=34"></script>
 
 <script>
-  // Garante que o painel de gestão fique no seu escopo exclusivo /gestao
-  if (window.location.pathname === '/' || window.location.pathname === '') {
-    window.history.replaceState({}, '', '/gestao' + window.location.search);
+  // Normaliza URL para garantir o escopo /gestao/ com barra final
+  if (window.location.pathname === '/' || window.location.pathname === '' || window.location.pathname === '/gestao') {
+    window.history.replaceState({}, '', '/gestao/' + window.location.search);
   }
+
+  let deferredPromptGestao = null;
+
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPromptGestao = e;
+    const btn = document.getElementById('btn-instalar-gestao');
+    if (btn) btn.classList.add('anim-pulse');
+  });
+
+  window.addEventListener('appinstalled', () => {
+    if (typeof showToast === 'function') {
+      showToast('✨ App de Gestão instalado com sucesso! Abra pelo ícone na tela inicial.');
+    }
+  });
+
+  function isPwaGestaoStandalone() {
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
+    const isFullscreen = window.matchMedia('(display-mode: fullscreen)').matches;
+    const isMinimalUi = window.matchMedia('(display-mode: minimal-ui)').matches;
+    const isNavStandalone = window.navigator.standalone === true;
+    return isStandalone || isFullscreen || isMinimalUi || isNavStandalone;
+  }
+
+  function ajustarGatekeeperGestao() {
+    const ua = navigator.userAgent || "";
+    const isIos = /iPad|iPhone|iPod/.test(ua) && !window.MSStream;
+    const isAndroid = /android/i.test(ua);
+
+    const boxIos = document.getElementById("gestao-instrucoes-ios");
+    const boxAndroid = document.getElementById("gestao-instrucoes-android");
+    const boxDesktop = document.getElementById("gestao-instrucoes-desktop");
+
+    if (boxIos) boxIos.style.display = isIos ? "block" : "none";
+    if (boxAndroid) boxAndroid.style.display = isAndroid ? "block" : "none";
+    if (boxDesktop) boxDesktop.style.display = (!isIos && !isAndroid) ? "block" : "none";
+
+    const installScreen = document.getElementById('pwa-install-screen-gestao');
+    const appContainer = document.getElementById('app-container');
+    const loginScreen = document.getElementById('pwa-login-screen');
+
+    if (isPwaGestaoStandalone()) {
+      if (installScreen) installScreen.style.display = 'none';
+      return true;
+    } else {
+      if (installScreen) installScreen.style.display = 'flex';
+      if (loginScreen) loginScreen.style.display = 'none';
+      if (appContainer) {
+        appContainer.style.filter = 'blur(6px)';
+        appContainer.style.pointerEvents = 'none';
+      }
+      return false;
+    }
+  }
+
+  async function clicarInstalarAppGestao() {
+    if (deferredPromptGestao) {
+      deferredPromptGestao.prompt();
+      const { outcome } = await deferredPromptGestao.userChoice;
+      if (outcome === 'accepted') {
+        if (typeof showToast === 'function') {
+          showToast('Instalação iniciada! Abra o app "Shanti Gestão" na tela inicial.');
+        }
+      }
+      deferredPromptGestao = null;
+    } else {
+      const ua = navigator.userAgent || "";
+      const isIos = /iPad|iPhone|iPod/.test(ua);
+      if (isIos) {
+        alert("No iPhone: toque no ícone de Compartilhar ⎋ na barra inferior do Safari e em 'Adicionar à Tela de Início'!");
+      } else {
+        alert("No Android: toque no menu ⋮ (três pontinhos) no topo do Chrome e selecione 'Instalar aplicativo'!");
+      }
+    }
+  }
+
+  // Executa o gatekeeper assim que o DOM estiver pronto
+  window.addEventListener('DOMContentLoaded', ajustarGatekeeperGestao);
 
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
