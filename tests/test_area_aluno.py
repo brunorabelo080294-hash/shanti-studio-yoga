@@ -270,12 +270,13 @@ class TestAreaAlunoEConquistas(unittest.TestCase):
         self.assertEqual(solic_pos["status"], "aprovada")
     def test_09_excluir_acesso_aluno(self):
         """Testa exclusão/revogação do acesso do aluno ao aplicativo pelo admin."""
-        # 1. Cadastrar aluno com acesso
-        tel_teste = "32999990099"
+        import time
+        tel_teste = f"3298{int(time.time()) % 10000000:07d}"
+        cpf_teste = f"999{int(time.time()) % 100000000:08d}"
         dados = {
             "nome": "Aluno Teste Exclusao Acesso",
             "telefone": tel_teste,
-            "cpf": "99988877700",
+            "cpf": cpf_teste,
             "plano": "1x na semana",
             "dia_semana": "Terça-feira",
             "horario": "18:30"
