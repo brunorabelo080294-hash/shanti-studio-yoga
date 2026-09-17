@@ -1524,12 +1524,29 @@ def obter_aluno_autenticado(request: Request) -> int:
         raise HTTPException(status_code=401, detail="Sessão expirada ou inválida. Faça login novamente.")
     return aluno_id
 
+@app.get("/gestao")
+@app.get("/gestao/")
+def servico_pagina_gestao():
+    index_html = os.path.join(FRONTEND_DIR, "index.html")
+    if os.path.exists(index_html):
+        return FileResponse(index_html, media_type="text/html")
+    raise HTTPException(status_code=404, detail="Página de gestão não encontrada.")
+
 @app.get("/aluno")
+@app.get("/aluno/")
 def servico_pagina_aluno():
     aluno_html = os.path.join(FRONTEND_DIR, "aluno.html")
     if os.path.exists(aluno_html):
         return FileResponse(aluno_html, media_type="text/html")
     raise HTTPException(status_code=404, detail="Página do aluno não encontrada.")
+
+@app.get("/manifest.json")
+@app.get("/manifest-gestao.json")
+def servico_manifest_gestao():
+    manifest_path = os.path.join(FRONTEND_DIR, "manifest.json")
+    if os.path.exists(manifest_path):
+        return FileResponse(manifest_path, media_type="application/json")
+    raise HTTPException(status_code=404, detail="Manifest de gestão não encontrado.")
 
 @app.get("/manifest-aluno.json")
 def servico_manifest_aluno():
@@ -1537,6 +1554,20 @@ def servico_manifest_aluno():
     if os.path.exists(manifest_path):
         return FileResponse(manifest_path, media_type="application/json")
     raise HTTPException(status_code=404, detail="Manifest do aluno não encontrado.")
+
+@app.get("/service-worker-gestao.js")
+def servico_sw_gestao():
+    sw_path = os.path.join(FRONTEND_DIR, "service-worker-gestao.js")
+    if os.path.exists(sw_path):
+        return FileResponse(sw_path, media_type="application/javascript")
+    raise HTTPException(status_code=404, detail="Service worker de gestão não encontrado.")
+
+@app.get("/service-worker-aluno.js")
+def servico_sw_aluno():
+    sw_path = os.path.join(FRONTEND_DIR, "service-worker-aluno.js")
+    if os.path.exists(sw_path):
+        return FileResponse(sw_path, media_type="application/javascript")
+    raise HTTPException(status_code=404, detail="Service worker do aluno não encontrado.")
 
 @app.post("/api/aluno/auth/login")
 def api_aluno_login(dados: AlunoLoginRequest):

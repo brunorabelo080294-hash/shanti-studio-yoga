@@ -2645,12 +2645,27 @@
 <script src="/js/app.js?v=34"></script>
 
 <script>
+  // Garante que o painel de gestão fique no seu escopo exclusivo /gestao
+  if (window.location.pathname === '/' || window.location.pathname === '') {
+    window.history.replaceState({}, '', '/gestao' + window.location.search);
+  }
+
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/service-worker.js?v=34').then(reg => {
+      // Limpa registros antigos com escopo genérico raiz '/' se existirem
+      navigator.serviceWorker.getRegistrations().then(regs => {
+        for (let r of regs) {
+          if (r.scope.endsWith('/') && !r.scope.includes('/gestao') && !r.scope.includes('/aluno')) {
+            r.unregister();
+          }
+        }
+      });
+
+      // Registra o Service Worker exclusivo de Gestão com escopo /gestao/
+      navigator.serviceWorker.register('/service-worker-gestao.js', { scope: '/gestao/' }).then(reg => {
         reg.update();
       }).catch(err => {
-        console.log('SW reg:', err);
+        console.log('SW Gestão reg:', err);
       });
     });
   }

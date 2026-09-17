@@ -1,10 +1,10 @@
 {
-  "id": "/aluno",
+  "id": "shanti-studio-aluno-pwa",
   "name": "Shanti Studio · Aluno",
   "short_name": "Shanti Aluno",
   "description": "Seu espaço de prática, conquistas e leituras no Shanti Studio Yoga",
   "start_url": "/aluno?source=pwa",
-  "scope": "/aluno",
+  "scope": "/aluno/",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#FAF7F2",

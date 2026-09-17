@@ -2057,6 +2057,14 @@
     });
 
     async function verificarSessao() {
+      // REGRA: Se o aluno abriu pelo navegador comum (não pelo app instalado):
+      // SEMPRE exibir a tela para baixar e instalar o aplicativo!
+      if (!isRunningRealStandalone()) {
+        document.getElementById("auth-screen").classList.add("active");
+        ajustarTelaAuthInicial();
+        return;
+      }
+
       if (!alunoToken) {
         document.getElementById("auth-screen").classList.add("active");
         ajustarTelaAuthInicial();
@@ -2073,6 +2081,8 @@
         carregarDashboard();
       } catch (e) {
         console.error("Erro ao verificar sessão:", e);
+        document.getElementById("auth-screen").classList.add("active");
+        ajustarTelaAuthInicial();
       }
     }
 
@@ -2673,18 +2683,20 @@
     });
 
     window.addEventListener("appinstalled", () => {
-      localStorage.setItem("shanti_aluno_installed", "true");
       showToast("Aplicativo instalado com sucesso! 🎉");
       liberarTelaCadastro();
     });
 
-    function isRunningStandalone() {
+    function isRunningRealStandalone() {
+      // Verifica estritamente se está rodando dentro do PWA instalado (standalone/fullscreen)
       const isStandaloneMatch = window.matchMedia("(display-mode: standalone)").matches;
+      const isFullscreenMatch = window.matchMedia("(display-mode: fullscreen)").matches;
       const isNavStandalone = window.navigator.standalone === true;
       const isPwaParam = window.location.search.includes("source=pwa");
-      const isInstalledLocal = localStorage.getItem("shanti_aluno_installed") === "true";
-      return isStandaloneMatch || isNavStandalone || isPwaParam || isInstalledLocal;
+      const isWebApk = document.referrer && document.referrer.includes("android-app://");
+      return isStandaloneMatch || isFullscreenMatch || isNavStandalone || isPwaParam || isWebApk;
     }
+    const isRunningStandalone = isRunningRealStandalone;
 
     function detectarEAjustarGuiaDispositivo() {
       const ua = navigator.userAgent || navigator.vendor || window.opera || "";
@@ -2708,14 +2720,14 @@
 
       detectarEAjustarGuiaDispositivo();
 
-      if (isRunningStandalone()) {
-        // Se já está no app instalado (ou confirmou instalação): vai direto para criar senha
+      if (isRunningRealStandalone()) {
+        // Dentro do app instalado: exibe diretamente formulários de cadastro ou login
         if (viewInstalar) viewInstalar.style.display = "none";
         if (formCadastro) formCadastro.style.display = "flex";
         if (formLogin) formLogin.style.display = "none";
         if (authLinks) authLinks.style.display = "flex";
       } else {
-        // No navegador normal: orienta e exige o download do app primeiro
+        // No navegador comum: SEMPRE exige e exibe a tela de baixar o app!
         if (viewInstalar) viewInstalar.style.display = "flex";
         if (formCadastro) formCadastro.style.display = "none";
         if (formLogin) formLogin.style.display = "none";
@@ -2728,7 +2740,6 @@
         deferredPrompt.prompt();
         const { outcome } = await deferredPrompt.userChoice;
         if (outcome === "accepted") {
-          localStorage.setItem("shanti_aluno_installed", "true");
           showToast("Instalação iniciada! Abra o app na tela inicial.");
           setTimeout(() => {
             liberarTelaCadastro();
@@ -2747,7 +2758,6 @@
     }
 
     function liberarTelaCadastro() {
-      localStorage.setItem("shanti_aluno_installed", "true");
       document.getElementById("view-instalar").style.display = "none";
       document.getElementById("form-cadastrar").style.display = "flex";
       document.getElementById("form-login").style.display = "none";
@@ -2758,7 +2768,6 @@
     }
 
     function mostrarLoginDireto() {
-      localStorage.setItem("shanti_aluno_installed", "true");
       document.getElementById("view-instalar").style.display = "none";
       document.getElementById("form-cadastrar").style.display = "none";
       document.getElementById("form-login").style.display = "flex";
@@ -2769,7 +2778,6 @@
     }
 
     function voltarParaInstalacao() {
-      localStorage.removeItem("shanti_aluno_installed");
       document.getElementById("view-instalar").style.display = "flex";
       document.getElementById("form-cadastrar").style.display = "none";
       document.getElementById("form-login").style.display = "none";
@@ -3118,12 +3126,24 @@
       return dataIso;
     }
 
-    // Service Worker PWA
+    // Service Worker PWA Exclusivo do Aluno (/aluno/)
     function registrarServiceWorker() {
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {
-          navigator.serviceWorker.register("/sw.js").catch(e => {
-            console.log("Service Worker registro opcional:", e);
+          // Limpa registros antigos com escopo raiz '/' se existirem
+          navigator.serviceWorker.getRegistrations().then(regs => {
+            for (let r of regs) {
+              if (r.scope.endsWith('/') && !r.scope.includes('/gestao') && !r.scope.includes('/aluno')) {
+                r.unregister();
+              }
+            }
+          });
+
+          // Registra o Service Worker exclusivo do Aluno com escopo /aluno/
+          navigator.serviceWorker.register("/service-worker-aluno.js", { scope: "/aluno/" }).then(reg => {
+            reg.update();
+          }).catch(e => {
+            console.log("SW Aluno reg:", e);
           });
         });
       }
