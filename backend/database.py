@@ -4005,6 +4005,9 @@ def obter_resumo_aluno_dashboard(aluno_id: int) -> Dict[str, Any]:
     proximas_aulas = []
     hoje_date = agora.date()
     dias_abrev = ["SEG", "TER", "QUA", "QUI", "SEX", "SÁB", "DOM"]
+    dias_semana_nome = ["Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado", "Domingo"]
+    meses_nome = ["", "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"]
+    meses_abrev = ["", "Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"]
 
     if turmas:
         conn = get_connection()
@@ -4065,12 +4068,20 @@ def obter_resumo_aluno_dashboard(aluno_id: int) -> Dict[str, Any]:
                     else:
                         tag_dia = dias_abrev[w]
 
+                    data_extenso = f"{dt.day} de {meses_nome[dt.month]}"
+                    data_extenso_curta = f"{dt.day} de {meses_abrev[dt.month]}"
+                    dia_semana_extenso = dias_semana_nome[w]
+
                     proximas_aulas.append({
                         "turma_id": t["id"],
                         "turma_nome": t.get("nome", "Aula de Yoga"),
                         "horario": t.get("horario", "18:30"),
                         "data": dt_str,
                         "data_formatada": dt.strftime("%d/%m"),
+                        "data_extenso": data_extenso,
+                        "data_extenso_curta": data_extenso_curta,
+                        "dia_semana_extenso": dia_semana_extenso,
+                        "data_completa": f"{dia_semana_extenso}, {data_extenso}",
                         "tag_dia": tag_dia,
                         "status_presenca": st_pres,
                         "status_label": st_label,
@@ -4085,6 +4096,7 @@ def obter_resumo_aluno_dashboard(aluno_id: int) -> Dict[str, Any]:
         turma_padrao_id = turmas[0]["id"] if turmas else 1
         turma_padrao_nome = turmas[0].get("nome", "Essência") if turmas else "Essência"
         horario_padrao = turmas[0].get("horario", "18:30") if turmas else "18:30"
+        dt_segunda_aula = hoje_date + datetime.timedelta(days=2)
         proximas_aulas = [
             {
                 "turma_id": turma_padrao_id,
@@ -4092,6 +4104,10 @@ def obter_resumo_aluno_dashboard(aluno_id: int) -> Dict[str, Any]:
                 "horario": horario_padrao,
                 "data": hoje_date.strftime("%Y-%m-%d"),
                 "data_formatada": hoje_date.strftime("%d/%m"),
+                "data_extenso": f"{hoje_date.day} de {meses_nome[hoje_date.month]}",
+                "data_extenso_curta": f"{hoje_date.day} de {meses_abrev[hoje_date.month]}",
+                "dia_semana_extenso": dias_semana_nome[hoje_date.weekday()],
+                "data_completa": f"{dias_semana_nome[hoje_date.weekday()]}, {hoje_date.day} de {meses_nome[hoje_date.month]}",
                 "tag_dia": "HOJE",
                 "status_presenca": "agendada",
                 "status_label": "Agendada",
@@ -4101,9 +4117,13 @@ def obter_resumo_aluno_dashboard(aluno_id: int) -> Dict[str, Any]:
                 "turma_id": turma_padrao_id,
                 "turma_nome": turma_padrao_nome,
                 "horario": horario_padrao,
-                "data": (hoje_date + datetime.timedelta(days=2)).strftime("%Y-%m-%d"),
-                "data_formatada": (hoje_date + datetime.timedelta(days=2)).strftime("%d/%m"),
-                "tag_dia": dias_abrev[(hoje_date.weekday() + 2) % 7],
+                "data": dt_segunda_aula.strftime("%Y-%m-%d"),
+                "data_formatada": dt_segunda_aula.strftime("%d/%m"),
+                "data_extenso": f"{dt_segunda_aula.day} de {meses_nome[dt_segunda_aula.month]}",
+                "data_extenso_curta": f"{dt_segunda_aula.day} de {meses_abrev[dt_segunda_aula.month]}",
+                "dia_semana_extenso": dias_semana_nome[dt_segunda_aula.weekday()],
+                "data_completa": f"{dias_semana_nome[dt_segunda_aula.weekday()]}, {dt_segunda_aula.day} de {meses_nome[dt_segunda_aula.month]}",
+                "tag_dia": dias_abrev[dt_segunda_aula.weekday()],
                 "status_presenca": "agendada",
                 "status_label": "Agendada",
                 "justificativa": ""

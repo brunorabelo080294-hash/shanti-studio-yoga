@@ -231,94 +231,243 @@
       margin-bottom: 12px;
     }
 
-    /* Carrossel Horizontal de Próximas Aulas */
+    /* ==========================================================================
+       CARROSSEL HORIZONTAL DE PRÓXIMAS AULAS (REDESIGN PROFISSIONAL & ELEGANTE)
+       ========================================================================== */
     .aulas-horizontal-container {
       display: flex;
-      gap: 14px;
+      gap: 16px;
       overflow-x: auto;
-      padding-bottom: 6px;
+      padding: 4px 4px 14px 4px;
       scroll-snap-type: x mandatory;
       -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+
+    .aulas-horizontal-container::-webkit-scrollbar {
+      display: none;
     }
 
     .aula-card-snap {
-      flex: 0 0 215px;
+      flex: 0 0 280px;
+      max-width: 86vw;
       background: #FFFFFF;
-      border-radius: 20px;
-      padding: 16px;
-      border: 1px solid rgba(63, 78, 58, 0.08);
-      box-shadow: 0 6px 18px rgba(44, 56, 40, 0.05);
+      border-radius: 22px;
+      padding: 18px;
+      border: 1.5px solid rgba(63, 78, 58, 0.10);
+      box-shadow: 0 10px 24px -4px rgba(44, 56, 40, 0.08), 0 3px 8px rgba(0, 0, 0, 0.02);
       scroll-snap-align: start;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      min-height: 155px;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s;
     }
 
-    .aula-tag-hoje {
-      font-size: 13.5px;
+    .aula-card-snap:active {
+      transform: scale(0.99);
+    }
+
+    /* Top row: Tag de Destaque (Hoje/Amanhã/Dia) e Badge de Data */
+    .aula-card-top-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .aula-tag-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 12px;
       font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 5px 11px;
+      border-radius: 999px;
+      line-height: 1;
+    }
+
+    .aula-tag-pill.tag-hoje {
+      background: #FDF2EE;
       color: #B8674A;
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
+      border: 1px solid rgba(184, 103, 74, 0.28);
     }
 
-    .aula-tag-dia {
+    .aula-tag-pill.tag-amanha {
+      background: #F2F6F0;
+      color: #354231;
+      border: 1px solid rgba(63, 78, 58, 0.22);
+    }
+
+    .aula-tag-pill.tag-dia {
+      background: #F5F3EF;
+      color: #4A5645;
+      border: 1px solid rgba(63, 78, 58, 0.15);
+    }
+
+    /* Badge Elegante de Data com Ícone de Calendário */
+    .aula-date-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(53, 66, 49, 0.05);
+      border: 1px solid rgba(53, 66, 49, 0.12);
+      padding: 5px 11px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #232D20;
+      line-height: 1;
+    }
+
+    .aula-date-badge i {
+      color: #B8674A;
+      font-size: 13px;
+    }
+
+    /* Bloco da Data por Extenso em Destaque */
+    .aula-card-date-highlight {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #FAF7F2;
+      border-radius: 12px;
+      padding: 8px 11px;
+      margin-bottom: 12px;
+      border: 1px solid rgba(63, 78, 58, 0.07);
+    }
+
+    .aula-card-date-highlight i {
+      color: #4F6B45;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+
+    .aula-card-date-highlight span {
       font-size: 13.5px;
-      font-weight: 800;
-      color: #556250;
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
+      font-weight: 700;
+      color: #263321;
+    }
+
+    /* Corpo Principal do Card: Ícone + Turma + Modalidade */
+    .aula-card-main-info {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .aula-card-emblem {
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #F5EFEB, #E8E2D8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #B8674A;
+      font-size: 20px;
+      flex-shrink: 0;
+      box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.7);
+    }
+
+    .aula-card-title-group {
+      flex: 1;
+      min-width: 0;
     }
 
     .aula-card-nome {
-      font-size: 18px;
+      font-size: 18.5px;
       font-weight: 800;
       color: #232D20;
-      margin-top: 4px;
+      line-height: 1.25;
+      margin: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
-    .aula-card-hora {
-      font-size: 15px;
+    .aula-card-subtitulo {
+      font-size: 13px;
       font-weight: 600;
-      color: #5D6858;
+      color: #768371;
+      margin-top: 2px;
+      display: block;
     }
 
+    /* Meta Chips (Horário e Local) */
+    .aula-card-meta-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .aula-meta-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #354231;
+      background: #F4F7F2;
+      padding: 4px 9px;
+      border-radius: 8px;
+      border: 1px solid rgba(63, 78, 58, 0.12);
+    }
+
+    .aula-meta-chip i {
+      font-size: 12.5px;
+      color: #556250;
+    }
+
+    /* Linha Divisória Sutil */
+    .aula-card-divider {
+      height: 1px;
+      background: rgba(63, 78, 58, 0.08);
+      margin-bottom: 12px;
+    }
+
+    /* Ações e Estados do Card */
     .aula-card-actions {
       display: flex;
-      gap: 8px;
-      margin-top: 12px;
+      gap: 10px;
     }
 
     .btn-card-confirmar {
-      flex: 1;
+      flex: 1.2;
       min-height: 48px;
-      background-color: #4F6B45;
+      background-color: #354231;
       color: #FFFFFF;
       border: none;
-      border-radius: 12px;
+      border-radius: 14px;
       font-size: 14px;
       font-weight: 700;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 6px;
-      transition: all 0.2s;
+      gap: 7px;
+      transition: all 0.15s ease;
+      box-shadow: 0 4px 12px rgba(53, 66, 49, 0.22);
     }
 
     .btn-card-confirmar:active {
       transform: scale(0.96);
-      background-color: #3F5737;
+      background-color: #273324;
     }
 
     .btn-card-desmarcar {
       flex: 1;
       min-height: 48px;
-      background-color: transparent;
+      background-color: #FFF9F7;
       color: #9C4123;
-      border: 1.5px solid #D6937C;
-      border-radius: 12px;
+      border: 1.5px solid #E8B6A4;
+      border-radius: 14px;
       font-size: 14px;
       font-weight: 700;
       cursor: pointer;
@@ -326,12 +475,31 @@
       align-items: center;
       justify-content: center;
       gap: 6px;
-      transition: all 0.2s;
+      transition: all 0.15s ease;
     }
 
     .btn-card-desmarcar:active {
       transform: scale(0.96);
-      background-color: #FDF2EE;
+      background-color: #FCECE6;
+    }
+
+    /* Banners de Status Aprovados / Cancelados */
+    .aula-card-status-box {
+      border-radius: 14px;
+      padding: 10px 12px;
+      text-align: center;
+    }
+
+    .aula-card-status-box.box-confirmada {
+      background: #F1F7EF;
+      border: 1.5px solid #BCD7B8;
+      color: #23451B;
+    }
+
+    .aula-card-status-box.box-desmarcada {
+      background: #FDF3EF;
+      border: 1.5px solid #F2C7B8;
+      color: #9C4123;
     }
 
     /* Rumo à Próxima Conquista */
@@ -2040,6 +2208,35 @@
       }
     }
 
+    // Formatação de data em português para os cards de aula
+    function formatarDataCardAluno(dataStr, tagDia) {
+      const mesesAbrev = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
+      const mesesCompleto = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+      const diasSemana = ["Domingo", "Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado"];
+
+      if (!dataStr) return { dataBadge: "Em breve", dataExtenso: "Data a definir", diaSemana: "", dataNumerica: "" };
+
+      const partes = dataStr.split("-");
+      if (partes.length !== 3) return { dataBadge: dataStr, dataExtenso: dataStr, diaSemana: "", dataNumerica: dataStr };
+
+      const ano = parseInt(partes[0], 10);
+      const mesIndex = parseInt(partes[1], 10) - 1;
+      const diaNum = parseInt(partes[2], 10);
+      const dataObj = new Date(ano, mesIndex, diaNum);
+
+      const diaFormatado = String(diaNum).padStart(2, '0');
+      const mesAbrevStr = mesesAbrev[mesIndex] || "";
+      const mesCompletoStr = mesesCompleto[mesIndex] || "";
+      const diaSemanaStr = diasSemana[dataObj.getDay()] || "";
+
+      return {
+        dataBadge: `${diaFormatado} de ${mesAbrevStr}`,
+        dataNumerica: `${diaFormatado}/${String(mesIndex + 1).padStart(2, '0')}`,
+        dataExtenso: `${diaFormatado} de ${mesCompletoStr}`,
+        diaSemana: diaSemanaStr
+      };
+    }
+
     // Renderização dos Cards de Próximas Aulas
     function renderizarCardsProximasAulas(aulas) {
       const container = document.getElementById("container-proximas-aulas");
@@ -2047,8 +2244,12 @@
 
       if (!aulas || aulas.length === 0) {
         container.innerHTML = `
-          <div style="background: #FFFFFF; border-radius: 16px; padding: 20px; text-align: center; width: 100%; border: 1px solid rgba(63, 78, 58, 0.1);">
-            <p style="font-size: 14.5px; font-weight: 600; color: #5D6858;">Nenhuma próxima aula agendada no momento.</p>
+          <div style="background: #FFFFFF; border-radius: 20px; padding: 24px; text-align: center; width: 100%; border: 1.5px solid rgba(63, 78, 58, 0.1); box-shadow: 0 4px 12px rgba(44, 56, 40, 0.04);">
+            <div style="width: 46px; height: 46px; border-radius: 50%; background: #FAF7F2; margin: 0 auto 10px; display: flex; align-items: center; justify-content: center; color: #7D8878; font-size: 20px;">
+              <i class="fa-regular fa-calendar-xmark"></i>
+            </div>
+            <p style="font-size: 15px; font-weight: 700; color: #2C3828;">Nenhuma próxima aula agendada</p>
+            <p style="font-size: 13px; font-weight: 500; color: #7D8878; margin-top: 4px;">Suas próximas práticas aparecerão aqui assim que agendadas.</p>
           </div>
         `;
         return;
@@ -2056,52 +2257,82 @@
 
       container.innerHTML = aulas.map(a => {
         const isHoje = (a.tag_dia === "HOJE");
-        const tagClass = isHoje ? "aula-tag-hoje" : "aula-tag-dia";
+        const isAmanha = (a.tag_dia === "AMANHÃ");
+
+        let tagClass = "tag-dia";
+        let tagIcon = '<i class="fa-regular fa-calendar"></i>';
+        let tagTexto = a.tag_dia || "AULA";
+
+        if (isHoje) {
+          tagClass = "tag-hoje";
+          tagIcon = '<i class="fa-solid fa-sparkles"></i>';
+          tagTexto = "Hoje";
+        } else if (isAmanha) {
+          tagClass = "tag-amanha";
+          tagIcon = '<i class="fa-regular fa-sun"></i>';
+          tagTexto = "Amanhã";
+        }
+
+        const infoData = formatarDataCardAluno(a.data, a.tag_dia);
+        const dataBadgeTexto = a.data_extenso_curta || infoData.dataBadge;
+        const dataExtensoTexto = a.data_extenso || infoData.dataExtenso;
+        const diaSemanaTexto = a.dia_semana_extenso || infoData.diaSemana;
+        const dataNumericaTexto = a.data_formatada || infoData.dataNumerica;
+
+        // Banner informativo de data legível e com alto contraste
+        let linhaDataTexto = "";
+        if (isHoje) {
+          linhaDataTexto = `<strong>Hoje</strong> · ${dataExtensoTexto} (${dataNumericaTexto})`;
+        } else if (isAmanha) {
+          linhaDataTexto = `<strong>Amanhã</strong> · ${dataExtensoTexto} (${dataNumericaTexto})`;
+        } else {
+          linhaDataTexto = `${diaSemanaTexto ? diaSemanaTexto + ' · ' : ''}<strong>${dataExtensoTexto}</strong> (${dataNumericaTexto})`;
+        }
 
         let actionsHtml = "";
         if (a.status_presenca === "agendada") {
           actionsHtml = `
             <div class="aula-card-actions">
-              <button class="btn-card-confirmar" onclick="confirmarAula(${a.turma_id}, '${a.data}')" title="Confirmar presença">
+              <button class="btn-card-confirmar" onclick="confirmarAula(${a.turma_id}, '${a.data}')" title="Confirmar presença nesta aula">
                 <i class="fa-solid fa-check"></i> Confirmar
               </button>
-              <button class="btn-card-desmarcar" onclick="desmarcarAula(${a.turma_id}, '${a.data}')" title="Desmarcar aula">
+              <button class="btn-card-desmarcar" onclick="desmarcarAula(${a.turma_id}, '${a.data}')" title="Desmarcar esta aula">
                 <i class="fa-solid fa-xmark"></i> Desmarcar
               </button>
             </div>
           `;
         } else if (a.status_presenca === "confirmado_aluno") {
           actionsHtml = `
-            <div style="margin-top: 10px;">
-              <div style="background: rgba(79, 107, 69, 0.12); color: #2C3828; padding: 8px 10px; border-radius: 10px; font-size: 13.5px; font-weight: 700; text-align: center; border: 1px solid rgba(79, 107, 69, 0.25);">
-                <i class="fa-solid fa-circle-check" style="color: #4F6B45;"></i> Presença Confirmada
-                <span style="display:block; font-size: 12px; font-weight: 600; color: #5D6858; margin-top: 2px;">(Pendente de validação)</span>
+            <div class="aula-card-status-box box-confirmada">
+              <div style="display: flex; align-items: center; justify-content: center; gap: 7px; font-size: 14px; font-weight: 800;">
+                <i class="fa-solid fa-circle-check" style="font-size: 16px; color: #38762B;"></i> Presença Confirmada!
               </div>
-              <div style="text-align: center; margin-top: 6px;">
-                <button onclick="desmarcarAula(${a.turma_id}, '${a.data}')" style="background: none; border: none; color: #9C4123; font-size: 13px; font-weight: 700; text-decoration: underline; cursor: pointer;">Desmarcar aula</button>
+              <span style="display: block; font-size: 12.5px; font-weight: 600; color: #4A5645; margin-top: 3px;">Aguardando validação da Natália</span>
+              <div style="margin-top: 8px; border-top: 1px dashed rgba(79, 107, 69, 0.25); padding-top: 6px;">
+                <button onclick="desmarcarAula(${a.turma_id}, '${a.data}')" style="background: none; border: none; color: #9C4123; font-size: 13px; font-weight: 700; text-decoration: underline; cursor: pointer;">Desmarcar esta aula</button>
               </div>
             </div>
           `;
         } else if (a.status_presenca === "desmarcado") {
           actionsHtml = `
-            <div style="margin-top: 10px;">
-              <div style="background: rgba(184, 103, 74, 0.12); color: #9C4123; padding: 8px 10px; border-radius: 10px; font-size: 13.5px; font-weight: 700; text-align: center; border: 1px solid rgba(184, 103, 74, 0.25);">
-                <i class="fa-solid fa-calendar-xmark" style="color: #B8674A;"></i> Aula Desmarcada
+            <div class="aula-card-status-box box-desmarcada">
+              <div style="display: flex; align-items: center; justify-content: center; gap: 7px; font-size: 14px; font-weight: 800;">
+                <i class="fa-solid fa-calendar-xmark" style="font-size: 16px; color: #B8674A;"></i> Aula Desmarcada
               </div>
-              <button onclick="mudarAba('aulas'); abrirModalReposicao();" style="min-height: 42px; width: 100%; margin-top: 6px; background: #B8674A; color: #FFF; border: none; border-radius: 10px; font-size: 13.5px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
+              <button onclick="mudarAba('aulas'); abrirModalReposicao();" style="min-height: 44px; width: 100%; margin-top: 8px; background: #B8674A; color: #FFF; border: none; border-radius: 12px; font-size: 13.5px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 4px 10px rgba(184, 103, 74, 0.25);">
                 <i class="fa-solid fa-arrow-rotate-right"></i> Solicitar Reposição
               </button>
             </div>
           `;
         } else if (a.status_presenca === "presente") {
           actionsHtml = `
-            <div style="margin-top: 10px; background: #4F6B45; color: #FFFFFF; padding: 8px 10px; border-radius: 10px; font-size: 13.5px; font-weight: 700; text-align: center;">
+            <div style="background: #354231; color: #FFFFFF; padding: 12px; border-radius: 14px; font-size: 14px; font-weight: 700; text-align: center; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 12px rgba(53, 66, 49, 0.2);">
               <i class="fa-solid fa-check-double"></i> Presença Validada
             </div>
           `;
         } else {
           actionsHtml = `
-            <div style="margin-top: 10px; background: #EAE6DF; color: #5D6858; padding: 8px 10px; border-radius: 10px; font-size: 13.5px; font-weight: 700; text-align: center;">
+            <div style="background: #EAE6DF; color: #5D6858; padding: 10px; border-radius: 12px; font-size: 13.5px; font-weight: 700; text-align: center;">
               ${a.status_label || 'Agendada'}
             </div>
           `;
@@ -2110,10 +2341,42 @@
         return `
           <div class="aula-card-snap">
             <div>
-              <span class="${tagClass}">${a.tag_dia}</span>
-              <h4 class="aula-card-nome">${a.turma_nome}</h4>
-              <span class="aula-card-hora">${a.horario}</span>
+              <!-- Top Row: Tag (Hoje/Amanhã/Dia) + Badge de Data -->
+              <div class="aula-card-top-row">
+                <span class="aula-tag-pill ${tagClass}">${tagIcon} ${tagTexto}</span>
+                <span class="aula-date-badge" title="Data da aula">
+                  <i class="fa-regular fa-calendar-days"></i>
+                  <span>${dataBadgeTexto}</span>
+                </span>
+              </div>
+
+              <!-- Faixa Elegante com Data Completa -->
+              <div class="aula-card-date-highlight">
+                <i class="fa-regular fa-calendar-check"></i>
+                <span>${linhaDataTexto}</span>
+              </div>
+
+              <!-- Informações Principais da Turma com Ícone Om / Yoga -->
+              <div class="aula-card-main-info">
+                <div class="aula-card-emblem">
+                  <i class="fa-solid fa-om"></i>
+                </div>
+                <div class="aula-card-title-group">
+                  <h4 class="aula-card-nome" title="${a.turma_nome}">${a.turma_nome}</h4>
+                  <span class="aula-card-subtitulo">Hatha Yoga & Respiração</span>
+                </div>
+              </div>
+
+              <!-- Metadados: Horário e Local -->
+              <div class="aula-card-meta-chips">
+                <span class="aula-meta-chip"><i class="fa-regular fa-clock"></i> ${a.horario}</span>
+                <span class="aula-meta-chip"><i class="fa-solid fa-location-dot"></i> Sala Shanti</span>
+              </div>
             </div>
+
+            <div class="aula-card-divider"></div>
+
+            <!-- Ações: Confirmar / Desmarcar -->
             ${actionsHtml}
           </div>
         `;
