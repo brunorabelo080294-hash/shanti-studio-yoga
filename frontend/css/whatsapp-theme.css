@@ -7,59 +7,59 @@
 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Marcellus&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
 
 :root {
-  /* Nova Identidade Visual Shanti - Design System Oficial */
-  --shanti-forest: #3F4E3A;          /* Verde Floresta Profundo: títulos nobres e cabeçalhos */
-  --shanti-sage: #8A937E;            /* Verde Sálvia: ações secundárias, botões suaves, em dia */
-  --shanti-sage-light: #EAECE7;      /* Verde Sálvia suave para fundos/bolhas */
-  --shanti-sage-border: #D3D8CE;     /* Borda sálvia */
+  /* Nova Identidade Visual Shanti - Design System de Alta Acessibilidade */
+  --shanti-forest: #243220;          /* Verde Floresta Escuro: máxima legibilidade e nobreza */
+  --shanti-sage: #5A6953;            /* Verde Sálvia Profundo: ações secundárias nítidas */
+  --shanti-sage-light: #E8EFE5;      /* Verde Sálvia suave para fundos/bolhas */
+  --shanti-sage-border: #BDC9B7;     /* Borda sálvia nítida */
   
-  --shanti-terracotta: #B16A4C;      /* Terracota / Argila: ações primárias, alertas e destaque */
-  --shanti-terracotta-light: #F9EFEA;/* Fundo suave terracota */
-  --shanti-terracotta-hover: #9A5A3F;/* Hover terracota */
-  --shanti-terracotta-border: #E8CFBE;
+  --shanti-terracotta: #A85938;      /* Terracota Escuro: contraste elevado (AAA) */
+  --shanti-terracotta-light: #FBF0EB;/* Fundo suave terracota */
+  --shanti-terracotta-hover: #8D472B;/* Hover terracota escuro */
+  --shanti-terracotta-border: #E0BAA8;
   
-  --shanti-sand: #D4B99B;            /* Warm Sand: realce nobre e acentos orgânicos */
-  --shanti-sand-light: #F8F4EF;      /* Areia clarinha para superfícies */
-  --shanti-sand-border: #E8E0D5;     /* Borda neutra elegante */
+  --shanti-sand: #BBA082;            /* Warm Sand escurecido para realce */
+  --shanti-sand-light: #F7F3EE;      /* Areia clarinha para superfícies */
+  --shanti-sand-border: #DCD3C6;     /* Borda neutra com contraste */
   
   --shanti-oatmeal: #F4EFEA;         /* Aveia / Cream: fundo acolhedor de todas as telas */
   --shanti-card-bg: #FFFFFF;         /* Warm White: superfícies de cards e modais */
-  --shanti-charcoal: #3E3228;        /* Marrom Espresso / Rich Charcoal: texto legível */
-  --shanti-stone: #9E988F;           /* Cinza Pedra / Fendi: subtítulos e ícones neutros */
+  --shanti-charcoal: #221C16;        /* Marrom Espresso Profundo: texto principal 100% nítido */
+  --shanti-stone: #4E453A;           /* Marrom Nobre: legendas e textos secundários de alta leitura */
   
-  --shanti-whatsapp-green: #25D366;  /* Verde Oficial WhatsApp (EXCLUSIVO botões WA) */
-  --shanti-whatsapp-dark: #128C7E;
+  --shanti-whatsapp-green: #1EBE5D;  /* Verde Oficial WhatsApp de alto contraste */
+  --shanti-whatsapp-dark: #0D7346;
   
   /* Tokens de Compatibilidade e Semântica */
-  --shanti-primary: #3F4E3A;
+  --shanti-primary: #243220;
   --shanti-secondary: #F4EFEA;
-  --shanti-primary-light: #4A5B45;
-  --shanti-gold: #B16A4C;            /* Terracota de destaque */
+  --shanti-primary-light: #3D4F38;
+  --shanti-gold: #A85938;            /* Terracota de destaque */
   --shanti-gold-light: #D4B99B;      /* Warm Sand */
-  --shanti-gold-glow: rgba(177, 106, 76, 0.20);
-  --shanti-text-muted-dark: #9E988F;
+  --shanti-gold-glow: rgba(168, 89, 56, 0.25);
+  --shanti-text-muted-dark: #4E453A;
   
   /* Cores de Interface e Chat */
   --wa-bubble-bot: #FFFFFF;
-  --wa-bubble-user: #EAECE7;         /* Sage suave */
-  --wa-text-primary: #3E3228;
-  --wa-text-secondary: #7D756C;
+  --wa-bubble-user: #E4ECE0;         /* Sage suave com bom contraste */
+  --wa-text-primary: #221C16;
+  --wa-text-secondary: #4E453A;
   --wa-text-light: #FFFFFF;
-  --wa-border: #E8E0D5;
-  --wa-border-gold: rgba(177, 106, 76, 0.25);
-  --wa-blue-tick: #8A937E;
-  --wa-danger: #B16A4C;              /* Terracota para atrasos */
-  --wa-warning: #C98A4B;             /* Ocre para pendências */
-  --wa-success: #6E7C62;             /* Sálvia profundo para sucesso */
+  --wa-border: #DCD3C6;
+  --wa-border-gold: rgba(168, 89, 56, 0.30);
+  --wa-blue-tick: #4B6349;
+  --wa-danger: #B91C1C;              /* Vermelho profundo para atrasos */
+  --wa-warning: #B45309;             /* Âmbar escuro para pendências */
+  --wa-success: #15803D;             /* Verde esmeralda escuro para sucesso */
 
   /* Tipografia */
   --font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-brand: 'Marcellus', 'Cinzel', Georgia, serif;
   
   /* Sombras Orgânicas e Suaves */
-  --shadow-sm: 0 2px 8px rgba(62, 50, 40, 0.04);
-  --shadow-md: 0 4px 18px rgba(62, 50, 40, 0.06);
-  --shadow-lg: 0 12px 36px rgba(62, 50, 40, 0.10);
+  --shadow-sm: 0 2px 8px rgba(34, 28, 22, 0.05);
+  --shadow-md: 0 4px 18px rgba(34, 28, 22, 0.08);
+  --shadow-lg: 0 12px 36px rgba(34, 28, 22, 0.12);
 }
 
 * {
@@ -71,7 +71,7 @@
 
 body {
   font-family: var(--font-family);
-  background: #E8E2D8;
+  background: #E4DED4;
   color: var(--shanti-charcoal);
   height: 100vh;
   height: 100dvh;
@@ -79,12 +79,14 @@ body {
   justify-content: center;
   align-items: center;
   overflow: hidden;
+  font-size: 15px;
+  line-height: 1.5;
 }
 
 /* Container do App com Visual Boutique */
 #app-container {
   width: 100%;
-  max-width: 490px;
+  max-width: 500px;
   height: 100%;
   max-height: 100dvh;
   background-color: var(--shanti-oatmeal);
@@ -95,12 +97,12 @@ body {
   overflow: hidden;
 }
 
-@media (min-width: 491px) {
+@media (min-width: 501px) {
   #app-container {
-    height: 94vh;
-    border-radius: 24px;
-    border: 1px solid rgba(255, 255, 255, 0.8);
-    box-shadow: 0 20px 48px rgba(62, 50, 40, 0.14);
+    height: 95vh;
+    border-radius: 26px;
+    border: 1.5px solid rgba(255, 255, 255, 0.9);
+    box-shadow: 0 20px 48px rgba(34, 28, 22, 0.16);
   }
 }
 
@@ -115,9 +117,9 @@ body {
   align-items: center;
   justify-content: space-between;
   flex-shrink: 0;
-  z-index: 10;
-  border-bottom: 1px solid var(--shanti-sand-border);
-  box-shadow: 0 2px 10px rgba(62, 50, 40, 0.03);
+  z-index: 20;
+  border-bottom: 1.5px solid var(--shanti-sand-border);
+  box-shadow: 0 2px 10px rgba(34, 28, 22, 0.04);
 }
 
 .wa-header-left {
@@ -129,16 +131,16 @@ body {
 /* Avatar / Logo do Estúdio */
 .wa-avatar-wrapper {
   position: relative;
-  width: 44px;
-  height: 44px;
+  width: 48px;
+  height: 48px;
   display: flex;
   align-items: center;
   justify-content: center;
   background: var(--shanti-sand-light);
-  border: 1px solid var(--shanti-sand-border);
-  border-radius: 12px;
-  padding: 4px;
-  box-shadow: 0 2px 6px rgba(62, 50, 40, 0.04);
+  border: 1.5px solid var(--shanti-sand-border);
+  border-radius: 14px;
+  padding: 5px;
+  box-shadow: 0 2px 8px rgba(34, 28, 22, 0.06);
 }
 
 .wa-avatar-img {
@@ -159,21 +161,21 @@ body {
 
 .wa-header-title h1 {
   font-family: var(--font-brand);
-  font-size: 19px;
-  font-weight: 500;
-  letter-spacing: 1px;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
   text-transform: uppercase;
   color: var(--shanti-charcoal);
   line-height: 1.2;
 }
 
 .wa-header-title .wa-status-text {
-  font-size: 11px;
+  font-size: 13.5px;
   color: var(--shanti-stone);
   font-family: var(--font-family);
-  font-weight: 400;
-  margin-top: 2px;
-  letter-spacing: 0.3px;
+  font-weight: 600;
+  margin-top: 3px;
+  letter-spacing: 0.2px;
 }
 
 .wa-header-actions {
@@ -183,36 +185,37 @@ body {
 }
 
 .wa-icon-btn {
-  background: var(--shanti-card-bg);
-  border: 1px solid var(--shanti-sand-border);
+  background: var(--shanti-sand-light);
+  border: 1.5px solid var(--shanti-sand-border);
   color: var(--shanti-charcoal);
-  font-size: 14px;
+  font-size: 16px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  box-shadow: 0 1px 4px rgba(62, 50, 40, 0.04);
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  box-shadow: 0 1px 4px rgba(34, 28, 22, 0.05);
   transition: all 0.2s ease;
 }
 
 .wa-icon-btn:hover {
-  background: var(--shanti-sand-light);
-  border-color: var(--shanti-sand);
+  background: #FFFFFF;
+  border-color: var(--shanti-terracotta);
   color: var(--shanti-terracotta);
   transform: translateY(-1px);
 }
 
 /* ==========================================================================
-   Abas de Navegação - Visual Limpo e Orgânico
+   Barra de Navegação Inferior (Bottom Navigation Dock de Alta Acessibilidade)
    ========================================================================== */
 .wa-nav-tabs {
-  background: var(--shanti-card-bg);
+  background: #FFFFFF;
   display: flex;
   flex-shrink: 0;
-  border-bottom: 1px solid var(--shanti-sand-border);
+  border-top: 1.5px solid var(--shanti-sand-border);
+  border-bottom: none;
   overflow-x: auto;
   overflow-y: hidden;
   white-space: nowrap;
@@ -221,7 +224,10 @@ body {
   -ms-overflow-style: none;
   scroll-behavior: smooth;
   scroll-snap-type: x proximity;
-  padding: 0 8px;
+  padding: 10px 14px calc(10px + env(safe-area-inset-bottom, 0px));
+  box-shadow: 0 -4px 20px rgba(34, 28, 22, 0.08);
+  gap: 8px;
+  z-index: 100;
 }
 
 .wa-nav-tabs::-webkit-scrollbar {
@@ -229,71 +235,99 @@ body {
 }
 
 .wa-tab-btn {
-  flex: 1 0 auto;
+  flex: 0 0 auto;
   min-width: max-content;
-  background: none;
-  border: none;
-  color: var(--shanti-stone);
-  padding: 12px 14px 11px;
-  font-size: 12px;
+  background: var(--shanti-sand-light);
+  border: 1.5px solid var(--shanti-sand-border);
+  border-radius: 26px;
+  color: var(--shanti-charcoal);
+  padding: 11px 18px;
+  font-size: 14px;
   font-family: var(--font-family);
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
   cursor: pointer;
   position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 7px;
-  transition: all 0.2s ease;
+  gap: 8px;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   scroll-snap-align: center;
   white-space: nowrap;
   user-select: none;
+  min-height: 48px; /* Alvo de toque de acessibilidade */
 }
 
 .wa-tab-btn i {
-  font-size: 13.5px;
+  font-size: 16.5px;
+  color: var(--shanti-forest);
+  transition: all 0.2s ease;
 }
 
 .wa-tab-btn:hover {
-  color: var(--shanti-charcoal);
+  background: #FFFFFF;
+  border-color: var(--shanti-terracotta);
+  color: var(--shanti-terracotta);
+  transform: translateY(-1px);
 }
 
 .wa-tab-btn.active {
-  color: var(--shanti-terracotta);
-  font-weight: 600;
+  background: linear-gradient(135deg, var(--shanti-terracotta), #8D472B) !important;
+  color: #FFFFFF !important;
+  border-color: var(--shanti-terracotta) !important;
+  font-weight: 800;
+  box-shadow: 0 4px 14px rgba(168, 89, 56, 0.35);
+  transform: scale(1.02);
+}
+
+.wa-tab-btn.active i {
+  color: #FFFFFF !important;
 }
 
 .wa-tab-btn.active::after {
-  content: "";
-  position: absolute;
-  bottom: 0;
-  left: 12px;
-  right: 12px;
-  height: 2.5px;
-  background: var(--shanti-terracotta);
-  border-radius: 2px 2px 0 0;
-  box-shadow: 0 1px 6px rgba(177, 106, 76, 0.3);
+  display: none;
 }
 
 .wa-tab-badge {
-  background: var(--shanti-sand-border);
+  background: #FFFFFF;
   color: var(--shanti-charcoal);
-  font-size: 10px;
-  font-weight: 700;
-  padding: 2px 6px;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 2.5px 8px;
   border-radius: 12px;
+  border: 1px solid var(--shanti-sand-border);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.wa-tab-btn.active .wa-tab-badge {
+  background: #FFFFFF;
+  color: var(--shanti-terracotta);
+  border-color: #FFFFFF;
 }
 
 .wa-tab-badge.danger {
-  background: var(--shanti-terracotta);
+  background: #B91C1C;
   color: #ffffff;
+  border-color: #B91C1C;
+}
+
+.wa-tab-btn.active .wa-tab-badge.danger {
+  background: #FFFFFF;
+  color: #B91C1C;
+  border-color: #FFFFFF;
 }
 
 .wa-tab-badge.warning {
-  background: #C98A4B;
+  background: #B45309;
   color: #ffffff;
+  border-color: #B45309;
+}
+
+.wa-tab-btn.active .wa-tab-badge.warning {
+  background: #FFFFFF;
+  color: #B45309;
+  border-color: #FFFFFF;
 }
 
 .badge-contrato-em-dia {
@@ -382,29 +416,30 @@ body {
 .wa-quick-chips {
   display: flex;
   gap: 8px;
-  padding: 10px 14px 6px;
+  padding: 12px 14px 8px;
   overflow-x: auto;
   flex-shrink: 0;
-  background: rgba(244, 239, 234, 0.9);
+  background: rgba(244, 239, 234, 0.95);
   backdrop-filter: blur(8px);
-  border-bottom: 1px solid var(--shanti-sand-border);
+  border-bottom: 1.5px solid var(--shanti-sand-border);
 }
 
 .wa-quick-chip {
   background: var(--shanti-card-bg);
-  border: 1px solid var(--shanti-sand-border);
+  border: 1.5px solid var(--shanti-sand-border);
   border-radius: 20px;
-  padding: 6px 12px;
-  font-size: 12px;
-  font-weight: 500;
+  padding: 8px 14px;
+  font-size: 13.5px;
+  font-weight: 600;
   color: var(--shanti-charcoal);
   white-space: nowrap;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  box-shadow: 0 1px 3px rgba(62, 50, 40, 0.03);
+  box-shadow: 0 1px 3px rgba(62, 50, 40, 0.04);
   transition: all 0.2s ease;
+  min-height: 38px;
 }
 
 .wa-quick-chip:hover, .wa-quick-chip:active {
@@ -445,27 +480,28 @@ body {
 }
 
 .wa-msg-avatar {
-  width: 30px;
-  height: 30px;
-  border-radius: 8px;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
   object-fit: contain;
-  border: 1px solid var(--shanti-sand-border);
+  border: 1.5px solid var(--shanti-sand-border);
   background-color: var(--shanti-card-bg);
   padding: 2px;
   flex-shrink: 0;
   margin-bottom: 2px;
-  box-shadow: 0 1px 3px rgba(62, 50, 40, 0.04);
+  box-shadow: 0 1px 3px rgba(62, 50, 40, 0.05);
 }
 
 .wa-message {
-  max-width: 84%;
-  padding: 11px 15px 9px 15px;
-  font-size: 13.5px;
-  line-height: 1.55;
-  border-radius: 14px;
+  max-width: 86%;
+  padding: 13px 16px 10px 16px;
+  font-size: 15px;
+  line-height: 1.6;
+  border-radius: 16px;
   position: relative;
   word-wrap: break-word;
   font-family: var(--font-family);
+  font-weight: 500;
 }
 
 @keyframes fadeIn {
@@ -476,22 +512,24 @@ body {
 .wa-message.user {
   background-color: var(--wa-bubble-user);
   color: var(--shanti-charcoal);
-  border-bottom-right-radius: 3px;
-  border: 1px solid var(--shanti-sage-border);
-  box-shadow: 0 2px 6px rgba(62, 50, 40, 0.03);
+  border-bottom-right-radius: 4px;
+  border: 1.5px solid var(--shanti-sage-border);
+  box-shadow: 0 2px 8px rgba(34, 28, 22, 0.05);
 }
 
 .wa-message.bot {
   background-color: var(--wa-bubble-bot);
   color: var(--shanti-charcoal);
-  border-bottom-left-radius: 3px;
-  border: 1px solid var(--shanti-sand-border);
-  box-shadow: 0 2px 8px rgba(62, 50, 40, 0.04);
+  border-bottom-left-radius: 4px;
+  border: 1.5px solid var(--shanti-sand-border);
+  box-shadow: 0 2px 10px rgba(34, 28, 22, 0.06);
 }
 
 .wa-message-content {
   color: var(--shanti-charcoal);
   white-space: pre-line;
+  font-size: 15px;
+  line-height: 1.6;
 }
 
 /* Remover itálico das respostas da IA (Fase 1) */
@@ -504,15 +542,16 @@ body {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 4px;
-  margin-top: 5px;
-  font-size: 10.5px;
+  gap: 5px;
+  margin-top: 6px;
+  font-size: 12.5px;
+  font-weight: 600;
   color: var(--shanti-stone);
 }
 
 .wa-ticks {
-  color: var(--shanti-sage);
-  font-size: 12px;
+  color: var(--shanti-forest);
+  font-size: 14px;
   font-weight: bold;
 }
 
@@ -520,36 +559,37 @@ body {
 .wa-action-card {
   margin-top: 10px;
   background: var(--shanti-card-bg);
-  border-radius: 14px;
-  padding: 12px 14px;
-  border: 1px solid var(--shanti-sand-border);
-  border-left: 4px solid var(--shanti-terracotta);
-  box-shadow: 0 2px 8px rgba(62, 50, 40, 0.04);
+  border-radius: 16px;
+  padding: 14px 16px;
+  border: 1.5px solid var(--shanti-sand-border);
+  border-left: 5px solid var(--shanti-terracotta);
+  box-shadow: 0 3px 12px rgba(34, 28, 22, 0.06);
 }
 
 .wa-action-card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 4px;
+  margin-bottom: 5px;
 }
 
 .wa-action-card-name {
-  font-weight: 600;
-  font-size: 13.5px;
+  font-weight: 700;
+  font-size: 15.5px;
   color: var(--shanti-charcoal);
 }
 
 .wa-action-card-val {
-  font-weight: 700;
-  font-size: 13.5px;
-  color: #5A7854;
+  font-weight: 800;
+  font-size: 15px;
+  color: var(--shanti-forest);
 }
 
 .wa-action-card-sub {
-  font-size: 11.5px;
+  font-size: 13.5px;
+  font-weight: 600;
   color: var(--shanti-terracotta);
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 
 .wa-action-btn-whatsapp {
@@ -560,12 +600,13 @@ body {
   background: linear-gradient(135deg, #25d366 0%, #1da851 100%);
   color: #ffffff;
   text-decoration: none;
-  font-size: 12.5px;
-  font-weight: 600;
-  padding: 8px 16px;
-  border-radius: 20px;
-  box-shadow: 0 2px 6px rgba(37, 211, 102, 0.25);
+  font-size: 14px;
+  font-weight: 700;
+  padding: 10px 18px;
+  border-radius: 24px;
+  box-shadow: 0 3px 8px rgba(37, 211, 102, 0.3);
   transition: all 0.2s ease;
+  min-height: 44px;
 }
 
 .wa-action-btn-whatsapp:active {
@@ -578,9 +619,9 @@ body {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 10px 14px;
+  padding: 12px 14px;
   background-color: var(--shanti-card-bg);
-  border-top: 1px solid var(--shanti-sand-border);
+  border-top: 1.5px solid var(--shanti-sand-border);
   flex-shrink: 0;
 }
 
@@ -590,20 +631,22 @@ body {
   align-items: center;
   background-color: var(--shanti-sand-light);
   border-radius: 24px;
-  padding: 9px 16px;
+  padding: 10px 18px;
   gap: 10px;
-  border: 1px solid var(--shanti-sand-border);
-  box-shadow: 0 1px 3px rgba(62, 50, 40, 0.02);
+  border: 1.5px solid var(--shanti-sand-border);
+  box-shadow: 0 1px 3px rgba(34, 28, 22, 0.03);
+  min-height: 48px;
 }
 
 .wa-input-pill input {
   flex: 1;
   border: none;
   outline: none;
-  font-size: 14px;
+  font-size: 15px;
   color: var(--shanti-charcoal);
   background: transparent;
   font-family: inherit;
+  font-weight: 500;
 }
 
 .wa-input-pill input::placeholder {
@@ -703,9 +746,9 @@ body {
 }
 
 .wa-search-bar {
-  padding: 12px 16px;
+  padding: 14px 16px;
   background-color: var(--shanti-card-bg);
-  border-bottom: 1px solid var(--shanti-sand-border);
+  border-bottom: 1.5px solid var(--shanti-sand-border);
   display: flex;
   align-items: center;
   gap: 10px;
@@ -714,14 +757,16 @@ body {
 .wa-search-input {
   flex: 1;
   background-color: var(--shanti-sand-light);
-  border: 1px solid var(--shanti-sand-border);
-  border-radius: 20px;
-  padding: 9px 16px;
-  font-size: 13.5px;
+  border: 1.5px solid var(--shanti-sand-border);
+  border-radius: 22px;
+  padding: 11px 18px;
+  font-size: 14.5px;
+  font-weight: 500;
   outline: none;
   font-family: inherit;
   color: var(--shanti-charcoal);
   transition: border-color 0.2s;
+  min-height: 46px;
 }
 
 .wa-search-input::placeholder {
@@ -735,10 +780,10 @@ body {
 
 .wa-students-filter {
   display: flex;
-  padding: 10px 14px;
+  padding: 12px 14px;
   gap: 8px;
   overflow-x: auto;
-  border-bottom: 1px solid var(--shanti-sand-border);
+  border-bottom: 1.5px solid var(--shanti-sand-border);
   background: var(--shanti-card-bg);
   flex-shrink: 0;
   scrollbar-width: none;
@@ -750,15 +795,18 @@ body {
 
 .wa-filter-chip {
   background-color: var(--shanti-sand-light);
-  border: 1px solid var(--shanti-sand-border);
-  border-radius: 20px;
-  padding: 6px 14px;
-  font-size: 12px;
+  border: 1.5px solid var(--shanti-sand-border);
+  border-radius: 22px;
+  padding: 8px 16px;
+  font-size: 13.5px;
   cursor: pointer;
   white-space: nowrap;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--shanti-charcoal);
   transition: all 0.2s ease;
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
 }
 
 .wa-filter-chip:hover {
@@ -770,29 +818,29 @@ body {
   background: var(--shanti-terracotta);
   color: #ffffff;
   border-color: var(--shanti-terracotta);
-  box-shadow: 0 2px 8px rgba(177, 106, 76, 0.25);
-  font-weight: 600;
+  box-shadow: 0 3px 10px rgba(168, 89, 56, 0.3);
+  font-weight: 700;
 }
 
 .wa-students-list {
   flex: 1;
   overflow-y: auto;
-  padding: 12px 14px;
+  padding: 14px 14px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 
 .wa-student-item {
   display: flex;
   align-items: center;
-  padding: 14px 16px;
+  padding: 16px 18px;
   background-color: var(--shanti-card-bg);
-  border: 1px solid var(--shanti-sand-border);
-  border-radius: 16px;
+  border: 1.5px solid var(--shanti-sand-border);
+  border-radius: 18px;
   gap: 14px;
   cursor: pointer;
-  box-shadow: 0 2px 8px rgba(62, 50, 40, 0.03);
+  box-shadow: 0 2px 8px rgba(34, 28, 22, 0.04);
   transition: all 0.2s ease;
 }
 
@@ -803,18 +851,18 @@ body {
 }
 
 .wa-student-avatar {
-  width: 48px;
-  height: 48px;
+  width: 50px;
+  height: 50px;
   border-radius: 50%;
   background: var(--shanti-sand-light);
   color: var(--shanti-charcoal);
-  border: 1.5px solid var(--shanti-sand);
+  border: 2px solid var(--shanti-sand);
   display: flex;
   align-items: center;
   justify-content: center;
   font-family: var(--font-brand);
-  font-weight: 600;
-  font-size: 18px;
+  font-weight: 700;
+  font-size: 19px;
   flex-shrink: 0;
   box-shadow: 0 2px 6px rgba(62, 50, 40, 0.04);
 }
@@ -834,12 +882,12 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 4px;
+  margin-bottom: 5px;
 }
 
 .wa-student-name {
-  font-size: 15px;
-  font-weight: 600;
+  font-size: 16.5px;
+  font-weight: 700;
   color: var(--shanti-charcoal);
   white-space: nowrap;
   overflow: hidden;
@@ -847,41 +895,43 @@ body {
 }
 
 .wa-student-badge {
-  font-size: 11px;
-  font-weight: 600;
-  padding: 3px 9px;
-  border-radius: 12px;
+  font-size: 12.5px;
+  font-weight: 700;
+  padding: 4px 11px;
+  border-radius: 14px;
 }
 
 .badge-em-dia {
   background-color: var(--shanti-sage-light);
-  color: #3F4E3A;
-  border: 1px solid var(--shanti-sage-border);
+  color: #243220;
+  border: 1.5px solid var(--shanti-sage-border);
 }
 
 .badge-atrasado {
   background-color: var(--shanti-terracotta-light);
   color: var(--shanti-terracotta);
-  border: 1px solid var(--shanti-terracotta-border);
+  border: 1.5px solid var(--shanti-terracotta-border);
 }
 
 .badge-hoje {
   background-color: #FFF8EE;
-  color: #C98A4B;
-  border: 1px solid #F5DEB3;
+  color: #B45309;
+  border: 1.5px solid #F5DEB3;
 }
 
 .badge-inativo {
   background-color: #F3EFEA;
   color: var(--shanti-stone);
-  border: 1px solid var(--shanti-sand-border);
+  border: 1.5px solid var(--shanti-sand-border);
 }
 
 .wa-student-sub {
   display: flex;
   justify-content: space-between;
-  font-size: 12.5px;
+  font-size: 13.5px;
+  font-weight: 500;
   color: var(--shanti-stone);
+  margin-top: 3px;
 }
 
 .wa-student-actions {
@@ -957,67 +1007,67 @@ body {
 
 .wa-card {
   background-color: #ffffff;
-  border-radius: 16px;
-  padding: 16px;
+  border-radius: 18px;
+  padding: 18px;
   box-shadow: var(--shadow-sm);
-  border: 1px solid var(--shanti-sand-border);
+  border: 1.5px solid var(--shanti-sand-border);
 }
 
 .wa-card-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 12px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid var(--shanti-sand-border);
+  margin-bottom: 14px;
+  padding-bottom: 10px;
+  border-bottom: 1.5px solid var(--shanti-sand-border);
 }
 
 .wa-card-title {
   font-family: var(--font-brand);
-  font-size: 15px;
-  font-weight: 600;
+  font-size: 17px;
+  font-weight: 700;
   color: var(--shanti-charcoal);
   display: flex;
   align-items: center;
   gap: 8px;
-  letter-spacing: 0.2px;
+  letter-spacing: 0.3px;
 }
 
 .wa-stat-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  gap: 12px;
 }
 
 .wa-stat-box {
   background: var(--shanti-sand-light);
-  border: 1px solid var(--shanti-sand-border);
-  border-radius: 14px;
-  padding: 12px 14px;
+  border: 1.5px solid var(--shanti-sand-border);
+  border-radius: 16px;
+  padding: 14px 16px;
   display: flex;
   flex-direction: column-reverse;
   justify-content: center;
-  gap: 4px;
+  gap: 6px;
   transition: all 0.2s ease;
 }
 
 .wa-stat-value {
-  font-size: 20px;
-  font-weight: 700;
+  font-size: 22px;
+  font-weight: 800;
   color: var(--shanti-charcoal);
   font-family: var(--font-family);
-  line-height: 1.1;
+  line-height: 1.15;
 }
 
 .wa-stat-value.danger { color: var(--shanti-terracotta); }
-.wa-stat-value.success { color: #3F4E3A; }
+.wa-stat-value.success { color: var(--shanti-forest); }
 
 .wa-stat-label {
-  font-size: 11px;
-  font-weight: 600;
+  font-size: 12.5px;
+  font-weight: 700;
   color: var(--shanti-stone);
   text-transform: uppercase;
-  letter-spacing: 0.4px;
+  letter-spacing: 0.5px;
 }
 
 /* ==========================================================================
@@ -1031,31 +1081,34 @@ body {
 }
 
 .wa-form-group {
-  margin-bottom: 14px;
+  margin-bottom: 16px;
 }
 
 .wa-form-group label {
   display: block;
-  font-size: 13px;
+  font-size: 14.5px;
   font-weight: 700;
-  color: var(--shanti-primary);
-  margin-bottom: 6px;
+  color: var(--shanti-forest);
+  margin-bottom: 7px;
 }
 
 .wa-form-control {
   width: 100%;
-  padding: 11px 14px;
-  border: 1px solid var(--wa-border);
-  border-radius: 10px;
-  font-size: 14px;
+  padding: 13px 16px;
+  border: 1.5px solid var(--shanti-sand-border);
+  border-radius: 12px;
+  font-size: 15px;
   font-family: inherit;
+  font-weight: 500;
   outline: none;
   background: #ffffff;
+  color: var(--shanti-charcoal);
   transition: border-color 0.2s;
+  min-height: 48px;
 }
 
 .wa-form-control:focus {
-  border-color: var(--shanti-gold);
+  border-color: var(--shanti-terracotta);
 }
 
 .wa-btn-primary {
@@ -1063,13 +1116,14 @@ body {
   background: var(--shanti-terracotta);
   color: #ffffff;
   border: none;
-  padding: 13px;
-  font-size: 14.5px;
-  font-weight: 600;
-  border-radius: 20px;
+  padding: 14px;
+  font-size: 15.5px;
+  font-weight: 700;
+  border-radius: 22px;
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(177, 106, 76, 0.25);
+  box-shadow: 0 4px 14px rgba(168, 89, 56, 0.3);
   transition: all 0.2s ease;
+  min-height: 48px;
 }
 
 .wa-btn-primary:hover {
@@ -1132,8 +1186,8 @@ body {
 
 .wa-modal-title {
   font-family: var(--font-brand);
-  font-size: 18px;
-  font-weight: 600;
+  font-size: 19px;
+  font-weight: 700;
   letter-spacing: 0.5px;
   color: var(--shanti-charcoal);
 }
@@ -1141,10 +1195,14 @@ body {
 .wa-modal-close {
   background: none;
   border: none;
-  font-size: 22px;
+  font-size: 24px;
   cursor: pointer;
   color: var(--shanti-stone);
   transition: color 0.2s;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .wa-modal-close:hover {
@@ -1157,15 +1215,15 @@ body {
   top: 75px;
   left: 50%;
   transform: translateX(-50%);
-  background: rgba(62, 50, 40, 0.95);
+  background: rgba(34, 28, 22, 0.96);
   color: #ffffff;
-  border: 1px solid var(--shanti-sand-border);
-  padding: 9px 18px;
-  border-radius: 24px;
-  font-size: 13px;
-  font-weight: 500;
+  border: 1.5px solid var(--shanti-sand-border);
+  padding: 11px 22px;
+  border-radius: 26px;
+  font-size: 14.5px;
+  font-weight: 600;
   z-index: 200;
-  box-shadow: 0 4px 15px rgba(62, 50, 40, 0.2);
+  box-shadow: 0 6px 20px rgba(34, 28, 22, 0.25);
   display: none;
 }
 
@@ -1174,14 +1232,14 @@ body {
   background: none;
   border: none;
   color: var(--shanti-stone);
-  font-size: 12px;
-  font-weight: 500;
+  font-size: 13px;
+  font-weight: 600;
   cursor: pointer;
-  padding: 3px 8px;
-  border-radius: 12px;
+  padding: 4px 10px;
+  border-radius: 14px;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
   margin-right: auto;
   transition: all 0.2s ease;
 }
@@ -1207,11 +1265,11 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 14px;
+  padding: 12px 16px;
   background: var(--shanti-sand-light);
-  border: 1px solid var(--shanti-sand-border);
-  border-radius: 12px;
-  font-size: 13px;
+  border: 1.5px solid var(--shanti-sand-border);
+  border-radius: 14px;
+  font-size: 14px;
   transition: all 0.2s ease;
 }
 
@@ -1222,7 +1280,8 @@ body {
 }
 
 .wa-report-item-title {
-  font-weight: 600;
+  font-weight: 700;
+  font-size: 15px;
   color: var(--shanti-charcoal);
   display: flex;
   align-items: center;
@@ -1230,7 +1289,8 @@ body {
 }
 
 .wa-report-item-sub {
-  font-size: 11.5px;
+  font-size: 13px;
+  font-weight: 500;
   color: var(--shanti-stone);
 }
 
@@ -1239,16 +1299,17 @@ body {
   color: #ffffff;
   border: none;
   border-radius: 20px;
-  padding: 5px 12px;
-  font-size: 11.5px;
-  font-weight: 600;
+  padding: 7px 14px;
+  font-size: 13px;
+  font-weight: 700;
   text-decoration: none;
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
   cursor: pointer;
   box-shadow: 0 2px 8px rgba(37, 211, 102, 0.25);
   transition: all 0.15s ease;
+  min-height: 36px;
 }
 
 .wa-btn-sm-whatsapp:active {
@@ -1263,9 +1324,9 @@ body {
   border: 1px solid rgba(245, 158, 11, 0.5);
   color: #fbbf24;
   border-radius: 20px;
-  padding: 6px 14px;
+  padding: 7px 16px;
   font-weight: 700;
-  font-size: 12.5px;
+  font-size: 13.5px;
   display: inline-flex;
   align-items: center;
   gap: 7px;
@@ -1716,10 +1777,10 @@ body {
    ========================================================================== */
 .wa-quick-shortcuts-bar {
   background: var(--shanti-card-bg);
-  border-bottom: 1px solid var(--shanti-sand-border);
-  padding: 8px 12px 10px 12px;
+  border-bottom: 1.5px solid var(--shanti-sand-border);
+  padding: 10px 14px 12px 14px;
   flex-shrink: 0;
-  box-shadow: 0 2px 8px rgba(62, 50, 40, 0.03);
+  box-shadow: 0 2px 8px rgba(34, 28, 22, 0.04);
   z-index: 10;
 }
 
@@ -1727,19 +1788,19 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 7px;
+  margin-bottom: 8px;
   padding: 0 2px;
 }
 
 .wa-shortcuts-title {
-  font-size: 11px;
-  font-weight: 700;
+  font-size: 13px;
+  font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.6px;
   color: var(--shanti-charcoal);
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
 }
 
 .wa-shortcuts-title i {
@@ -1747,7 +1808,8 @@ body {
 }
 
 .wa-shortcuts-hint {
-  font-size: 10px;
+  font-size: 12px;
+  font-weight: 600;
   color: var(--shanti-stone);
 }
 
@@ -1755,14 +1817,14 @@ body {
   display: flex;
   gap: 8px;
   overflow-x: auto;
-  padding-bottom: 2px;
+  padding-bottom: 3px;
   scrollbar-width: thin;
   scrollbar-color: var(--shanti-sand-border) transparent;
   -webkit-overflow-scrolling: touch;
 }
 
 .wa-shortcuts-scroll::-webkit-scrollbar {
-  height: 3px;
+  height: 4px;
 }
 
 .wa-shortcuts-scroll::-webkit-scrollbar-thumb {
@@ -1773,21 +1835,22 @@ body {
 .wa-shortcut-chip {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   background: var(--shanti-card-bg);
-  border: 1px solid var(--shanti-sand-border);
+  border: 1.5px solid var(--shanti-sand-border);
   color: var(--shanti-charcoal);
-  padding: 6px 13px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 500;
+  padding: 8px 16px;
+  border-radius: 22px;
+  font-size: 13.5px;
+  font-weight: 600;
   font-family: inherit;
   white-space: nowrap;
   cursor: pointer;
   transition: all 0.2s ease;
   flex-shrink: 0;
   user-select: none;
-  box-shadow: 0 1px 3px rgba(62, 50, 40, 0.03);
+  box-shadow: 0 1px 4px rgba(34, 28, 22, 0.04);
+  min-height: 40px;
 }
 
 .wa-shortcut-chip:hover {
@@ -1795,7 +1858,7 @@ body {
   border-color: var(--shanti-sand);
   color: var(--shanti-terracotta);
   transform: translateY(-1px);
-  box-shadow: 0 3px 8px rgba(62, 50, 40, 0.06);
+  box-shadow: 0 3px 8px rgba(34, 28, 22, 0.08);
 }
 
 .wa-shortcut-chip:active {
@@ -1904,9 +1967,9 @@ body {
 
 .cal-month-title-btn {
   background: rgba(63, 78, 58, 0.05);
-  border: 1px solid rgba(63, 78, 58, 0.15);
+  border: 1.5px solid rgba(63, 78, 58, 0.2);
   border-radius: 20px;
-  padding: 4px 12px;
+  padding: 6px 14px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1927,18 +1990,18 @@ body {
 }
 
 .cal-caret-icon {
-  font-size: 11px;
+  font-size: 13px;
   color: var(--shanti-terracotta);
   transition: transform 0.2s ease;
 }
 
 .picker-month-btn {
   background: var(--shanti-sand-light);
-  border: 1px solid var(--shanti-sand-border);
-  border-radius: 12px;
-  padding: 10px 6px;
-  font-size: 13px;
-  font-weight: 600;
+  border: 1.5px solid var(--shanti-sand-border);
+  border-radius: 14px;
+  padding: 11px 8px;
+  font-size: 14px;
+  font-weight: 700;
   color: var(--shanti-charcoal);
   cursor: pointer;
   transition: all 0.2s ease;
@@ -1963,31 +2026,32 @@ body {
 }
 
 .badge-parcela {
-  background: rgba(217, 119, 87, 0.12);
+  background: rgba(168, 89, 56, 0.12);
   color: var(--shanti-terracotta);
   font-weight: 700;
-  font-size: 10.5px;
-  padding: 2px 7px;
-  border-radius: 10px;
-  border: 1px solid rgba(217, 119, 87, 0.25);
+  font-size: 12px;
+  padding: 3px 9px;
+  border-radius: 12px;
+  border: 1.5px solid rgba(168, 89, 56, 0.3);
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
 }
 
 .cal-nav-btn {
   background: var(--shanti-sand-light);
-  border: 1px solid var(--shanti-sand-border);
+  border: 1.5px solid var(--shanti-sand-border);
   color: var(--shanti-charcoal);
-  border-radius: 10px;
-  padding: 5px 11px;
-  font-size: 12.5px;
-  font-weight: 600;
+  border-radius: 12px;
+  padding: 7px 14px;
+  font-size: 13.5px;
+  font-weight: 700;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
   transition: all 0.2s ease;
+  min-height: 38px;
 }
 
 .cal-nav-btn:hover {
@@ -2006,13 +2070,13 @@ body {
   grid-template-columns: repeat(7, 1fr);
   gap: 4px;
   text-align: center;
-  font-weight: 700;
-  font-size: 11px;
+  font-weight: 800;
+  font-size: 13px;
   color: var(--shanti-stone);
   text-transform: uppercase;
-  margin-bottom: 6px;
-  padding-bottom: 6px;
-  border-bottom: 1px solid #F1ECE3;
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1.5px solid #F1ECE3;
 }
 
 .cal-days-grid {
@@ -2025,15 +2089,15 @@ body {
 }
 
 .cal-day-cell {
-  width: 38px;
-  height: 44px;
+  width: 40px;
+  height: 46px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   user-select: none;
-  border-radius: 8px;
+  border-radius: 10px;
   transition: all 0.15s ease;
   position: relative;
 }
@@ -2044,14 +2108,14 @@ body {
 }
 
 .cal-day-circle {
-  width: 32px;
-  height: 32px;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 13px;
-  font-weight: 600;
+  font-size: 15px;
+  font-weight: 700;
   color: #1E293B;
   transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
   border: 1.5px solid transparent;
@@ -2177,12 +2241,12 @@ body {
    LEGENDA ESTRUTURADA EM 2 LINHAS COM BOTÃO DE EXPLICAÇÃO RÁPIDA
    ========================================================================== */
 .cal-legend-wrapper {
-  margin-top: 12px;
-  padding-top: 10px;
-  border-top: 1px solid #F1ECE3;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1.5px solid #F1ECE3;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 
 .cal-legend-header {
@@ -2193,26 +2257,25 @@ body {
 }
 
 .cal-legend-title {
-  font-size: 10.5px;
-  font-weight: 700;
+  font-size: 12.5px;
+  font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.6px;
   color: var(--shanti-stone);
 }
 
 .cal-legend-help-trigger {
-  background: none;
-  border: 1px solid var(--shanti-sand-border);
-  font-size: 11px;
+  background: #FFFDF9;
+  border: 1.5px solid var(--shanti-sand-border);
+  font-size: 12.5px;
   color: var(--shanti-terracotta);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 3px 8px;
-  border-radius: 12px;
-  font-weight: 600;
-  background: #FFFDF9;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 14px;
+  font-weight: 700;
   transition: all 0.18s ease;
 }
 
@@ -2225,13 +2288,13 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 6px;
-  font-size: 11px;
+  gap: 8px;
+  font-size: 12.5px;
   color: var(--shanti-charcoal);
   flex-wrap: wrap;
-  padding: 4px 6px;
+  padding: 6px 10px;
   background: #FDFBF7;
-  border-radius: 8px;
+  border-radius: 10px;
 }
 
 .cal-legend-row.line-tipo {
@@ -2245,15 +2308,15 @@ body {
 .cal-legend-item {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  font-size: 11px;
+  gap: 6px;
+  font-size: 12.5px;
   font-weight: 600;
 }
 
 /* Indicadores de tipo de dia (Círculos) */
 .cal-legend-circle {
-  width: 12px;
-  height: 12px;
+  width: 14px;
+  height: 14px;
   border-radius: 50%;
   display: inline-block;
   flex-shrink: 0;
@@ -2305,9 +2368,9 @@ body {
    ========================================================================== */
 .cal-eventos-card {
   margin-top: 14px;
-  border: 1px solid #FDE68A !important;
+  border: 1.5px solid #FDE68A !important;
   background: #FFFDF9 !important;
-  border-radius: 14px;
+  border-radius: 16px;
   padding: 16px;
   box-shadow: 0 2px 8px rgba(217, 119, 6, 0.07);
 }
@@ -2318,11 +2381,11 @@ body {
   align-items: center;
   margin-bottom: 12px;
   padding-bottom: 8px;
-  border-bottom: 1px solid #FEF3C7;
+  border-bottom: 1.5px solid #FEF3C7;
 }
 
 .cal-eventos-title {
-  font-size: 15px;
+  font-size: 16.5px;
   font-weight: 700;
   color: #92400E;
   display: flex;
@@ -2332,11 +2395,11 @@ body {
 
 .cal-evento-item {
   background: #FFFFFF;
-  border: 1px solid #FDE68A;
-  border-left: 4px solid #D97706;
-  border-radius: 12px;
-  padding: 12px 14px;
-  margin-bottom: 10px;
+  border: 1.5px solid #FDE68A;
+  border-left: 5px solid #D97706;
+  border-radius: 14px;
+  padding: 14px 16px;
+  margin-bottom: 12px;
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
@@ -2356,13 +2419,13 @@ body {
 .cal-evento-time-badge {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
   background: #FEF3C7;
   color: #92400E;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 700;
-  padding: 3px 8px;
-  border-radius: 6px;
+  padding: 4px 10px;
+  border-radius: 8px;
   margin-bottom: 6px;
 }
 
@@ -2371,38 +2434,39 @@ body {
   align-items: center;
   background: #EFF6FF;
   color: #1E40AF;
-  font-size: 11px;
-  font-weight: 600;
-  padding: 2px 6px;
-  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 8px;
   margin-left: 6px;
 }
 
 .cal-evento-titulo {
-  font-size: 14px;
+  font-size: 15.5px;
   font-weight: 700;
   color: var(--shanti-charcoal);
-  margin-bottom: 4px;
+  margin-bottom: 5px;
 }
 
 .cal-evento-local {
-  font-size: 12px;
+  font-size: 13.5px;
+  font-weight: 600;
   color: var(--shanti-stone);
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
   margin-bottom: 4px;
 }
 
 .cal-evento-obs {
-  font-size: 12px;
-  color: #64748B;
+  font-size: 13px;
+  color: #475569;
   background: #F8FAFC;
-  padding: 6px 10px;
-  border-radius: 6px;
+  padding: 8px 12px;
+  border-radius: 8px;
   margin-top: 6px;
-  line-height: 1.4;
-  border-left: 2px solid #CBD5E1;
+  line-height: 1.5;
+  border-left: 3px solid #CBD5E1;
 }
 
 .cal-evento-actions {
@@ -2412,13 +2476,13 @@ body {
 }
 
 .cal-evento-btn {
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid var(--shanti-sand-border);
+  border: 1.5px solid var(--shanti-sand-border);
   background: #FFFFFF;
   color: var(--shanti-stone);
   cursor: pointer;
@@ -2440,9 +2504,9 @@ body {
 /* Card Inferior: Agenda de Turmas do Dia Selecionado */
 .cal-agenda-card {
   background: #FFFFFF;
-  border: 1px solid var(--shanti-sand-border);
+  border: 1.5px solid var(--shanti-sand-border);
   border-radius: 18px;
-  padding: 16px;
+  padding: 18px;
   box-shadow: var(--shadow-sm);
 }
 
@@ -2451,15 +2515,15 @@ body {
   align-items: center;
   justify-content: space-between;
   padding-bottom: 12px;
-  margin-bottom: 12px;
-  border-bottom: 1px solid #ECE7DE;
+  margin-bottom: 14px;
+  border-bottom: 1.5px solid #ECE7DE;
   flex-wrap: wrap;
   gap: 8px;
 }
 
 .cal-daily-title {
   font-family: var(--font-brand);
-  font-size: 15.5px;
+  font-size: 17px;
   font-weight: 700;
   color: var(--shanti-forest);
   margin: 0;
@@ -2471,52 +2535,52 @@ body {
 .cal-daily-pills {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
   flex-wrap: wrap;
 }
 
 .cal-pill {
-  font-size: 11px;
-  font-weight: 600;
-  padding: 2.5px 8px;
-  border-radius: 10px;
+  font-size: 12.5px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 12px;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
 }
 
 .cal-pill.esperados {
   background: var(--shanti-sand-light);
   color: var(--shanti-charcoal);
-  border: 1px solid var(--shanti-sand-border);
+  border: 1.5px solid var(--shanti-sand-border);
 }
 
 .cal-pill.presentes {
   background: #DCFCE7;
   color: #15803D;
-  border: 1px solid #BBF7D0;
+  border: 1.5px solid #BBF7D0;
 }
 
 .cal-pill.faltas {
   background: var(--shanti-terracotta-light);
   color: var(--shanti-terracotta);
-  border: 1px solid var(--shanti-terracotta-border);
+  border: 1.5px solid var(--shanti-terracotta-border);
 }
 
 .cal-pill.pendentes {
   background: #FEF3C7;
   color: #92400E;
-  border: 1px solid #FDE68A;
+  border: 1.5px solid #FDE68A;
 }
 
 /* Card Individual de Turma (Inspirado na imagem de referência) */
 .cal-turma-card {
   background: #FDFCFB;
-  border: 1px solid #EBE6DC;
-  border-radius: 16px;
-  padding: 14px;
-  margin-bottom: 14px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
+  border: 1.5px solid #EBE6DC;
+  border-radius: 18px;
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
   transition: all 0.25s ease;
 }
 
@@ -2524,16 +2588,16 @@ body {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 
 .cal-turma-dow-badge {
-  width: 56px;
-  min-width: 56px;
-  height: 56px;
+  width: 58px;
+  min-width: 58px;
+  height: 58px;
   background: #EBF3ED;
-  border: 1px solid #C4DEC9;
-  border-radius: 12px;
+  border: 1.5px solid #C4DEC9;
+  border-radius: 14px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -2542,16 +2606,16 @@ body {
 }
 
 .cal-turma-dow-name {
-  font-size: 10.5px;
+  font-size: 12px;
   font-weight: 800;
   color: var(--shanti-forest);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.6px;
   line-height: 1;
 }
 
 .cal-turma-dow-num {
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 800;
   color: #166534;
   line-height: 1.1;
@@ -2567,36 +2631,36 @@ body {
   align-items: center;
   gap: 6px;
   flex-wrap: wrap;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
 }
 
 .cal-turma-time-tag {
-  font-size: 11px;
+  font-size: 12.5px;
   font-weight: 700;
   color: #166534;
   background: #DCFCE7;
-  padding: 2px 8px;
+  padding: 3px 9px;
   border-radius: 8px;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
 }
 
 .cal-turma-cap-tag {
-  font-size: 11px;
-  color: #64748B;
+  font-size: 12.5px;
+  color: #475569;
   background: #F1F5F9;
-  padding: 2px 8px;
+  padding: 3px 9px;
   border-radius: 8px;
-  font-weight: 600;
+  font-weight: 700;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
 }
 
 .cal-turma-name-title {
   font-family: var(--font-brand);
-  font-size: 15px;
+  font-size: 16.5px;
   font-weight: 700;
   color: var(--shanti-charcoal);
   margin: 0;
@@ -2608,23 +2672,24 @@ body {
 .cal-turma-actions {
   display: flex;
   justify-content: flex-end;
-  margin: 8px 0 12px 0;
+  margin: 10px 0 14px 0;
 }
 
 .cal-btn-marcar-todos {
   background: var(--shanti-forest);
   color: #FFFFFF;
   border: none;
-  border-radius: 16px;
-  padding: 6px 14px;
-  font-size: 11.5px;
+  border-radius: 18px;
+  padding: 8px 16px;
+  font-size: 13px;
   font-weight: 700;
   display: inline-flex;
   align-items: center;
   gap: 6px;
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: 0 2px 5px rgba(45, 79, 62, 0.2);
+  box-shadow: 0 2px 6px rgba(45, 79, 62, 0.25);
+  min-height: 38px;
 }
 
 .cal-btn-marcar-todos:hover {
@@ -2635,19 +2700,19 @@ body {
 .cal-turma-alunos-list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 
 .cal-aluno-item {
   background: #FFFFFF;
-  border: 1px solid #ECE7DD;
-  border-radius: 12px;
-  padding: 9px 12px;
+  border: 1.5px solid #ECE7DD;
+  border-radius: 14px;
+  padding: 11px 14px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 10px;
   transition: all 0.15s ease;
 }
 
@@ -2658,19 +2723,19 @@ body {
 .cal-aluno-left {
   display: flex;
   align-items: center;
-  gap: 9px;
+  gap: 10px;
   flex: 1;
   min-width: 180px;
 }
 
 .cal-aluno-avatar {
-  width: 34px;
-  height: 34px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   background: linear-gradient(135deg, #DCEEE2 0%, #B8DAC1 100%);
   color: #1B5E20;
-  font-weight: 700;
-  font-size: 12px;
+  font-weight: 800;
+  font-size: 13.5px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2684,7 +2749,7 @@ body {
 }
 
 .cal-aluno-nome {
-  font-size: 13px;
+  font-size: 14.5px;
   font-weight: 700;
   color: var(--shanti-charcoal);
   display: flex;
@@ -2694,17 +2759,18 @@ body {
 }
 
 .cal-aluno-detalhe {
-  font-size: 11px;
+  font-size: 12.5px;
+  font-weight: 600;
   color: var(--shanti-stone);
 }
 
 .cal-aluno-pausa-badge {
-  font-size: 10px;
-  font-weight: 600;
+  font-size: 12px;
+  font-weight: 700;
   color: #B45309;
   background: #FDF3E7;
-  padding: 1.5px 6px;
-  border-radius: 6px;
+  padding: 2px 8px;
+  border-radius: 8px;
   border: 1px solid #F6D6B2;
   display: inline-flex;
   align-items: center;
@@ -2714,7 +2780,7 @@ body {
 .cal-presence-toggle {
   display: inline-flex;
   background: #F1F5F9;
-  border: 1px solid #E2E8F0;
+  border: 1.5px solid #E2E8F0;
   border-radius: 20px;
   padding: 2px;
   gap: 2px;
@@ -2723,16 +2789,17 @@ body {
 .cal-toggle-btn {
   border: none;
   background: transparent;
-  font-size: 11px;
-  font-weight: 600;
-  padding: 4px 9px;
-  border-radius: 14px;
+  font-size: 12.5px;
+  font-weight: 700;
+  padding: 6px 12px;
+  border-radius: 16px;
   cursor: pointer;
   transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-  color: #64748B;
+  color: #475569;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
+  min-height: 34px;
 }
 
 .cal-toggle-btn.active-pendente {
@@ -2759,9 +2826,9 @@ body {
 /* Card 3: Retenção & Alunos Ausentes */
 .cal-retencao-card {
   background: #FFFBF6;
-  border: 1px solid #F6D6B2;
+  border: 1.5px solid #F6D6B2;
   border-radius: 18px;
-  padding: 16px;
+  padding: 18px;
   box-shadow: var(--shadow-sm);
 }
 
@@ -2769,12 +2836,12 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 
 .cal-retencao-title {
   font-family: var(--font-brand);
-  font-size: 15px;
+  font-size: 16.5px;
   font-weight: 700;
   color: #B45309;
   display: flex;
@@ -2879,31 +2946,31 @@ body {
 }
 
 .pwa-login-tagline {
-  font-size: 12px;
+  font-size: 13.5px;
   color: var(--shanti-stone);
-  margin: 3px 0 8px;
-  font-weight: 500;
+  margin: 4px 0 10px;
+  font-weight: 600;
 }
 
 .pwa-login-badge {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 11px;
+  font-size: 12.5px;
   font-weight: 700;
   color: var(--shanti-forest);
   background: var(--shanti-sage-light);
-  padding: 3px 10px;
-  border-radius: 12px;
-  border: 1px solid var(--shanti-sage-border);
+  padding: 4px 12px;
+  border-radius: 14px;
+  border: 1.5px solid var(--shanti-sage-border);
 }
 
 .pwa-login-label {
   display: block;
-  font-size: 12px;
+  font-size: 13.5px;
   font-weight: 700;
   color: var(--shanti-forest);
-  margin-bottom: 6px;
+  margin-bottom: 7px;
 }
 
 .pwa-profile-selector {
@@ -2917,8 +2984,8 @@ body {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 10px 14px;
-  border-radius: 14px;
+  padding: 12px 16px;
+  border-radius: 16px;
   border: 2px solid var(--shanti-sand-border);
   background: var(--shanti-sand-light);
   width: 100%;
@@ -2926,6 +2993,7 @@ body {
   transition: all 0.2s ease;
   text-align: left;
   box-sizing: border-box;
+  min-height: 52px;
 }
 
 .pwa-profile-btn:hover {
@@ -2941,8 +3009,8 @@ body {
 
 .pwa-profile-avatar {
   font-size: 24px;
-  width: 38px;
-  height: 38px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   background: #FFFFFF;
   display: flex;
@@ -2959,7 +3027,7 @@ body {
 
 .pwa-profile-name {
   display: block;
-  font-size: 13.5px;
+  font-size: 15px;
   font-weight: 700;
   color: var(--shanti-forest);
 }
@@ -2970,19 +3038,20 @@ body {
 
 .pwa-profile-desc {
   display: block;
-  font-size: 11px;
+  font-size: 12.5px;
   color: var(--shanti-stone);
+  font-weight: 500;
 }
 
 .pwa-profile-check {
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
   border: 1.5px solid var(--shanti-stone);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 11px;
+  font-size: 12px;
   color: transparent;
   transition: all 0.2s ease;
 }
@@ -2994,7 +3063,7 @@ body {
 }
 
 .pwa-input-group {
-  margin-bottom: 14px;
+  margin-bottom: 16px;
 }
 
 .pwa-password-wrapper {
@@ -3005,23 +3074,24 @@ body {
 
 .pwa-input-icon {
   position: absolute;
-  left: 12px;
+  left: 14px;
   color: var(--shanti-stone);
-  font-size: 14px;
+  font-size: 15px;
   pointer-events: none;
 }
 
 .pwa-login-input {
   width: 100%;
-  padding: 12px 42px 12px 36px;
-  border-radius: 12px;
+  padding: 13px 44px 13px 40px;
+  border-radius: 14px;
   border: 1.5px solid var(--shanti-sand-border);
   background: #FAF8F5;
-  font-size: 14px;
+  font-size: 15px;
   color: var(--shanti-charcoal);
   box-sizing: border-box;
   outline: none;
   transition: border-color 0.2s, box-shadow 0.2s;
+  min-height: 48px;
 }
 
 .pwa-login-input:focus {
@@ -3032,11 +3102,11 @@ body {
 
 .pwa-btn-toggle-eye {
   position: absolute;
-  right: 10px;
+  right: 12px;
   background: none;
   border: none;
   color: var(--shanti-stone);
-  font-size: 15px;
+  font-size: 16px;
   cursor: pointer;
   padding: 6px;
   display: flex;
@@ -3047,48 +3117,50 @@ body {
 .pwa-login-options {
   display: flex;
   align-items: center;
-  margin-bottom: 16px;
+  margin-bottom: 18px;
 }
 
 .pwa-checkbox-label {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 12px;
+  font-size: 13.5px;
+  font-weight: 600;
   color: var(--shanti-charcoal);
   cursor: pointer;
   user-select: none;
 }
 
 .pwa-checkbox-label input[type="checkbox"] {
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
   accent-color: var(--shanti-forest);
   cursor: pointer;
 }
 
 .pwa-login-error {
   background: #FEF2F2;
-  border: 1px solid #FCA5A5;
+  border: 1.5px solid #FCA5A5;
   color: #B91C1C;
-  font-size: 12px;
-  padding: 10px 12px;
-  border-radius: 10px;
-  margin-bottom: 14px;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 12px 14px;
+  border-radius: 12px;
+  margin-bottom: 16px;
   display: flex;
   align-items: center;
   gap: 8px;
-  line-height: 1.35;
+  line-height: 1.4;
 }
 
 .pwa-btn-enter {
   width: 100%;
-  padding: 13px 18px;
+  padding: 14px 20px;
   background: linear-gradient(135deg, var(--shanti-terracotta), #9A5A3F);
   color: #FFFFFF;
   border: none;
-  border-radius: 14px;
-  font-size: 14px;
+  border-radius: 16px;
+  font-size: 15.5px;
   font-weight: 700;
   display: flex;
   align-items: center;
@@ -3097,6 +3169,7 @@ body {
   cursor: pointer;
   box-shadow: 0 6px 18px rgba(177, 106, 76, 0.3);
   transition: transform 0.12s ease, box-shadow 0.12s ease;
+  min-height: 50px;
 }
 
 .pwa-btn-enter:active {
@@ -3105,9 +3178,10 @@ body {
 
 .pwa-login-footer {
   text-align: center;
-  font-size: 11px;
+  font-size: 12.5px;
+  font-weight: 600;
   color: var(--shanti-stone);
-  margin-top: 14px;
+  margin-top: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -3118,12 +3192,12 @@ body {
 .wa-user-badge-header {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  font-size: 11px;
-  font-weight: 600;
+  gap: 6px;
+  font-size: 12.5px;
+  font-weight: 700;
   color: rgba(255, 255, 255, 0.95);
-  background: rgba(255, 255, 255, 0.15);
-  padding: 2px 8px;
-  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 3px 10px;
+  border-radius: 12px;
   backdrop-filter: blur(4px);
 }

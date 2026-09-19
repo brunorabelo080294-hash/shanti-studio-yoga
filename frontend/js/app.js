@@ -173,7 +173,7 @@ function renderizarSeletorTurmas() {
   const container = document.getElementById('cad-turmas-container');
   if (!container) return;
   if (!state.turmas || state.turmas.length === 0) {
-    container.innerHTML = '<span style="font-size:12px; color:var(--wa-text-secondary);">Nenhuma turma ativa cadastrada.</span>';
+    container.innerHTML = '<span style="font-size: 14px; color:var(--wa-text-secondary);">Nenhuma turma ativa cadastrada.</span>';
     return;
   }
   container.innerHTML = state.turmas.map(t => {
@@ -184,15 +184,15 @@ function renderizarSeletorTurmas() {
 
     let vagasBadge = '';
     if (isLotada) {
-      vagasBadge = `<span style="background:#fee2e2; color:#b91c1c; font-weight:700; padding:2px 8px; border-radius:6px; font-size:11px; display:inline-block; margin-top:2px; border:0.5px solid #fca5a5;">⚠️ LOTADA (${total}/${cap} alunos)</span>`;
+      vagasBadge = `<span style="background:#fee2e2; color:#b91c1c; font-weight:700; padding:2px 8px; border-radius:6px; font-size: 13.5px; display:inline-block; margin-top:2px; border:0.5px solid #fca5a5;">⚠️ LOTADA (${total}/${cap} alunos)</span>`;
     } else if (isQuaseLotada) {
-      vagasBadge = `<span style="background:#fef3c7; color:#b45309; font-weight:700; padding:2px 8px; border-radius:6px; font-size:11px; display:inline-block; margin-top:2px; border:0.5px solid #fde68a;">⚡ Resta 1 vaga (${total}/${cap})</span>`;
+      vagasBadge = `<span style="background:#fef3c7; color:#b45309; font-weight:700; padding:2px 8px; border-radius:6px; font-size: 13.5px; display:inline-block; margin-top:2px; border:0.5px solid #fde68a;">⚡ Resta 1 vaga (${total}/${cap})</span>`;
     } else {
-      vagasBadge = `<span style="color:var(--wa-success); font-weight:600; font-size:11.5px;">(${t.vagas_disponiveis} vagas livres de ${cap})</span>`;
+      vagasBadge = `<span style="color:var(--wa-success); font-weight:600; font-size: 13.5px;">(${t.vagas_disponiveis} vagas livres de ${cap})</span>`;
     }
 
     return `
-      <label style="display:flex; align-items:flex-start; gap:10px; cursor:pointer; font-size:12.5px; line-height:1.4; color:var(--wa-text-primary); padding:6px 4px; border-bottom:0.5px solid rgba(0,0,0,0.05);">
+      <label style="display:flex; align-items:flex-start; gap:10px; cursor:pointer; font-size: 14px; line-height:1.4; color:var(--wa-text-primary); padding:6px 4px; border-bottom:0.5px solid rgba(0,0,0,0.05);">
         <input type="checkbox" class="cad-turma-check" value="${t.id}" data-lotada="${isLotada ? '1' : '0'}" data-nome="${t.nome}" style="accent-color:var(--shanti-primary); cursor:pointer; margin-top:3px;">
         <div style="flex:1;">
           <b>${t.nome}</b> — ${t.dias_semana} às ${t.horario}
@@ -221,7 +221,7 @@ function renderizarTurmasOcupacao() {
   if (!container) return;
 
   if (!state.turmas || state.turmas.length === 0) {
-    container.innerHTML = '<div style="font-size:12px; color:var(--wa-text-secondary); text-align:center; padding:8px;">Nenhuma turma cadastrada.</div>';
+    container.innerHTML = '<div style="font-size: 14px; color:var(--wa-text-secondary); text-align:center; padding:8px;">Nenhuma turma cadastrada.</div>';
     if (badgeTotal) badgeTotal.textContent = '0 Turmas';
     return;
   }
@@ -247,22 +247,22 @@ function renderizarTurmasOcupacao() {
     const isQuaseLotada = total === cap - 1;
 
     let barColor = 'var(--shanti-primary)';
-    let statusBadge = `<span style="font-size:11px; font-weight:600; color:var(--wa-success);">${t.vagas_disponiveis} livres</span>`;
+    let statusBadge = `<span style="font-size: 13.5px; font-weight:600; color:var(--wa-success);">${t.vagas_disponiveis} livres</span>`;
 
     if (isLotada) {
       barColor = '#dc2626'; // Vermelho de lotação máxima
-      statusBadge = `<span style="background:#fee2e2; color:#b91c1c; font-weight:700; font-size:10.5px; padding:2px 7px; border-radius:6px; border:0.5px solid #fca5a5;">⚠️ LOTADA (16/16)</span>`;
+      statusBadge = `<span style="background:#fee2e2; color:#b91c1c; font-weight:700; font-size: 12.5px; padding:2px 7px; border-radius:6px; border:0.5px solid #fca5a5;">⚠️ LOTADA (16/16)</span>`;
     } else if (isQuaseLotada) {
       barColor = '#f59e0b'; // Laranja de última vaga
-      statusBadge = `<span style="background:#fef3c7; color:#b45309; font-weight:700; font-size:10.5px; padding:2px 7px; border-radius:6px; border:0.5px solid #fde68a;">⚡ Resta 1 vaga</span>`;
+      statusBadge = `<span style="background:#fef3c7; color:#b45309; font-weight:700; font-size: 12.5px; padding:2px 7px; border-radius:6px; border:0.5px solid #fde68a;">⚡ Resta 1 vaga</span>`;
     }
 
     return `
       <div style="background:var(--shanti-sand); padding:10px 12px; border-radius:10px; border:0.5px solid var(--wa-border);">
         <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px;">
           <div>
-            <div style="font-weight:700; font-size:13px; color:var(--wa-text-primary);">${t.nome}</div>
-            <div style="font-size:11.5px; color:var(--wa-text-secondary);"><i class="fa-regular fa-clock"></i> ${t.dias_semana} às ${t.horario}</div>
+            <div style="font-weight:700; font-size: 15px; color:var(--wa-text-primary);">${t.nome}</div>
+            <div style="font-size: 13.5px; color:var(--wa-text-secondary);"><i class="fa-regular fa-clock"></i> ${t.dias_semana} às ${t.horario}</div>
           </div>
           <div>${statusBadge}</div>
         </div>
@@ -272,7 +272,7 @@ function renderizarTurmasOcupacao() {
           <div style="background:${barColor}; width:${percent}%; height:100%; border-radius:999px; transition:width 0.4s ease;"></div>
         </div>
         
-        <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--wa-text-secondary);">
+        <div style="display:flex; justify-content:space-between; font-size: 13.5px; color:var(--wa-text-secondary);">
           <span><b>${total}</b> de <b>${cap}</b> alunos matriculados</span>
           <span style="font-weight:600;">${percent}% ocupado</span>
         </div>
@@ -739,6 +739,14 @@ function configurarEventosLogin() {
       await processarAlteracaoSenha();
     });
   }
+
+  const formRedefinirGestao = document.getElementById('form-redefinir-senha-gestao');
+  if (formRedefinirGestao) {
+    formRedefinirGestao.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      await processarRedefinirSenhaGestao();
+    });
+  }
 }
 
 async function processarLogin() {
@@ -959,6 +967,109 @@ async function processarAlteracaoSenha() {
   }
 }
 
+function abrirModalRedefinirSenhaGestao() {
+  const currentProfile = document.getElementById('login-username')?.value || 'natalia';
+  const selUser = document.getElementById('redefinir-gestao-username');
+  if (selUser) selUser.value = currentProfile;
+
+  const inpChave = document.getElementById('redefinir-gestao-chave');
+  const inpNova = document.getElementById('redefinir-gestao-nova-senha');
+  const inpConf = document.getElementById('redefinir-gestao-confirma-senha');
+  const errBox = document.getElementById('redefinir-gestao-erro');
+  const sucBox = document.getElementById('redefinir-gestao-sucesso');
+
+  if (inpChave) inpChave.value = '';
+  if (inpNova) inpNova.value = '';
+  if (inpConf) inpConf.value = '';
+  if (errBox) errBox.style.display = 'none';
+  if (sucBox) sucBox.style.display = 'none';
+
+  const modal = document.getElementById('modal-redefinir-senha-gestao');
+  if (modal) modal.classList.add('active');
+}
+window.abrirModalRedefinirSenhaGestao = abrirModalRedefinirSenhaGestao;
+
+async function processarRedefinirSenhaGestao() {
+  const username = document.getElementById('redefinir-gestao-username')?.value || 'natalia';
+  const chave = document.getElementById('redefinir-gestao-chave')?.value || '';
+  const novaSenha = document.getElementById('redefinir-gestao-nova-senha')?.value || '';
+  const confirmaSenha = document.getElementById('redefinir-gestao-confirma-senha')?.value || '';
+  const errBox = document.getElementById('redefinir-gestao-erro');
+  const sucBox = document.getElementById('redefinir-gestao-sucesso');
+  const btnSubmit = document.getElementById('btn-submit-redefinir-gestao');
+
+  if (errBox) errBox.style.display = 'none';
+  if (sucBox) sucBox.style.display = 'none';
+
+  if (!chave.trim()) {
+    if (errBox) { errBox.textContent = 'Informe a Chave de Segurança ou PIN mestre.'; errBox.style.display = 'block'; }
+    return;
+  }
+  if (!novaSenha || novaSenha.length < 4) {
+    if (errBox) { errBox.textContent = 'A nova senha deve ter no mínimo 4 caracteres.'; errBox.style.display = 'block'; }
+    return;
+  }
+  if (novaSenha !== confirmaSenha) {
+    if (errBox) { errBox.textContent = 'A confirmação de senha não coincide com a nova senha.'; errBox.style.display = 'block'; }
+    return;
+  }
+
+  if (btnSubmit) {
+    btnSubmit.disabled = true;
+    btnSubmit.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Redefinindo...';
+  }
+
+  try {
+    const res = await fetch('/api/auth/redefinir-senha', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        username: username,
+        chave_recuperacao: chave,
+        nova_senha: novaSenha
+      })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok || !data.sucesso) {
+      if (errBox) {
+        errBox.textContent = data.detail || data.mensagem || 'Erro ao redefinir a senha.';
+        errBox.style.display = 'block';
+      }
+      return;
+    }
+
+    if (sucBox) {
+      sucBox.textContent = data.mensagem || 'Senha redefinida com sucesso!';
+      sucBox.style.display = 'block';
+    }
+
+    // Preencher o campo de senha no formulário de login para facilitar
+    const inputLoginSenha = document.getElementById('login-senha');
+    if (inputLoginSenha) inputLoginSenha.value = novaSenha;
+
+    setTimeout(() => {
+      const modal = document.getElementById('modal-redefinir-senha-gestao');
+      if (modal) modal.classList.remove('active');
+      showToast('Senha redefinida com sucesso! Faça login com a nova senha. 🙏');
+    }, 1200);
+
+  } catch (err) {
+    console.error('Erro ao redefinir senha de gestão:', err);
+    if (errBox) {
+      errBox.textContent = 'Erro ao conectar ao servidor. Verifique sua conexão.';
+      errBox.style.display = 'block';
+    }
+  } finally {
+    if (btnSubmit) {
+      btnSubmit.disabled = false;
+      btnSubmit.innerHTML = '<i class="fa-solid fa-check"></i> Redefinir Senha';
+    }
+  }
+}
+window.processarRedefinirSenhaGestao = processarRedefinirSenhaGestao;
+
 // =============================================================================
 // CHAT COM A ASSISTENTE IA (COM AVATAR DO LOGO)
 // =============================================================================
@@ -1086,7 +1197,7 @@ function adicionarMensagem(texto, remetente = 'bot', dadosExtras = null, element
           <div class="wa-action-card" style="border-left-color: #f59e0b;">
             <div class="wa-action-card-header">
               <span class="wa-action-card-name">${al.nome}</span>
-              <span style="font-size:12px; color:#b45309; font-weight:700;">⚠️ ${al.dias_ausente} dias ausente</span>
+              <span style="font-size: 14px; color:#b45309; font-weight:700;">⚠️ ${al.dias_ausente} dias ausente</span>
             </div>
             <div class="wa-action-card-sub" style="color: var(--wa-text-secondary);">
               • Última presença: ${al.ultima_presenca ? formatarDataBR(al.ultima_presenca.split(' ')[0]) : 'Sem registro recente'}
@@ -1109,7 +1220,7 @@ function adicionarMensagem(texto, remetente = 'bot', dadosExtras = null, element
           <div class="wa-action-card" style="border-left-color: #ec4899;">
             <div class="wa-action-card-header">
               <span class="wa-action-card-name">🎂 ${al.nome}</span>
-              <span style="font-size:12px; color:#db2777; font-weight:700;">Dia ${al.dia || (al.data_nascimento ? al.data_nascimento.split('-')[2] : '')}</span>
+              <span style="font-size: 14px; color:#db2777; font-weight:700;">Dia ${al.dia || (al.data_nascimento ? al.data_nascimento.split('-')[2] : '')}</span>
             </div>
             <div class="wa-action-card-sub" style="color: var(--wa-text-secondary);">
               • ${al.plano || 'Aluno(a) Shanti Yoga'}
@@ -1466,7 +1577,7 @@ function setupAudio() {
           if (userMsg) {
             const contentEl = userMsg.querySelector('.wa-message-content');
             if (contentEl) {
-              contentEl.innerHTML = `🎙️ <b>"${data.transcricao}"</b><div style="font-size:10px; color:#5c786f; margin-top:3px;">✨ Transcrito por Groq Whisper</div>`;
+              contentEl.innerHTML = `🎙️ <b>"${data.transcricao}"</b><div style="font-size: 12.5px; color:#5c786f; margin-top:3px;">✨ Transcrito por Groq Whisper</div>`;
             }
           }
         }
@@ -1604,7 +1715,7 @@ function setupAudio() {
             if (userMsg) {
               const contentEl = userMsg.querySelector('.wa-message-content');
               if (contentEl) {
-                contentEl.innerHTML = `🎙️ <b>"${data.transcricao}"</b><div style="font-size:10px; color:#5c786f; margin-top:3px;">✨ Transcrito por Groq Whisper</div>`;
+                contentEl.innerHTML = `🎙️ <b>"${data.transcricao}"</b><div style="font-size: 12.5px; color:#5c786f; margin-top:3px;">✨ Transcrito por Groq Whisper</div>`;
               }
             }
           }
@@ -1787,7 +1898,7 @@ function renderizarAlunos() {
       </div>
       <div class="wa-student-actions" style="display:flex; gap:6px; align-items:center;">
         ${isPendentePagamento ? `
-          <button class="wa-btn-primary" style="padding: 5px 9px; font-size: 11px; background: #16a34a; border: none; box-shadow: none; white-space: nowrap;" onclick="event.stopPropagation(); aprovarPagamentoMatricula(${al.id}, '${al.nome.replace(/'/g, "\\'")}');" title="Confirmar pagamento da 1ª mensalidade e ativar aluno (Entrou, Pagou)">
+          <button class="wa-btn-primary" style="padding: 5px 9px; font-size: 13.5px; background: #16a34a; border: none; box-shadow: none; white-space: nowrap;" onclick="event.stopPropagation(); aprovarPagamentoMatricula(${al.id}, '${al.nome.replace(/'/g, "\\'")}');" title="Confirmar pagamento da 1ª mensalidade e ativar aluno (Entrou, Pagou)">
             <i class="fa-solid fa-check"></i> Aprovar (Entrou, Pagou)
           </button>
         ` : ''}
@@ -1892,7 +2003,7 @@ async function abrirDetalhesAluno(alunoId) {
     const detTurmas = document.getElementById('det-turmas');
     if (detTurmas) {
       if (al.turmas && al.turmas.length > 0) {
-        detTurmas.innerHTML = al.turmas.map(t => `<span style="display:inline-block; background:#e8f0eb; color:var(--shanti-primary); padding:2px 8px; border-radius:6px; margin:2px 2px; font-size:12px; border:0.5px solid var(--wa-border);"><b>${t.nome}</b> (${t.horario})</span>`).join(' ');
+        detTurmas.innerHTML = al.turmas.map(t => `<span style="display:inline-block; background:#e8f0eb; color:var(--shanti-primary); padding:2px 8px; border-radius:6px; margin:2px 2px; font-size: 14px; border:0.5px solid var(--wa-border);"><b>${t.nome}</b> (${t.horario})</span>`).join(' ');
       } else {
         detTurmas.textContent = 'Nenhuma turma vinculada';
       }
@@ -2065,10 +2176,10 @@ async function abrirDetalhesAluno(alunoId) {
     // Histórico de Pagamentos
     const histEl = document.getElementById('det-historico-pagamentos');
     if (pagamentos.length === 0) {
-      histEl.innerHTML = '<div style="font-size: 12px; color: #8c9c94; text-align: center; padding: 10px;">Nenhum pagamento registrado ainda.</div>';
+      histEl.innerHTML = '<div style="font-size: 14px; color: #8c9c94; text-align: center; padding: 10px;">Nenhum pagamento registrado ainda.</div>';
     } else {
       histEl.innerHTML = pagamentos.map(p => `
-        <div style="display: flex; justify-content: space-between; font-size: 12.5px; padding: 6px 0; border-bottom: 1px dashed var(--wa-border);">
+        <div style="display: flex; justify-content: space-between; font-size: 14px; padding: 6px 0; border-bottom: 1px dashed var(--wa-border);">
           <span><b>Mês ${p.mes_referencia}</b> (${p.forma_pagamento})</span>
           <span style="color: var(--wa-success); font-weight: 700;">R$ ${p.valor.toFixed(2)} - Pago em ${p.data_pagamento}</span>
         </div>
@@ -2091,10 +2202,10 @@ async function carregarPresencasAluno(alunoId) {
     const res = await fetch(`/api/frequencias?aluno_id=${alunoId}&limit=10`);
     const frequencias = await res.json();
     if (!frequencias || frequencias.length === 0) {
-      histPresencas.innerHTML = '<div style="font-size: 12px; color: #8c9c94; text-align: center; padding: 10px;">Nenhuma presença registrada ainda. Toque em "Marcar Presença" acima! 🧘‍♀️</div>';
+      histPresencas.innerHTML = '<div style="font-size: 14px; color: #8c9c94; text-align: center; padding: 10px;">Nenhuma presença registrada ainda. Toque em "Marcar Presença" acima! 🧘‍♀️</div>';
     } else {
       histPresencas.innerHTML = frequencias.map(f => `
-        <div style="display: flex; justify-content: space-between; font-size: 12.5px; padding: 6px 0; border-bottom: 1px dashed var(--wa-border);">
+        <div style="display: flex; justify-content: space-between; font-size: 14px; padding: 6px 0; border-bottom: 1px dashed var(--wa-border);">
           <span><i class="fa-solid fa-check-circle" style="color:var(--wa-success);"></i> <b>${f.modalidade || 'Aula de Yoga'}</b></span>
           <span style="color: var(--shanti-primary); font-weight: 600;">${formatarDataHoraBR(f.data_presenca)}</span>
         </div>
@@ -2684,7 +2795,7 @@ async function carregarFinanceiro() {
     if (containerPagamentos) {
       if (!pagamentos || pagamentos.length === 0) {
         containerPagamentos.innerHTML = `
-          <div style="font-size: 12px; color: var(--shanti-stone); text-align: center; padding: 16px; background: var(--shanti-sand-light); border: 1px dashed var(--shanti-sand-border); border-radius: 12px;">
+          <div style="font-size: 14px; color: var(--shanti-stone); text-align: center; padding: 16px; background: var(--shanti-sand-light); border: 1px dashed var(--shanti-sand-border); border-radius: 12px;">
             Nenhum pagamento registrado ou confirmado para ${nomeMes}/${ano} até o momento.
           </div>
         `;
@@ -2698,17 +2809,17 @@ async function carregarFinanceiro() {
             <div style="background:var(--shanti-sand-light); border:1px solid var(--shanti-sand-border); border-radius:12px; padding:12px 14px; display:flex; justify-content:space-between; align-items:center; gap:10px; transition:all 0.2s ease;">
               <div style="flex:1; min-width:0;">
                 <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin-bottom:4px;">
-                  <span style="font-weight:600; font-size:13.5px; color:var(--shanti-charcoal);">${p.aluno_nome}</span>
-                  <span style="font-size:10.5px; background:rgba(63,78,58,0.08); color:var(--shanti-forest); padding:2px 7px; border-radius:10px; font-weight:500;">${planoFormatado}</span>
-                  <span style="background:var(--shanti-sage-light); color:#3F4E3A; font-weight:600; font-size:10.5px; padding:2px 8px; border-radius:10px; border:1px solid var(--shanti-sage-border);"><i class="fa-solid fa-check"></i> Pago</span>
+                  <span style="font-weight:600; font-size: 15px; color:var(--shanti-charcoal);">${p.aluno_nome}</span>
+                  <span style="font-size: 12.5px; background:rgba(63,78,58,0.08); color:var(--shanti-forest); padding:2px 7px; border-radius:10px; font-weight:500;">${planoFormatado}</span>
+                  <span style="background:var(--shanti-sage-light); color:#3F4E3A; font-weight:600; font-size: 12.5px; padding:2px 8px; border-radius:10px; border:1px solid var(--shanti-sage-border);"><i class="fa-solid fa-check"></i> Pago</span>
                 </div>
-                <div style="font-size:11.5px; color:var(--shanti-stone);">
+                <div style="font-size: 13.5px; color:var(--shanti-stone);">
                   <span>Data: <b>${formatarDataBR(p.data_pagamento)}</b></span> • <span>Forma: <b>${p.forma_pagamento || 'PIX'}</b></span>
                 </div>
               </div>
               <div style="text-align:right; display:flex; flex-direction:column; align-items:flex-end; gap:6px;">
                 <span style="font-weight:700; font-size:14px; color:#3F4E3A;">+ R$ ${p.valor.toFixed(2)}</span>
-                <button class="btn-recibo-pagamento-financeiro" data-id="${p.id}" title="Ver Comprovante" style="background:#FFFFFF; border:1px solid var(--shanti-sand-border); border-radius:14px; padding:3px 10px; font-size:11px; font-weight:500; color:var(--shanti-forest); cursor:pointer; box-shadow:var(--shadow-sm);">
+                <button class="btn-recibo-pagamento-financeiro" data-id="${p.id}" title="Ver Comprovante" style="background:#FFFFFF; border:1px solid var(--shanti-sand-border); border-radius:14px; padding:3px 10px; font-size: 13.5px; font-weight:500; color:var(--shanti-forest); cursor:pointer; box-shadow:var(--shadow-sm);">
                   <i class="fa-solid fa-receipt"></i> Recibo
                 </button>
               </div>
@@ -2744,7 +2855,7 @@ async function carregarFinanceiro() {
     if (containerDespesas) {
       if (!despesas || despesas.length === 0) {
         containerDespesas.innerHTML = `
-          <div style="font-size: 12px; color: var(--shanti-stone); text-align: center; padding: 16px; background: var(--shanti-sand-light); border: 1px dashed var(--shanti-sand-border); border-radius: 12px;">
+          <div style="font-size: 14px; color: var(--shanti-stone); text-align: center; padding: 16px; background: var(--shanti-sand-light); border: 1px dashed var(--shanti-sand-border); border-radius: 12px;">
             Nenhuma despesa registrada para ${nomeMes}/${ano}.<br>Clique em <b>+ Nova Despesa</b> para cadastrar.
           </div>
         `;
@@ -2758,13 +2869,13 @@ async function carregarFinanceiro() {
 
           let statusBadge = '';
           if (isPago) {
-            statusBadge = `<span style="background:var(--shanti-sage-light); color:#3F4E3A; font-weight:600; font-size:10.5px; padding:2px 8px; border-radius:10px; border:1px solid var(--shanti-sage-border);"><i class="fa-solid fa-check"></i> Paga</span>`;
+            statusBadge = `<span style="background:var(--shanti-sage-light); color:#3F4E3A; font-weight:600; font-size: 12.5px; padding:2px 8px; border-radius:10px; border:1px solid var(--shanti-sage-border);"><i class="fa-solid fa-check"></i> Paga</span>`;
           } else if (isAtrasado) {
-            statusBadge = `<span style="background:var(--shanti-terracotta-light); color:var(--shanti-terracotta); font-weight:600; font-size:10.5px; padding:2px 8px; border-radius:10px; border:1px solid var(--shanti-terracotta-border);"><i class="fa-solid fa-exclamation"></i> Vencida</span>`;
+            statusBadge = `<span style="background:var(--shanti-terracotta-light); color:var(--shanti-terracotta); font-weight:600; font-size: 12.5px; padding:2px 8px; border-radius:10px; border:1px solid var(--shanti-terracotta-border);"><i class="fa-solid fa-exclamation"></i> Vencida</span>`;
           } else if (isHoje) {
-            statusBadge = `<span style="background:#FDF3E7; color:#B45309; font-weight:600; font-size:10.5px; padding:2px 8px; border-radius:10px; border:1px solid #F6D6B2;"><i class="fa-solid fa-clock"></i> Vence Hoje</span>`;
+            statusBadge = `<span style="background:#FDF3E7; color:#B45309; font-weight:600; font-size: 12.5px; padding:2px 8px; border-radius:10px; border:1px solid #F6D6B2;"><i class="fa-solid fa-clock"></i> Vence Hoje</span>`;
           } else {
-            statusBadge = `<span style="background:var(--shanti-sand-light); color:var(--shanti-stone); font-weight:500; font-size:10.5px; padding:2px 8px; border-radius:10px; border:1px solid var(--shanti-sand-border);">A Pagar</span>`;
+            statusBadge = `<span style="background:var(--shanti-sand-light); color:var(--shanti-stone); font-weight:500; font-size: 12.5px; padding:2px 8px; border-radius:10px; border:1px solid var(--shanti-sand-border);">A Pagar</span>`;
           }
 
           const ehParcelado = Boolean(d.total_parcelas && d.total_parcelas > 1);
@@ -2778,24 +2889,24 @@ async function carregarFinanceiro() {
             <div style="background:var(--shanti-sand-light); border:1px solid var(--shanti-sand-border); border-radius:12px; padding:12px 14px; display:flex; justify-content:space-between; align-items:center; gap:10px; transition:all 0.2s ease;">
               <div style="flex:1; min-width:0;">
                 <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin-bottom:4px;">
-                  <span style="font-weight:600; font-size:13.5px; color:var(--shanti-charcoal);">${d.descricao}</span>
-                  <span style="font-size:10.5px; background:rgba(63,78,58,0.08); color:var(--shanti-forest); padding:2px 7px; border-radius:10px; font-weight:500;">${d.categoria}</span>
+                  <span style="font-weight:600; font-size: 15px; color:var(--shanti-charcoal);">${d.descricao}</span>
+                  <span style="font-size: 12.5px; background:rgba(63,78,58,0.08); color:var(--shanti-forest); padding:2px 7px; border-radius:10px; font-weight:500;">${d.categoria}</span>
                   ${parcelaBadge}
                   ${statusBadge}
                 </div>
-                <div style="font-size:11.5px; color:var(--shanti-stone);">
+                <div style="font-size: 13.5px; color:var(--shanti-stone);">
                   <span>Vencimento: <b>${formatarDataBR(dtVenc)}</b></span>
-                  ${d.data_despesa && d.data_despesa !== dtVenc ? ` • <span style="font-size:11px;">Emissão: ${formatarDataBR(d.data_despesa)}</span>` : ''}
+                  ${d.data_despesa && d.data_despesa !== dtVenc ? ` • <span style="font-size: 13.5px;">Emissão: ${formatarDataBR(d.data_despesa)}</span>` : ''}
                 </div>
               </div>
 
               <div style="text-align:right; display:flex; flex-direction:column; align-items:flex-end; gap:6px;">
                 <span style="font-weight:700; font-size:14px; color:var(--shanti-terracotta);">- R$ ${d.valor.toFixed(2)}</span>
                 <div style="display:flex; gap:6px;">
-                  <button class="btn-editar-despesa" data-id="${d.id}" title="Editar Despesa" style="background:#FFFFFF; border:1px solid var(--shanti-sand-border); border-radius:10px; padding:4px 9px; font-size:11px; color:var(--shanti-forest); cursor:pointer; box-shadow:var(--shadow-sm);">
+                  <button class="btn-editar-despesa" data-id="${d.id}" title="Editar Despesa" style="background:#FFFFFF; border:1px solid var(--shanti-sand-border); border-radius:10px; padding:4px 9px; font-size: 13.5px; color:var(--shanti-forest); cursor:pointer; box-shadow:var(--shadow-sm);">
                     <i class="fa-solid fa-pen"></i>
                   </button>
-                  <button class="btn-excluir-despesa" data-id="${d.id}" data-desc="${d.descricao}" data-grupo="${d.grupo_parcelamento_id || ''}" data-parcela="${ehParcelado ? `${d.parcela_atual}/${d.total_parcelas}` : ''}" title="Excluir Despesa" style="background:#FFFFFF; border:1px solid var(--shanti-terracotta-border); border-radius:10px; padding:4px 9px; font-size:11px; color:var(--shanti-terracotta); cursor:pointer; box-shadow:var(--shadow-sm);">
+                  <button class="btn-excluir-despesa" data-id="${d.id}" data-desc="${d.descricao}" data-grupo="${d.grupo_parcelamento_id || ''}" data-parcela="${ehParcelado ? `${d.parcela_atual}/${d.total_parcelas}` : ''}" title="Excluir Despesa" style="background:#FFFFFF; border:1px solid var(--shanti-terracotta-border); border-radius:10px; padding:4px 9px; font-size: 13.5px; color:var(--shanti-terracotta); cursor:pointer; box-shadow:var(--shadow-sm);">
                     <i class="fa-solid fa-trash"></i>
                   </button>
                 </div>
@@ -2928,7 +3039,7 @@ async function carregarEstudio() {
 
     if (containerTurmas) {
       if (!turmas || turmas.length === 0) {
-        containerTurmas.innerHTML = '<div style="font-size:12px; color:var(--shanti-stone); text-align:center; padding:16px; background:var(--shanti-sand-light); border:1px dashed var(--shanti-sand-border); border-radius:12px;">Nenhuma turma cadastrada.</div>';
+        containerTurmas.innerHTML = '<div style="font-size: 14px; color:var(--shanti-stone); text-align:center; padding:16px; background:var(--shanti-sand-light); border:1px dashed var(--shanti-sand-border); border-radius:12px;">Nenhuma turma cadastrada.</div>';
       } else {
         containerTurmas.innerHTML = turmas.map(t => {
           const cap = t.capacidade_vagas || 16;
@@ -2938,20 +3049,20 @@ async function carregarEstudio() {
           const percent = Math.min(100, Math.round((total / cap) * 100));
 
           let barColor = 'var(--shanti-forest)';
-          let statusBadge = `<span style="font-size:11px; font-weight:600; color:#3F4E3A; background:var(--shanti-sage-light); border:1px solid var(--shanti-sage-border); padding:2px 8px; border-radius:10px;">${t.vagas_disponiveis} vagas livres</span>`;
+          let statusBadge = `<span style="font-size: 13.5px; font-weight:600; color:#3F4E3A; background:var(--shanti-sage-light); border:1px solid var(--shanti-sage-border); padding:2px 8px; border-radius:10px;">${t.vagas_disponiveis} vagas livres</span>`;
 
           if (isLotada) {
             barColor = 'var(--shanti-terracotta)';
-            statusBadge = `<span style="background:var(--shanti-terracotta-light); color:var(--shanti-terracotta); font-weight:600; font-size:10.5px; padding:2px 8px; border-radius:10px; border:1px solid var(--shanti-terracotta-border);"><i class="fa-solid fa-triangle-exclamation"></i> Lotada (${total}/${cap})</span>`;
+            statusBadge = `<span style="background:var(--shanti-terracotta-light); color:var(--shanti-terracotta); font-weight:600; font-size: 12.5px; padding:2px 8px; border-radius:10px; border:1px solid var(--shanti-terracotta-border);"><i class="fa-solid fa-triangle-exclamation"></i> Lotada (${total}/${cap})</span>`;
           } else if (isQuaseLotada) {
             barColor = '#C98A4B';
-            statusBadge = `<span style="background:#FDF3E7; color:#B45309; font-weight:600; font-size:10.5px; padding:2px 8px; border-radius:10px; border:1px solid #F6D6B2;"><i class="fa-solid fa-bolt"></i> Resta 1 vaga</span>`;
+            statusBadge = `<span style="background:#FDF3E7; color:#B45309; font-weight:600; font-size: 12.5px; padding:2px 8px; border-radius:10px; border:1px solid #F6D6B2;"><i class="fa-solid fa-bolt"></i> Resta 1 vaga</span>`;
           }
 
           let alunosHtml = '';
           if (!t.alunos || t.alunos.length === 0) {
             alunosHtml = `
-              <div style="font-size:12px; color:var(--shanti-stone); font-style:italic; padding:6px 0;">
+              <div style="font-size: 14px; color:var(--shanti-stone); font-style:italic; padding:6px 0;">
                 Nenhum aluno matriculado nesta turma ainda.
               </div>
             `;
@@ -2964,22 +3075,22 @@ async function carregarEstudio() {
               let badgePlano = '';
               if (al.plano && al.plano.includes('1x')) {
                 const diaEscolhido = al.dia_semana_1x ? al.dia_semana_1x : 'Dia a definir';
-                badgePlano = `<span style="font-size:10.5px; background:var(--shanti-sage-light); color:#3F4E3A; padding:2px 7px; border-radius:8px; font-weight:600; border:1px solid var(--shanti-sage-border); display:inline-flex; align-items:center; gap:4px;" title="Comparece 1x na semana"><i class="fa-regular fa-calendar-check" style="color:var(--shanti-sage);"></i> 1x na semana (${diaEscolhido})</span>`;
+                badgePlano = `<span style="font-size: 12.5px; background:var(--shanti-sage-light); color:#3F4E3A; padding:2px 7px; border-radius:8px; font-weight:600; border:1px solid var(--shanti-sage-border); display:inline-flex; align-items:center; gap:4px;" title="Comparece 1x na semana"><i class="fa-regular fa-calendar-check" style="color:var(--shanti-sage);"></i> 1x na semana (${diaEscolhido})</span>`;
               } else {
-                badgePlano = `<span style="font-size:10.5px; background:var(--shanti-sand-light); color:var(--shanti-charcoal); padding:2px 7px; border-radius:8px; font-weight:500; border:1px solid var(--shanti-sand-border);">2x na semana</span>`;
+                badgePlano = `<span style="font-size: 12.5px; background:var(--shanti-sand-light); color:var(--shanti-charcoal); padding:2px 7px; border-radius:8px; font-weight:500; border:1px solid var(--shanti-sand-border);">2x na semana</span>`;
               }
 
               let statusAluno = '';
               if (al.status === 'inativo') {
-                statusAluno = `<span style="font-size:10px; background:var(--shanti-sand-light); color:var(--shanti-stone); padding:1px 6px; border-radius:6px; border:1px solid var(--shanti-sand-border);">Inativo</span>`;
+                statusAluno = `<span style="font-size: 12.5px; background:var(--shanti-sand-light); color:var(--shanti-stone); padding:1px 6px; border-radius:6px; border:1px solid var(--shanti-sand-border);">Inativo</span>`;
               } else if (al.inadimplente) {
-                statusAluno = `<span style="font-size:10px; background:var(--shanti-terracotta-light); color:var(--shanti-terracotta); padding:1px 6px; border-radius:6px; font-weight:600; border:1px solid var(--shanti-terracotta-border);">Mensalidade Pendente</span>`;
+                statusAluno = `<span style="font-size: 12.5px; background:var(--shanti-terracotta-light); color:var(--shanti-terracotta); padding:1px 6px; border-radius:6px; font-weight:600; border:1px solid var(--shanti-terracotta-border);">Mensalidade Pendente</span>`;
               }
 
               return `
-                <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px dashed var(--shanti-sand-border); font-size:12.5px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px dashed var(--shanti-sand-border); font-size: 14px;">
                   <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
-                    <i class="fa-regular fa-user" style="color:var(--shanti-forest); font-size:11px;"></i>
+                    <i class="fa-regular fa-user" style="color:var(--shanti-forest); font-size: 13.5px;"></i>
                     <span style="font-weight:600; color:var(--shanti-charcoal); cursor:pointer;" class="link-aluno-detalhes" data-aluno-id="${al.id}">${al.nome}</span>
                     ${badgePlano}
                     ${statusAluno}
@@ -2999,7 +3110,7 @@ async function carregarEstudio() {
               <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
                 <div>
                   <div style="font-weight:700; font-size:14.5px; color:var(--shanti-charcoal); font-family:var(--font-brand);">${t.nome}</div>
-                  <div style="font-size:12px; color:var(--shanti-stone); margin-top:2px;"><i class="fa-regular fa-clock"></i> ${t.dias_semana} às ${t.horario}</div>
+                  <div style="font-size: 14px; color:var(--shanti-stone); margin-top:2px;"><i class="fa-regular fa-clock"></i> ${t.dias_semana} às ${t.horario}</div>
                 </div>
                 <div>${statusBadge}</div>
               </div>
@@ -3007,14 +3118,14 @@ async function carregarEstudio() {
               <div style="background:#E8E0D5; border-radius:999px; height:7px; width:100%; overflow:hidden; margin:10px 0 6px 0;">
                 <div style="background:${barColor}; width:${percent}%; height:100%; border-radius:999px; transition:width 0.4s ease;"></div>
               </div>
-              <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--shanti-stone); margin-bottom:12px;">
+              <div style="display:flex; justify-content:space-between; font-size: 13.5px; color:var(--shanti-stone); margin-bottom:12px;">
                 <span><b>${total}</b> de <b>${cap}</b> alunos matriculados</span>
                 <span style="font-weight:600;">${percent}% ocupada</span>
               </div>
 
               <div style="margin-top:10px; padding-top:8px; border-top:1px solid var(--shanti-sand-border);">
-                <div style="font-size:11.5px; font-weight:600; color:var(--shanti-forest); margin-bottom:6px; display:flex; align-items:center; gap:5px;">
-                  <i class="fa-solid fa-users" style="font-size:11px;"></i> Alunos Matriculados (${total}):
+                <div style="font-size: 13.5px; font-weight:600; color:var(--shanti-forest); margin-bottom:6px; display:flex; align-items:center; gap:5px;">
+                  <i class="fa-solid fa-users" style="font-size: 13.5px;"></i> Alunos Matriculados (${total}):
                 </div>
                 <div>${alunosHtml}</div>
               </div>
@@ -3037,19 +3148,19 @@ async function carregarEstudio() {
     if (badgeAniv) badgeAniv.textContent = (aniversariantes && aniversariantes.length) || 0;
     if (listAniv) {
       if (!aniversariantes || aniversariantes.length === 0) {
-        listAniv.innerHTML = '<div style="font-size: 12px; color: var(--shanti-stone); text-align: center; padding: 12px; background: var(--shanti-sand-light); border: 1px dashed var(--shanti-sand-border); border-radius: 10px;">Nenhum aniversariante neste mês.</div>';
+        listAniv.innerHTML = '<div style="font-size: 14px; color: var(--shanti-stone); text-align: center; padding: 12px; background: var(--shanti-sand-light); border: 1px dashed var(--shanti-sand-border); border-radius: 10px;">Nenhum aniversariante neste mês.</div>';
       } else {
         listAniv.innerHTML = aniversariantes.map(a => {
           let tel = (a.telefone || '').replace(/\D/g, '');
           if (!tel.startsWith('55') && tel) tel = '55' + tel;
           const msgParabens = encodeURIComponent(`Olá, ${a.nome}! 🎉🎂 Passando para te desejar um Feliz Aniversário repleto de paz, luz e harmonia! Muita gratidão por fazer parte da família Studio Shanti. Namastê! 🙏✨`);
           const waLink = a.link_whatsapp || `https://wa.me/${tel}?text=${msgParabens}`;
-          const ehHojeBadge = a.e_hoje ? `<span style="background:var(--shanti-terracotta-light); color:var(--shanti-terracotta); border:1px solid var(--shanti-terracotta-border); font-size:10px; font-weight:700; padding:2px 7px; border-radius:10px; margin-left:6px;"><i class="fa-solid fa-cake-candles"></i> É HOJE!</span>` : '';
+          const ehHojeBadge = a.e_hoje ? `<span style="background:var(--shanti-terracotta-light); color:var(--shanti-terracotta); border:1px solid var(--shanti-terracotta-border); font-size: 12.5px; font-weight:700; padding:2px 7px; border-radius:10px; margin-left:6px;"><i class="fa-solid fa-cake-candles"></i> É HOJE!</span>` : '';
 
           return `
             <div class="wa-report-item" style="${a.e_hoje ? 'background:var(--shanti-terracotta-light); border:1px solid var(--shanti-terracotta-border);' : ''}">
               <div class="wa-report-item-info">
-                <span class="wa-report-item-title"><i class="fa-solid fa-cake-candles" style="color:var(--shanti-terracotta); font-size:12px;"></i> ${a.nome} ${ehHojeBadge}</span>
+                <span class="wa-report-item-title"><i class="fa-solid fa-cake-candles" style="color:var(--shanti-terracotta); font-size: 14px;"></i> ${a.nome} ${ehHojeBadge}</span>
                 <span class="wa-report-item-sub">Dia ${a.dia} (${a.data_nascimento ? formatarDataBR(a.data_nascimento) : ''}) • ${a.plano || 'Yoga Regular'}</span>
               </div>
               <a href="${waLink}" target="_blank" class="wa-btn-sm-whatsapp">
@@ -3067,7 +3178,7 @@ async function carregarEstudio() {
     if (badgeAus) badgeAus.textContent = (ausentes && ausentes.length) || 0;
     if (listAus) {
       if (!ausentes || ausentes.length === 0) {
-        listAus.innerHTML = '<div style="font-size: 12px; color: var(--shanti-stone); text-align: center; padding: 12px; background: var(--shanti-sand-light); border: 1px dashed var(--shanti-sand-border); border-radius: 10px;">Todos os alunos ativos estão frequentando!</div>';
+        listAus.innerHTML = '<div style="font-size: 14px; color: var(--shanti-stone); text-align: center; padding: 12px; background: var(--shanti-sand-light); border: 1px dashed var(--shanti-sand-border); border-radius: 10px;">Todos os alunos ativos estão frequentando!</div>';
       } else {
         listAus.innerHTML = ausentes.map(au => {
           let tel = au.telefone.replace(/\D/g, '');
@@ -3079,7 +3190,7 @@ async function carregarEstudio() {
             <div class="wa-report-item">
               <div class="wa-report-item-info">
                 <span class="wa-report-item-title">${au.nome}</span>
-                <span class="wa-report-item-sub" style="color: #B45309; font-weight:600;"><i class="fa-solid fa-clock-rotate-left" style="font-size:11px;"></i> ${au.dias_ausente} dias sem praticar • ${au.plano}</span>
+                <span class="wa-report-item-sub" style="color: #B45309; font-weight:600;"><i class="fa-solid fa-clock-rotate-left" style="font-size: 13.5px;"></i> ${au.dias_ausente} dias sem praticar • ${au.plano}</span>
               </div>
               <a href="${waLink}" target="_blank" class="wa-btn-sm-whatsapp">
                 <i class="fa-brands fa-whatsapp"></i> Convidar
@@ -3490,7 +3601,7 @@ async function carregarDiagnostico() {
       const logs = data.logs || [];
       if (logs.length === 0) {
         containerLogs.innerHTML = `
-          <div style="text-align: center; padding: 14px; font-size: 11.5px; color: var(--wa-text-secondary);">
+          <div style="text-align: center; padding: 14px; font-size: 13.5px; color: var(--wa-text-secondary);">
             Nenhum evento registrado ainda. As mensagens do chat, atalhos e pings aparecerão aqui em tempo real.
           </div>
         `;
@@ -3500,17 +3611,17 @@ async function carregarDiagnostico() {
       containerLogs.innerHTML = logs.slice(0, 10).map(l => {
         let badgeTipo = '';
         if (l.tipo_evento === 'atalho') {
-          badgeTipo = `<span style="background: rgba(43,76,60,0.1); color: var(--shanti-primary); font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 4px;">⚡ Atalho</span>`;
+          badgeTipo = `<span style="background: rgba(43,76,60,0.1); color: var(--shanti-primary); font-size: 12.5px; font-weight: 700; padding: 1px 6px; border-radius: 4px;">⚡ Atalho</span>`;
         } else if (l.tipo_evento === 'chat') {
-          badgeTipo = `<span style="background: #ede9fe; color: #6d28d9; font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 4px;">💬 Chat</span>`;
+          badgeTipo = `<span style="background: #ede9fe; color: #6d28d9; font-size: 12.5px; font-weight: 700; padding: 1px 6px; border-radius: 4px;">💬 Chat</span>`;
         } else if (l.tipo_evento === 'audio') {
-          badgeTipo = `<span style="background: #e0f2fe; color: #0369a1; font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 4px;">🎙️ Áudio</span>`;
+          badgeTipo = `<span style="background: #e0f2fe; color: #0369a1; font-size: 12.5px; font-weight: 700; padding: 1px 6px; border-radius: 4px;">🎙️ Áudio</span>`;
         } else if (l.tipo_evento === 'ping_keepalive') {
-          badgeTipo = `<span style="background: #f1f5f9; color: #475569; font-size: 10px; font-weight: 600; padding: 1px 6px; border-radius: 4px;">📡 Ping</span>`;
+          badgeTipo = `<span style="background: #f1f5f9; color: #475569; font-size: 12.5px; font-weight: 600; padding: 1px 6px; border-radius: 4px;">📡 Ping</span>`;
         } else if (l.tipo_evento === 'backup_automatico') {
-          badgeTipo = `<span style="background: #e0f2fe; color: #0284c7; font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 4px;">💾 Backup</span>`;
+          badgeTipo = `<span style="background: #e0f2fe; color: #0284c7; font-size: 12.5px; font-weight: 700; padding: 1px 6px; border-radius: 4px;">💾 Backup</span>`;
         } else {
-          badgeTipo = `<span style="background: #fef3c7; color: #b45309; font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 4px;">🔍 Teste</span>`;
+          badgeTipo = `<span style="background: #fef3c7; color: #b45309; font-size: 12.5px; font-weight: 700; padding: 1px 6px; border-radius: 4px;">🔍 Teste</span>`;
         }
 
         const hora = (l.timestamp || '').split(' ')[1] || (l.timestamp || '');
@@ -3518,18 +3629,18 @@ async function carregarDiagnostico() {
         const tempoIa = l.tempo_ia_ms !== undefined ? (l.tempo_ia_ms > 0 ? `${l.tempo_ia_ms}ms` : (l.status_ia === 'local' ? 'Local' : '0ms')) : '--';
 
         return `
-          <div style="background: var(--shanti-sand); border: 0.5px solid var(--wa-border); border-radius: 6px; padding: 8px 10px; display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 11px;">
+          <div style="background: var(--shanti-sand); border: 0.5px solid var(--wa-border); border-radius: 6px; padding: 8px 10px; display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 13.5px;">
             <div style="flex: 1; min-width: 0;">
               <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 2px;">
                 ${badgeTipo}
-                <span style="color: var(--wa-text-secondary); font-size: 10px;">${hora}</span>
-                ${l.servidor_cold_start ? '<span style="font-size: 9.5px; background: #fef3c7; color: #b45309; padding: 0 4px; border-radius: 3px; font-weight: 600;">Cold Start</span>' : ''}
+                <span style="color: var(--wa-text-secondary); font-size: 12.5px;">${hora}</span>
+                ${l.servidor_cold_start ? '<span style="font-size: 12.5px; background: #fef3c7; color: #b45309; padding: 0 4px; border-radius: 3px; font-weight: 600;">Cold Start</span>' : ''}
               </div>
-              <div style="color: var(--wa-text-primary); font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+              <div style="color: var(--wa-text-primary); font-size: 13.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                 ${l.mensagem_erro ? `<b style="color: #b91c1c;">Erro:</b> ${l.mensagem_erro}` : (l.detalhes || 'Operação concluída com sucesso')}
               </div>
             </div>
-            <div style="text-align: right; white-space: nowrap; font-size: 10.5px;">
+            <div style="text-align: right; white-space: nowrap; font-size: 12.5px;">
               <div>Render: <b>${tempoRender}</b></div>
               <div style="color: var(--shanti-primary);">IA: <b>${tempoIa}</b></div>
             </div>
@@ -3832,7 +3943,7 @@ async function testarConexaoAutentique() {
         resBox.innerHTML = `
           <div style="font-weight:700; margin-bottom: 2px;"><i class="fa-solid fa-circle-check"></i> Conexão Estabelecida!</div>
           <div>${data.mensagem}</div>
-          <div style="margin-top:4px; font-size:11px;">Modo Atual: <b>${data.sandbox ? 'Sandbox (Testes Gratuitos)' : 'Produção'}</b></div>
+          <div style="margin-top:4px; font-size: 13.5px;">Modo Atual: <b>${data.sandbox ? 'Sandbox (Testes Gratuitos)' : 'Produção'}</b></div>
         `;
       }
       if (badgeStatus) {
@@ -4339,7 +4450,7 @@ function renderizarContratos() {
       <div style="padding: 40px 20px; text-align: center; color: var(--shanti-stone); background: #ffffff; border-radius: 16px; border: 1px dashed var(--shanti-sand-border);">
         <i class="fa-solid fa-file-circle-question" style="font-size: 36px; color: var(--shanti-sand); margin-bottom: 10px; display:block;"></i>
         <p style="font-size: 14px; font-weight: 600; margin-bottom: 4px; color: var(--shanti-charcoal);">Nenhum contrato encontrado</p>
-        <p style="font-size: 12.5px; margin: 0; color: var(--shanti-stone);">Altere o filtro selecionado ou faça uma nova busca por nome ou CPF.</p>
+        <p style="font-size: 14px; margin: 0; color: var(--shanti-stone);">Altere o filtro selecionado ou faça uma nova busca por nome ou CPF.</p>
       </div>
     `;
     return;
@@ -4437,19 +4548,19 @@ function renderizarContratos() {
             <div style="font-size: 15px; font-weight: 700; color: var(--shanti-charcoal); display: flex; align-items: center; gap: 6px; font-family: var(--font-brand);">
               ${c.nome}
               ${c.aprovacao_pagamento === 'pendente' ? `
-                <span class="wa-student-badge" style="background:#FDF3E7; color:#B45309; border:1px solid #F6D6B2; font-size:10.5px;">Matrícula Pendente</span>
+                <span class="wa-student-badge" style="background:#FDF3E7; color:#B45309; border:1px solid #F6D6B2; font-size: 12.5px;">Matrícula Pendente</span>
               ` : ''}
             </div>
-            <div style="font-size: 12px; color: var(--shanti-stone); margin-top: 2px;">
+            <div style="font-size: 14px; color: var(--shanti-stone); margin-top: 2px;">
               CPF: <b>${c.cpf || 'Não informado'}</b> • WhatsApp: <b>${c.telefone}</b>
             </div>
           </div>
-          <span class="wa-student-badge ${badgeClass}" style="font-size: 11px; white-space: nowrap;">
+          <span class="wa-student-badge ${badgeClass}" style="font-size: 13.5px; white-space: nowrap;">
             <i class="${badgeIcon}"></i> ${badgeTexto}
           </span>
         </div>
 
-        <div style="background: var(--shanti-sand-light); border: 1px solid var(--shanti-sand-border); border-radius: 12px; padding: 10px 14px; font-size: 12px; color: var(--shanti-charcoal); margin-bottom: 12px; line-height: 1.5;">
+        <div style="background: var(--shanti-sand-light); border: 1px solid var(--shanti-sand-border); border-radius: 12px; padding: 10px 14px; font-size: 14px; color: var(--shanti-charcoal); margin-bottom: 12px; line-height: 1.5;">
           <div><b>Plano:</b> ${c.plano} • <b>Turma:</b> ${c.turmas && c.turmas.length ? c.turmas.map(t => t.nome).join(', ') : 'Nenhuma turma'}</div>
           <div><b>Status Vigência:</b> <span style="color: var(--shanti-forest); font-weight: 600;">${vigenciaTexto}</span></div>
           <div><b>Arquivo Assinado:</b> ${temArquivo ? '<span style="color:#3F4E3A; font-weight:600;"><i class="fa-solid fa-check-circle"></i> Anexado (mútuo)</span>' : '<span style="color:var(--shanti-terracotta);">Nenhum arquivo enviado</span>'}</div>
@@ -4470,39 +4581,39 @@ function renderizarContratos() {
 
         <div style="display: flex; gap: 6px; flex-wrap: wrap;">
           ${!estaEmDia && !temAutentique ? `
-            <button type="button" class="wa-btn-primary" style="flex: 1; min-width: 130px; padding: 7px 12px; font-size: 12px; background: var(--shanti-forest); color: #FFFFFF; border: none; border-radius: 20px; font-weight: 600; box-shadow: var(--shadow-sm);" onclick="abrirModalEnviarAutentique(${c.id}, '${c.nome.replace(/'/g, "\\'")}', '${(c.plano || '').replace(/'/g, "\\'")}', '${c.telefone || ''}', '${c.email || ''}')">
+            <button type="button" class="wa-btn-primary" style="flex: 1; min-width: 130px; padding: 7px 12px; font-size: 14px; background: var(--shanti-forest); color: #FFFFFF; border: none; border-radius: 20px; font-weight: 600; box-shadow: var(--shadow-sm);" onclick="abrirModalEnviarAutentique(${c.id}, '${c.nome.replace(/'/g, "\\'")}', '${(c.plano || '').replace(/'/g, "\\'")}', '${c.telefone || ''}', '${c.email || ''}')">
               <i class="fa-solid fa-paper-plane"></i> Enviar p/ Autentique
             </button>
           ` : ''}
 
           ${temAutentique ? `
-            <button type="button" class="wa-btn-primary" style="flex: 1; min-width: 110px; padding: 7px 12px; font-size: 12px; background: ${estaEmDia ? 'var(--shanti-forest)' : 'var(--shanti-sage)'}; color: #FFFFFF; border: none; border-radius: 20px; font-weight: 600;" onclick="abrirModalLinksAutentique(${c.id}, '${c.nome.replace(/'/g, "\\'")}', '${c.autentique_doc_id}', '${c.autentique_link || ''}', '${c.telefone || ''}', '${c.autentique_link_natalia || ''}')">
+            <button type="button" class="wa-btn-primary" style="flex: 1; min-width: 110px; padding: 7px 12px; font-size: 14px; background: ${estaEmDia ? 'var(--shanti-forest)' : 'var(--shanti-sage)'}; color: #FFFFFF; border: none; border-radius: 20px; font-weight: 600;" onclick="abrirModalLinksAutentique(${c.id}, '${c.nome.replace(/'/g, "\\'")}', '${c.autentique_doc_id}', '${c.autentique_link || ''}', '${c.telefone || ''}', '${c.autentique_link_natalia || ''}')">
               <i class="fa-solid ${estaEmDia ? 'fa-file-circle-check' : 'fa-link'}"></i> ${estaEmDia ? 'Autentique' : 'Links / WA'}
             </button>
-            <button type="button" class="wa-btn-primary" style="flex: 1; min-width: 95px; padding: 7px 12px; font-size: 12px; background: #FFFFFF; color: var(--shanti-forest); border: 1px solid var(--shanti-sand-border); border-radius: 20px; font-weight: 600;" onclick="verificarStatusAutentique(${c.id}, true)" title="Consultar status no Autentique">
+            <button type="button" class="wa-btn-primary" style="flex: 1; min-width: 95px; padding: 7px 12px; font-size: 14px; background: #FFFFFF; color: var(--shanti-forest); border: 1px solid var(--shanti-sand-border); border-radius: 20px; font-weight: 600;" onclick="verificarStatusAutentique(${c.id}, true)" title="Consultar status no Autentique">
               <i class="fa-solid fa-rotate"></i> Sincronizar
             </button>
           ` : ''}
 
           ${!estaEmDia ? `
-            <a href="/api/alunos/${c.id}/contrato/pdf" target="_blank" class="wa-btn-primary" style="flex: 1; min-width: 80px; padding: 7px 12px; font-size: 12px; background: var(--shanti-sand-light); color: var(--shanti-charcoal); border: 1px solid var(--shanti-sand-border); border-radius: 20px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 5px;">
+            <a href="/api/alunos/${c.id}/contrato/pdf" target="_blank" class="wa-btn-primary" style="flex: 1; min-width: 80px; padding: 7px 12px; font-size: 14px; background: var(--shanti-sand-light); color: var(--shanti-charcoal); border: 1px solid var(--shanti-sand-border); border-radius: 20px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 5px;">
               <i class="fa-solid fa-file-pdf" style="color: var(--shanti-terracotta);"></i> Minuta
             </a>
           ` : ''}
 
-          <a href="${linkWa}" target="_blank" class="wa-btn-primary" style="flex: 1; min-width: 125px; padding: 7px 12px; font-size: 12px; background: var(--shanti-whatsapp-green); color: #FFFFFF; border: none; border-radius: 20px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 5px; box-shadow: 0 2px 8px rgba(37, 211, 102, 0.25);">
+          <a href="${linkWa}" target="_blank" class="wa-btn-primary" style="flex: 1; min-width: 125px; padding: 7px 12px; font-size: 14px; background: var(--shanti-whatsapp-green); color: #FFFFFF; border: none; border-radius: 20px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 5px; box-shadow: 0 2px 8px rgba(37, 211, 102, 0.25);">
             <i class="${btnWaIcon}"></i> ${btnWaTexto}
           </a>
 
-          <button type="button" class="wa-btn-primary" style="flex: 1; min-width: 110px; padding: 7px 12px; font-size: 12px; background: var(--shanti-terracotta); color: #FFFFFF; border: none; border-radius: 20px; font-weight: 600; box-shadow: var(--shadow-sm);" onclick="abrirModalUploadContrato(${c.id}, '${c.nome.replace(/'/g, "\\'")}', '${(c.plano || '').replace(/'/g, "\\'")}')">
+          <button type="button" class="wa-btn-primary" style="flex: 1; min-width: 110px; padding: 7px 12px; font-size: 14px; background: var(--shanti-terracotta); color: #FFFFFF; border: none; border-radius: 20px; font-weight: 600; box-shadow: var(--shadow-sm);" onclick="abrirModalUploadContrato(${c.id}, '${c.nome.replace(/'/g, "\\'")}', '${(c.plano || '').replace(/'/g, "\\'")}')">
             <i class="fa-solid fa-cloud-arrow-up"></i> ${temArquivo ? 'Substituir' : 'Upload Manual'}
           </button>
 
           ${temArquivo ? `
-            <a href="/api/alunos/${c.id}/contrato/arquivo" target="_blank" class="wa-btn-primary" style="padding: 7px 12px; font-size: 12px; background: #FFFFFF; color: var(--shanti-forest); border: 1px solid var(--shanti-sand-border); border-radius: 20px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 5px;" title="Visualizar documento assinado">
+            <a href="/api/alunos/${c.id}/contrato/arquivo" target="_blank" class="wa-btn-primary" style="padding: 7px 12px; font-size: 14px; background: #FFFFFF; color: var(--shanti-forest); border: 1px solid var(--shanti-sand-border); border-radius: 20px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 5px;" title="Visualizar documento assinado">
               <i class="fa-solid fa-eye"></i> Ver
             </a>
-            <button type="button" class="wa-btn-primary" style="padding: 7px 12px; font-size: 12px; background: #FFFFFF; color: var(--shanti-terracotta); border: 1px solid var(--shanti-terracotta-border); border-radius: 20px;" onclick="removerContratoAssinado(${c.id}, '${c.nome.replace(/'/g, "\\'")}')" title="Excluir arquivo de contrato">
+            <button type="button" class="wa-btn-primary" style="padding: 7px 12px; font-size: 14px; background: #FFFFFF; color: var(--shanti-terracotta); border: 1px solid var(--shanti-terracotta-border); border-radius: 20px;" onclick="removerContratoAssinado(${c.id}, '${c.nome.replace(/'/g, "\\'")}')" title="Excluir arquivo de contrato">
               <i class="fa-solid fa-trash-can"></i>
             </button>
           ` : ''}
@@ -4863,7 +4974,7 @@ async function carregarChamadaDia(dataStr, turmaIdFocus = null) {
         'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
         'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
       ];
-      const hojeTag = chamada.eh_hoje ? ' <span style="font-size:11px; font-weight:700; background:var(--shanti-terracotta); color:#fff; padding:2px 8px; border-radius:10px; margin-left:6px;">HOJE</span>' : '';
+      const hojeTag = chamada.eh_hoje ? ' <span style="font-size: 13.5px; font-weight:700; background:var(--shanti-terracotta); color:#fff; padding:2px 8px; border-radius:10px; margin-left:6px;">HOJE</span>' : '';
       elTitulo.innerHTML = `<i class="fa-solid fa-calendar-day" style="color: var(--shanti-forest);"></i> ${chamada.dia_semana_nome}, ${diaNum} de ${mesesExtenso[mesNum - 1]} de ${anoNum}${hojeTag}`;
     }
 
@@ -4924,7 +5035,7 @@ function renderizarTurmasChamada(chamada, turmaIdFocus = null) {
       <div style="text-align: center; padding: 28px 16px; background: var(--shanti-sand-light); border: 1px dashed var(--shanti-sand-border); border-radius: 14px; color: var(--shanti-stone);">
         <i class="fa-solid fa-mug-hot" style="font-size: 32px; margin-bottom: 10px; color: var(--shanti-sand);"></i>
         <p style="margin: 0; font-size: 14px; font-weight: 700; color: var(--shanti-charcoal);">Nenhuma turma programada para este dia.</p>
-        <span style="font-size: 12px; color: var(--shanti-stone);">Toque em qualquer dia com bolinha verde no calendário acima para ver as turmas e alunos! 🧘‍♀️</span>
+        <span style="font-size: 14px; color: var(--shanti-stone);">Toque em qualquer dia com bolinha verde no calendário acima para ver as turmas e alunos! 🧘‍♀️</span>
       </div>
     `;
     return;
@@ -4943,7 +5054,7 @@ function renderizarTurmasChamada(chamada, turmaIdFocus = null) {
 
     if (alunos.length === 0) {
       alunosHtml = `
-        <div style="font-size: 12px; color: var(--shanti-stone); text-align: center; padding: 14px; background: #FFFFFF; border: 1px dashed var(--shanti-sand-border); border-radius: 10px;">
+        <div style="font-size: 14px; color: var(--shanti-stone); text-align: center; padding: 14px; background: #FFFFFF; border: 1px dashed var(--shanti-sand-border); border-radius: 10px;">
           Nenhum aluno matriculado nesta turma ainda.
         </div>
       `;
@@ -4957,9 +5068,9 @@ function renderizarTurmasChamada(chamada, turmaIdFocus = null) {
         const isDesmarcadoAluno = (st === 'faltou' && just.includes('Desmarcado pelo aluno'));
 
         const badgeAlunoStatusHtml = isConfirmadoAluno
-          ? `<span style="font-size:11px; font-weight:700; background:rgba(79, 107, 69, 0.15); color:#2C3828; padding:3px 8px; border-radius:8px; border:1px solid rgba(79, 107, 69, 0.3); margin-left:6px; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-circle-check" style="color:#4F6B45;"></i> Confirmado pelo Aluno (Pendente)</span>`
+          ? `<span style="font-size: 13.5px; font-weight:700; background:rgba(79, 107, 69, 0.15); color:#2C3828; padding:3px 8px; border-radius:8px; border:1px solid rgba(79, 107, 69, 0.3); margin-left:6px; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-circle-check" style="color:#4F6B45;"></i> Confirmado pelo Aluno (Pendente)</span>`
           : (isDesmarcadoAluno 
-              ? `<span style="font-size:11px; font-weight:700; background:rgba(184, 103, 74, 0.15); color:#8F3E22; padding:3px 8px; border-radius:8px; border:1px solid rgba(184, 103, 74, 0.3); margin-left:6px; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-calendar-xmark" style="color:#B8674A;"></i> Desmarcado pelo Aluno (Falta)</span>`
+              ? `<span style="font-size: 13.5px; font-weight:700; background:rgba(184, 103, 74, 0.15); color:#8F3E22; padding:3px 8px; border-radius:8px; border:1px solid rgba(184, 103, 74, 0.3); margin-left:6px; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-calendar-xmark" style="color:#B8674A;"></i> Desmarcado pelo Aluno (Falta)</span>`
               : '');
 
         const badgePausaHtml = isPausado 
@@ -4979,7 +5090,7 @@ function renderizarTurmasChamada(chamada, turmaIdFocus = null) {
                   ${badgePausaHtml}
                 </div>
                 <div class="cal-aluno-detalhe">
-                  <i class="fa-solid fa-id-badge" style="font-size: 10px; opacity: 0.7;"></i> ${al.plano}${al.dia_semana_1x ? ` • ${al.dia_semana_1x}` : ''}
+                  <i class="fa-solid fa-id-badge" style="font-size: 12.5px; opacity: 0.7;"></i> ${al.plano}${al.dia_semana_1x ? ` • ${al.dia_semana_1x}` : ''}
                 </div>
               </div>
             </div>
@@ -5148,7 +5259,7 @@ async function carregarRetencaoAusentes() {
 
     if (ausentes.length === 0) {
       container.innerHTML = `
-        <div style="font-size: 12px; color: var(--shanti-stone); text-align: center; padding: 12px; background: #FFFFFF; border: 1px dashed var(--shanti-sand-border); border-radius: 10px;">
+        <div style="font-size: 14px; color: var(--shanti-stone); text-align: center; padding: 12px; background: #FFFFFF; border: 1px dashed var(--shanti-sand-border); border-radius: 10px;">
           Nenhum aluno em risco de evasão nas últimas 2 semanas! 🙏
         </div>
       `;
@@ -5157,19 +5268,19 @@ async function carregarRetencaoAusentes() {
 
     container.innerHTML = ausentes.map(au => {
       const isPausado = au.pausado;
-      const motivoPausa = au.motivo_pausa ? `<span style="font-size:11px; color:#B45309; display:block;"><i class="fa-solid fa-umbrella-beach"></i> Pausado: ${au.motivo_pausa}</span>` : '';
+      const motivoPausa = au.motivo_pausa ? `<span style="font-size: 13.5px; color:#B45309; display:block;"><i class="fa-solid fa-umbrella-beach"></i> Pausado: ${au.motivo_pausa}</span>` : '';
 
       return `
         <div class="cal-retencao-item" style="${isPausado ? 'opacity: 0.75; background: #fdfaf6;' : ''}">
           <div style="flex: 1; min-width: 180px;">
             <div style="display: flex; align-items: center; gap: 6px;">
-              <strong style="font-size: 13.5px; color: var(--shanti-charcoal);">${au.nome}</strong>
-              ${isPausado ? '<span style="font-size:10px; background:#FDF3E7; color:#B45309; padding:2px 6px; border-radius:8px; border:1px solid #F6D6B2; font-weight:600;">Pausado</span>' : ''}
+              <strong style="font-size: 15px; color: var(--shanti-charcoal);">${au.nome}</strong>
+              ${isPausado ? '<span style="font-size: 12.5px; background:#FDF3E7; color:#B45309; padding:2px 6px; border-radius:8px; border:1px solid #F6D6B2; font-weight:600;">Pausado</span>' : ''}
             </div>
-            <div style="font-size: 11.5px; color: #B45309; font-weight: 600; margin-top: 2px;">
+            <div style="font-size: 13.5px; color: #B45309; font-weight: 600; margin-top: 2px;">
               <i class="fa-solid fa-triangle-exclamation"></i> ${au.faltas_consecutivas} faltas consecutivas • ${au.plano}
             </div>
-            <div style="font-size: 11px; color: var(--shanti-stone); margin-top: 2px;">
+            <div style="font-size: 13.5px; color: var(--shanti-stone); margin-top: 2px;">
               Última presença: ${au.ultima_presenca} • Turma: ${(au.turmas || []).join(', ')}
             </div>
             ${motivoPausa}
@@ -5177,11 +5288,11 @@ async function carregarRetencaoAusentes() {
 
           <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
             ${!isPausado ? `
-              <a href="${au.link_whatsapp}" target="_blank" class="wa-btn-sm-whatsapp" style="padding: 6px 12px; font-size: 11.5px; border-radius: 12px; text-decoration: none;">
+              <a href="${au.link_whatsapp}" target="_blank" class="wa-btn-sm-whatsapp" style="padding: 6px 12px; font-size: 13.5px; border-radius: 12px; text-decoration: none;">
                 <i class="fa-brands fa-whatsapp"></i> Acolher Aluno
               </a>
             ` : ''}
-            <button type="button" class="wa-btn-secondary" style="padding: 6px 10px; font-size: 11px; border-radius: 12px;" onclick="abrirModalPausaAlerta(${au.aluno_id}, '${au.nome.replace(/'/g, "\'")}', ${isPausado}, '${(au.motivo_pausa || '').replace(/'/g, "\'")}')">
+            <button type="button" class="wa-btn-secondary" style="padding: 6px 10px; font-size: 13.5px; border-radius: 12px;" onclick="abrirModalPausaAlerta(${au.aluno_id}, '${au.nome.replace(/'/g, "\'")}', ${isPausado}, '${(au.motivo_pausa || '').replace(/'/g, "\'")}')">
               <i class="fa-solid ${isPausado ? 'fa-play' : 'fa-pause'}"></i> ${isPausado ? 'Retomar' : 'Pausar'}
             </button>
           </div>
@@ -5281,7 +5392,7 @@ function renderizarEventosDia(eventos) {
 
   if (!eventos || eventos.length === 0) {
     container.innerHTML = `
-      <div style="text-align: center; padding: 14px 10px; background: #FFFFFF; border: 1px dashed #FDE68A; border-radius: 10px; color: var(--shanti-stone); font-size: 12px;">
+      <div style="text-align: center; padding: 14px 10px; background: #FFFFFF; border: 1px dashed #FDE68A; border-radius: 10px; color: var(--shanti-stone); font-size: 14px;">
         <span style="color: #D97706; font-weight: 600;">Nenhum compromisso avulso agendado para este dia.</span>
         <div style="margin-top: 4px;">Toque em <strong>+ Novo Compromisso</strong> acima para agendar workshops, particulares ou eventos externos! ✨</div>
       </div>
@@ -5688,7 +5799,7 @@ function imprimirPlacaRecepcao() {
           color: #3F4E3A;
         }
         .placa-sub {
-          font-size: 13px;
+          font-size: 15px;
           color: #7D8878;
           font-weight: 700;
           text-transform: uppercase;
@@ -5714,13 +5825,13 @@ function imprimirPlacaRecepcao() {
           color: #B8674A;
         }
         .placa-passos {
-          font-size: 13.5px;
+          font-size: 15px;
           color: #4A5646;
           line-height: 1.6;
           max-width: 420px;
         }
         .placa-url {
-          font-size: 13.5px;
+          font-size: 15px;
           font-weight: 700;
           color: #3F4E3A;
           background: #FAF7F2;
@@ -5799,7 +5910,7 @@ function renderizarAlunosAcesso(lista) {
 
   if (!container) return;
   if (!lista || lista.length === 0) {
-    container.innerHTML = `<p style="font-size:12px; color:var(--shanti-stone); text-align:center; padding:16px;">Nenhum aluno encontrado.</p>`;
+    container.innerHTML = `<p style="font-size: 14px; color:var(--shanti-stone); text-align:center; padding:16px;">Nenhum aluno encontrado.</p>`;
     return;
   }
 
@@ -5823,22 +5934,22 @@ function renderizarAlunosAcesso(lista) {
     return `
       <div style="background:var(--shanti-sand-light); border:1px solid var(--shanti-sand-border); border-radius:12px; padding:10px 14px; display:flex; justify-content:space-between; align-items:center; gap:10px;">
         <div style="flex:1; min-width:0;">
-          <div style="font-weight:700; font-size:13.5px; color:var(--shanti-charcoal); display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+          <div style="font-weight:700; font-size: 15px; color:var(--shanti-charcoal); display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
             ${al.nome}
-            <span style="font-size:10.5px; padding:1px 6px; border-radius:8px; background:${statusBg}; color:${statusColor}; font-weight:600;">
+            <span style="font-size: 12.5px; padding:1px 6px; border-radius:8px; background:${statusBg}; color:${statusColor}; font-weight:600;">
               ${statusLabel}
             </span>
           </div>
-          <div style="font-size:11.5px; color:var(--shanti-stone); margin-top:2px;">
+          <div style="font-size: 13.5px; color:var(--shanti-stone); margin-top:2px;">
             WhatsApp: <b>${al.telefone || 'Não informado'}</b> • Plano: ${al.plano || 'Regular'}
           </div>
         </div>
         <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap; justify-content:flex-end;">
-          <button type="button" class="wa-btn-primary" onclick="gerarSenhaTempAlunoClick(${al.id})" style="background:var(--shanti-forest); color:#ffffff; border:none; padding:6px 12px; border-radius:16px; font-size:11.5px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:5px; white-space:nowrap;">
+          <button type="button" class="wa-btn-primary" onclick="gerarSenhaTempAlunoClick(${al.id})" style="background:var(--shanti-forest); color:#ffffff; border:none; padding:6px 12px; border-radius:16px; font-size: 13.5px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:5px; white-space:nowrap;">
             <i class="fa-solid fa-key"></i> ${al.senha_hash ? 'Resetar Senha' : 'Criar Senha'}
           </button>
           ${al.senha_hash ? `
-            <button type="button" class="wa-btn-primary" onclick="excluirAcessoAlunoClick(${al.id}, '${(al.nome || '').replace(/'/g, "\\'")}')" style="background:#fee2e2; color:#b91c1c; border:1px solid #fca5a5; padding:6px 10px; border-radius:16px; font-size:11.5px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:5px; white-space:nowrap;" title="Excluir o acesso do aluno ao aplicativo">
+            <button type="button" class="wa-btn-primary" onclick="excluirAcessoAlunoClick(${al.id}, '${(al.nome || '').replace(/'/g, "\\'")}')" style="background:#fee2e2; color:#b91c1c; border:1px solid #fca5a5; padding:6px 10px; border-radius:16px; font-size: 13.5px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:5px; white-space:nowrap;" title="Excluir o acesso do aluno ao aplicativo">
               <i class="fa-solid fa-user-slash"></i> Excluir Acesso
             </button>
           ` : ''}
@@ -5913,7 +6024,7 @@ function renderizarBibliotecaAdmin(lista) {
   const container = document.getElementById('lista-conteudos-biblioteca');
   if (!container) return;
   if (!lista || lista.length === 0) {
-    container.innerHTML = `<div style="text-align:center; padding:20px; font-size:13px; color:var(--shanti-stone); background:var(--shanti-sand-light); border:1px dashed var(--shanti-sand-border); border-radius:12px;">Nenhuma leitura ou material publicado ainda. Clique em "+ Nova Leitura" acima.</div>`;
+    container.innerHTML = `<div style="text-align:center; padding:20px; font-size: 15px; color:var(--shanti-stone); background:var(--shanti-sand-light); border:1px dashed var(--shanti-sand-border); border-radius:12px;">Nenhuma leitura ou material publicado ainda. Clique em "+ Nova Leitura" acima.</div>`;
     return;
   }
 
@@ -5924,23 +6035,23 @@ function renderizarBibliotecaAdmin(lista) {
         <div style="flex:1; min-width:0;">
           <div style="display:flex; align-items:center; gap:6px; margin-bottom:4px; flex-wrap:wrap;">
             <span style="font-weight:700; font-size:14px; color:var(--shanti-charcoal);">${c.titulo}</span>
-            <span style="font-size:10px; font-weight:700; padding:2px 6px; border-radius:6px; background:${isPub ? '#dcfce7' : '#f3f4f6'}; color:${isPub ? '#15803d' : '#6b7280'};">
+            <span style="font-size: 12.5px; font-weight:700; padding:2px 6px; border-radius:6px; background:${isPub ? '#dcfce7' : '#f3f4f6'}; color:${isPub ? '#15803d' : '#6b7280'};">
               ${isPub ? '● Publicado' : 'Rascunho'}
             </span>
-            <span style="font-size:10.5px; background:rgba(63,78,58,0.08); color:var(--shanti-forest); padding:2px 6px; border-radius:6px;">
+            <span style="font-size: 12.5px; background:rgba(63,78,58,0.08); color:var(--shanti-forest); padding:2px 6px; border-radius:6px;">
               ${c.tipo === 'pdf' ? '<i class="fa-solid fa-file-pdf"></i> Arquivo PDF' : '<i class="fa-solid fa-align-left"></i> Artigo'}
             </span>
           </div>
-          ${c.subtitulo ? `<div style="font-size:12px; color:var(--shanti-stone); margin-bottom:4px;">${c.subtitulo}</div>` : ''}
-          <div style="font-size:11px; color:var(--shanti-stone);">
+          ${c.subtitulo ? `<div style="font-size: 14px; color:var(--shanti-stone); margin-bottom:4px;">${c.subtitulo}</div>` : ''}
+          <div style="font-size: 13.5px; color:var(--shanti-stone);">
             Criado em: <b>${formatarDataBR(c.criado_em)}</b> ${c.arquivo_url ? `• <a href="${c.arquivo_url}" target="_blank" style="color:var(--shanti-forest); text-decoration:underline;">Ver anexo</a>` : ''}
           </div>
         </div>
         <div style="display:flex; gap:6px;">
-          <button type="button" class="wa-btn-primary" onclick="editarConteudoBibliotecaClick(${c.id})" style="padding:5px 9px; font-size:11.5px; background:#ffffff; color:var(--shanti-forest); border:1px solid var(--shanti-sand-border); border-radius:10px;" title="Editar">
+          <button type="button" class="wa-btn-primary" onclick="editarConteudoBibliotecaClick(${c.id})" style="padding:5px 9px; font-size: 13.5px; background:#ffffff; color:var(--shanti-forest); border:1px solid var(--shanti-sand-border); border-radius:10px;" title="Editar">
             <i class="fa-solid fa-pen"></i>
           </button>
-          <button type="button" class="wa-btn-primary" onclick="excluirConteudoBibliotecaClick(${c.id})" style="padding:5px 9px; font-size:11.5px; background:#ffffff; color:#b91c1c; border:1px solid #fca5a5; border-radius:10px;" title="Excluir">
+          <button type="button" class="wa-btn-primary" onclick="excluirConteudoBibliotecaClick(${c.id})" style="padding:5px 9px; font-size: 13.5px; background:#ffffff; color:#b91c1c; border:1px solid #fca5a5; border-radius:10px;" title="Excluir">
             <i class="fa-solid fa-trash-can"></i>
           </button>
         </div>
@@ -6096,7 +6207,7 @@ function renderizarReposicoesAdmin(lista) {
   if (!container) return;
 
   if (!lista || lista.length === 0) {
-    container.innerHTML = `<div style="text-align:center; padding:20px; font-size:13px; color:var(--shanti-stone); background:var(--shanti-sand-light); border:1px dashed var(--shanti-sand-border); border-radius:12px;">Nenhuma solicitação de reposição encontrada.</div>`;
+    container.innerHTML = `<div style="text-align:center; padding:20px; font-size: 15px; color:var(--shanti-stone); background:var(--shanti-sand-light); border:1px dashed var(--shanti-sand-border); border-radius:12px;">Nenhuma solicitação de reposição encontrada.</div>`;
     return;
   }
 
@@ -6123,31 +6234,31 @@ function renderizarReposicoesAdmin(lista) {
         <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
           <div>
             <span style="font-weight:700; font-size:14px; color:var(--shanti-charcoal);">${r.aluno_nome}</span>
-            <div style="font-size:12px; color:var(--shanti-stone); margin-top:2px;">
+            <div style="font-size: 14px; color:var(--shanti-stone); margin-top:2px;">
               Data da Falta: <b>${formatarDataBR(r.data_falta)}</b> ${r.data_sugerida ? `• Pretendida: <b>${formatarDataBR(r.data_sugerida)}</b>` : ''}
             </div>
           </div>
-          <span style="font-size:11px; font-weight:700; padding:2px 8px; border-radius:8px; background:${badgeBg}; color:${badgeColor};">
+          <span style="font-size: 13.5px; font-weight:700; padding:2px 8px; border-radius:8px; background:${badgeBg}; color:${badgeColor};">
             ${statusLabel}
           </span>
         </div>
 
-        ${r.motivo ? `<div style="font-size:12px; color:var(--shanti-charcoal); background:#ffffff; padding:6px 10px; border-radius:8px; border:0.5px solid var(--shanti-sand-border);"><b>Motivo:</b> ${r.motivo}</div>` : ''}
-        ${r.resposta_admin ? `<div style="font-size:11.5px; color:var(--shanti-forest);"><b>Resposta:</b> ${r.resposta_admin}</div>` : ''}
+        ${r.motivo ? `<div style="font-size: 14px; color:var(--shanti-charcoal); background:#ffffff; padding:6px 10px; border-radius:8px; border:0.5px solid var(--shanti-sand-border);"><b>Motivo:</b> ${r.motivo}</div>` : ''}
+        ${r.resposta_admin ? `<div style="font-size: 13.5px; color:var(--shanti-forest);"><b>Resposta:</b> ${r.resposta_admin}</div>` : ''}
 
         <div style="display:flex; gap:6px; margin-top:4px; flex-wrap:wrap;">
           ${st === 'pendente' ? `
-            <button type="button" class="wa-btn-primary" onclick="abrirModalResponderReposicaoClick(${r.id}, '${(r.aluno_nome || '').replace(/'/g, "\\'")}', '${r.data_falta}', '${(r.motivo || '').replace(/'/g, "\\'")}', '${r.aluno_telefone || ''}')" style="background:var(--shanti-forest); color:#ffffff; border:none; padding:5px 12px; border-radius:14px; font-size:11.5px; font-weight:600; cursor:pointer;">
+            <button type="button" class="wa-btn-primary" onclick="abrirModalResponderReposicaoClick(${r.id}, '${(r.aluno_nome || '').replace(/'/g, "\\'")}', '${r.data_falta}', '${(r.motivo || '').replace(/'/g, "\\'")}', '${r.aluno_telefone || ''}')" style="background:var(--shanti-forest); color:#ffffff; border:none; padding:5px 12px; border-radius:14px; font-size: 13.5px; font-weight:600; cursor:pointer;">
               <i class="fa-solid fa-reply"></i> Responder / Alocar
             </button>
           ` : `
-            <button type="button" class="wa-btn-primary" onclick="abrirModalResponderReposicaoClick(${r.id}, '${(r.aluno_nome || '').replace(/'/g, "\\'")}', '${r.data_falta}', '${(r.motivo || '').replace(/'/g, "\\'")}', '${r.aluno_telefone || ''}')" style="background:#ffffff; color:var(--shanti-forest); border:1px solid var(--shanti-sand-border); padding:5px 12px; border-radius:14px; font-size:11.5px; font-weight:600; cursor:pointer;">
+            <button type="button" class="wa-btn-primary" onclick="abrirModalResponderReposicaoClick(${r.id}, '${(r.aluno_nome || '').replace(/'/g, "\\'")}', '${r.data_falta}', '${(r.motivo || '').replace(/'/g, "\\'")}', '${r.aluno_telefone || ''}')" style="background:#ffffff; color:var(--shanti-forest); border:1px solid var(--shanti-sand-border); padding:5px 12px; border-radius:14px; font-size: 13.5px; font-weight:600; cursor:pointer;">
               <i class="fa-solid fa-pen"></i> Alterar Resposta
             </button>
           `}
 
           ${telDig ? `
-            <a href="https://wa.me/${telDig}" target="_blank" class="wa-btn-primary" style="background:var(--shanti-whatsapp-green); color:#ffffff; text-decoration:none; padding:5px 12px; border-radius:14px; font-size:11.5px; font-weight:600; display:inline-flex; align-items:center; gap:5px;">
+            <a href="https://wa.me/${telDig}" target="_blank" class="wa-btn-primary" style="background:var(--shanti-whatsapp-green); color:#ffffff; text-decoration:none; padding:5px 12px; border-radius:14px; font-size: 13.5px; font-weight:600; display:inline-flex; align-items:center; gap:5px;">
               <i class="fa-brands fa-whatsapp"></i> Conversar
             </a>
           ` : ''}
@@ -6247,7 +6358,7 @@ function renderizarMuralConquistas(ranking) {
   if (!container) return;
 
   if (!ranking || ranking.length === 0) {
-    container.innerHTML = `<div style="text-align:center; padding:20px; font-size:13px; color:var(--shanti-stone); background:var(--shanti-sand-light); border:1px dashed var(--shanti-sand-border); border-radius:12px;">Nenhum aluno com registro de aulas.</div>`;
+    container.innerHTML = `<div style="text-align:center; padding:20px; font-size: 15px; color:var(--shanti-stone); background:var(--shanti-sand-light); border:1px dashed var(--shanti-sand-border); border-radius:12px;">Nenhum aluno com registro de aulas.</div>`;
     return;
   }
 
@@ -6263,13 +6374,13 @@ function renderizarMuralConquistas(ranking) {
             </span>
             <div>
               <span style="font-weight:700; font-size:14px; color:var(--shanti-charcoal);">${al.nome}</span>
-              <div style="font-size:11.5px; color:var(--shanti-stone);">
-                Total acumulado: <b style="color:var(--shanti-forest); font-size:12.5px;">${al.total_presencas} aulas</b>
+              <div style="font-size: 13.5px; color:var(--shanti-stone);">
+                Total acumulado: <b style="color:var(--shanti-forest); font-size: 14px;">${al.total_presencas} aulas</b>
               </div>
             </div>
           </div>
           ${al.link_whatsapp_incentivo ? `
-            <a href="${al.link_whatsapp_incentivo}" target="_blank" class="wa-btn-primary" style="background:var(--shanti-whatsapp-green); color:#ffffff; text-decoration:none; padding:5px 12px; border-radius:14px; font-size:11.5px; font-weight:600; display:inline-flex; align-items:center; gap:5px;">
+            <a href="${al.link_whatsapp_incentivo}" target="_blank" class="wa-btn-primary" style="background:var(--shanti-whatsapp-green); color:#ffffff; text-decoration:none; padding:5px 12px; border-radius:14px; font-size: 13.5px; font-weight:600; display:inline-flex; align-items:center; gap:5px;">
               <i class="fa-brands fa-whatsapp"></i> Incentivar
             </a>
           ` : ''}
@@ -6279,7 +6390,7 @@ function renderizarMuralConquistas(ranking) {
           ${marcos.map(m => {
             const desb = m.desbloqueado;
             return `
-              <span style="font-size:11px; padding:3px 8px; border-radius:10px; font-weight:600; display:inline-flex; align-items:center; gap:4px; ${desb ? 'background:#FAF7F2; color:#B8674A; border:1px solid rgba(184,103,74,0.3);' : 'background:#ECE7DE; color:#9BA596; opacity:0.6;'}">
+              <span style="font-size: 13.5px; padding:3px 8px; border-radius:10px; font-weight:600; display:inline-flex; align-items:center; gap:4px; ${desb ? 'background:#FAF7F2; color:#B8674A; border:1px solid rgba(184,103,74,0.3);' : 'background:#ECE7DE; color:#9BA596; opacity:0.6;'}">
                 <i class="fa-solid ${desb ? m.icone : 'fa-lock'}"></i> ${m.marco} aulas
               </span>
             `;

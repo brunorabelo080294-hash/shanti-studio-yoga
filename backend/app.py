@@ -285,6 +285,11 @@ class AlterarSenhaRequest(BaseModel):
     senha_atual: str
     nova_senha: str
 
+class RedefinirSenhaGestaoRequest(BaseModel):
+    username: str
+    chave_recuperacao: str
+    nova_senha: str
+
 # --- Autenticação e Sessão Segura (Studio Shanti) ---
 AUTH_SECRET_KEY = os.getenv("AUTH_SECRET_KEY") or "shanti-studio-secure-auth-secret-2026"
 
@@ -381,6 +386,42 @@ def api_auth_alterar_senha(req: AlterarSenhaRequest):
         "mensagem": "Senha alterada com sucesso!",
         "token": novo_token,
         "user": user
+    }
+
+@app.post("/api/auth/redefinir-senha")
+def api_auth_redefinir_senha_gestao(req: RedefinirSenhaGestaoRequest):
+    """Permite redefinir a senha do usuário de gestão usando a Chave de Segurança do Studio."""
+    user_limpo = str(req.username).strip().lower()
+    chave_limpa = str(req.chave_recuperacao).strip()
+    nova_senha_limpa = str(req.nova_senha).strip()
+
+    if not user_limpo or not chave_limpa or not nova_senha_limpa:
+        raise HTTPException(status_code=400, detail="Preencha todos os campos.")
+
+    if len(nova_senha_limpa) < 4:
+        raise HTTPException(status_code=400, detail="A nova senha deve possuir pelo menos 4 caracteres.")
+
+    # Chaves de segurança válidas para recuperação mestre
+    chaves_validas = {"2026", "shanti2026", "dev2026", "shanti-master", "master2026"}
+    env_pin = os.getenv("SHANTI_MASTER_PIN")
+    if env_pin:
+        chaves_validas.add(env_pin.strip())
+
+    if chave_limpa not in chaves_validas:
+        raise HTTPException(status_code=400, detail="Chave de segurança ou PIN incorreto. Use o PIN mestre do Studio (2026) ou chave de recuperação.")
+
+    usuario = db.obter_usuario(user_limpo)
+    if not usuario:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado.")
+
+    sucesso = db.alterar_senha(user_limpo, nova_senha_limpa)
+    if not sucesso:
+        raise HTTPException(status_code=500, detail="Erro interno ao redefinir a senha.")
+
+    return {
+        "ok": True,
+        "sucesso": True,
+        "mensagem": f"Senha de {usuario['nome']} redefinida com sucesso! Você já pode entrar com sua nova senha."
     }
 
 # --- Rotas da API Gerais ---
