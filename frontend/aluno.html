@@ -649,37 +649,42 @@
       background-color: #9C4123;
     }
 
-    /* Card Frase do Dia */
-    .card-frase-dia {
-      background: #FFFFFF;
-      border-radius: 20px;
-      padding: 18px 20px;
-      border-left: 5px solid #B8674A;
-      border-top: 1px solid rgba(63, 78, 58, 0.08);
-      border-right: 1px solid rgba(63, 78, 58, 0.08);
-      border-bottom: 1px solid rgba(63, 78, 58, 0.08);
-      box-shadow: 0 6px 18px rgba(44, 56, 40, 0.05);
+    /* Card Frase do Dia em Destaque na Área Verde */
+    .header-frase-dia {
+      margin-top: 18px;
+      background: rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-radius: 18px;
+      padding: 14px 18px;
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      border-left: 4px solid var(--terracotta);
+      position: relative;
+      z-index: 2;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
     }
 
-    .frase-dia-header {
-      font-size: 13.5px;
+    .header-frase-tag {
+      font-size: 11.5px;
       font-weight: 800;
       text-transform: uppercase;
       letter-spacing: 0.08em;
-      color: #B8674A;
+      color: #F3C5B5;
       display: flex;
       align-items: center;
       gap: 6px;
+      margin-bottom: 6px;
     }
 
-    .frase-dia-corpo {
+    .header-frase-texto {
       font-family: var(--font-serif);
-      font-size: 16px;
+      font-size: 15px;
       font-style: italic;
-      font-weight: 600;
-      color: #232D20;
-      line-height: 1.5;
-      margin-top: 8px;
+      font-weight: 500;
+      color: #FFFFFF;
+      line-height: 1.45;
+      margin: 0;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
     }
 
     /* Card Nova Leitura */
@@ -1442,6 +1447,16 @@
           <span class="header-streak-text" id="header-streak-text">semana praticando</span>
         </div>
       </div>
+
+      <!-- FRASE DO DIA EM DESTAQUE NA ÁREA VERDE -->
+      <div class="header-frase-dia" id="header-frase-dia">
+        <div class="header-frase-tag">
+          <i class="fa-solid fa-quote-left"></i> FRASE DO DIA
+        </div>
+        <p class="header-frase-texto" id="frase-dia-texto">
+          "A constância na prática transforma esforço em leveza."
+        </p>
+      </div>
     </header>
 
     <!-- 2. CONTEÚDO PRINCIPAL (COM AS 4 TELAS) -->
@@ -1505,16 +1520,6 @@
           <button class="btn-assinar-contrato-aluno" id="btn-assinar-contrato" style="display: none;" onclick="abrirModalAssinarContrato()">
             <i class="fa-solid fa-signature"></i> Assinar Contrato Digitalmente
           </button>
-        </div>
-
-        <!-- SEÇÃO: FRASE DO DIA -->
-        <div class="card-frase-dia">
-          <div class="frase-dia-header">
-            <i class="fa-solid fa-quote-left"></i> FRASE DO DIA
-          </div>
-          <p class="frase-dia-corpo" id="frase-dia-texto">
-            "A respiração é a ponte entre o corpo e a mente."
-          </p>
         </div>
 
         <!-- SEÇÃO: NOVA LEITURA -->
