@@ -1898,7 +1898,7 @@ function renderizarAlunos() {
       </div>
       <div class="wa-student-actions" style="display:flex; gap:6px; align-items:center;">
         ${isPendentePagamento ? `
-          <button class="wa-btn-primary" style="padding: 5px 9px; font-size: 13.5px; background: #16a34a; border: none; box-shadow: none; white-space: nowrap;" onclick="event.stopPropagation(); aprovarPagamentoMatricula(${al.id}, '${al.nome.replace(/'/g, "\\'")}');" title="Confirmar pagamento da 1ª mensalidade e ativar aluno (Entrou, Pagou)">
+          <button type="button" style="padding: 6px 12px; font-size: 13px; font-weight: 600; background: #16a34a; color: #ffffff; border: none; border-radius: 10px; box-shadow: 0 2px 6px rgba(22, 163, 74, 0.25); white-space: nowrap; cursor: pointer; display: inline-flex; align-items: center; gap: 5px;" onclick="event.stopPropagation(); aprovarPagamentoMatricula(${al.id}, '${al.nome.replace(/'/g, "\\'")}');" title="Confirmar pagamento da 1ª mensalidade e ativar aluno (Entrou, Pagou)">
             <i class="fa-solid fa-check"></i> Aprovar (Entrou, Pagou)
           </button>
         ` : ''}
@@ -5910,46 +5910,66 @@ function renderizarAlunosAcesso(lista) {
 
   if (!container) return;
   if (!lista || lista.length === 0) {
-    container.innerHTML = `<p style="font-size: 14px; color:var(--shanti-stone); text-align:center; padding:16px;">Nenhum aluno encontrado.</p>`;
+    container.innerHTML = `<div style="padding: 24px 16px; text-align: center; color: var(--shanti-stone); background: var(--shanti-sand-light); border: 1px dashed var(--shanti-sand-border); border-radius: 14px; font-size: 14.5px;">Nenhum aluno encontrado.</div>`;
     return;
   }
 
   container.innerHTML = lista.map(al => {
-    let statusLabel = 'Sem Senha';
-    let statusColor = '#9ca3af';
+    let statusLabel = 'Sem Senha Cadastrada';
+    let statusColor = '#4b5563';
     let statusBg = '#f3f4f6';
+    let statusBorder = '#d1d5db';
+    let statusIcon = 'fa-solid fa-key';
 
     if (al.senha_hash) {
       if (al.primeiro_acesso === 1) {
         statusLabel = 'Senha Provisória Gerada';
-        statusColor = '#b45309';
+        statusColor = '#92400e';
         statusBg = '#fef3c7';
+        statusBorder = '#fcd34d';
+        statusIcon = 'fa-solid fa-clock-rotate-left';
       } else {
         statusLabel = 'Senha Pessoal Ativa ✓';
         statusColor = '#15803d';
         statusBg = '#dcfce7';
+        statusBorder = '#86efac';
+        statusIcon = 'fa-solid fa-circle-check';
       }
     }
 
     return `
-      <div style="background:var(--shanti-sand-light); border:1px solid var(--shanti-sand-border); border-radius:12px; padding:10px 14px; display:flex; justify-content:space-between; align-items:center; gap:10px;">
-        <div style="flex:1; min-width:0;">
-          <div style="font-weight:700; font-size: 15px; color:var(--shanti-charcoal); display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
-            ${al.nome}
-            <span style="font-size: 12.5px; padding:1px 6px; border-radius:8px; background:${statusBg}; color:${statusColor}; font-weight:600;">
-              ${statusLabel}
-            </span>
+      <div style="background: #FFFFFF; border: 1.5px solid var(--shanti-sand-border); border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 2px 8px rgba(34, 28, 22, 0.04); margin-bottom: 4px;">
+        <!-- Topo: Nome e Status Badge em linha inteira -->
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; flex-wrap: wrap;">
+          <div style="flex: 1; min-width: 180px;">
+            <div style="font-weight: 700; font-size: 16.5px; color: var(--shanti-charcoal); line-height: 1.35; word-break: break-word;">
+              ${al.nome}
+            </div>
           </div>
-          <div style="font-size: 13.5px; color:var(--shanti-stone); margin-top:2px;">
-            WhatsApp: <b>${al.telefone || 'Não informado'}</b> • Plano: ${al.plano || 'Regular'}
+          <span style="font-size: 12.5px; padding: 4px 10px; border-radius: 12px; background: ${statusBg}; color: ${statusColor}; border: 1px solid ${statusBorder}; font-weight: 700; display: inline-flex; align-items: center; gap: 5px; white-space: nowrap;">
+            <i class="${statusIcon}"></i> ${statusLabel}
+          </span>
+        </div>
+
+        <!-- Linha de Informações: WhatsApp e Plano organizados -->
+        <div style="background: var(--shanti-sand-light); border: 1px solid var(--shanti-sand-border); border-radius: 12px; padding: 10px 14px; font-size: 14px; color: var(--shanti-charcoal); display: flex; flex-wrap: wrap; gap: 14px; align-items: center;">
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <i class="fa-brands fa-whatsapp" style="color: #25D366; font-size: 16px;"></i>
+            <span>WhatsApp: <b>${al.telefone || 'Não informado'}</b></span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <i class="fa-solid fa-id-badge" style="color: var(--shanti-forest); font-size: 15px;"></i>
+            <span>Plano: <b>${al.plano || 'Regular'}</b></span>
           </div>
         </div>
-        <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap; justify-content:flex-end;">
-          <button type="button" class="wa-btn-primary" onclick="gerarSenhaTempAlunoClick(${al.id})" style="background:var(--shanti-forest); color:#ffffff; border:none; padding:6px 12px; border-radius:16px; font-size: 13.5px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:5px; white-space:nowrap;">
+
+        <!-- Linha de Ações: Botões abaixo do texto, nunca cobrindo informações -->
+        <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 2px;">
+          <button type="button" onclick="gerarSenhaTempAlunoClick(${al.id})" style="flex: 1; min-width: 140px; min-height: 44px; background: var(--shanti-forest); color: #ffffff; border: none; padding: 10px 16px; border-radius: 12px; font-size: 14px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 2px 6px rgba(63,78,58,0.25); transition: all 0.2s ease;">
             <i class="fa-solid fa-key"></i> ${al.senha_hash ? 'Resetar Senha' : 'Criar Senha'}
           </button>
           ${al.senha_hash ? `
-            <button type="button" class="wa-btn-primary" onclick="excluirAcessoAlunoClick(${al.id}, '${(al.nome || '').replace(/'/g, "\\'")}')" style="background:#fee2e2; color:#b91c1c; border:1px solid #fca5a5; padding:6px 10px; border-radius:16px; font-size: 13.5px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:5px; white-space:nowrap;" title="Excluir o acesso do aluno ao aplicativo">
+            <button type="button" onclick="excluirAcessoAlunoClick(${al.id}, '${(al.nome || '').replace(/'/g, "\\'")}')" style="flex: 1; min-width: 140px; min-height: 44px; background: #FEF2F2; color: #B91C1C; border: 1.5px solid #FCA5A5; padding: 10px 16px; border-radius: 12px; font-size: 14px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s ease;" title="Excluir o acesso do aluno ao aplicativo">
               <i class="fa-solid fa-user-slash"></i> Excluir Acesso
             </button>
           ` : ''}
@@ -6024,36 +6044,38 @@ function renderizarBibliotecaAdmin(lista) {
   const container = document.getElementById('lista-conteudos-biblioteca');
   if (!container) return;
   if (!lista || lista.length === 0) {
-    container.innerHTML = `<div style="text-align:center; padding:20px; font-size: 15px; color:var(--shanti-stone); background:var(--shanti-sand-light); border:1px dashed var(--shanti-sand-border); border-radius:12px;">Nenhuma leitura ou material publicado ainda. Clique em "+ Nova Leitura" acima.</div>`;
+    container.innerHTML = `<div style="text-align:center; padding:24px 16px; font-size: 14.5px; color:var(--shanti-stone); background:var(--shanti-sand-light); border:1px dashed var(--shanti-sand-border); border-radius:14px;">Nenhuma leitura ou material publicado ainda. Clique em "+ Nova Leitura" acima.</div>`;
     return;
   }
 
   container.innerHTML = lista.map(c => {
     const isPub = c.status === 'publicado';
     return `
-      <div style="background:var(--shanti-sand-light); border:1px solid var(--shanti-sand-border); border-radius:12px; padding:12px 14px; display:flex; justify-content:space-between; align-items:flex-start; gap:10px;">
-        <div style="flex:1; min-width:0;">
-          <div style="display:flex; align-items:center; gap:6px; margin-bottom:4px; flex-wrap:wrap;">
-            <span style="font-weight:700; font-size:14px; color:var(--shanti-charcoal);">${c.titulo}</span>
-            <span style="font-size: 12.5px; font-weight:700; padding:2px 6px; border-radius:6px; background:${isPub ? '#dcfce7' : '#f3f4f6'}; color:${isPub ? '#15803d' : '#6b7280'};">
-              ${isPub ? '● Publicado' : 'Rascunho'}
-            </span>
-            <span style="font-size: 12.5px; background:rgba(63,78,58,0.08); color:var(--shanti-forest); padding:2px 6px; border-radius:6px;">
-              ${c.tipo === 'pdf' ? '<i class="fa-solid fa-file-pdf"></i> Arquivo PDF' : '<i class="fa-solid fa-align-left"></i> Artigo'}
-            </span>
+      <div style="background:#FFFFFF; border:1.5px solid var(--shanti-sand-border); border-radius:16px; padding:16px; display:flex; flex-direction:column; gap:10px; box-shadow:0 2px 8px rgba(34, 28, 22, 0.04);">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px; flex-wrap:wrap;">
+          <div style="flex:1; min-width:180px;">
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px; flex-wrap:wrap;">
+              <span style="font-weight:700; font-size:15.5px; color:var(--shanti-charcoal); line-height:1.35;">${c.titulo}</span>
+              <span style="font-size:12.5px; font-weight:700; padding:2px 8px; border-radius:8px; background:${isPub ? '#dcfce7' : '#f3f4f6'}; color:${isPub ? '#15803d' : '#4b5563'}; border:1px solid ${isPub ? '#86efac' : '#d1d5db'};">
+                ${isPub ? '● Publicado' : 'Rascunho'}
+              </span>
+              <span style="font-size:12.5px; font-weight:600; background:rgba(63,78,58,0.08); color:var(--shanti-forest); padding:2px 8px; border-radius:8px;">
+                ${c.tipo === 'pdf' ? '<i class="fa-solid fa-file-pdf"></i> Arquivo PDF' : '<i class="fa-solid fa-align-left"></i> Artigo'}
+              </span>
+            </div>
+            ${c.subtitulo ? `<div style="font-size:14px; color:var(--shanti-stone); margin-bottom:4px;">${c.subtitulo}</div>` : ''}
+            <div style="font-size:13.5px; color:var(--shanti-stone);">
+              Criado em: <b>${formatarDataBR(c.criado_em)}</b> ${c.arquivo_url ? `• <a href="${c.arquivo_url}" target="_blank" style="color:var(--shanti-forest); font-weight:600; text-decoration:underline;">Ver anexo</a>` : ''}
+            </div>
           </div>
-          ${c.subtitulo ? `<div style="font-size: 14px; color:var(--shanti-stone); margin-bottom:4px;">${c.subtitulo}</div>` : ''}
-          <div style="font-size: 13.5px; color:var(--shanti-stone);">
-            Criado em: <b>${formatarDataBR(c.criado_em)}</b> ${c.arquivo_url ? `• <a href="${c.arquivo_url}" target="_blank" style="color:var(--shanti-forest); text-decoration:underline;">Ver anexo</a>` : ''}
+          <div style="display:flex; gap:8px; align-items:center;">
+            <button type="button" onclick="editarConteudoBibliotecaClick(${c.id})" style="min-height:38px; padding:6px 14px; font-size:13.5px; font-weight:600; background:#ffffff; color:var(--shanti-forest); border:1.5px solid var(--shanti-sand-border); border-radius:10px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; transition:all 0.2s ease;" title="Editar">
+              <i class="fa-solid fa-pen"></i> Editar
+            </button>
+            <button type="button" onclick="excluirConteudoBibliotecaClick(${c.id})" style="min-height:38px; padding:6px 14px; font-size:13.5px; font-weight:600; background:#FEF2F2; color:#b91c1c; border:1.5px solid #fca5a5; border-radius:10px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; transition:all 0.2s ease;" title="Excluir">
+              <i class="fa-solid fa-trash-can"></i> Excluir
+            </button>
           </div>
-        </div>
-        <div style="display:flex; gap:6px;">
-          <button type="button" class="wa-btn-primary" onclick="editarConteudoBibliotecaClick(${c.id})" style="padding:5px 9px; font-size: 13.5px; background:#ffffff; color:var(--shanti-forest); border:1px solid var(--shanti-sand-border); border-radius:10px;" title="Editar">
-            <i class="fa-solid fa-pen"></i>
-          </button>
-          <button type="button" class="wa-btn-primary" onclick="excluirConteudoBibliotecaClick(${c.id})" style="padding:5px 9px; font-size: 13.5px; background:#ffffff; color:#b91c1c; border:1px solid #fca5a5; border-radius:10px;" title="Excluir">
-            <i class="fa-solid fa-trash-can"></i>
-          </button>
         </div>
       </div>
     `;
@@ -6358,7 +6380,7 @@ function renderizarMuralConquistas(ranking) {
   if (!container) return;
 
   if (!ranking || ranking.length === 0) {
-    container.innerHTML = `<div style="text-align:center; padding:20px; font-size: 15px; color:var(--shanti-stone); background:var(--shanti-sand-light); border:1px dashed var(--shanti-sand-border); border-radius:12px;">Nenhum aluno com registro de aulas.</div>`;
+    container.innerHTML = `<div style="text-align:center; padding:24px 16px; font-size: 14.5px; color:var(--shanti-stone); background:var(--shanti-sand-light); border:1px dashed var(--shanti-sand-border); border-radius:14px;">Nenhum aluno com registro de aulas.</div>`;
     return;
   }
 
@@ -6366,21 +6388,21 @@ function renderizarMuralConquistas(ranking) {
     const marcos = al.marcos || [];
 
     return `
-      <div style="background:var(--shanti-sand-light); border:1px solid var(--shanti-sand-border); border-radius:12px; padding:12px 14px; display:flex; flex-direction:column; gap:8px;">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-          <div style="display:flex; align-items:center; gap:8px;">
-            <span style="font-size:14px; font-weight:800; color:${idx < 3 ? 'var(--shanti-terracotta)' : 'var(--shanti-stone)'};">
+      <div style="background:#FFFFFF; border:1.5px solid var(--shanti-sand-border); border-radius:16px; padding:16px; display:flex; flex-direction:column; gap:12px; box-shadow:0 2px 8px rgba(34, 28, 22, 0.04);">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px; flex-wrap:wrap;">
+          <div style="display:flex; align-items:center; gap:10px; flex:1; min-width:180px;">
+            <span style="font-size:16px; font-weight:800; color:${idx < 3 ? 'var(--shanti-terracotta)' : 'var(--shanti-stone)'}; min-width:28px;">
               #${idx + 1}
             </span>
             <div>
-              <span style="font-weight:700; font-size:14px; color:var(--shanti-charcoal);">${al.nome}</span>
-              <div style="font-size: 13.5px; color:var(--shanti-stone);">
+              <span style="font-weight:700; font-size:15.5px; color:var(--shanti-charcoal); line-height:1.35;">${al.nome}</span>
+              <div style="font-size:13.5px; color:var(--shanti-stone); margin-top:2px;">
                 Total acumulado: <b style="color:var(--shanti-forest); font-size: 14px;">${al.total_presencas} aulas</b>
               </div>
             </div>
           </div>
           ${al.link_whatsapp_incentivo ? `
-            <a href="${al.link_whatsapp_incentivo}" target="_blank" class="wa-btn-primary" style="background:var(--shanti-whatsapp-green); color:#ffffff; text-decoration:none; padding:5px 12px; border-radius:14px; font-size: 13.5px; font-weight:600; display:inline-flex; align-items:center; gap:5px;">
+            <a href="${al.link_whatsapp_incentivo}" target="_blank" style="background:var(--shanti-whatsapp-green); color:#ffffff; text-decoration:none; padding:8px 14px; border-radius:12px; font-size:13.5px; font-weight:600; display:inline-flex; align-items:center; gap:6px; box-shadow:0 2px 6px rgba(37,211,102,0.25); min-height:38px; white-space:nowrap;">
               <i class="fa-brands fa-whatsapp"></i> Incentivar
             </a>
           ` : ''}
@@ -6390,7 +6412,7 @@ function renderizarMuralConquistas(ranking) {
           ${marcos.map(m => {
             const desb = m.desbloqueado;
             return `
-              <span style="font-size: 13.5px; padding:3px 8px; border-radius:10px; font-weight:600; display:inline-flex; align-items:center; gap:4px; ${desb ? 'background:#FAF7F2; color:#B8674A; border:1px solid rgba(184,103,74,0.3);' : 'background:#ECE7DE; color:#9BA596; opacity:0.6;'}">
+              <span style="font-size: 13px; padding:4px 10px; border-radius:10px; font-weight:600; display:inline-flex; align-items:center; gap:5px; ${desb ? 'background:#FAF7F2; color:#B8674A; border:1px solid rgba(184,103,74,0.3);' : 'background:#ECE7DE; color:#9BA596; opacity:0.6;'}">
                 <i class="fa-solid ${desb ? m.icone : 'fa-lock'}"></i> ${m.marco} aulas
               </span>
             `;

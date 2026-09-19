@@ -3201,3 +3201,31 @@ body {
   border-radius: 12px;
   backdrop-filter: blur(4px);
 }
+
+/* Card de Acesso de Alunos & Ajustes Visuais Profissionais */
+.card-acesso-aluno {
+  background: #FFFFFF;
+  border: 1.5px solid var(--shanti-sand-border);
+  border-radius: 16px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: 0 2px 8px rgba(34, 28, 22, 0.04);
+  transition: all 0.2s ease;
+}
+
+.card-acesso-aluno:hover {
+  box-shadow: 0 4px 14px rgba(62, 50, 40, 0.07);
+}
+
+@media (max-width: 480px) {
+  .wa-student-item {
+    padding: 12px 14px;
+    gap: 10px;
+  }
+  .wa-student-name {
+    font-size: 15px;
+  }
+}
+
