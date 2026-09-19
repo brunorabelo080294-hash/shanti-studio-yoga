@@ -13,9 +13,9 @@ class TestGroqAndPWA(unittest.TestCase):
         with open('frontend/manifest.json', encoding='utf-8') as f:
             manifest = json.load(f)
         
-        self.assertEqual(manifest.get('id'), '/?source=pwa')
-        self.assertEqual(manifest.get('start_url'), '/?source=pwa')
-        self.assertEqual(manifest.get('scope'), '/')
+        self.assertEqual(manifest.get('id'), '/gestao/')
+        self.assertIn('/gestao/', manifest.get('start_url'))
+        self.assertEqual(manifest.get('scope'), '/gestao/')
         self.assertEqual(manifest.get('display'), 'standalone')
         self.assertFalse(manifest.get('prefer_related_applications'))
         
