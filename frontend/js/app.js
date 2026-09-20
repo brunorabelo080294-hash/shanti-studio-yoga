@@ -6461,6 +6461,8 @@ async function excluirComunicadoAdmin(id) {
 }
 
 // Disparo WhatsApp: Gera lista de links wa.me prontos para cada aluno
+let dadosWaDisparoAtual = null;
+
 async function abrirModalWaDisparo(comunicadoId) {
   const com = cacheComunicadosAdmin.find(c => c.id == comunicadoId);
   if (!com) return;
@@ -6468,13 +6470,20 @@ async function abrirModalWaDisparo(comunicadoId) {
   const container = document.getElementById('lista-wa-links-comunicado');
   if (!container) return;
 
-  container.innerHTML = `<div style="text-align:center; padding:16px;"><i class="fa-solid fa-spinner fa-spin"></i> Carregando lista de alunos...</div>`;
+  container.innerHTML = `<div style="text-align:center; padding:20px;"><i class="fa-solid fa-spinner fa-spin"></i> Carregando alunos e turmas...</div>`;
   abrirModal('modal-comunicado-wa-links');
 
   try {
-    const res = await fetch('/api/alunos');
-    if (!res.ok) return;
-    const todosAlunos = await res.json();
+    const [resAlunos, resTurmas, resEnviados] = await Promise.all([
+      fetch('/api/alunos'),
+      fetch('/api/turmas/completo'),
+      fetch(`/api/admin/comunicados/${comunicadoId}/whatsapp-enviados`)
+    ]);
+
+    const todosAlunos = resAlunos.ok ? await resAlunos.json() : [];
+    const turmasComAlunos = resTurmas.ok ? await resTurmas.json() : [];
+    const dadosEnviados = resEnviados.ok ? await resEnviados.json() : { enviados: [] };
+    const enviadosIds = new Set(dadosEnviados.enviados || []);
 
     let alunosAlvo = todosAlunos;
     if (com.publico_alvo === 'ativos') {
@@ -6483,35 +6492,199 @@ async function abrirModalWaDisparo(comunicadoId) {
       alunosAlvo = todosAlunos.filter(a => a.status === 'inadimplente');
     }
 
-    if (alunosAlvo.length === 0) {
-      container.innerHTML = `<div style="padding:16px; text-align:center; color:var(--shanti-stone);">Nenhum aluno encontrado para o público "${com.publico_alvo}".</div>`;
-      return;
+    // Mapa de alunoId -> lista de turmas
+    const mapaAlunoTurmas = {};
+    turmasComAlunos.forEach(t => {
+      (t.alunos || []).forEach(a => {
+        if (!mapaAlunoTurmas[a.id]) mapaAlunoTurmas[a.id] = [];
+        mapaAlunoTurmas[a.id].push(t);
+      });
+    });
+
+    dadosWaDisparoAtual = {
+      comunicado: com,
+      todosAlunos,
+      alunosAlvo,
+      turmasComAlunos,
+      mapaAlunoTurmas,
+      enviadosIds
+    };
+
+    // Popula o select de filtro por turma
+    const selectTurma = document.getElementById('filtro-wa-turma');
+    if (selectTurma) {
+      let optionsHtml = `<option value="todas">👥 Todas as Turmas (${alunosAlvo.length} alunos)</option>`;
+      turmasComAlunos.forEach(t => {
+        const countTurmaAlvo = alunosAlvo.filter(a => (t.alunos || []).some(ta => ta.id === a.id)).length;
+        if (countTurmaAlvo > 0) {
+          optionsHtml += `<option value="${t.id}">🧘‍♀️ ${t.nome} (${t.dias_semana} · ${t.horario}) - ${countTurmaAlvo} alunos</option>`;
+        }
+      });
+      const countSemTurma = alunosAlvo.filter(a => !mapaAlunoTurmas[a.id] || mapaAlunoTurmas[a.id].length === 0).length;
+      if (countSemTurma > 0) {
+        optionsHtml += `<option value="sem_turma">👤 Sem Turma Vinculada (${countSemTurma} alunos)</option>`;
+      }
+      selectTurma.innerHTML = optionsHtml;
+      selectTurma.value = 'todas';
     }
 
-    container.innerHTML = alunosAlvo.map(al => {
-      const primeiroNome = (al.nome || 'Aluno').split(' ')[0];
-      const tel = (al.telefone || '').replace(/\D/g, '');
-      const textoMsg = `Olá, ${primeiroNome}! 🙏\n\n*${com.titulo}*\n\n${com.mensagem}\n\nAbraços, Studio Shanti ✨`;
-      const linkWa = tel ? `https://wa.me/55${tel}?text=${encodeURIComponent(textoMsg)}` : null;
+    renderizarListaWaDisparo();
 
-      return `
-        <div style="background:#FAF7F2; border:1px solid var(--shanti-sand-border); border-radius:12px; padding:10px 14px; display:flex; justify-content:space-between; align-items:center; gap:8px;">
-          <div>
-            <strong style="font-size:14px; color:var(--shanti-charcoal);">${al.nome}</strong>
-            <div style="font-size:12.5px; color:var(--shanti-stone);">${al.telefone || 'Sem telefone'}</div>
+  } catch (err) {
+    console.error("Erro ao carregar dados do disparo WhatsApp:", err);
+    container.innerHTML = `<div style="padding:16px; text-align:center; color:#b91c1c;">Erro ao carregar lista de alunos e turmas.</div>`;
+  }
+}
+
+function filtrarWaLinksPorTurma() {
+  renderizarListaWaDisparo();
+}
+
+function renderizarListaWaDisparo() {
+  if (!dadosWaDisparoAtual) return;
+  const { comunicado: com, alunosAlvo, turmasComAlunos, mapaAlunoTurmas, enviadosIds } = dadosWaDisparoAtual;
+  const container = document.getElementById('lista-wa-links-comunicado');
+  if (!container) return;
+
+  const turmaFiltro = document.getElementById('filtro-wa-turma')?.value || 'todas';
+
+  if (alunosAlvo.length === 0) {
+    container.innerHTML = `<div style="padding:16px; text-align:center; color:var(--shanti-stone);">Nenhum aluno encontrado para o público "${com.publico_alvo}".</div>`;
+    return;
+  }
+
+  function gerarCardAlunoWa(al, turmaNome) {
+    const primeiroNome = (al.nome || 'Aluno').split(' ')[0];
+    const tel = (al.telefone || '').replace(/\D/g, '');
+    const textoMsg = `Olá, ${primeiroNome}! 🙏\n\n*${com.titulo}*\n\n${com.mensagem}\n\nAbraços, Studio Shanti ✨`;
+    const linkWa = tel ? `https://wa.me/55${tel}?text=${encodeURIComponent(textoMsg)}` : null;
+    const jaEnviado = enviadosIds.has(al.id);
+
+    return `
+      <div style="background:#FAF7F2; border:1px solid var(--shanti-sand-border); border-radius:12px; padding:10px 14px; display:flex; justify-content:space-between; align-items:center; gap:8px;">
+        <div>
+          <strong style="font-size:14px; color:var(--shanti-charcoal);">${al.nome}</strong>
+          <div style="font-size:12.5px; color:var(--shanti-stone);">
+            ${al.telefone || 'Sem telefone'} ${turmaNome ? `· <span style="color:var(--shanti-terracotta);">${turmaNome}</span>` : ''}
           </div>
-          ${linkWa ? `
-            <a href="${linkWa}" target="_blank" class="wa-btn-primary" style="background:#25D366; color:#ffffff; padding:6px 14px; border-radius:10px; font-size:13px; font-weight:700; text-decoration:none; display:inline-flex; align-items:center; gap:6px;">
+        </div>
+        <div id="status-wa-aluno-${al.id}" style="display:flex; align-items:center; gap:8px;">
+          ${jaEnviado ? `
+            <span style="color: #dc2626; font-weight: 800; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; display: inline-flex; align-items: center; gap: 4px;">
+              <i class="fa-solid fa-check-double" style="color: #dc2626;"></i> ENVIADO
+            </span>
+            ${linkWa ? `
+              <button type="button" onclick="enviarWaIndividual(${com.id}, ${al.id}, '${linkWa}')" title="Reenviar pelo WhatsApp" style="background: transparent; border: 1px solid #dc2626; color: #dc2626; padding: 4px 8px; border-radius: 8px; font-size: 11.5px; font-weight: 700; cursor: pointer;">
+                Reenviar
+              </button>
+            ` : ''}
+          ` : linkWa ? `
+            <button type="button" id="btn-wa-aluno-${al.id}" onclick="enviarWaIndividual(${com.id}, ${al.id}, '${linkWa}')" class="wa-btn-primary" style="background:#25D366; color:#ffffff; padding:6px 14px; border-radius:10px; font-size:13px; font-weight:700; text-decoration:none; display:inline-flex; align-items:center; gap:6px; cursor:pointer; border:none; width:auto; min-height:36px;">
               <i class="fa-brands fa-whatsapp"></i> Enviar
-            </a>
+            </button>
           ` : `
             <span style="font-size:12px; color:#9ca3af;">Sem WhatsApp</span>
           `}
         </div>
+      </div>
+    `;
+  }
+
+  let html = '';
+
+  if (turmaFiltro === 'todas') {
+    let alunosMostrados = new Set();
+
+    turmasComAlunos.forEach(t => {
+      const alunosTurma = alunosAlvo.filter(a => (t.alunos || []).some(ta => ta.id === a.id));
+      if (alunosTurma.length > 0) {
+        html += `
+          <div style="background: #EAE5DC; border-left: 4px solid var(--shanti-forest); padding: 8px 12px; border-radius: 8px; margin-top: 10px; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center;">
+            <strong style="font-size: 13.5px; color: var(--shanti-forest);">🧘‍♀️ ${t.nome} (${t.dias_semana} · ${t.horario})</strong>
+            <span style="font-size: 12px; color: var(--shanti-stone); font-weight: 600;">${alunosTurma.length} alunos</span>
+          </div>
+        `;
+        alunosTurma.forEach(al => {
+          alunosMostrados.add(al.id);
+          html += gerarCardAlunoWa(al, null);
+        });
+      }
+    });
+
+    const semTurma = alunosAlvo.filter(a => !alunosMostrados.has(a.id));
+    if (semTurma.length > 0) {
+      html += `
+        <div style="background: #F3EFEA; border-left: 4px solid var(--shanti-stone); padding: 8px 12px; border-radius: 8px; margin-top: 10px; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center;">
+          <strong style="font-size: 13.5px; color: var(--shanti-charcoal);">👤 Sem Turma Vinculada</strong>
+          <span style="font-size: 12px; color: var(--shanti-stone); font-weight: 600;">${semTurma.length} alunos</span>
+        </div>
       `;
-    }).join('');
+      semTurma.forEach(al => {
+        html += gerarCardAlunoWa(al, null);
+      });
+    }
+
+  } else if (turmaFiltro === 'sem_turma') {
+    const semTurma = alunosAlvo.filter(a => !mapaAlunoTurmas[a.id] || mapaAlunoTurmas[a.id].length === 0);
+    html += `
+      <div style="background: #F3EFEA; border-left: 4px solid var(--shanti-stone); padding: 8px 12px; border-radius: 8px; margin-top: 6px; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center;">
+        <strong style="font-size: 13.5px; color: var(--shanti-charcoal);">👤 Sem Turma Vinculada</strong>
+        <span style="font-size: 12px; color: var(--shanti-stone); font-weight: 600;">${semTurma.length} alunos</span>
+      </div>
+    `;
+    semTurma.forEach(al => {
+      html += gerarCardAlunoWa(al, null);
+    });
+
+  } else {
+    const t = turmasComAlunos.find(x => String(x.id) === String(turmaFiltro));
+    if (t) {
+      const alunosTurma = alunosAlvo.filter(a => (t.alunos || []).some(ta => ta.id === a.id));
+      html += `
+        <div style="background: #EAE5DC; border-left: 4px solid var(--shanti-forest); padding: 8px 12px; border-radius: 8px; margin-top: 6px; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center;">
+          <strong style="font-size: 13.5px; color: var(--shanti-forest);">🧘‍♀️ ${t.nome} (${t.dias_semana} · ${t.horario})</strong>
+          <span style="font-size: 12px; color: var(--shanti-stone); font-weight: 600;">${alunosTurma.length} alunos</span>
+        </div>
+      `;
+      alunosTurma.forEach(al => {
+        html += gerarCardAlunoWa(al, null);
+      });
+    }
+  }
+
+  container.innerHTML = html;
+}
+
+async function enviarWaIndividual(comunicadoId, alunoId, linkWa) {
+  window.open(linkWa, '_blank');
+
+  if (dadosWaDisparoAtual && dadosWaDisparoAtual.enviadosIds) {
+    dadosWaDisparoAtual.enviadosIds.add(alunoId);
+  }
+
+  const elStatus = document.getElementById(`status-wa-aluno-${alunoId}`);
+  if (elStatus) {
+    elStatus.innerHTML = `
+      <span style="color: #dc2626; font-weight: 800; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; display: inline-flex; align-items: center; gap: 4px;">
+        <i class="fa-solid fa-check-double" style="color: #dc2626;"></i> ENVIADO
+      </span>
+      <button type="button" onclick="enviarWaIndividual(${comunicadoId}, ${alunoId}, '${linkWa}')" title="Reenviar pelo WhatsApp" style="background: transparent; border: 1px solid #dc2626; color: #dc2626; padding: 4px 8px; border-radius: 8px; font-size: 11.5px; font-weight: 700; cursor: pointer;">
+        Reenviar
+      </button>
+    `;
+  }
+
+  try {
+    await fetch(`/api/admin/comunicados/${comunicadoId}/whatsapp-enviado/${alunoId}`, {
+      method: 'POST'
+    });
+    const com = cacheComunicadosAdmin.find(c => c.id == comunicadoId);
+    if (com) {
+      if (!com.whatsapp_enviados) com.whatsapp_enviados = [];
+      if (!com.whatsapp_enviados.includes(alunoId)) com.whatsapp_enviados.push(alunoId);
+    }
   } catch (err) {
-    container.innerHTML = `<div style="padding:16px; text-align:center; color:#b91c1c;">Erro ao carregar alunos.</div>`;
+    console.error("Erro ao registrar envio do WhatsApp:", err);
   }
 }
 

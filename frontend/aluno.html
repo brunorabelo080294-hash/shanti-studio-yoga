@@ -2175,6 +2175,12 @@
             <span style="color: var(--text-muted); font-size: 12px;">Acompanhe aqui sua frequência, conquistas e leituras.</span>
           </div>
         </div>
+
+        <div style="margin-top: 14px; border-top: 1px solid var(--border-card); padding-top: 12px;">
+          <button type="button" onclick="testarNotificacaoCelular()" style="width: 100%; background: var(--forest-green); color: white; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 13.5px; padding: 11px 16px; border-radius: 12px; cursor: pointer; border: none; font-weight: 700; box-shadow: var(--shadow-sm);">
+            <i class="fa-solid fa-bell"></i> Testar Notificação no Celular 📲
+          </button>
+        </div>
       </div>
     </div>
 
@@ -2951,6 +2957,84 @@
       }
     }
 
+    // Disparo de Notificação Nativa no Sistema do Celular (Android / iOS / Desktop)
+    async function dispararNotificacaoSistema(c) {
+      if (!('Notification' in window)) return;
+
+      try {
+        let perm = Notification.permission;
+        if (perm !== 'granted') {
+          perm = await Notification.requestPermission();
+        }
+        if (perm !== 'granted') return;
+
+        const options = {
+          body: c.mensagem || 'Você tem um novo aviso do estúdio.',
+          icon: '/favicon.ico',
+          badge: '/favicon.ico',
+          tag: `shanti-comunicado-${c.id}`,
+          renotify: true,
+          vibrate: [200, 100, 200],
+          data: {
+            url: '/aluno/',
+            comunicadoId: c.id
+          }
+        };
+
+        if ('serviceWorker' in navigator) {
+          const reg = await navigator.serviceWorker.ready;
+          if (reg && reg.showNotification) {
+            await reg.showNotification(c.titulo || 'Studio Shanti 🧘‍♀️', options);
+            return;
+          }
+        }
+        new Notification(c.titulo || 'Studio Shanti 🧘‍♀️', options);
+      } catch (err) {
+        console.log("Erro ao disparar notificação do sistema:", err);
+      }
+    }
+
+    // Teste imediato de notificação no celular
+    async function testarNotificacaoCelular() {
+      if (!('Notification' in window)) {
+        showToast("Seu dispositivo não suporta notificações web.");
+        return;
+      }
+      try {
+        let perm = Notification.permission;
+        if (perm !== 'granted') {
+          perm = await Notification.requestPermission();
+        }
+        if (perm === 'granted') {
+          const options = {
+            body: "Notificação de teste! Suas notificações do Studio Shanti estão ativas e funcionando perfeitamente no seu celular.",
+            icon: "/favicon.ico",
+            badge: "/favicon.ico",
+            tag: "teste-shanti-" + Date.now(),
+            vibrate: [200, 100, 200],
+            data: { url: "/aluno/" }
+          };
+
+          if ('serviceWorker' in navigator) {
+            const reg = await navigator.serviceWorker.ready;
+            if (reg && reg.showNotification) {
+              await reg.showNotification("Studio Shanti 🧘‍♀️", options);
+            } else {
+              new Notification("Studio Shanti 🧘‍♀️", options);
+            }
+          } else {
+            new Notification("Studio Shanti 🧘‍♀️", options);
+          }
+          showToast("Notificação enviada! Olhe a barra de notificações do celular 📲");
+        } else {
+          showToast("Permissão de notificação não concedida nas configurações.");
+        }
+      } catch (e) {
+        console.log("Erro teste notif:", e);
+        showToast("Erro ao emitir notificação de teste.");
+      }
+    }
+
     // Carrega Comunicados e Atualiza o Badge de Notificações
     async function carregarNotificacoes() {
       try {
@@ -2973,6 +3057,20 @@
           if (badge) badge.style.display = "none";
           if (dot) dot.style.display = "none";
         }
+
+        // Disparar notificação nativa no celular para comunicados que ainda não foram notificados no aparelho
+        let jaNotificados = [];
+        try {
+          jaNotificados = JSON.parse(localStorage.getItem('shanti_notificados_dispositivo') || '[]');
+        } catch(e) { jaNotificados = []; }
+
+        comunicadosNaoLidos.forEach(c => {
+          if (!jaNotificados.includes(c.id)) {
+            dispararNotificacaoSistema(c);
+            jaNotificados.push(c.id);
+          }
+        });
+        localStorage.setItem('shanti_notificados_dispositivo', JSON.stringify(jaNotificados));
 
         const lista = document.getElementById("lista-notificacoes");
         if (lista) {
@@ -3000,6 +3098,19 @@
         console.error("Erro ao carregar notificações:", e);
       }
     }
+
+    // Monitoramento de visibilidade e checagem periódica a cada 20 segundos
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible' && alunoToken) {
+        carregarNotificacoes();
+      }
+    });
+
+    setInterval(() => {
+      if (alunoToken) {
+        carregarNotificacoes();
+      }
+    }, 20000);
 
     async function marcarAvisoLido(comunicadoId) {
       try {

@@ -2018,6 +2018,18 @@ def api_admin_publicar_comunicado(comunicado_id: int):
         raise HTTPException(status_code=404, detail="Comunicado não encontrado.")
     return {"sucesso": True, "mensagem": "Comunicado publicado!"}
 
+@app.post("/api/admin/comunicados/{comunicado_id}/whatsapp-enviado/{aluno_id}")
+def api_admin_marcar_whatsapp_enviado(comunicado_id: int, aluno_id: int):
+    ok = db.marcar_comunicado_whatsapp_enviado(comunicado_id, aluno_id)
+    if not ok:
+        raise HTTPException(status_code=404, detail="Comunicado não encontrado.")
+    return {"sucesso": True, "mensagem": "WhatsApp registrado como enviado."}
+
+@app.get("/api/admin/comunicados/{comunicado_id}/whatsapp-enviados")
+def api_admin_obter_whatsapp_enviados(comunicado_id: int):
+    enviados = db.obter_comunicado_whatsapp_enviados(comunicado_id)
+    return {"sucesso": True, "enviados": enviados}
+
 @app.get("/api/aluno/comunicados")
 def api_aluno_listar_comunicados(request: Request):
     aluno_id = obter_aluno_autenticado(request)

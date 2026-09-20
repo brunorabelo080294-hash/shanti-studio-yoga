@@ -262,6 +262,7 @@ def init_db():
             enviar_whatsapp INTEGER DEFAULT 0,
             status TEXT NOT NULL DEFAULT 'rascunho',
             lido_por TEXT DEFAULT '[]',
+            whatsapp_enviados TEXT DEFAULT '[]',
             criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
@@ -275,6 +276,7 @@ def init_db():
         ALTER TABLE alunos ADD COLUMN IF NOT EXISTS device_token TEXT;
         ALTER TABLE biblioteca_conteudos ADD COLUMN IF NOT EXISTS url_capa TEXT;
         ALTER TABLE biblioteca_conteudos ADD COLUMN IF NOT EXISTS duracao_minutos INTEGER DEFAULT 0;
+        ALTER TABLE comunicados ADD COLUMN IF NOT EXISTS whatsapp_enviados TEXT DEFAULT '[]';
         """)
         conn.commit()
         conn.close()
@@ -602,6 +604,11 @@ def init_db():
     except sqlite3.OperationalError:
         pass
 
+    try:
+        cursor.execute("ALTER TABLE comunicados ADD COLUMN whatsapp_enviados TEXT DEFAULT '[]'")
+    except sqlite3.OperationalError:
+        pass
+
     # Tabela de Comunicados
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS comunicados (
@@ -616,6 +623,7 @@ def init_db():
         enviar_whatsapp INTEGER DEFAULT 0,
         status TEXT NOT NULL DEFAULT 'rascunho',
         lido_por TEXT DEFAULT '[]',
+        whatsapp_enviados TEXT DEFAULT '[]',
         criado_em TEXT DEFAULT (datetime('now', 'localtime')),
         atualizado_em TEXT DEFAULT (datetime('now', 'localtime'))
     )
@@ -4532,6 +4540,35 @@ def obter_comunicados_nao_lidos(aluno_id: int) -> List[Dict[str, Any]]:
 def obter_comunicados_popup(aluno_id: int) -> List[Dict[str, Any]]:
     nao_lidos = obter_comunicados_nao_lidos(aluno_id)
     return [c for c in nao_lidos if c.get("exibir_popup_app") == 1]
+
+def marcar_comunicado_whatsapp_enviado(comunicado_id: int, aluno_id: int) -> bool:
+    comunicado = obter_comunicado(comunicado_id)
+    if not comunicado:
+        return False
+    
+    try:
+        enviados = json.loads(comunicado.get("whatsapp_enviados") or "[]")
+    except (json.JSONDecodeError, TypeError):
+        enviados = []
+        
+    if aluno_id not in enviados:
+        enviados.append(aluno_id)
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute("UPDATE comunicados SET whatsapp_enviados = ? WHERE id = ?", (json.dumps(enviados), comunicado_id))
+        conn.commit()
+        conn.close()
+    
+    return True
+
+def obter_comunicado_whatsapp_enviados(comunicado_id: int) -> List[int]:
+    comunicado = obter_comunicado(comunicado_id)
+    if not comunicado:
+        return []
+    try:
+        return json.loads(comunicado.get("whatsapp_enviados") or "[]")
+    except (json.JSONDecodeError, TypeError):
+        return []
 
 # --- Device Token ---
 

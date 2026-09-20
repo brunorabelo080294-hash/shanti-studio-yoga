@@ -2871,6 +2871,16 @@
         Toque no botão de cada aluno abaixo para abrir o WhatsApp com a mensagem personalizada pronta para envio:
       </p>
 
+      <!-- Filtro por Turma -->
+      <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 12px; background: var(--shanti-sand-light); padding: 8px 12px; border-radius: 10px; border: 1px solid var(--shanti-sand-border);">
+        <label for="filtro-wa-turma" style="font-size: 13px; font-weight: 700; color: var(--shanti-charcoal); white-space: nowrap;">
+          <i class="fa-solid fa-users"></i> Turma:
+        </label>
+        <select id="filtro-wa-turma" class="wa-form-control" style="flex: 1; font-size: 13.5px; font-weight: 600; border-radius: 8px; border: 1px solid var(--shanti-sand-border); padding: 6px 10px; background: #fff; color: var(--shanti-charcoal);" onchange="filtrarWaLinksPorTurma()">
+          <option value="todas">👥 Todas as Turmas</option>
+        </select>
+      </div>
+
       <div id="lista-wa-links-comunicado" style="display: flex; flex-direction: column; gap: 8px; max-height: 420px; overflow-y: auto; padding-right: 2px;">
         <!-- Links injetados via JS -->
       </div>
