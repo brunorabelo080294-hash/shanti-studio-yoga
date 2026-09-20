@@ -3010,11 +3010,11 @@
           return;
         }
 
-        // 1. Garante que o Service Worker e o PushManager com VAPID estão ativos
+        // 1. Garante que o Service Worker e o PushManager com VAPID estão ativos com token renovado
         let swReg = null;
         if ('serviceWorker' in navigator) {
           swReg = await navigator.serviceWorker.ready;
-          await registrarPushNotifications(swReg);
+          await registrarPushNotifications(swReg, true);
         }
 
         // 2. Dispara notificação de teste agendada no servidor (delay de 4 segundos)
@@ -3027,32 +3027,19 @@
           if (data.sucesso) {
             showToast("⏱️ Feche o app ou bloqueie a tela agora! A notificação chegará em 4 segundos...");
             return;
+          } else {
+            showToast("⚠️ " + (data.detail || data.mensagem || "Falha ao agendar teste."));
+            return;
           }
         } catch (e) {
           console.log("Falha no teste de push do servidor:", e);
+          showToast("Falha na conexão com o servidor para envio de push.");
         }
-
-        // Fallback local se o servidor não puder disparar
-        const options = {
-          body: "Notificação de teste! Suas notificações do Studio Shanti estão ativas e funcionando no seu celular.",
-          icon: "/favicon.ico",
-          badge: "/favicon.ico",
-          tag: "teste-shanti-" + Date.now(),
-          vibrate: [200, 100, 200],
-          data: { url: "/aluno/" }
-        };
-
-        if (swReg && swReg.showNotification) {
-          await swReg.showNotification("Studio Shanti 🧘‍♀️", options);
-        } else {
-          new Notification("Studio Shanti 🧘‍♀️", options);
-        }
-        showToast("Notificação enviada! Olhe a barra de notificações 📲");
-
       } catch (e) {
         console.log("Erro teste notif:", e);
         showToast("Erro ao emitir notificação de teste.");
       }
+
     }
 
     // Carrega Comunicados e Atualiza o Badge de Notificações
@@ -4074,7 +4061,7 @@
     }
 
     // Registro Real de Web Push no Dispositivo do Aluno via VAPID / FCM
-    async function registrarPushNotifications(swRegistration) {
+    async function registrarPushNotifications(swRegistration, forcarRenovacao = false) {
       if (!('Notification' in window)) return;
       if (!alunoToken) return;
 
@@ -4091,8 +4078,22 @@
           const { publicKey } = await resVapid.json();
           if (!publicKey) return;
 
-          // 2. Inscreve o navegador no serviço Push do sistema operacional (Google FCM)
+          // 2. Verifica se a inscrição existente precisa ser renovada (VAPID v41 ou legado /fcm/send/)
           let subscription = await swRegistration.pushManager.getSubscription();
+          const versaoPush = localStorage.getItem("shanti_push_version");
+          const isLegado = subscription && subscription.endpoint && subscription.endpoint.includes("/fcm/send/");
+          const precisaRenovar = forcarRenovacao || versaoPush !== "v41_vapid" || isLegado;
+
+          if (subscription && precisaRenovar) {
+            try {
+              console.log("Renovando inscrição Web Push para versão VAPID v41...");
+              await subscription.unsubscribe();
+              subscription = null;
+            } catch (unsubErr) {
+              console.warn("Erro ao desinscrever subscription antiga:", unsubErr);
+            }
+          }
+
           try {
             if (!subscription) {
               subscription = await swRegistration.pushManager.subscribe({
@@ -4101,7 +4102,7 @@
               });
             }
           } catch (subErr) {
-            console.log("Renovando inscrição VAPID:", subErr);
+            console.log("Falha ao criar subscription, tentando desinscrever e recriar:", subErr);
             if (subscription) {
               try { await subscription.unsubscribe(); } catch(e) {}
             }
@@ -4113,16 +4114,21 @@
 
           if (subscription) {
             // 3. Salva a subscrição criptografada completa no backend para envios em segundo plano
-            await fetch('/api/aluno/device-token', {
+            const resp = await fetch('/api/aluno/device-token', {
               method: 'POST',
               headers: getAuthHeaders(),
               body: JSON.stringify({ token: JSON.stringify(subscription) })
             });
+            if (resp.ok) {
+              localStorage.setItem("shanti_push_version", "v41_vapid");
+            }
+            return subscription;
           }
         }
       } catch (err) {
         console.log("Erro no registro Web Push VAPID:", err);
       }
+      return null;
     }
 
     // Service Worker PWA Exclusivo do Aluno (/aluno/)
@@ -4139,7 +4145,7 @@
           });
 
           // Registra o Service Worker exclusivo do Aluno com escopo /aluno/
-          navigator.serviceWorker.register("/service-worker-aluno.js", { scope: "/aluno/" }).then(async reg => {
+          navigator.serviceWorker.register("/service-worker-aluno.js?v=41", { scope: "/aluno/" }).then(async reg => {
             await reg.update();
             if (alunoToken) {
               await registrarPushNotifications(reg);
@@ -4148,6 +4154,7 @@
             console.log("SW Aluno reg:", e);
           });
         };
+
 
         if (document.readyState === 'complete' || document.readyState === 'interactive') {
           iniciarReg();

@@ -62,7 +62,16 @@ def enviar_push_para_subscription(subscription_data: Any, payload: Dict[str, Any
         return True
     except WebPushException as ex:
         logger.warning(f"Falha ao enviar Web Push: {ex}")
+        status = getattr(getattr(ex, 'response', None), 'status_code', None)
+        if status in (404, 410) or "unsubscribed or expired" in str(ex):
+            try:
+                from backend import database as db
+                db.limpar_device_token_expirado(sub_info)
+                logger.info("Token expirado removido automaticamente do banco de dados.")
+            except Exception as e_clean:
+                logger.error(f"Erro ao remover token expirado: {e_clean}")
         return False
     except Exception as e:
         logger.error(f"Erro inesperado no Web Push: {e}")
         return False
+

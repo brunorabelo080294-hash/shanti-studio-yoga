@@ -1,5 +1,5 @@
 // Service Worker Exclusivo - Shanti Studio Aluno (/aluno/)
-const CACHE_NAME = 'shanti-aluno-pwa-v39';
+const CACHE_NAME = 'shanti-aluno-pwa-v41';
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();

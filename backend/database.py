@@ -4581,6 +4581,31 @@ def salvar_device_token(aluno_id: int, token: str) -> bool:
     conn.close()
     return afetados > 0
 
+def limpar_device_token_expirado(token_data: Any):
+    try:
+        endpoint = None
+        if isinstance(token_data, dict):
+            endpoint = token_data.get("endpoint")
+        elif isinstance(token_data, str):
+            try:
+                d = json.loads(token_data)
+                if isinstance(d, dict):
+                    endpoint = d.get("endpoint")
+            except Exception:
+                pass
+
+        conn = get_connection()
+        cursor = conn.cursor()
+        if endpoint:
+            cursor.execute("UPDATE alunos SET device_token = NULL WHERE device_token LIKE ?", (f"%{endpoint}%",))
+        else:
+            cursor.execute("UPDATE alunos SET device_token = NULL WHERE device_token = ?", (str(token_data),))
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        logger.error(f"Erro ao limpar device_token expirado: {e}")
+
+
 def obter_device_token_aluno(aluno_id: int) -> Optional[str]:
     conn = get_connection()
     cursor = conn.cursor()
