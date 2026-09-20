@@ -2994,7 +2994,7 @@
       }
     }
 
-    // Teste imediato de notificação no celular
+    // Teste imediato de notificação no celular (inclusive com app fechado via Servidor)
     async function testarNotificacaoCelular() {
       if (!('Notification' in window)) {
         showToast("Seu dispositivo não suporta notificações web.");
@@ -3005,30 +3005,50 @@
         if (perm !== 'granted') {
           perm = await Notification.requestPermission();
         }
-        if (perm === 'granted') {
-          const options = {
-            body: "Notificação de teste! Suas notificações do Studio Shanti estão ativas e funcionando perfeitamente no seu celular.",
-            icon: "/favicon.ico",
-            badge: "/favicon.ico",
-            tag: "teste-shanti-" + Date.now(),
-            vibrate: [200, 100, 200],
-            data: { url: "/aluno/" }
-          };
-
-          if ('serviceWorker' in navigator) {
-            const reg = await navigator.serviceWorker.ready;
-            if (reg && reg.showNotification) {
-              await reg.showNotification("Studio Shanti 🧘‍♀️", options);
-            } else {
-              new Notification("Studio Shanti 🧘‍♀️", options);
-            }
-          } else {
-            new Notification("Studio Shanti 🧘‍♀️", options);
-          }
-          showToast("Notificação enviada! Olhe a barra de notificações do celular 📲");
-        } else {
+        if (perm !== 'granted') {
           showToast("Permissão de notificação não concedida nas configurações.");
+          return;
         }
+
+        // 1. Garante que o Service Worker e o PushManager com VAPID estão ativos
+        let swReg = null;
+        if ('serviceWorker' in navigator) {
+          swReg = await navigator.serviceWorker.ready;
+          await registrarPushNotifications(swReg);
+        }
+
+        // 2. Dispara notificação de teste agendada no servidor (delay de 4 segundos)
+        try {
+          const resp = await fetch('/api/aluno/testar-push-servidor?delay=4', {
+            method: 'POST',
+            headers: getAuthHeaders()
+          });
+          const data = await resp.json();
+          if (data.sucesso) {
+            showToast("⏱️ Feche o app ou bloqueie a tela agora! A notificação chegará em 4 segundos...");
+            return;
+          }
+        } catch (e) {
+          console.log("Falha no teste de push do servidor:", e);
+        }
+
+        // Fallback local se o servidor não puder disparar
+        const options = {
+          body: "Notificação de teste! Suas notificações do Studio Shanti estão ativas e funcionando no seu celular.",
+          icon: "/favicon.ico",
+          badge: "/favicon.ico",
+          tag: "teste-shanti-" + Date.now(),
+          vibrate: [200, 100, 200],
+          data: { url: "/aluno/" }
+        };
+
+        if (swReg && swReg.showNotification) {
+          await swReg.showNotification("Studio Shanti 🧘‍♀️", options);
+        } else {
+          new Notification("Studio Shanti 🧘‍♀️", options);
+        }
+        showToast("Notificação enviada! Olhe a barra de notificações 📲");
+
       } catch (e) {
         console.log("Erro teste notif:", e);
         showToast("Erro ao emitir notificação de teste.");
@@ -4041,7 +4061,19 @@
       window.history.replaceState({}, '', '/aluno/' + window.location.search);
     }
 
-    // Registro de Notificações Push no Dispositivo do Aluno
+    // Converte chave pública VAPID em Uint8Array para o PushManager
+    function urlB64ToUint8Array(base64String) {
+      const padding = '='.repeat((4 - base64String.length % 4) % 4);
+      const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
+      const rawData = window.atob(base64);
+      const outputArray = new Uint8Array(rawData.length);
+      for (let i = 0; i < rawData.length; ++i) {
+        outputArray[i] = rawData.charCodeAt(i);
+      }
+      return outputArray;
+    }
+
+    // Registro Real de Web Push no Dispositivo do Aluno via VAPID / FCM
     async function registrarPushNotifications(swRegistration) {
       if (!('Notification' in window)) return;
       if (!alunoToken) return;
@@ -4052,24 +4084,33 @@
           permission = await Notification.requestPermission();
         }
 
-        if (permission === 'granted') {
-          let subscription = null;
-          if (swRegistration && swRegistration.pushManager) {
-            subscription = await swRegistration.pushManager.getSubscription();
+        if (permission === 'granted' && swRegistration && swRegistration.pushManager) {
+          // 1. Busca chave pública VAPID oficial do servidor
+          const resVapid = await fetch('/api/push/vapid-public-key');
+          if (!resVapid.ok) return;
+          const { publicKey } = await resVapid.json();
+          if (!publicKey) return;
+
+          // 2. Inscreve o navegador no serviço Push do sistema operacional (Google FCM)
+          let subscription = await swRegistration.pushManager.getSubscription();
+          if (!subscription) {
+            subscription = await swRegistration.pushManager.subscribe({
+              userVisibleOnly: true,
+              applicationServerKey: urlB64ToUint8Array(publicKey)
+            });
           }
 
-          const tokenStr = subscription 
-            ? JSON.stringify(subscription) 
-            : `web-push-granted-${alunoDados ? alunoDados.id : 'anon'}-${Date.now()}`;
-
-          await fetch('/api/aluno/device-token', {
-            method: 'POST',
-            headers: getAuthHeaders(),
-            body: JSON.stringify({ token: tokenStr })
-          });
+          if (subscription) {
+            // 3. Salva a subscrição criptografada completa no backend para envios em segundo plano
+            await fetch('/api/aluno/device-token', {
+              method: 'POST',
+              headers: getAuthHeaders(),
+              body: JSON.stringify({ token: JSON.stringify(subscription) })
+            });
+          }
         }
       } catch (err) {
-        console.log("Registro Push:", err);
+        console.log("Erro no registro Web Push VAPID:", err);
       }
     }
 

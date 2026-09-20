@@ -13,7 +13,7 @@ import hmac
 import hashlib
 import base64
 from typing import Optional, Dict, Any, List
-from fastapi import FastAPI, HTTPException, UploadFile, File, Form, Response, Request
+from fastapi import FastAPI, HTTPException, UploadFile, File, Form, Response, Request, BackgroundTasks
 from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
@@ -27,6 +27,7 @@ import backend.pdf_service as pdf_service
 import backend.contract_service as contract_service
 import backend.autentique_service as autentique_service
 import backend.backup_service as backup_service
+import backend.webpush_service as webpush_service
 
 app = FastAPI(title="Yoga Studio - WhatsApp AI Assistant")
 backup_service.iniciar_agendador_background(app)
@@ -2011,12 +2012,47 @@ def api_admin_excluir_comunicado(comunicado_id: int):
         raise HTTPException(status_code=404, detail="Comunicado não encontrado.")
     return {"sucesso": True, "mensagem": "Comunicado excluído!"}
 
+def disparar_push_comunicado(comunicado_id: int):
+    com = db.obter_comunicado(comunicado_id)
+    if not com:
+        return
+    publico = com.get("publico_alvo", "todos")
+    alunos = db.obter_alunos_com_device_token(publico)
+    payload = {
+        "title": f"Studio Shanti: {com.get('titulo', 'Novo Aviso')}",
+        "body": com.get("mensagem", ""),
+        "icon": "/favicon.ico",
+        "badge": "/favicon.ico",
+        "url": "/aluno/",
+        "tag": f"shanti-comunicado-{com['id']}"
+    }
+    for a in alunos:
+        token = a.get("device_token")
+        if token:
+            webpush_service.enviar_push_para_subscription(token, payload)
+
+def enviar_push_com_delay(token: str, payload: Dict[str, Any], delay_segundos: int):
+    if delay_segundos > 0:
+        time.sleep(delay_segundos)
+    webpush_service.enviar_push_para_subscription(token, payload)
+
 @app.post("/api/admin/comunicados/{comunicado_id}/publicar")
-def api_admin_publicar_comunicado(comunicado_id: int):
+def api_admin_publicar_comunicado(comunicado_id: int, background_tasks: BackgroundTasks):
     ok = db.atualizar_comunicado(comunicado_id, {"status": "publicado"})
     if not ok:
         raise HTTPException(status_code=404, detail="Comunicado não encontrado.")
+    com = db.obter_comunicado(comunicado_id)
+    if com and com.get("enviar_push_notification"):
+        background_tasks.add_task(disparar_push_comunicado, comunicado_id)
     return {"sucesso": True, "mensagem": "Comunicado publicado!"}
+
+@app.post("/api/admin/comunicados/{comunicado_id}/disparar-push")
+def api_admin_disparar_push(comunicado_id: int, background_tasks: BackgroundTasks):
+    com = db.obter_comunicado(comunicado_id)
+    if not com:
+        raise HTTPException(status_code=404, detail="Comunicado não encontrado.")
+    background_tasks.add_task(disparar_push_comunicado, comunicado_id)
+    return {"sucesso": True, "mensagem": "Disparo de Push iniciado em segundo plano."}
 
 @app.post("/api/admin/comunicados/{comunicado_id}/whatsapp-enviado/{aluno_id}")
 def api_admin_marcar_whatsapp_enviado(comunicado_id: int, aluno_id: int):
@@ -2029,6 +2065,31 @@ def api_admin_marcar_whatsapp_enviado(comunicado_id: int, aluno_id: int):
 def api_admin_obter_whatsapp_enviados(comunicado_id: int):
     enviados = db.obter_comunicado_whatsapp_enviados(comunicado_id)
     return {"sucesso": True, "enviados": enviados}
+
+@app.get("/api/push/vapid-public-key")
+def api_obter_vapid_public_key():
+    return {"publicKey": webpush_service.VAPID_PUBLIC_KEY}
+
+@app.post("/api/aluno/testar-push-servidor")
+def api_aluno_testar_push_servidor(request: Request, background_tasks: BackgroundTasks, delay: int = 4):
+    aluno_id = obter_aluno_autenticado(request)
+    token = db.obter_device_token_aluno(aluno_id)
+    if not token:
+        raise HTTPException(status_code=400, detail="Dispositivo não registrado para push no servidor.")
+    
+    payload = {
+        "title": "Studio Shanti 🧘‍♀️",
+        "body": "Notificação real enviada pelo servidor! Chegou com o app fechado no seu celular! ✨",
+        "icon": "/favicon.ico",
+        "badge": "/favicon.ico",
+        "url": "/aluno/",
+        "tag": f"teste-servidor-{int(time.time())}"
+    }
+    background_tasks.add_task(enviar_push_com_delay, token, payload, delay)
+    return {
+        "sucesso": True,
+        "mensagem": f"Notificação agendada! Feche o app ou bloqueie a tela agora. Ela chegará em {delay} segundos! ⏱️"
+    }
 
 @app.get("/api/aluno/comunicados")
 def api_aluno_listar_comunicados(request: Request):

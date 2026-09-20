@@ -4581,5 +4581,28 @@ def salvar_device_token(aluno_id: int, token: str) -> bool:
     conn.close()
     return afetados > 0
 
+def obter_device_token_aluno(aluno_id: int) -> Optional[str]:
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT device_token FROM alunos WHERE id = ?", (aluno_id,))
+    row = cursor.fetchone()
+    conn.close()
+    if row and row["device_token"]:
+        return row["device_token"]
+    return None
+
+def obter_alunos_com_device_token(publico_alvo: str = "todos") -> List[Dict[str, Any]]:
+    conn = get_connection()
+    cursor = conn.cursor()
+    if publico_alvo == "ativos":
+        cursor.execute("SELECT id, nome, device_token FROM alunos WHERE status IN ('ativo', 'matriculado') AND device_token IS NOT NULL AND device_token != ''")
+    elif publico_alvo == "inadimplentes":
+        cursor.execute("SELECT id, nome, device_token FROM alunos WHERE status = 'inadimplente' AND device_token IS NOT NULL AND device_token != ''")
+    else:
+        cursor.execute("SELECT id, nome, device_token FROM alunos WHERE device_token IS NOT NULL AND device_token != ''")
+    rows = cursor.fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
 # Inicializar ao importar
 init_db()
