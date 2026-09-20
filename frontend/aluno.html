@@ -4093,7 +4093,18 @@
 
           // 2. Inscreve o navegador no serviço Push do sistema operacional (Google FCM)
           let subscription = await swRegistration.pushManager.getSubscription();
-          if (!subscription) {
+          try {
+            if (!subscription) {
+              subscription = await swRegistration.pushManager.subscribe({
+                userVisibleOnly: true,
+                applicationServerKey: urlB64ToUint8Array(publicKey)
+              });
+            }
+          } catch (subErr) {
+            console.log("Renovando inscrição VAPID:", subErr);
+            if (subscription) {
+              try { await subscription.unsubscribe(); } catch(e) {}
+            }
             subscription = await swRegistration.pushManager.subscribe({
               userVisibleOnly: true,
               applicationServerKey: urlB64ToUint8Array(publicKey)
@@ -4117,7 +4128,7 @@
     // Service Worker PWA Exclusivo do Aluno (/aluno/)
     function registrarServiceWorker() {
       if ("serviceWorker" in navigator) {
-        window.addEventListener("load", () => {
+        const iniciarReg = () => {
           // Limpa registros antigos com escopo raiz '/' se existirem
           navigator.serviceWorker.getRegistrations().then(regs => {
             for (let r of regs) {
@@ -4128,15 +4139,21 @@
           });
 
           // Registra o Service Worker exclusivo do Aluno com escopo /aluno/
-          navigator.serviceWorker.register("/service-worker-aluno.js", { scope: "/aluno/" }).then(reg => {
-            reg.update();
+          navigator.serviceWorker.register("/service-worker-aluno.js", { scope: "/aluno/" }).then(async reg => {
+            await reg.update();
             if (alunoToken) {
-              registrarPushNotifications(reg);
+              await registrarPushNotifications(reg);
             }
           }).catch(e => {
             console.log("SW Aluno reg:", e);
           });
-        });
+        };
+
+        if (document.readyState === 'complete' || document.readyState === 'interactive') {
+          iniciarReg();
+        } else {
+          window.addEventListener("load", iniciarReg);
+        }
       }
     }
   </script>
