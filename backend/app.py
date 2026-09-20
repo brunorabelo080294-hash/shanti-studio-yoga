@@ -252,6 +252,8 @@ class ConteudoBibliotecaCreate(BaseModel):
     arquivo_nome: Optional[str] = None
     arquivo_tipo: Optional[str] = None
     tamanho_bytes: Optional[int] = 0
+    url_capa: Optional[str] = None
+    duracao_minutos: Optional[int] = 0
     status: Optional[str] = "publicado"
 
 class ConteudoBibliotecaUpdate(BaseModel):
@@ -263,6 +265,30 @@ class ConteudoBibliotecaUpdate(BaseModel):
     arquivo_nome: Optional[str] = None
     arquivo_tipo: Optional[str] = None
     tamanho_bytes: Optional[int] = None
+    url_capa: Optional[str] = None
+    duracao_minutos: Optional[int] = None
+    status: Optional[str] = None
+
+class ComunicadoCreate(BaseModel):
+    titulo: str
+    mensagem: str
+    imagem_banner: Optional[str] = None
+    tipo: Optional[str] = 'aviso'
+    publico_alvo: Optional[str] = 'todos'
+    exibir_popup_app: Optional[bool] = False
+    enviar_push_notification: Optional[bool] = False
+    enviar_whatsapp: Optional[bool] = False
+    status: Optional[str] = 'rascunho'
+
+class ComunicadoUpdate(BaseModel):
+    titulo: Optional[str] = None
+    mensagem: Optional[str] = None
+    imagem_banner: Optional[str] = None
+    tipo: Optional[str] = None
+    publico_alvo: Optional[str] = None
+    exibir_popup_app: Optional[bool] = None
+    enviar_push_notification: Optional[bool] = None
+    enviar_whatsapp: Optional[bool] = None
     status: Optional[str] = None
 
 class GerarSenhaTemporariaRequest(BaseModel):
@@ -1791,6 +1817,8 @@ async def api_admin_upload_arquivo_biblioteca(
     subtitulo: Optional[str] = Form(""),
     tipo: Optional[str] = Form("pdf"),
     conteudo: Optional[str] = Form(""),
+    url_capa: Optional[str] = Form(None),
+    duracao_minutos: Optional[int] = Form(0),
     status: Optional[str] = Form("publicado")
 ):
     upload_dir = os.path.join(FRONTEND_DIR, "uploads", "biblioteca")
@@ -1815,6 +1843,8 @@ async def api_admin_upload_arquivo_biblioteca(
         "arquivo_nome": arquivo.filename,
         "arquivo_tipo": arquivo.content_type,
         "tamanho_bytes": len(conteudo_bytes),
+        "url_capa": url_capa,
+        "duracao_minutos": duracao_minutos or 0,
         "status": status or "publicado"
     }
     cid = db.salvar_conteudo_biblioteca(dados_conteudo)
@@ -1953,6 +1983,68 @@ def api_admin_excluir_acesso_aluno(aluno_id: int):
     if not res.get("sucesso"):
         raise HTTPException(status_code=404, detail=res.get("mensagem", "Aluno não encontrado."))
     return res
+
+# ==============================================================================
+# --- COMUNICADOS (ADMIN E ALUNO) ---
+# ==============================================================================
+
+@app.get("/api/admin/comunicados")
+def api_admin_listar_comunicados():
+    return db.listar_comunicados()
+
+@app.post("/api/admin/comunicados")
+def api_admin_criar_comunicado(dados: ComunicadoCreate):
+    cid = db.criar_comunicado(dados.model_dump())
+    return {"sucesso": True, "id": cid, "mensagem": "Comunicado criado com sucesso!"}
+
+@app.put("/api/admin/comunicados/{comunicado_id}")
+def api_admin_atualizar_comunicado(comunicado_id: int, dados: ComunicadoUpdate):
+    ok = db.atualizar_comunicado(comunicado_id, dados.model_dump(exclude_unset=True))
+    if not ok:
+        raise HTTPException(status_code=404, detail="Comunicado não encontrado.")
+    return {"sucesso": True, "mensagem": "Comunicado atualizado!"}
+
+@app.delete("/api/admin/comunicados/{comunicado_id}")
+def api_admin_excluir_comunicado(comunicado_id: int):
+    ok = db.excluir_comunicado(comunicado_id)
+    if not ok:
+        raise HTTPException(status_code=404, detail="Comunicado não encontrado.")
+    return {"sucesso": True, "mensagem": "Comunicado excluído!"}
+
+@app.post("/api/admin/comunicados/{comunicado_id}/publicar")
+def api_admin_publicar_comunicado(comunicado_id: int):
+    ok = db.atualizar_comunicado(comunicado_id, {"status": "publicado"})
+    if not ok:
+        raise HTTPException(status_code=404, detail="Comunicado não encontrado.")
+    return {"sucesso": True, "mensagem": "Comunicado publicado!"}
+
+@app.get("/api/aluno/comunicados")
+def api_aluno_listar_comunicados(request: Request):
+    aluno_id = obter_aluno_autenticado(request)
+    return db.obter_comunicados_nao_lidos(aluno_id)
+
+@app.get("/api/aluno/comunicados/popup")
+def api_aluno_listar_comunicados_popup(request: Request):
+    aluno_id = obter_aluno_autenticado(request)
+    return db.obter_comunicados_popup(aluno_id)
+
+@app.post("/api/aluno/comunicados/{comunicado_id}/lido")
+def api_aluno_marcar_comunicado_lido(comunicado_id: int, request: Request):
+    aluno_id = obter_aluno_autenticado(request)
+    ok = db.marcar_comunicado_lido(comunicado_id, aluno_id)
+    if not ok:
+        raise HTTPException(status_code=404, detail="Comunicado não encontrado.")
+    return {"sucesso": True, "mensagem": "Marcado como lido."}
+
+class DeviceTokenRequest(BaseModel):
+    token: str
+
+@app.post("/api/aluno/device-token")
+def api_aluno_salvar_device_token(dados: DeviceTokenRequest, request: Request):
+    aluno_id = obter_aluno_autenticado(request)
+    ok = db.salvar_device_token(aluno_id, dados.token)
+    return {"sucesso": ok, "mensagem": "Token salvo." if ok else "Falha ao salvar."}
+
 
 # --- Montar Arquivos Estáticos do Frontend (PWA) ---
 

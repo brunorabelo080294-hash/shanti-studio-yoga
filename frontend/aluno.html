@@ -172,6 +172,25 @@
       background: rgba(255, 255, 255, 0.22);
     }
 
+    .notification-badge {
+      position: absolute;
+      top: -4px;
+      right: -4px;
+      min-width: 19px;
+      height: 19px;
+      background-color: var(--terracotta);
+      border-radius: 999px;
+      color: #FFFFFF;
+      font-size: 11px;
+      font-weight: 800;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 0 5px;
+      border: 2px solid #354231;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+    }
+
     .notification-dot {
       position: absolute;
       top: 9px;
@@ -183,37 +202,170 @@
       border: 2px solid #354231;
     }
 
+    /* --- STATUS CHIPS NO HEADER (MENSALIDADE & CONTRATO COMPACTOS) --- */
+    .status-chips-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 14px;
+      position: relative;
+      z-index: 2;
+      flex-wrap: wrap;
+    }
+
+    .status-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 14px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1.2;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+      cursor: pointer;
+      transition: transform 0.15s ease, opacity 0.15s ease;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    .status-chip:active {
+      transform: scale(0.96);
+    }
+
+    .status-chip.chip-em-dia {
+      background: rgba(79, 107, 69, 0.45);
+      color: #E8F5E9;
+      border: 1px solid rgba(165, 214, 167, 0.4);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+
+    .status-chip.chip-atrasado {
+      background: #B8674A;
+      color: #FFFFFF;
+      border: 1px solid rgba(255, 205, 210, 0.5);
+    }
+
+    .status-chip.chip-vigente {
+      background: rgba(184, 103, 74, 0.7);
+      color: #FFFFFF;
+      border: 1px solid rgba(244, 235, 230, 0.4);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+
+    .status-chip.chip-pendente {
+      background: rgba(217, 119, 6, 0.85);
+      color: #FFFFFF;
+      border: 1px solid rgba(254, 243, 199, 0.5);
+    }
+
+    /* --- SUA SEMANA VISUAL (D S T Q Q S S REDESIGN PROFISSIONAL) --- */
     .header-week-section {
-      margin-top: 22px;
+      margin-top: 18px;
       position: relative;
       z-index: 2;
     }
 
-    .header-week-title {
+    .week-card-box {
+      background: rgba(255, 255, 255, 0.10);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-radius: 20px;
+      padding: 16px 18px 14px 18px;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.10);
+    }
+
+    .week-header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .week-header-title {
       font-size: 15.5px;
       font-weight: 700;
-      color: rgba(255, 255, 255, 0.92);
-      margin-bottom: 6px;
-      letter-spacing: 0.01em;
+      color: #FFFFFF;
+      letter-spacing: -0.01em;
     }
 
-    .header-streak-row {
-      display: flex;
-      align-items: baseline;
-      gap: 8px;
-    }
-
-    .header-streak-num {
-      font-size: 38px;
+    .week-counter-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 13.5px;
       font-weight: 800;
       color: #FFFFFF;
-      line-height: 1;
+      background: rgba(255, 255, 255, 0.18);
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.22);
     }
 
-    .header-streak-text {
-      font-size: 15.5px;
-      font-weight: 600;
-      color: rgba(255, 255, 255, 0.95);
+    .week-days-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+
+    .week-day-col {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .week-day-letter {
+      font-size: 12.5px;
+      font-weight: 800;
+      color: rgba(255, 255, 255, 0.88);
+      text-transform: uppercase;
+    }
+
+    .week-day-circle {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      transition: all 0.2s ease;
+    }
+
+    .week-day-circle.circle-done {
+      background: #4F6B45;
+      color: #FFFFFF;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    }
+
+    .week-day-circle.circle-locked {
+      background: rgba(255, 255, 255, 0.12);
+      color: rgba(255, 255, 255, 0.45);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+    }
+
+    .week-day-circle.circle-today {
+      border: 2px solid #FFFFFF;
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+    }
+
+    .week-progress-track {
+      width: 100%;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.18);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .week-progress-fill {
+      height: 100%;
+      background: var(--terracotta);
+      border-radius: 999px;
+      transition: width 0.4s ease;
     }
 
     /* --- CONTEÚDO PRINCIPAL (INÍCIO) --- */
@@ -724,6 +876,264 @@
       font-weight: 700;
       color: #232D20;
       line-height: 1.35;
+    }
+
+    /* --- CARROSSEL MULTIMÍDIA DA BIBLIOTECA (VÍDEO / ÁUDIO / ARTIGO) --- */
+    .biblioteca-carousel {
+      display: flex;
+      gap: 14px;
+      overflow-x: auto;
+      padding: 4px 4px 14px 4px;
+      scroll-snap-type: x mandatory;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+
+    .biblioteca-carousel::-webkit-scrollbar {
+      display: none;
+    }
+
+    .biblioteca-media-card {
+      flex: 0 0 165px;
+      background: #FFFFFF;
+      border-radius: 18px;
+      border: 1.5px solid rgba(63, 78, 58, 0.10);
+      box-shadow: 0 6px 18px rgba(44, 56, 40, 0.06);
+      scroll-snap-align: start;
+      overflow: hidden;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s;
+    }
+
+    .biblioteca-media-card:active {
+      transform: scale(0.97);
+    }
+
+    .biblioteca-media-thumb {
+      width: 100%;
+      height: 110px;
+      background: #E8ECE5;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .biblioteca-media-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .biblioteca-play-overlay {
+      position: absolute;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: rgba(0, 0, 0, 0.45);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      color: #FFFFFF;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      padding-left: 2px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      transition: transform 0.2s;
+    }
+
+    .biblioteca-media-badge {
+      position: absolute;
+      bottom: 6px;
+      right: 6px;
+      background: rgba(0, 0, 0, 0.65);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      color: #FFFFFF;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 6px;
+      line-height: 1;
+    }
+
+    .biblioteca-media-info {
+      padding: 10px 12px 12px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .biblioteca-media-type-tag {
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--terracotta);
+    }
+
+    .biblioteca-media-title {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: #263321;
+      line-height: 1.25;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    /* --- POP-UP DE CAMPANHAS / COMUNICADOS --- */
+    .popup-campanha-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.65);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .popup-campanha-card {
+      background: #FFFFFF;
+      border-radius: 24px;
+      max-width: 360px;
+      width: 100%;
+      overflow: hidden;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+      position: relative;
+    }
+
+    .popup-campanha-close {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: rgba(0, 0, 0, 0.45);
+      color: #FFFFFF;
+      border: none;
+      font-size: 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 3;
+    }
+
+    .popup-campanha-banner {
+      width: 100%;
+      max-height: 180px;
+      object-fit: cover;
+      display: block;
+    }
+
+    .popup-campanha-body {
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .popup-campanha-titulo {
+      font-size: 18px;
+      font-weight: 800;
+      color: #263321;
+      line-height: 1.25;
+    }
+
+    .popup-campanha-mensagem {
+      font-size: 14px;
+      color: #4A5645;
+      line-height: 1.5;
+      white-space: pre-line;
+    }
+
+    .popup-campanha-btn {
+      width: 100%;
+      min-height: 48px;
+      background: #354231;
+      color: #FFFFFF;
+      border: none;
+      border-radius: 14px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    /* --- MODAL PLAYER MULTIMÍDIA --- */
+    .player-midia-content {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      padding: 10px 0 20px 0;
+    }
+
+    .player-video-wrapper {
+      width: 100%;
+      border-radius: 16px;
+      overflow: hidden;
+      background: #000;
+      aspect-ratio: 16 / 9;
+    }
+
+    .player-video-wrapper video,
+    .player-video-wrapper iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+
+    .player-audio-card {
+      background: #FAF7F2;
+      border-radius: 18px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      border: 1px solid rgba(63, 78, 58, 0.1);
+    }
+
+    .player-audio-cover {
+      width: 120px;
+      height: 120px;
+      border-radius: 18px;
+      background: var(--terracotta);
+      color: #FFFFFF;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 42px;
+      box-shadow: 0 8px 20px rgba(184, 103, 74, 0.3);
+      overflow: hidden;
+    }
+
+    .player-audio-cover img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .player-audio-card audio {
+      width: 100%;
+      border-radius: 10px;
     }
 
     /* --- BOTTOM NAVIGATION BAR CAPSULE STYLE --- */
@@ -1432,19 +1842,38 @@
         <div class="header-actions">
           <button class="icon-btn-header" id="btn-notificacoes" title="Notificações" onclick="abrirNotificacoes()">
             <i class="fa-regular fa-bell"></i>
-            <span class="notification-dot"></span>
+            <span class="notification-badge" id="notification-badge">0</span>
+            <span class="notification-dot" id="notification-dot" style="display: none;"></span>
           </button>
           <button class="icon-btn-header" id="btn-perfil" title="Meu Perfil" onclick="abrirPerfil()">
-            <i class="fa-regular fa-user"></i>
+            <i class="fa-solid fa-gear"></i>
           </button>
         </div>
       </div>
 
+      <!-- CHIPS COMPACTOS DE MENSALIDADE E CONTRATO (Mockup v2.0) -->
+      <div class="status-chips-row">
+        <span class="status-chip chip-em-dia" id="chip-mensalidade" onclick="aoClicarChipMensalidade()">
+          Mensalidade: Em Dia ✅
+        </span>
+        <span class="status-chip chip-vigente" id="chip-contrato" onclick="aoClicarChipContrato()">
+          Contrato: Vigente 🤝
+        </span>
+      </div>
+
+      <!-- SUA SEMANA (D S T Q Q S S - Mockup v2.0) -->
       <div class="header-week-section">
-        <div class="header-week-title">Sua semana</div>
-        <div class="header-streak-row">
-          <span class="header-streak-num" id="header-streak-num">1</span>
-          <span class="header-streak-text" id="header-streak-text">semana praticando</span>
+        <div class="week-card-box">
+          <div class="week-header-row">
+            <span class="week-header-title">Sua Semana</span>
+            <span class="week-counter-badge" id="week-counter">🧘 3/5</span>
+          </div>
+          <div class="week-days-grid" id="week-days-grid">
+            <!-- 7 dias D S T Q Q S S injetados via JS -->
+          </div>
+          <div class="week-progress-track">
+            <div class="week-progress-fill" id="week-progress-fill" style="width: 60%;"></div>
+          </div>
         </div>
       </div>
 
@@ -1461,7 +1890,7 @@
 
     <!-- 2. CONTEÚDO PRINCIPAL (COM AS 4 TELAS) -->
     
-    <!-- TAB 1: INÍCIO (Design exato aprovado em media_1789606846595.png) -->
+    <!-- TAB 1: INÍCIO (Design v2.0 Consolidado) -->
     <div id="screen-inicio" class="tab-screen active" style="padding: 0;">
       <div class="screen-content-pad">
         
@@ -1470,6 +1899,19 @@
           <h3 class="section-block-title">Próximas aulas</h3>
           <div class="aulas-horizontal-container" id="container-proximas-aulas">
             <!-- Cards injetados via JS com botões Confirmar / Desmarcar -->
+          </div>
+        </div>
+
+        <!-- SEÇÃO: BIBLIOTECA (CARROSSEL MULTIMÍDIA) -->
+        <div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <h3 class="section-block-title" style="margin-bottom: 0;">Biblioteca</h3>
+            <span style="font-size: 13.5px; font-weight: 700; color: #5D6858; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;" onclick="mudarAba('leituras')">
+              Ver tudo <i class="fa-solid fa-chevron-right" style="font-size: 11px;"></i>
+            </span>
+          </div>
+          <div class="biblioteca-carousel" id="biblioteca-carousel-inicio">
+            <!-- Cards multimídia injetados via JS -->
           </div>
         </div>
 
@@ -1485,50 +1927,6 @@
             <div class="conquista-badge-item badge-item-done"><i class="fa-solid fa-check"></i></div>
             <div class="conquista-badge-item badge-item-done"><i class="fa-solid fa-check"></i></div>
             <div class="conquista-badge-item badge-item-locked"><i class="fa-solid fa-lock"></i></div>
-          </div>
-        </div>
-
-        <!-- SEÇÃO: SITUAÇÃO FINANCEIRA (MENSALIDADE) -->
-        <div class="card-status-info" id="card-status-financeiro">
-          <div class="card-status-top">
-            <span class="card-status-category"><i class="fa-solid fa-wallet"></i> Mensalidade</span>
-            <span class="badge-status-pill pill-em-dia" id="fin-status-pill"><i class="fa-solid fa-circle-check"></i> Em dia</span>
-          </div>
-          <div class="card-status-detail" id="fin-status-detail">
-            Mensalidade em dia · Vencimento dia 10
-          </div>
-          <div id="fin-atraso-box" style="display: none;">
-            <p style="font-size: 14px; font-weight: 700; color: #9C4123; margin-top: 4px;">
-              Regularize via chave PIX do estúdio:
-            </p>
-            <div style="display: flex; gap: 8px; align-items: center; margin-top: 6px;">
-              <code style="background: #F4EBE6; padding: 8px 12px; border-radius: 8px; font-weight: 700; font-size: 14.5px; color: #263321; flex: 1;">329988887777</code>
-              <button onclick="copiarPixEstudio()" style="min-height: 44px; padding: 0 16px; background: #B8674A; color: #fff; border: none; border-radius: 8px; font-weight: 700; font-size: 14px; cursor: pointer;">Copiar</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- SEÇÃO: CONTRATO DE MATRÍCULA -->
-        <div class="card-status-info" id="card-status-contrato">
-          <div class="card-status-top">
-            <span class="card-status-category"><i class="fa-solid fa-file-contract"></i> Contrato</span>
-            <span class="badge-status-pill pill-em-dia" id="contrato-status-pill"><i class="fa-solid fa-circle-check"></i> Vigente ✓</span>
-          </div>
-          <div class="card-status-detail" id="contrato-status-detail">
-            Contrato de Matrícula assinado digitalmente e regularizado.
-          </div>
-          <button class="btn-assinar-contrato-aluno" id="btn-assinar-contrato" style="display: none;" onclick="abrirModalAssinarContrato()">
-            <i class="fa-solid fa-signature"></i> Assinar Contrato Digitalmente
-          </button>
-        </div>
-
-        <!-- SEÇÃO: NOVA LEITURA -->
-        <div class="card-nova-leitura" id="card-nova-leitura" onclick="abrirLeituraRecente()" title="Toque para ler">
-          <div class="nova-leitura-icon">
-            <i class="fa-solid fa-book-open"></i>
-          </div>
-          <div class="nova-leitura-title" id="nova-leitura-titulo">
-            Nova leitura: respiração consciente
           </div>
         </div>
 
@@ -1776,6 +2174,68 @@
             <strong>Boas-vindas ao App do Aluno! 🧘‍♀️</strong><br>
             <span style="color: var(--text-muted); font-size: 12px;">Acompanhe aqui sua frequência, conquistas e leituras.</span>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: DETALHES DA MENSALIDADE & CHAVE PIX -->
+    <div class="modal-overlay" id="modal-pix-mensalidade">
+      <div class="modal-sheet">
+        <div class="modal-sheet-handle"></div>
+        <div class="modal-header">
+          <h3 class="modal-title">Situação da Mensalidade</h3>
+          <button class="modal-close-btn" onclick="fecharModalPixMensalidade()">&times;</button>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 14px; font-size: 14px; padding: 4px 0 16px 0;">
+          <div style="background: var(--bg-warm); padding: 14px; border-radius: var(--radius-sm); border-left: 4px solid var(--forest-green);" id="box-info-mensalidade">
+            <strong id="modal-mensalidade-titulo" style="font-size: 15px; color: #263321;">Mensalidade em Dia</strong><br>
+            <span style="color: var(--text-muted); font-size: 13px;" id="modal-mensalidade-detalhe">Vencimento dia 10</span>
+          </div>
+
+          <div id="modal-pix-box" style="background: #FDF8F5; border: 1.5px solid rgba(184, 103, 74, 0.25); border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 10px;">
+            <div style="font-size: 13.5px; font-weight: 700; color: #263321; display: flex; align-items: center; gap: 6px;">
+              <i class="fa-solid fa-qrcode" style="color: #B8674A; font-size: 18px;"></i> Pagamento via PIX do Estúdio:
+            </div>
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <code style="background: #FFFFFF; padding: 10px 14px; border-radius: 10px; font-weight: 700; font-size: 14.5px; color: #263321; flex: 1; border: 1px solid rgba(63, 78, 58, 0.15); user-select: all;" id="modal-pix-chave">329988887777</code>
+              <button onclick="copiarPixEstudio()" style="min-height: 44px; padding: 0 18px; background: #B8674A; color: #fff; border: none; border-radius: 10px; font-weight: 700; font-size: 14px; cursor: pointer;">Copiar</button>
+            </div>
+            <p style="font-size: 12px; color: var(--text-muted); margin: 0;">
+              Após o pagamento, sua regularização é confirmada pela Natália.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: PLAYER MULTIMÍDIA (VÍDEO & ÁUDIO NATIVOS) -->
+    <div class="modal-overlay" id="modal-player-midia">
+      <div class="modal-sheet">
+        <div class="modal-sheet-handle"></div>
+        <div class="modal-header">
+          <h3 class="modal-title" id="player-midia-titulo">Aula da Biblioteca</h3>
+          <button class="modal-close-btn" onclick="fecharPlayerMidia()">&times;</button>
+        </div>
+        <div class="player-midia-content" id="player-midia-container">
+          <!-- Conteúdo do player injetado via JS -->
+        </div>
+      </div>
+    </div>
+
+    <!-- POP-UP DE CAMPANHAS / COMUNICADOS COM IMAGEM BANNER -->
+    <div class="popup-campanha-overlay" id="popup-campanha" style="display: none;">
+      <div class="popup-campanha-card">
+        <button class="popup-campanha-close" onclick="fecharPopupCampanha()">&times;</button>
+        <img class="popup-campanha-banner" id="popup-campanha-banner" src="" alt="Campanha" style="display: none;">
+        <div class="popup-campanha-body">
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <span class="aula-tag-pill tag-hoje" id="popup-campanha-tipo" style="font-size: 10.5px;">Aviso</span>
+          </div>
+          <h3 class="popup-campanha-titulo" id="popup-campanha-titulo">Título</h3>
+          <p class="popup-campanha-mensagem" id="popup-campanha-mensagem">Mensagem</p>
+          <button class="popup-campanha-btn" onclick="fecharPopupCampanha()">
+            <i class="fa-solid fa-check"></i> Entendi
+          </button>
         </div>
       </div>
     </div>
@@ -2088,7 +2548,7 @@
       }
     }
 
-    // 1. CARREGAR DASHBOARD (Design Aprovado em media_1789606846595.png)
+    // 1. CARREGAR DASHBOARD (Design v2.0 Consolidado)
     async function carregarDashboard() {
       try {
         const resp = await fetch("/api/aluno/dashboard", { headers: getAuthHeaders() });
@@ -2106,20 +2566,25 @@
         const elNome = document.getElementById("header-greeting-name");
         if (elNome) elNome.textContent = data.primeiro_nome || "Aluno";
 
-        // 2. Sua semana (Streak de Semanas Seguidas)
-        const elStreakNum = document.getElementById("header-streak-num");
-        if (elStreakNum) elStreakNum.textContent = data.streak_semanas || 1;
+        // 2. Chips Compactos no Header (Mensalidade e Contrato)
+        atualizarChipsStatus(data.situacao_financeira, data.contrato);
 
-        const elStreakTxt = document.getElementById("header-streak-text");
-        if (elStreakTxt) {
-          const s = data.streak_semanas || 1;
-          elStreakTxt.textContent = `${s === 1 ? 'semana praticando' : 'semanas seguidas praticando'}`;
+        // 3. Sua Semana Visual (D S T Q Q S S)
+        renderizarSemanaVisual(data.semana_atual);
+
+        // 4. Frase do Dia em Destaque na Área Verde
+        if (data.mensagem_dia) {
+          const elFrase = document.getElementById("frase-dia-texto");
+          if (elFrase) elFrase.textContent = `"${data.mensagem_dia}"`;
         }
 
-        // 3. Próximas Aulas (Carrossel Horizontal com Confirmar / Desmarcar)
+        // 5. Próximas Aulas (Carrossel Horizontal com Confirmar / Desmarcar)
         renderizarCardsProximasAulas(data.proximas_aulas || []);
 
-        // 4. Rumo à Próxima Conquista
+        // 6. Carrossel Multimídia da Biblioteca (Vídeo, Áudio, Artigos)
+        renderizarBibliotecaCarousel(data.biblioteca_destaques || []);
+
+        // 7. Rumo à Próxima Conquista
         if (data.conquistas) {
           const c = data.conquistas;
           const elConqLbl = document.getElementById("conquista-header-label");
@@ -2140,83 +2605,420 @@
           }
         }
 
-        // 5. Situação Financeira (Mensalidade)
-        if (data.situacao_financeira) {
-          const fin = data.situacao_financeira;
-          const pill = document.getElementById("fin-status-pill");
-          const det = document.getElementById("fin-status-detail");
-          const boxAtraso = document.getElementById("fin-atraso-box");
+        // 8. Verificar Pop-up de Campanhas/Comunicados
+        verificarPopupCampanha();
 
-          if (fin.status === "atrasado") {
-            if (pill) {
-              pill.className = "badge-status-pill pill-atrasado";
-              pill.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> Em atraso`;
-            }
-            if (det) {
-              det.innerHTML = `<strong style="color: #9C4123;">Mensalidade em atraso (${fin.dias_atraso} dias).</strong> Por favor, efetue o pagamento para manter sua matrícula regular.`;
-            }
-            if (boxAtraso) boxAtraso.style.display = "block";
-          } else {
-            if (pill) {
-              pill.className = "badge-status-pill pill-em-dia";
-              pill.innerHTML = `<i class="fa-solid fa-circle-check"></i> Em dia`;
-            }
-            if (det) {
-              det.textContent = `Mensalidade em dia · Vencimento dia ${fin.dia_vencimento || 10}`;
-            }
-            if (boxAtraso) boxAtraso.style.display = "none";
-          }
-        }
+        // 9. Atualizar Notificações e Badge
+        carregarNotificacoes();
 
-        // 6. Situação do Contrato
-        if (data.contrato) {
-          const cont = data.contrato;
-          const pill = document.getElementById("contrato-status-pill");
-          const det = document.getElementById("contrato-status-detail");
-          const btnAssinar = document.getElementById("btn-assinar-contrato");
-          const boxAut = document.getElementById("box-autentique-link");
-          const linkAut = document.getElementById("link-externo-autentique");
-
-          if (cont.status === "em_dia") {
-            if (pill) {
-              pill.className = "badge-status-pill pill-em-dia";
-              pill.innerHTML = `<i class="fa-solid fa-circle-check"></i> Vigente ✓`;
-            }
-            if (det) {
-              det.textContent = "Contrato de Matrícula assinado digitalmente e regularizado.";
-            }
-            if (btnAssinar) btnAssinar.style.display = "none";
-          } else {
-            if (pill) {
-              pill.className = "badge-status-pill pill-pendente-contrato";
-              pill.innerHTML = `<i class="fa-solid fa-pen-nib"></i> Pendente de Assinatura`;
-            }
-            if (det) {
-              det.innerHTML = `<strong style="color: #B35E1B;">Assinatura pendente:</strong> Finalize a assinatura para garantir sua vaga regular.`;
-            }
-            if (btnAssinar) btnAssinar.style.display = "flex";
-          }
-
-          if (cont.autentique_link && linkAut && boxAut) {
-            linkAut.href = cont.autentique_link;
-            boxAut.style.display = "block";
-          }
-        }
-
-        // 7. Frase do Dia
-        if (data.mensagem_dia) {
-          const elFrase = document.getElementById("frase-dia-texto");
-          if (elFrase) elFrase.textContent = `"${data.mensagem_dia}"`;
-        }
-
-        // 8. Nova Leitura Recente
-        if (data.leitura_recente) {
-          const elLeit = document.getElementById("nova-leitura-titulo");
-          if (elLeit) elLeit.textContent = `Nova leitura: ${data.leitura_recente.titulo}`;
+        // 10. Registrar Notificações Push
+        if ("serviceWorker" in navigator && navigator.serviceWorker.ready) {
+          navigator.serviceWorker.ready.then(reg => {
+            registrarPushNotifications(reg);
+          });
         }
 
       } catch (e) {
         console.error("Erro ao carregar dashboard:", e);
+      }
+    }
+
+    // Atualiza os Chips Compactos no Header
+    function atualizarChipsStatus(fin, cont) {
+      const chipMens = document.getElementById("chip-mensalidade");
+      const chipCont = document.getElementById("chip-contrato");
+
+      if (chipMens && fin) {
+        if (fin.status === "atrasado") {
+          chipMens.className = "status-chip chip-atrasado";
+          chipMens.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> Mensalidade: Em Atraso ⚠️`;
+        } else {
+          chipMens.className = "status-chip chip-em-dia";
+          chipMens.innerHTML = `Mensalidade: Em Dia ✅`;
+        }
+      }
+
+      if (chipCont && cont) {
+        if (cont.status === "em_dia") {
+          chipCont.className = "status-chip chip-vigente";
+          chipCont.innerHTML = `Contrato: Vigente 🤝`;
+        } else {
+          chipCont.className = "status-chip chip-pendente";
+          chipCont.innerHTML = `<i class="fa-solid fa-pen-nib"></i> Contrato: Pendente ✍️`;
+        }
+      }
+    }
+
+    // Clique no Chip de Mensalidade
+    function aoClicarChipMensalidade() {
+      const modal = document.getElementById("modal-pix-mensalidade");
+      if (!modal) return;
+      const fin = dashboardCache && dashboardCache.situacao_financeira;
+      const elTit = document.getElementById("modal-mensalidade-titulo");
+      const elDet = document.getElementById("modal-mensalidade-detalhe");
+      const boxInfo = document.getElementById("box-info-mensalidade");
+
+      if (fin && fin.status === "atrasado") {
+        if (elTit) elTit.innerHTML = `<span style="color: #9C4123;">Mensalidade em Atraso (${fin.dias_atraso} dias)</span>`;
+        if (elDet) elDet.textContent = "Regularize sua mensalidade via chave PIX para manter sua vaga e práticas ativas.";
+        if (boxInfo) boxInfo.style.borderLeftColor = "var(--terracotta)";
+      } else {
+        if (elTit) elTit.textContent = "Mensalidade em Dia ✅";
+        if (elDet) elDet.textContent = `Vencimento todo dia ${fin ? (fin.dia_vencimento || 10) : 10}. Práticas e presença 100% regulares.`;
+        if (boxInfo) boxInfo.style.borderLeftColor = "var(--forest-green)";
+      }
+      modal.classList.add("active");
+    }
+
+    function fecharModalPixMensalidade() {
+      const modal = document.getElementById("modal-pix-mensalidade");
+      if (modal) modal.classList.remove("active");
+    }
+
+    // Clique no Chip de Contrato
+    function aoClicarChipContrato() {
+      const cont = dashboardCache && dashboardCache.contrato;
+      if (cont && cont.status !== "em_dia") {
+        if (cont.autentique_link) {
+          window.open(cont.autentique_link, "_blank");
+        } else {
+          abrirModalAssinarContrato();
+        }
+      } else {
+        showToast("Contrato de Matrícula assinado digitalmente e 100% regularizado! 🤝");
+      }
+    }
+
+    // Renderiza o Tracker Semanal Visual (D S T Q Q S S)
+    function renderizarSemanaVisual(semana) {
+      const grid = document.getElementById("week-days-grid");
+      const counter = document.getElementById("week-counter");
+      const bar = document.getElementById("week-progress-fill");
+
+      if (!semana) {
+        semana = {
+          dias: [
+            { dia: "D", status: "passado", icone: "lock", concluida: false },
+            { dia: "S", status: "presente", icone: "check", concluida: true },
+            { dia: "T", status: "presente", icone: "check", concluida: true },
+            { dia: "Q", status: "presente", icone: "check", concluida: true },
+            { dia: "Q", status: "futuro", icone: "lock", concluida: false },
+            { dia: "S", status: "futuro", icone: "lock", concluida: false },
+            { dia: "S", status: "futuro", icone: "lock", concluida: false }
+          ],
+          progresso_str: "3/5",
+          progresso_pct: 60
+        };
+      }
+
+      if (counter) counter.innerHTML = `🧘 ${semana.progresso_str || '3/5'}`;
+      if (bar) bar.style.width = `${semana.progresso_pct || 60}%`;
+
+      if (grid && semana.dias) {
+        grid.innerHTML = semana.dias.map(d => {
+          const isDone = d.concluida;
+          const circleClass = isDone ? "circle-done" : "circle-locked";
+          const todayClass = d.hoje ? " circle-today" : "";
+          const icon = isDone ? '<i class="fa-solid fa-check"></i>' : '<i class="fa-solid fa-lock"></i>';
+          return `
+            <div class="week-day-col">
+              <span class="week-day-letter">${d.dia}</span>
+              <div class="week-day-circle ${circleClass}${todayClass}">
+                ${icon}
+              </div>
+            </div>
+          `;
+        }).join("");
+      }
+    }
+
+    // Renderiza Carrossel Multimídia da Biblioteca na Home
+    function renderizarBibliotecaCarousel(itens) {
+      const container = document.getElementById("biblioteca-carousel-inicio");
+      if (!container) return;
+
+      if (!itens || itens.length === 0) {
+        itens = [
+          {
+            id: 1,
+            titulo: "Yoga Express: Energia Matinal",
+            tipo: "video",
+            duracao_minutos: 15,
+            url_capa: "https://images.unsplash.com/photo-1545205597-3d9d02c29597?w=500&auto=format&fit=crop&q=80",
+            arquivo_url: "https://www.youtube.com/watch?v=inpok4MKVLM"
+          },
+          {
+            id: 2,
+            titulo: "Meditação Guiada: Presença & Calma",
+            tipo: "audio",
+            duracao_minutos: 10,
+            url_capa: "https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=500&auto=format&fit=crop&q=80",
+            arquivo_url: ""
+          },
+          {
+            id: 3,
+            titulo: "Pranayamas: Respiração Consciente",
+            tipo: "texto",
+            duracao_minutos: 5,
+            url_capa: "https://images.unsplash.com/photo-1508672019048-805c876b67e2?w=500&auto=format&fit=crop&q=80",
+            conteudo: "A respiração consciente é a ferramenta mais poderosa para acalmar a mente e estabilizar as emoções."
+          }
+        ];
+      }
+
+      window._bibliotecaItensCache = itens;
+
+      container.innerHTML = itens.map((item, idx) => {
+        const tipoLower = (item.tipo || "texto").toLowerCase();
+        let badgeText = "Artigo";
+        let overlayIcon = "";
+        let tipoLabel = "Artigo";
+
+        if (tipoLower === "video") {
+          badgeText = `${item.duracao_minutos || 15} min`;
+          overlayIcon = '<div class="biblioteca-play-overlay"><i class="fa-solid fa-play"></i></div>';
+          tipoLabel = "Vídeo";
+        } else if (tipoLower === "audio") {
+          badgeText = "Áudio";
+          overlayIcon = '<div class="biblioteca-play-overlay"><i class="fa-solid fa-headphones"></i></div>';
+          tipoLabel = "Áudio";
+        } else {
+          badgeText = item.duracao_minutos ? `${item.duracao_minutos} min` : "Leitura";
+          tipoLabel = item.arquivo_url ? "PDF" : "Artigo";
+        }
+
+        const thumbImg = item.url_capa ? `<img src="${item.url_capa}" alt="${item.titulo}">` : `
+          <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #354231 0%, #4F6B45 100%); color: #FFFFFF; font-size: 28px;">
+            <i class="${tipoLower === 'video' ? 'fa-solid fa-video' : (tipoLower === 'audio' ? 'fa-solid fa-music' : 'fa-solid fa-book-open')}"></i>
+          </div>
+        `;
+
+        return `
+          <div class="biblioteca-media-card" onclick="aoClicarItemBibliotecaIdx(${idx})">
+            <div class="biblioteca-media-thumb">
+              ${thumbImg}
+              ${overlayIcon}
+              <span class="biblioteca-media-badge">${badgeText}</span>
+            </div>
+            <div class="biblioteca-media-info">
+              <span class="biblioteca-media-type-tag">${tipoLabel}</span>
+              <div class="biblioteca-media-title">${item.titulo}</div>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function aoClicarItemBibliotecaIdx(idx) {
+      const item = window._bibliotecaItensCache && window._bibliotecaItensCache[idx];
+      if (item) abrirMidiaBiblioteca(item);
+    }
+
+    // Player Multimídia Nativo
+    function abrirMidiaBiblioteca(item) {
+      const modal = document.getElementById("modal-player-midia");
+      const tit = document.getElementById("player-midia-titulo");
+      const container = document.getElementById("player-midia-container");
+      if (!modal || !container) return;
+
+      if (tit) tit.textContent = item.titulo || "Biblioteca Shanti";
+
+      const tipo = (item.tipo || "texto").toLowerCase();
+      let html = "";
+
+      if (tipo === "video") {
+        const url = item.arquivo_url || "";
+        if (url.includes("youtube.com") || url.includes("youtu.be")) {
+          let videoId = "";
+          if (url.includes("youtu.be/")) {
+            videoId = url.split("youtu.be/")[1].split("?")[0];
+          } else if (url.includes("v=")) {
+            videoId = url.split("v=")[1].split("&")[0];
+          }
+          html = `
+            <div class="player-video-wrapper">
+              <iframe src="https://www.youtube.com/embed/${videoId}?autoplay=1" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+            </div>
+            <div style="font-size: 14px; color: #263321; line-height: 1.5; padding: 4px;">
+              <strong>${item.titulo}</strong>
+              <p style="color: var(--text-muted); font-size: 13px; margin-top: 4px;">${item.subtitulo || "Pratique no seu ritmo com esta aula guiada."}</p>
+            </div>
+          `;
+        } else {
+          html = `
+            <div class="player-video-wrapper">
+              <video controls autoplay playsinline src="${url}" style="width: 100%; height: 100%;">
+                Seu navegador não suporta reprodução de vídeo.
+              </video>
+            </div>
+            <div style="font-size: 14px; color: #263321; line-height: 1.5; padding: 4px;">
+              <strong>${item.titulo}</strong>
+              <p style="color: var(--text-muted); font-size: 13px; margin-top: 4px;">${item.subtitulo || ""}</p>
+            </div>
+          `;
+        }
+      } else if (tipo === "audio") {
+        const coverImg = item.url_capa ? `<img src="${item.url_capa}" alt="${item.titulo}">` : `<i class="fa-solid fa-music"></i>`;
+        html = `
+          <div class="player-audio-card">
+            <div class="player-audio-cover">
+              ${coverImg}
+            </div>
+            <div style="text-align: center;">
+              <strong style="font-size: 16px; color: #263321;">${item.titulo}</strong>
+              <div style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">${item.subtitulo || "Áudio Guiado Shanti Studio"}</div>
+            </div>
+            <audio controls autoplay style="width: 100%; margin-top: 8px;" src="${item.arquivo_url || ''}">
+              Seu navegador não suporta reprodução de áudio.
+            </audio>
+          </div>
+        `;
+      } else {
+        abrirModalLeitura(item);
+        return;
+      }
+
+      container.innerHTML = html;
+      modal.classList.add("active");
+    }
+
+    function fecharPlayerMidia() {
+      const modal = document.getElementById("modal-player-midia");
+      const container = document.getElementById("player-midia-container");
+      if (container) {
+        const video = container.querySelector("video");
+        if (video) video.pause();
+        const audio = container.querySelector("audio");
+        if (audio) audio.pause();
+        container.innerHTML = "";
+      }
+      if (modal) modal.classList.remove("active");
+    }
+
+    // Pop-up de Campanhas e Comunicados
+    let comunicadosNaoLidos = [];
+
+    async function verificarPopupCampanha() {
+      try {
+        const resp = await fetch("/api/aluno/comunicados/popup", { headers: getAuthHeaders() });
+        if (!resp.ok) return;
+        const popups = await resp.json();
+        if (!popups || popups.length === 0) return;
+
+        const hoje = new Date().toISOString().slice(0, 10);
+        const popup = popups.find(p => !localStorage.getItem(`popup_visto_${p.id}_${hoje}`));
+        if (!popup) return;
+
+        window._popupAtivo = popup;
+        const elOverlay = document.getElementById("popup-campanha");
+        const elTit = document.getElementById("popup-campanha-titulo");
+        const elMsg = document.getElementById("popup-campanha-mensagem");
+        const elBanner = document.getElementById("popup-campanha-banner");
+        const elTipo = document.getElementById("popup-campanha-tipo");
+
+        if (elTit) elTit.textContent = popup.titulo;
+        if (elMsg) elMsg.textContent = popup.mensagem;
+        if (elTipo) elTipo.textContent = (popup.tipo || "aviso").toUpperCase();
+
+        if (popup.imagem_banner && elBanner) {
+          elBanner.src = popup.imagem_banner;
+          elBanner.style.display = "block";
+        } else if (elBanner) {
+          elBanner.style.display = "none";
+        }
+
+        if (elOverlay) elOverlay.style.display = "flex";
+      } catch (e) {
+        console.error("Erro ao verificar popup de campanhas:", e);
+      }
+    }
+
+    async function fecharPopupCampanha() {
+      const elOverlay = document.getElementById("popup-campanha");
+      if (elOverlay) elOverlay.style.display = "none";
+
+      if (window._popupAtivo) {
+        const p = window._popupAtivo;
+        const hoje = new Date().toISOString().slice(0, 10);
+        localStorage.setItem(`popup_visto_${p.id}_${hoje}`, "true");
+        try {
+          await fetch(`/api/aluno/comunicados/${p.id}/lido`, {
+            method: "POST",
+            headers: getAuthHeaders()
+          });
+        } catch (e) {}
+        window._popupAtivo = null;
+      }
+    }
+
+    // Carrega Comunicados e Atualiza o Badge de Notificações
+    async function carregarNotificacoes() {
+      try {
+        const resp = await fetch("/api/aluno/comunicados", { headers: getAuthHeaders() });
+        if (!resp.ok) return;
+        const comunicados = await resp.json();
+        comunicadosNaoLidos = comunicados || [];
+
+        const badge = document.getElementById("notification-badge");
+        const dot = document.getElementById("notification-dot");
+        const count = comunicadosNaoLidos.length;
+
+        if (count > 0) {
+          if (badge) {
+            badge.textContent = count > 9 ? "9+" : String(count);
+            badge.style.display = "flex";
+          }
+          if (dot) dot.style.display = "none";
+        } else {
+          if (badge) badge.style.display = "none";
+          if (dot) dot.style.display = "none";
+        }
+
+        const lista = document.getElementById("lista-notificacoes");
+        if (lista) {
+          if (comunicadosNaoLidos.length === 0) {
+            lista.innerHTML = `
+              <div style="background: var(--bg-warm); padding: 14px; border-radius: var(--radius-sm); border-left: 3px solid var(--forest-green); text-align: center;">
+                <strong>Tudo em dia! 🧘‍♀️</strong><br>
+                <span style="color: var(--text-muted); font-size: 12.5px;">Você não tem nenhum novo aviso pendente.</span>
+              </div>
+            `;
+          } else {
+            lista.innerHTML = comunicadosNaoLidos.map(c => `
+              <div style="background: var(--bg-warm); padding: 14px; border-radius: var(--radius-sm); border-left: 4px solid var(--terracotta); display: flex; flex-direction: column; gap: 6px; cursor: pointer;" onclick="marcarAvisoLido(${c.id})">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <strong style="font-size: 14px; color: #263321;">${c.titulo}</strong>
+                  <span style="font-size: 11px; background: rgba(184, 103, 74, 0.15); color: #B8674A; padding: 2px 8px; border-radius: 999px; font-weight: 700;">${(c.tipo || 'aviso').toUpperCase()}</span>
+                </div>
+                <p style="font-size: 13px; color: #4A5645; margin: 0; line-height: 1.4;">${c.mensagem}</p>
+                <span style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">Toque para marcar como lido</span>
+              </div>
+            `).join("");
+          }
+        }
+      } catch (e) {
+        console.error("Erro ao carregar notificações:", e);
+      }
+    }
+
+    async function marcarAvisoLido(comunicadoId) {
+      try {
+        await fetch(`/api/aluno/comunicados/${comunicadoId}/lido`, {
+          method: "POST",
+          headers: getAuthHeaders()
+        });
+        carregarNotificacoes();
+        showToast("Aviso marcado como lido! ✓");
+      } catch (e) {
+        console.error("Erro ao marcar comunicado como lido:", e);
+      }
+    }
+
+    function abrirNotificacoes() {
+      const modal = document.getElementById("modal-notificacoes");
+      if (modal) {
+        modal.classList.add("active");
+        carregarNotificacoes();
       }
     }
 
@@ -3103,7 +3905,7 @@
       };
 
       document.getElementById("btn-notificacoes").onclick = () => {
-        document.getElementById("modal-notificacoes").classList.add("active");
+        abrirNotificacoes();
       };
     }
 
@@ -3128,6 +3930,38 @@
       window.history.replaceState({}, '', '/aluno/' + window.location.search);
     }
 
+    // Registro de Notificações Push no Dispositivo do Aluno
+    async function registrarPushNotifications(swRegistration) {
+      if (!('Notification' in window)) return;
+      if (!alunoToken) return;
+
+      try {
+        let permission = Notification.permission;
+        if (permission === 'default') {
+          permission = await Notification.requestPermission();
+        }
+
+        if (permission === 'granted') {
+          let subscription = null;
+          if (swRegistration && swRegistration.pushManager) {
+            subscription = await swRegistration.pushManager.getSubscription();
+          }
+
+          const tokenStr = subscription 
+            ? JSON.stringify(subscription) 
+            : `web-push-granted-${alunoDados ? alunoDados.id : 'anon'}-${Date.now()}`;
+
+          await fetch('/api/aluno/device-token', {
+            method: 'POST',
+            headers: getAuthHeaders(),
+            body: JSON.stringify({ token: tokenStr })
+          });
+        }
+      } catch (err) {
+        console.log("Registro Push:", err);
+      }
+    }
+
     // Service Worker PWA Exclusivo do Aluno (/aluno/)
     function registrarServiceWorker() {
       if ("serviceWorker" in navigator) {
@@ -3144,6 +3978,9 @@
           // Registra o Service Worker exclusivo do Aluno com escopo /aluno/
           navigator.serviceWorker.register("/service-worker-aluno.js", { scope: "/aluno/" }).then(reg => {
             reg.update();
+            if (alunoToken) {
+              registrarPushNotifications(reg);
+            }
           }).catch(e => {
             console.log("SW Aluno reg:", e);
           });

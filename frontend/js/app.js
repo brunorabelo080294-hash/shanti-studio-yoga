@@ -5695,6 +5695,8 @@ function setupSubabasGestaoAluno() {
         carregarReposicoesAdmin();
       } else if (subtab === 'conquistas') {
         carregarConquistasAdmin();
+      } else if (subtab === 'comunicados') {
+        carregarComunicadosAdmin();
       }
     });
   });
@@ -5707,7 +5709,8 @@ async function carregarGestaoAluno() {
     carregarAlunosAcesso(),
     carregarReposicoesAdmin(),
     carregarBibliotecaAdmin(),
-    carregarConquistasAdmin()
+    carregarConquistasAdmin(),
+    carregarComunicadosAdmin()
   ]);
 }
 
@@ -6044,35 +6047,59 @@ function renderizarBibliotecaAdmin(lista) {
   const container = document.getElementById('lista-conteudos-biblioteca');
   if (!container) return;
   if (!lista || lista.length === 0) {
-    container.innerHTML = `<div style="text-align:center; padding:24px 16px; font-size: 14.5px; color:var(--shanti-stone); background:var(--shanti-sand-light); border:1px dashed var(--shanti-sand-border); border-radius:14px;">Nenhuma leitura ou material publicado ainda. Clique em "+ Nova Leitura" acima.</div>`;
+    container.innerHTML = `<div style="text-align:center; padding:24px 16px; font-size: 14.5px; color:var(--shanti-stone); background:var(--shanti-sand-light); border:1px dashed var(--shanti-sand-border); border-radius:14px;">Nenhum conteúdo publicado ainda. Clique em "+ Nova Leitura" acima.</div>`;
     return;
   }
 
   container.innerHTML = lista.map(c => {
     const isPub = c.status === 'publicado';
+    const tipoLower = (c.tipo || 'texto').toLowerCase();
+    let tipoIcon = '<i class="fa-solid fa-align-left"></i> Artigo';
+    let tipoColor = 'rgba(63,78,58,0.08)';
+    let tipoTextColor = 'var(--shanti-forest)';
+
+    if (tipoLower === 'video') {
+      tipoIcon = '<i class="fa-solid fa-video"></i> Vídeo';
+      tipoColor = 'rgba(184, 103, 74, 0.12)';
+      tipoTextColor = 'var(--shanti-terracotta)';
+    } else if (tipoLower === 'audio') {
+      tipoIcon = '<i class="fa-solid fa-headphones"></i> Áudio';
+      tipoColor = 'rgba(79, 107, 69, 0.12)';
+      tipoTextColor = '#2C3828';
+    } else if (tipoLower === 'pdf') {
+      tipoIcon = '<i class="fa-solid fa-file-pdf"></i> PDF';
+    }
+
+    const duracaoBadge = c.duracao_minutos ? `<span style="font-size:12px; font-weight:600; color:var(--shanti-stone);"><i class="fa-regular fa-clock"></i> ${c.duracao_minutos} min</span>` : '';
+    const capaThumb = c.url_capa ? `<img src="${c.url_capa}" alt="Capa" style="width:64px; height:48px; object-fit:cover; border-radius:8px; flex-shrink:0;">` : '';
+
     return `
       <div style="background:#FFFFFF; border:1.5px solid var(--shanti-sand-border); border-radius:16px; padding:16px; display:flex; flex-direction:column; gap:10px; box-shadow:0 2px 8px rgba(34, 28, 22, 0.04);">
-        <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px; flex-wrap:wrap;">
-          <div style="flex:1; min-width:180px;">
-            <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px; flex-wrap:wrap;">
-              <span style="font-weight:700; font-size:15.5px; color:var(--shanti-charcoal); line-height:1.35;">${c.titulo}</span>
-              <span style="font-size:12.5px; font-weight:700; padding:2px 8px; border-radius:8px; background:${isPub ? '#dcfce7' : '#f3f4f6'}; color:${isPub ? '#15803d' : '#4b5563'}; border:1px solid ${isPub ? '#86efac' : '#d1d5db'};">
-                ${isPub ? '● Publicado' : 'Rascunho'}
-              </span>
-              <span style="font-size:12.5px; font-weight:600; background:rgba(63,78,58,0.08); color:var(--shanti-forest); padding:2px 8px; border-radius:8px;">
-                ${c.tipo === 'pdf' ? '<i class="fa-solid fa-file-pdf"></i> Arquivo PDF' : '<i class="fa-solid fa-align-left"></i> Artigo'}
-              </span>
-            </div>
-            ${c.subtitulo ? `<div style="font-size:14px; color:var(--shanti-stone); margin-bottom:4px;">${c.subtitulo}</div>` : ''}
-            <div style="font-size:13.5px; color:var(--shanti-stone);">
-              Criado em: <b>${formatarDataBR(c.criado_em)}</b> ${c.arquivo_url ? `• <a href="${c.arquivo_url}" target="_blank" style="color:var(--shanti-forest); font-weight:600; text-decoration:underline;">Ver anexo</a>` : ''}
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap;">
+          <div style="display:flex; gap:12px; flex:1; min-width:200px;">
+            ${capaThumb}
+            <div style="flex:1;">
+              <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px; flex-wrap:wrap;">
+                <span style="font-weight:700; font-size:15.5px; color:var(--shanti-charcoal); line-height:1.35;">${c.titulo}</span>
+                <span style="font-size:12px; font-weight:700; padding:2px 8px; border-radius:8px; background:${isPub ? '#dcfce7' : '#f3f4f6'}; color:${isPub ? '#15803d' : '#4b5563'}; border:1px solid ${isPub ? '#86efac' : '#d1d5db'};">
+                  ${isPub ? '● Publicado' : 'Rascunho'}
+                </span>
+                <span style="font-size:12px; font-weight:600; background:${tipoColor}; color:${tipoTextColor}; padding:2px 8px; border-radius:8px;">
+                  ${tipoIcon}
+                </span>
+                ${duracaoBadge}
+              </div>
+              ${c.subtitulo ? `<div style="font-size:13.5px; color:var(--shanti-stone); margin-bottom:4px;">${c.subtitulo}</div>` : ''}
+              <div style="font-size:13px; color:var(--shanti-stone);">
+                Criado em: <b>${formatarDataBR(c.criado_em)}</b> ${c.arquivo_url ? `• <a href="${c.arquivo_url}" target="_blank" style="color:var(--shanti-forest); font-weight:600; text-decoration:underline;">Ver mídia/anexo</a>` : ''}
+              </div>
             </div>
           </div>
           <div style="display:flex; gap:8px; align-items:center;">
-            <button type="button" onclick="editarConteudoBibliotecaClick(${c.id})" style="min-height:38px; padding:6px 14px; font-size:13.5px; font-weight:600; background:#ffffff; color:var(--shanti-forest); border:1.5px solid var(--shanti-sand-border); border-radius:10px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; transition:all 0.2s ease;" title="Editar">
+            <button type="button" onclick="editarConteudoBibliotecaClick(${c.id})" style="min-height:38px; padding:6px 14px; font-size:13.5px; font-weight:600; background:#ffffff; color:var(--shanti-forest); border:1.5px solid var(--shanti-sand-border); border-radius:10px; cursor:pointer; display:inline-flex; align-items:center; gap:6px;" title="Editar">
               <i class="fa-solid fa-pen"></i> Editar
             </button>
-            <button type="button" onclick="excluirConteudoBibliotecaClick(${c.id})" style="min-height:38px; padding:6px 14px; font-size:13.5px; font-weight:600; background:#FEF2F2; color:#b91c1c; border:1.5px solid #fca5a5; border-radius:10px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; transition:all 0.2s ease;" title="Excluir">
+            <button type="button" onclick="excluirConteudoBibliotecaClick(${c.id})" style="min-height:38px; padding:6px 14px; font-size:13.5px; font-weight:600; background:#FEF2F2; color:#b91c1c; border:1.5px solid #fca5a5; border-radius:10px; cursor:pointer; display:inline-flex; align-items:center; gap:6px;" title="Excluir">
               <i class="fa-solid fa-trash-can"></i> Excluir
             </button>
           </div>
@@ -6083,11 +6110,14 @@ function renderizarBibliotecaAdmin(lista) {
 }
 
 function abrirModalCriarLeitura() {
-  document.getElementById('modal-biblioteca-title').innerHTML = '<i class="fa-solid fa-book-open" style="color:var(--shanti-terracotta);"></i> Nova Leitura';
+  document.getElementById('modal-biblioteca-title').innerHTML = '<i class="fa-solid fa-photo-film" style="color:var(--shanti-terracotta);"></i> Novo Conteúdo da Biblioteca';
   document.getElementById('bib-conteudo-id').value = '';
   document.getElementById('bib-titulo').value = '';
   document.getElementById('bib-subtitulo').value = '';
-  document.getElementById('bib-tipo').value = 'texto';
+  document.getElementById('bib-tipo').value = 'video';
+  document.getElementById('bib-url-midia').value = '';
+  document.getElementById('bib-duracao').value = '';
+  document.getElementById('bib-url-capa').value = '';
   document.getElementById('bib-conteudo').value = '';
   document.getElementById('bib-status').value = 'publicado';
   const fileInp = document.getElementById('bib-arquivo-file');
@@ -6100,9 +6130,23 @@ function alternarTipoConteudoBiblioteca() {
   const tipo = document.getElementById('bib-tipo').value;
   const grpTexto = document.getElementById('group-bib-texto');
   const grpArquivo = document.getElementById('group-bib-arquivo');
-  if (tipo === 'pdf') {
+  const grpMidia = document.getElementById('group-bib-midia');
+  const grpDuracao = document.getElementById('group-bib-duracao');
+
+  if (tipo === 'video' || tipo === 'audio') {
+    if (grpMidia) grpMidia.style.display = 'block';
+    if (grpDuracao) grpDuracao.style.display = 'block';
+    if (grpTexto) grpTexto.style.display = 'none';
+    if (grpArquivo) grpArquivo.style.display = 'none';
+  } else if (tipo === 'pdf') {
     if (grpArquivo) grpArquivo.style.display = 'block';
+    if (grpMidia) grpMidia.style.display = 'none';
+    if (grpDuracao) grpDuracao.style.display = 'none';
+    if (grpTexto) grpTexto.style.display = 'none';
   } else {
+    if (grpTexto) grpTexto.style.display = 'block';
+    if (grpMidia) grpMidia.style.display = 'none';
+    if (grpDuracao) grpDuracao.style.display = 'none';
     if (grpArquivo) grpArquivo.style.display = 'none';
   }
 }
@@ -6114,6 +6158,9 @@ async function salvarConteudoBibliotecaForm(e) {
   const subtitulo = document.getElementById('bib-subtitulo').value.trim();
   const tipo = document.getElementById('bib-tipo').value;
   const conteudo = document.getElementById('bib-conteudo').value.trim();
+  const urlMidia = document.getElementById('bib-url-midia').value.trim();
+  const duracaoMinutos = parseInt(document.getElementById('bib-duracao').value) || 0;
+  const urlCapa = document.getElementById('bib-url-capa').value.trim();
   const status = document.getElementById('bib-status').value;
   const fileInput = document.getElementById('bib-arquivo-file');
   const file = fileInput && fileInput.files && fileInput.files[0];
@@ -6125,6 +6172,20 @@ async function salvarConteudoBibliotecaForm(e) {
   }
 
   try {
+    const payload = {
+      titulo,
+      subtitulo,
+      tipo,
+      conteudo,
+      url_capa: urlCapa,
+      duracao_minutos: duracaoMinutos,
+      status
+    };
+
+    if (tipo === 'video' || tipo === 'audio') {
+      payload.arquivo_url = urlMidia;
+    }
+
     if (file) {
       const formData = new FormData();
       formData.append('arquivo', file);
@@ -6132,6 +6193,8 @@ async function salvarConteudoBibliotecaForm(e) {
       formData.append('subtitulo', subtitulo);
       formData.append('tipo', tipo);
       formData.append('conteudo', conteudo);
+      formData.append('url_capa', urlCapa);
+      formData.append('duracao_minutos', String(duracaoMinutos));
       formData.append('status', status);
 
       const res = await fetch('/api/admin/biblioteca/upload', {
@@ -6143,20 +6206,20 @@ async function salvarConteudoBibliotecaForm(e) {
       const res = await fetch(`/api/admin/biblioteca/${idVal}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ titulo, subtitulo, tipo, conteudo, status })
+        body: JSON.stringify(payload)
       });
-      if (!res.ok) throw new Error('Erro ao atualizar leitura.');
+      if (!res.ok) throw new Error('Erro ao atualizar conteúdo.');
     } else {
       const res = await fetch('/api/admin/biblioteca', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ titulo, subtitulo, tipo, conteudo, status })
+        body: JSON.stringify(payload)
       });
-      if (!res.ok) throw new Error('Erro ao criar leitura.');
+      if (!res.ok) throw new Error('Erro ao criar conteúdo.');
     }
 
     fecharModal('modal-conteudo-biblioteca');
-    showToast('Leitura salva com sucesso! ✨');
+    showToast('Conteúdo da biblioteca salvo com sucesso! ✨');
     await carregarBibliotecaAdmin();
   } catch (err) {
     console.error('Erro:', err);
@@ -6164,7 +6227,7 @@ async function salvarConteudoBibliotecaForm(e) {
   } finally {
     if (btn) {
       btn.disabled = false;
-      btn.innerHTML = '<i class="fa-solid fa-check"></i> Salvar Leitura';
+      btn.innerHTML = '<i class="fa-solid fa-check"></i> Salvar Conteúdo';
     }
   }
 }
@@ -6173,11 +6236,14 @@ function editarConteudoBibliotecaClick(id) {
   const item = cacheConteudosBiblioteca.find(c => c.id == id);
   if (!item) return;
 
-  document.getElementById('modal-biblioteca-title').innerHTML = '<i class="fa-solid fa-pen" style="color:var(--shanti-terracotta);"></i> Editar Leitura';
+  document.getElementById('modal-biblioteca-title').innerHTML = '<i class="fa-solid fa-pen" style="color:var(--shanti-terracotta);"></i> Editar Conteúdo';
   document.getElementById('bib-conteudo-id').value = item.id;
   document.getElementById('bib-titulo').value = item.titulo || '';
   document.getElementById('bib-subtitulo').value = item.subtitulo || '';
-  document.getElementById('bib-tipo').value = item.tipo || 'texto';
+  document.getElementById('bib-tipo').value = item.tipo || 'video';
+  document.getElementById('bib-url-midia').value = item.arquivo_url || '';
+  document.getElementById('bib-duracao').value = item.duracao_minutos || '';
+  document.getElementById('bib-url-capa').value = item.url_capa || '';
   document.getElementById('bib-conteudo').value = item.conteudo || '';
   document.getElementById('bib-status').value = item.status || 'publicado';
   alternarTipoConteudoBiblioteca();
@@ -6194,6 +6260,258 @@ async function excluirConteudoBibliotecaClick(id) {
     }
   } catch (err) {
     alert('Erro ao excluir.');
+  }
+}
+
+// --- Central de Comunicação (v2.0) ---
+let cacheComunicadosAdmin = [];
+
+async function carregarComunicadosAdmin() {
+  try {
+    const res = await fetch('/api/admin/comunicados');
+    if (!res.ok) return;
+    cacheComunicadosAdmin = await res.json();
+    renderizarComunicadosAdmin(cacheComunicadosAdmin);
+  } catch (err) {
+    console.warn('Erro ao carregar comunicados:', err);
+  }
+}
+
+function renderizarComunicadosAdmin(lista) {
+  const container = document.getElementById('lista-comunicados-admin');
+  if (!container) return;
+  if (!lista || lista.length === 0) {
+    container.innerHTML = `<div style="text-align:center; padding:24px 16px; font-size: 14.5px; color:var(--shanti-stone); background:var(--shanti-sand-light); border:1px dashed var(--shanti-sand-border); border-radius:14px;">Nenhum comunicado criado ainda. Clique em "+ Novo Comunicado" acima.</div>`;
+    return;
+  }
+
+  container.innerHTML = lista.map(c => {
+    const isPub = c.status === 'publicado';
+    let lidosArray = [];
+    try {
+      lidosArray = typeof c.lido_por === 'string' ? JSON.parse(c.lido_por || '[]') : (c.lido_por || []);
+    } catch (e) {
+      lidosArray = [];
+    }
+    const totalLidos = lidosArray.length;
+
+    let tipoBadge = '📢 Aviso';
+    if (c.tipo === 'campanha') tipoBadge = '🎉 Campanha';
+    if (c.tipo === 'promocao') tipoBadge = '🏷️ Promoção';
+
+    let canais = [];
+    if (c.exibir_popup_app) canais.push('📱 Pop-up');
+    if (c.enviar_push_notification) canais.push('🔔 Push');
+    if (c.enviar_whatsapp) canais.push('💬 WhatsApp');
+
+    const canaisStr = canais.length > 0 ? canais.join(' • ') : 'Nenhum canal';
+
+    return `
+      <div style="background:#FFFFFF; border:1.5px solid var(--shanti-sand-border); border-radius:16px; padding:16px; display:flex; flex-direction:column; gap:10px; box-shadow:0 2px 8px rgba(34, 28, 22, 0.04);">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap;">
+          <div style="flex:1; min-width:220px;">
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px; flex-wrap:wrap;">
+              <span style="font-weight:700; font-size:16px; color:var(--shanti-charcoal);">${c.titulo}</span>
+              <span style="font-size:12px; font-weight:700; padding:2px 8px; border-radius:8px; background:${isPub ? '#dcfce7' : '#fef3c7'}; color:${isPub ? '#15803d' : '#b45309'}; border:1px solid ${isPub ? '#86efac' : '#fde68a'};">
+                ${isPub ? '● Publicado' : 'Rascunho'}
+              </span>
+              <span style="font-size:12px; font-weight:600; background:rgba(184, 103, 74, 0.12); color:var(--shanti-terracotta); padding:2px 8px; border-radius:8px;">
+                ${tipoBadge}
+              </span>
+              <span style="font-size:12px; font-weight:600; background:rgba(63,78,58,0.08); color:var(--shanti-forest); padding:2px 8px; border-radius:8px;">
+                Público: ${c.publico_alvo}
+              </span>
+            </div>
+            <p style="font-size:14px; color:var(--shanti-stone); margin:4px 0 8px 0; line-height:1.4; white-space:pre-line;">${c.mensagem}</p>
+            <div style="display:flex; align-items:center; gap:12px; font-size:13px; color:var(--shanti-stone); flex-wrap:wrap;">
+              <span>Disparos: <b>${canaisStr}</b></span>
+              <span>Lido por: <b>${totalLidos} alunos</b></span>
+              <span>Criado em: <b>${formatarDataBR(c.criado_em)}</b></span>
+            </div>
+          </div>
+
+          <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+            ${!isPub ? `
+              <button type="button" onclick="publicarEAvisarComunicado(${c.id})" style="min-height:38px; padding:6px 14px; font-size:13.5px; font-weight:700; background:var(--shanti-terracotta); color:#ffffff; border:none; border-radius:10px; cursor:pointer; display:inline-flex; align-items:center; gap:6px;">
+                <i class="fa-solid fa-paper-plane"></i> Publicar e Avisar
+              </button>
+            ` : `
+              <button type="button" onclick="abrirModalWaDisparo(${c.id})" style="min-height:38px; padding:6px 14px; font-size:13.5px; font-weight:600; background:#25D366; color:#ffffff; border:none; border-radius:10px; cursor:pointer; display:inline-flex; align-items:center; gap:6px;">
+                <i class="fa-brands fa-whatsapp"></i> Links WhatsApp
+              </button>
+            `}
+            <button type="button" onclick="excluirComunicadoAdmin(${c.id})" style="min-height:38px; padding:6px 14px; font-size:13.5px; font-weight:600; background:#FEF2F2; color:#b91c1c; border:1.5px solid #fca5a5; border-radius:10px; cursor:pointer; display:inline-flex; align-items:center; gap:6px;" title="Excluir">
+              <i class="fa-solid fa-trash-can"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function abrirModalNovoComunicado() {
+  document.getElementById('com-id').value = '';
+  document.getElementById('com-titulo').value = '';
+  document.getElementById('com-mensagem').value = '';
+  document.getElementById('com-banner').value = '';
+  document.getElementById('com-tipo').value = 'aviso';
+  document.getElementById('com-publico').value = 'todos';
+  document.getElementById('com-check-popup').checked = true;
+  document.getElementById('com-check-push').checked = true;
+  document.getElementById('com-check-wa').checked = true;
+  abrirModal('modal-novo-comunicado');
+}
+
+async function salvarComunicadoForm(e) {
+  e.preventDefault();
+  await processarSalvarComunicado('publicado');
+}
+
+async function salvarComoRascunhoComunicado() {
+  await processarSalvarComunicado('rascunho');
+}
+
+async function processarSalvarComunicado(statusAlvo) {
+  const idVal = document.getElementById('com-id').value;
+  const titulo = document.getElementById('com-titulo').value.trim();
+  const mensagem = document.getElementById('com-mensagem').value.trim();
+  const banner = document.getElementById('com-banner').value.trim();
+  const tipo = document.getElementById('com-tipo').value;
+  const publico = document.getElementById('com-publico').value;
+  const popup = document.getElementById('com-check-popup').checked;
+  const push = document.getElementById('com-check-push').checked;
+  const wa = document.getElementById('com-check-wa').checked;
+
+  if (!titulo || !mensagem) {
+    alert('Por favor, preencha o título e a mensagem.');
+    return;
+  }
+
+  const payload = {
+    titulo,
+    mensagem,
+    imagem_banner: banner || null,
+    tipo,
+    publico_alvo: publico,
+    exibir_popup_app: popup,
+    enviar_push_notification: push,
+    enviar_whatsapp: wa,
+    status: statusAlvo
+  };
+
+  try {
+    let savedId = idVal;
+    if (idVal) {
+      await fetch(`/api/admin/comunicados/${idVal}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+    } else {
+      const res = await fetch('/api/admin/comunicados', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      savedId = data.id;
+    }
+
+    fecharModal('modal-novo-comunicado');
+    showToast(statusAlvo === 'publicado' ? 'Comunicado publicado com sucesso! 📢' : 'Rascunho salvo!');
+    await carregarComunicadosAdmin();
+
+    if (statusAlvo === 'publicado' && wa) {
+      abrirModalWaDisparo(savedId);
+    }
+  } catch (err) {
+    console.error('Erro ao salvar comunicado:', err);
+    alert('Erro ao salvar comunicado.');
+  }
+}
+
+async function publicarEAvisarComunicado(id) {
+  try {
+    const res = await fetch(`/api/admin/comunicados/${id}/publicar`, { method: 'POST' });
+    if (res.ok) {
+      showToast('Comunicado publicado! 📢');
+      await carregarComunicadosAdmin();
+      const item = cacheComunicadosAdmin.find(c => c.id == id);
+      if (item && item.enviar_whatsapp) {
+        abrirModalWaDisparo(id);
+      }
+    }
+  } catch (err) {
+    alert('Erro ao publicar.');
+  }
+}
+
+async function excluirComunicadoAdmin(id) {
+  if (!confirm('Deseja excluir este comunicado?')) return;
+  try {
+    const res = await fetch(`/api/admin/comunicados/${id}`, { method: 'DELETE' });
+    if (res.ok) {
+      showToast('Comunicado excluído.');
+      await carregarComunicadosAdmin();
+    }
+  } catch (err) {
+    alert('Erro ao excluir.');
+  }
+}
+
+// Disparo WhatsApp: Gera lista de links wa.me prontos para cada aluno
+async function abrirModalWaDisparo(comunicadoId) {
+  const com = cacheComunicadosAdmin.find(c => c.id == comunicadoId);
+  if (!com) return;
+
+  const container = document.getElementById('lista-wa-links-comunicado');
+  if (!container) return;
+
+  container.innerHTML = `<div style="text-align:center; padding:16px;"><i class="fa-solid fa-spinner fa-spin"></i> Carregando lista de alunos...</div>`;
+  abrirModal('modal-comunicado-wa-links');
+
+  try {
+    const res = await fetch('/api/alunos');
+    if (!res.ok) return;
+    const todosAlunos = await res.json();
+
+    let alunosAlvo = todosAlunos;
+    if (com.publico_alvo === 'ativos') {
+      alunosAlvo = todosAlunos.filter(a => a.status === 'ativo' || a.status === 'matriculado');
+    } else if (com.publico_alvo === 'inadimplentes') {
+      alunosAlvo = todosAlunos.filter(a => a.status === 'inadimplente');
+    }
+
+    if (alunosAlvo.length === 0) {
+      container.innerHTML = `<div style="padding:16px; text-align:center; color:var(--shanti-stone);">Nenhum aluno encontrado para o público "${com.publico_alvo}".</div>`;
+      return;
+    }
+
+    container.innerHTML = alunosAlvo.map(al => {
+      const primeiroNome = (al.nome || 'Aluno').split(' ')[0];
+      const tel = (al.telefone || '').replace(/\D/g, '');
+      const textoMsg = `Olá, ${primeiroNome}! 🙏\n\n*${com.titulo}*\n\n${com.mensagem}\n\nAbraços, Studio Shanti ✨`;
+      const linkWa = tel ? `https://wa.me/55${tel}?text=${encodeURIComponent(textoMsg)}` : null;
+
+      return `
+        <div style="background:#FAF7F2; border:1px solid var(--shanti-sand-border); border-radius:12px; padding:10px 14px; display:flex; justify-content:space-between; align-items:center; gap:8px;">
+          <div>
+            <strong style="font-size:14px; color:var(--shanti-charcoal);">${al.nome}</strong>
+            <div style="font-size:12.5px; color:var(--shanti-stone);">${al.telefone || 'Sem telefone'}</div>
+          </div>
+          ${linkWa ? `
+            <a href="${linkWa}" target="_blank" class="wa-btn-primary" style="background:#25D366; color:#ffffff; padding:6px 14px; border-radius:10px; font-size:13px; font-weight:700; text-decoration:none; display:inline-flex; align-items:center; gap:6px;">
+              <i class="fa-brands fa-whatsapp"></i> Enviar
+            </a>
+          ` : `
+            <span style="font-size:12px; color:#9ca3af;">Sem WhatsApp</span>
+          `}
+        </div>
+      `;
+    }).join('');
+  } catch (err) {
+    container.innerHTML = `<div style="padding:16px; text-align:center; color:#b91c1c;">Erro ao carregar alunos.</div>`;
   }
 }
 

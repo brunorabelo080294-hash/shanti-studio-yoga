@@ -1414,6 +1414,9 @@
         <button type="button" class="wa-filter-chip" data-subtab="conquistas">
           <i class="fa-solid fa-award"></i> Conquistas
         </button>
+        <button type="button" class="wa-filter-chip" data-subtab="comunicados">
+          <i class="fa-solid fa-bullhorn"></i> Comunicados
+        </button>
       </div>
 
       <!-- PAINEL 1: QR CODE & GERENCIAMENTO DE ACESSO -->
@@ -1519,6 +1522,25 @@
           </div>
 
           <div id="lista-mural-conquistas" style="display: flex; flex-direction: column; gap: 10px;">
+            <!-- Injetado via JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- PAINEL 5: CENTRAL DE COMUNICAÇÃO & AVISOS (v2.0) -->
+      <div class="subpane-gestao-aluno" id="subpane-comunicados" style="display: none;">
+        <div class="wa-card" style="padding: 16px; border: 1px solid var(--shanti-sand-border); border-radius: 16px; background: #ffffff;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
+            <div>
+              <h3 style="font-size: 15px; font-weight: 700; color: var(--shanti-forest); margin: 0;">Central de Comunicação</h3>
+              <p style="font-size: 13.5px; color: var(--shanti-stone); margin: 0;">Campanhas, avisos de feriado, pop-ups e disparos de WhatsApp</p>
+            </div>
+            <button type="button" class="wa-btn-primary" onclick="abrirModalNovoComunicado()" style="background: var(--shanti-terracotta); border: none; color: #ffffff; padding: 7px 14px; border-radius: 20px; font-size: 14px; font-weight: 600; cursor: pointer;">
+              <i class="fa-solid fa-plus"></i> Novo Comunicado
+            </button>
+          </div>
+
+          <div id="lista-comunicados-admin" style="display: flex; flex-direction: column; gap: 12px;">
             <!-- Injetado via JS -->
           </div>
         </div>
@@ -2663,12 +2685,12 @@
 </div>
 
 <!-- ======================================================================
-     MODAL: CRIAR / EDITAR CONTEÚDO DA BIBLIOTECA
+     MODAL: CRIAR / EDITAR CONTEÚDO DA BIBLIOTECA (V2.0 MULTIMÍDIA)
      ====================================================================== -->
 <div class="wa-modal-overlay" id="modal-conteudo-biblioteca">
   <div class="wa-modal-sheet">
     <div class="wa-modal-header">
-      <h3 class="wa-modal-title" id="modal-biblioteca-title"><i class="fa-solid fa-book-open" style="color:var(--shanti-terracotta);"></i> Nova Leitura</h3>
+      <h3 class="wa-modal-title" id="modal-biblioteca-title"><i class="fa-solid fa-photo-film" style="color:var(--shanti-terracotta);"></i> Novo Conteúdo da Biblioteca</h3>
       <button class="wa-modal-close" data-close-modal="modal-conteudo-biblioteca">&times;</button>
     </div>
 
@@ -2677,25 +2699,47 @@
 
       <div class="wa-form-group">
         <label>Título do Conteúdo *</label>
-        <input type="text" class="wa-form-control" id="bib-titulo" required placeholder="Ex: O Poder da Respiração Consciente (Pranayama)">
+        <input type="text" class="wa-form-control" id="bib-titulo" required placeholder="Ex: Yoga Express: Energia Matinal">
       </div>
 
       <div class="wa-form-group">
         <label>Subtítulo ou Categoria</label>
-        <input type="text" class="wa-form-control" id="bib-subtitulo" placeholder="Ex: Filosofia do Yoga, Meditação, Posturas...">
+        <input type="text" class="wa-form-control" id="bib-subtitulo" placeholder="Ex: Hatha Yoga, Meditação, Respiração...">
       </div>
 
       <div class="wa-form-group">
         <label>Tipo de Conteúdo *</label>
         <select class="wa-form-control" id="bib-tipo" onchange="alternarTipoConteudoBiblioteca()">
-          <option value="texto" selected>Artigo em Texto</option>
-          <option value="pdf">Material em Arquivo / PDF</option>
+          <option value="video" selected>🎬 Aula em Vídeo (YouTube ou MP4)</option>
+          <option value="audio">🎵 Meditação / Prática em Áudio</option>
+          <option value="texto">📄 Artigo em Texto</option>
+          <option value="pdf">📎 Material em PDF / Apostila</option>
         </select>
       </div>
 
-      <div class="wa-form-group" id="group-bib-texto">
+      <!-- Campo de URL de Mídia (Vídeo / Áudio) -->
+      <div class="wa-form-group" id="group-bib-midia">
+        <label>URL da Mídia (YouTube ou Link de Vídeo/Áudio) *</label>
+        <input type="url" class="wa-form-control" id="bib-url-midia" placeholder="Ex: https://www.youtube.com/watch?v=... ou link direto">
+        <small style="color: var(--shanti-stone); font-size: 13px;">Cole o link de um vídeo do YouTube ou arquivo de áudio.</small>
+      </div>
+
+      <!-- Duração em Minutos -->
+      <div class="wa-form-group" id="group-bib-duracao">
+        <label>Duração em Minutos</label>
+        <input type="number" class="wa-form-control" id="bib-duracao" min="1" max="180" placeholder="Ex: 15 (minutos)">
+      </div>
+
+      <!-- Imagem de Capa / Thumbnail -->
+      <div class="wa-form-group" id="group-bib-capa">
+        <label>URL da Imagem de Capa (Thumbnail)</label>
+        <input type="url" class="wa-form-control" id="bib-url-capa" placeholder="Ex: https://images.unsplash.com/... (link da imagem)">
+        <small style="color: var(--shanti-stone); font-size: 13px;">Deixe em branco para usar uma capa automática padrão.</small>
+      </div>
+
+      <div class="wa-form-group" id="group-bib-texto" style="display: none;">
         <label>Texto Completo / Artigo</label>
-        <textarea class="wa-form-control" id="bib-conteudo" rows="6" placeholder="Escreva aqui a mensagem ou reflexão para os alunos..."></textarea>
+        <textarea class="wa-form-control" id="bib-conteudo" rows="5" placeholder="Escreva aqui a mensagem ou reflexão para os alunos..."></textarea>
       </div>
 
       <div class="wa-form-group" id="group-bib-arquivo" style="display: none;">
@@ -2716,11 +2760,127 @@
         <button type="button" class="wa-btn-primary" data-close-modal="modal-conteudo-biblioteca" style="flex: 1; background: var(--shanti-sand-light); color: var(--shanti-charcoal); border: 1px solid var(--shanti-sand-border); box-shadow: none;">
           Cancelar
         </button>
-        <button type="submit" class="wa-btn-primary" id="btn-salvar-conteudo-bib" style="flex: 1; background: var(--shanti-terracotta); border: none;">
-          <i class="fa-solid fa-check"></i> Salvar Leitura
+        <button type="submit" class="wa-btn-primary" id="btn-salvar-conteudo-bib" style="flex: 1.2; background: var(--shanti-terracotta); border: none;">
+          <i class="fa-solid fa-check"></i> Salvar Conteúdo
         </button>
       </div>
     </form>
+  </div>
+</div>
+
+<!-- ======================================================================
+     MODAL: NOVO / EDITAR COMUNICADO (CENTRAL DE COMUNICAÇÃO)
+     ====================================================================== -->
+<div class="wa-modal-overlay" id="modal-novo-comunicado">
+  <div class="wa-modal-sheet" style="max-width: 520px;">
+    <div class="wa-modal-header">
+      <h3 class="wa-modal-title" id="modal-comunicado-title">
+        <i class="fa-solid fa-bullhorn" style="color:var(--shanti-terracotta);"></i> Novo Comunicado
+      </h3>
+      <button class="wa-modal-close" data-close-modal="modal-novo-comunicado">&times;</button>
+    </div>
+
+    <form id="form-novo-comunicado" onsubmit="salvarComunicadoForm(event)">
+      <input type="hidden" id="com-id" value="">
+
+      <div class="wa-form-group">
+        <label>Título do Comunicado *</label>
+        <input type="text" class="wa-form-control" id="com-titulo" required placeholder="Ex: Aviso de Feriado: Studio Aberto!">
+      </div>
+
+      <div class="wa-form-group">
+        <label>Mensagem Completa *</label>
+        <textarea class="wa-form-control" id="com-mensagem" rows="4" required placeholder="Escreva a mensagem que os alunos receberão..."></textarea>
+      </div>
+
+      <div class="wa-form-group">
+        <label>URL da Imagem Banner (Opcional)</label>
+        <input type="url" class="wa-form-control" id="com-banner" placeholder="Ex: https://... link de foto para o pop-up">
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+        <div class="wa-form-group">
+          <label>Tipo</label>
+          <select class="wa-form-control" id="com-tipo">
+            <option value="aviso" selected>📢 Aviso Geral</option>
+            <option value="campanha">🎉 Campanha / Evento</option>
+            <option value="promocao">🏷️ Promoção</option>
+          </select>
+        </div>
+
+        <div class="wa-form-group">
+          <label>Público-Alvo</label>
+          <select class="wa-form-control" id="com-publico">
+            <option value="todos" selected>Todos os Alunos</option>
+            <option value="ativos">Apenas Ativos (Em dia)</option>
+            <option value="inadimplentes">Apenas Inadimplentes</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Opções de Disparo -->
+      <div style="background: var(--shanti-sand-light); border: 1px solid var(--shanti-sand-border); border-radius: 14px; padding: 14px; margin: 10px 0;">
+        <div style="font-weight: 700; font-size: 13.5px; color: var(--shanti-forest); margin-bottom: 8px;">
+          <i class="fa-solid fa-paper-plane"></i> Onde Disparar:
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px; font-size: 13.5px;">
+          <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+            <input type="checkbox" id="com-check-popup" checked>
+            <span><strong>Pop-up no App</strong> (Exibido ao abrir o App do Aluno)</span>
+          </label>
+          <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+            <input type="checkbox" id="com-check-push" checked>
+            <span><strong>Push Notification</strong> (Notificação na tela do celular)</span>
+          </label>
+          <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+            <input type="checkbox" id="com-check-wa" checked>
+            <span><strong>Disparo WhatsApp</strong> (Gera links wa.me prontos para envio)</span>
+          </label>
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 8px; margin-top: 14px;">
+        <button type="button" class="wa-btn-primary" data-close-modal="modal-novo-comunicado" style="flex: 1; background: var(--shanti-sand-light); color: var(--shanti-charcoal); border: 1px solid var(--shanti-sand-border); box-shadow: none;">
+          Cancelar
+        </button>
+        <button type="button" onclick="salvarComoRascunhoComunicado()" class="wa-btn-primary" style="flex: 1; background: #ffffff; color: var(--shanti-forest); border: 1px solid var(--shanti-sand-border);">
+          Salvar Rascunho
+        </button>
+        <button type="submit" class="wa-btn-primary" id="btn-publicar-comunicado" style="flex: 1.4; background: var(--shanti-terracotta); border: none;">
+          <i class="fa-solid fa-bullhorn"></i> Publicar e Avisar
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ======================================================================
+     MODAL: DISPARO WHATSAPP DO COMUNICADO (LINKS WA.ME PRONTOS)
+     ====================================================================== -->
+<div class="wa-modal-overlay" id="modal-comunicado-wa-links">
+  <div class="wa-modal-sheet" style="max-width: 520px;">
+    <div class="wa-modal-header">
+      <h3 class="wa-modal-title">
+        <i class="fa-brands fa-whatsapp" style="color: #25D366;"></i> Disparar Comunicado via WhatsApp
+      </h3>
+      <button class="wa-modal-close" data-close-modal="modal-comunicado-wa-links">&times;</button>
+    </div>
+
+    <div style="padding: 6px 0;">
+      <p style="font-size: 14px; color: var(--shanti-stone); margin-bottom: 12px; line-height: 1.4;">
+        Toque no botão de cada aluno abaixo para abrir o WhatsApp com a mensagem personalizada pronta para envio:
+      </p>
+
+      <div id="lista-wa-links-comunicado" style="display: flex; flex-direction: column; gap: 8px; max-height: 420px; overflow-y: auto; padding-right: 2px;">
+        <!-- Links injetados via JS -->
+      </div>
+
+      <div style="margin-top: 14px;">
+        <button type="button" class="wa-btn-primary" data-close-modal="modal-comunicado-wa-links" style="width: 100%; background: var(--shanti-sand-light); color: var(--shanti-charcoal); border: 1px solid var(--shanti-sand-border); box-shadow: none;">
+          Concluir Disparos
+        </button>
+      </div>
+    </div>
   </div>
 </div>
 

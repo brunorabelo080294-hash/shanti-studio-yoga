@@ -231,6 +231,8 @@ def init_db():
             arquivo_nome TEXT,
             arquivo_tipo TEXT,
             tamanho_bytes INTEGER DEFAULT 0,
+            url_capa TEXT,
+            duracao_minutos INTEGER DEFAULT 0,
             status TEXT NOT NULL DEFAULT 'publicado',
             criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -248,6 +250,21 @@ def init_db():
             criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
+        CREATE TABLE IF NOT EXISTS comunicados (
+            id SERIAL PRIMARY KEY,
+            titulo TEXT NOT NULL,
+            mensagem TEXT NOT NULL,
+            imagem_banner TEXT,
+            tipo TEXT NOT NULL DEFAULT 'aviso',
+            publico_alvo TEXT NOT NULL DEFAULT 'todos',
+            exibir_popup_app INTEGER DEFAULT 0,
+            enviar_push_notification INTEGER DEFAULT 0,
+            enviar_whatsapp INTEGER DEFAULT 0,
+            status TEXT NOT NULL DEFAULT 'rascunho',
+            lido_por TEXT DEFAULT '[]',
+            criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
         ALTER TABLE alunos ADD COLUMN IF NOT EXISTS senha_hash TEXT;
         ALTER TABLE alunos ADD COLUMN IF NOT EXISTS salt TEXT;
         ALTER TABLE alunos ADD COLUMN IF NOT EXISTS primeiro_acesso INTEGER DEFAULT 1;
@@ -255,6 +272,9 @@ def init_db():
         ALTER TABLE alunos ADD COLUMN IF NOT EXISTS bloqueado_ate TIMESTAMP;
         ALTER TABLE alunos ADD COLUMN IF NOT EXISTS codigo_recuperacao TEXT;
         ALTER TABLE alunos ADD COLUMN IF NOT EXISTS codigo_recuperacao_expira TIMESTAMP;
+        ALTER TABLE alunos ADD COLUMN IF NOT EXISTS device_token TEXT;
+        ALTER TABLE biblioteca_conteudos ADD COLUMN IF NOT EXISTS url_capa TEXT;
+        ALTER TABLE biblioteca_conteudos ADD COLUMN IF NOT EXISTS duracao_minutos INTEGER DEFAULT 0;
         """)
         conn.commit()
         conn.close()
@@ -560,7 +580,42 @@ def init_db():
         arquivo_nome TEXT,
         arquivo_tipo TEXT,
         tamanho_bytes INTEGER DEFAULT 0,
+        url_capa TEXT,
+        duracao_minutos INTEGER DEFAULT 0,
         status TEXT NOT NULL DEFAULT 'publicado',
+        criado_em TEXT DEFAULT (datetime('now', 'localtime')),
+        atualizado_em TEXT DEFAULT (datetime('now', 'localtime'))
+    )
+    """)
+
+    try:
+        cursor.execute('ALTER TABLE biblioteca_conteudos ADD COLUMN url_capa TEXT')
+    except sqlite3.OperationalError:
+        pass
+    try:
+        cursor.execute('ALTER TABLE biblioteca_conteudos ADD COLUMN duracao_minutos INTEGER DEFAULT 0')
+    except sqlite3.OperationalError:
+        pass
+
+    try:
+        cursor.execute('ALTER TABLE alunos ADD COLUMN device_token TEXT')
+    except sqlite3.OperationalError:
+        pass
+
+    # Tabela de Comunicados
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS comunicados (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        titulo TEXT NOT NULL,
+        mensagem TEXT NOT NULL,
+        imagem_banner TEXT,
+        tipo TEXT NOT NULL DEFAULT 'aviso',
+        publico_alvo TEXT NOT NULL DEFAULT 'todos',
+        exibir_popup_app INTEGER DEFAULT 0,
+        enviar_push_notification INTEGER DEFAULT 0,
+        enviar_whatsapp INTEGER DEFAULT 0,
+        status TEXT NOT NULL DEFAULT 'rascunho',
+        lido_por TEXT DEFAULT '[]',
         criado_em TEXT DEFAULT (datetime('now', 'localtime')),
         atualizado_em TEXT DEFAULT (datetime('now', 'localtime'))
     )
@@ -3729,8 +3784,8 @@ def salvar_conteudo_biblioteca(dados: Dict[str, Any]) -> int:
     cursor.execute("""
         INSERT INTO biblioteca_conteudos (
             titulo, subtitulo, tipo, conteudo, arquivo_url, arquivo_nome,
-            arquivo_tipo, tamanho_bytes, status, criado_em, atualizado_em
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+            arquivo_tipo, tamanho_bytes, url_capa, duracao_minutos, status, criado_em, atualizado_em
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
     """, (
         dados.get("titulo", "Sem título"),
         dados.get("subtitulo", ""),
@@ -3740,6 +3795,8 @@ def salvar_conteudo_biblioteca(dados: Dict[str, Any]) -> int:
         dados.get("arquivo_nome"),
         dados.get("arquivo_tipo"),
         int(dados.get("tamanho_bytes") or 0),
+        dados.get("url_capa"),
+        int(dados.get("duracao_minutos") or 0),
         dados.get("status", "publicado")
     ))
     cid = cursor.lastrowid or 0
@@ -3747,12 +3804,13 @@ def salvar_conteudo_biblioteca(dados: Dict[str, Any]) -> int:
     conn.close()
     return cid
 
+
 def atualizar_conteudo_biblioteca(conteudo_id: int, dados: Dict[str, Any]) -> bool:
     conn = get_connection()
     cursor = conn.cursor()
     campos = []
     valores = []
-    for k in ["titulo", "subtitulo", "tipo", "conteudo", "arquivo_url", "arquivo_nome", "arquivo_tipo", "tamanho_bytes", "status"]:
+    for k in ["titulo", "subtitulo", "tipo", "conteudo", "arquivo_url", "arquivo_nome", "arquivo_tipo", "tamanho_bytes", "url_capa", "duracao_minutos", "status"]:
         if k in dados and dados[k] is not None:
             campos.append(f"{k} = ?")
             valores.append(dados[k])
@@ -3894,6 +3952,84 @@ def _calcular_streak_semanal(aluno_id: int) -> int:
             break
 
     return max(1, streak)
+
+def _calcular_semana_aluno(aluno_id: int, plano: str = "2x na semana") -> Dict[str, Any]:
+    """
+    Calcula os 7 dias da semana atual (Domingo a Sábado) para o componente 'Sua Semana' do app do aluno:
+    D S T Q Q S S com ícones de presença ou bloqueado/futuro e barra de progresso.
+    """
+    agora = obter_agora_sp()
+    hoje_date = agora.date()
+    dias_desde_domingo = (hoje_date.weekday() + 1) % 7
+    domingo = hoje_date - datetime.timedelta(days=dias_desde_domingo)
+
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT DISTINCT data FROM historico_presenca
+        WHERE aluno_id = ? AND status = 'presente'
+    """, (aluno_id,))
+    rows = cursor.fetchall()
+    conn.close()
+
+    presencas_set = set()
+    for r in rows:
+        d_val = r[0] if isinstance(r, (list, tuple)) else r["data"]
+        presencas_set.add(d_val[:10] if d_val else "")
+
+    letras = ["D", "S", "T", "Q", "Q", "S", "S"]
+    dias = []
+    aulas_feitas = 0
+
+    for i in range(7):
+        dt = domingo + datetime.timedelta(days=i)
+        dt_str = dt.strftime("%Y-%m-%d")
+        presente = dt_str in presencas_set
+        if presente:
+            aulas_feitas += 1
+            status = "presente"
+            icone = "check"
+        elif dt > hoje_date:
+            status = "futuro"
+            icone = "lock"
+        elif dt == hoje_date:
+            status = "hoje"
+            icone = "lock"
+        else:
+            status = "passado"
+            icone = "lock"
+
+        dias.append({
+            "dia": letras[i],
+            "data": dt_str,
+            "status": status,
+            "icone": icone,
+            "concluida": presente,
+            "hoje": (dt == hoje_date)
+        })
+
+    meta = 5
+    p_lower = (plano or "").lower()
+    if "1x" in p_lower:
+        meta = 1
+    elif "2x" in p_lower:
+        meta = 2
+    elif "3x" in p_lower:
+        meta = 3
+    elif "4x" in p_lower:
+        meta = 4
+    elif "5x" in p_lower:
+        meta = 5
+
+    progresso_pct = min(100, int((aulas_feitas / meta) * 100)) if meta > 0 else 0
+
+    return {
+        "dias": dias,
+        "aulas_feitas": aulas_feitas,
+        "meta_aulas": meta,
+        "progresso_pct": progresso_pct,
+        "progresso_str": f"{aulas_feitas}/{meta}"
+    }
 
 def aluno_confirmar_presenca(aluno_id: int, turma_id: int, data_str: str) -> Dict[str, Any]:
     """
@@ -4275,8 +4411,138 @@ def obter_resumo_aluno_dashboard(aluno_id: int) -> Dict[str, Any]:
         "mensagem_dia": mensagem_dia,
         "plano": aluno.get("plano", "2x na semana"),
         "contrato_status": status_contrato,
-        "autentique_link": aluno.get("autentique_link")
+        "autentique_link": aluno.get("autentique_link"),
+        "semana_atual": _calcular_semana_aluno(aluno_id, aluno.get("plano", "2x na semana")),
+        "biblioteca_destaques": leituras[:6] if leituras else []
     }
+
+# --- Comunicados ---
+
+def criar_comunicado(dados: Dict[str, Any]) -> int:
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        INSERT INTO comunicados (
+            titulo, mensagem, imagem_banner, tipo, publico_alvo, 
+            exibir_popup_app, enviar_push_notification, enviar_whatsapp, status,
+            criado_em, atualizado_em
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+    """, (
+        dados.get("titulo"),
+        dados.get("mensagem"),
+        dados.get("imagem_banner"),
+        dados.get("tipo", "aviso"),
+        dados.get("publico_alvo", "todos"),
+        int(dados.get("exibir_popup_app", False)),
+        int(dados.get("enviar_push_notification", False)),
+        int(dados.get("enviar_whatsapp", False)),
+        dados.get("status", "rascunho")
+    ))
+    cid = cursor.lastrowid or 0
+    conn.commit()
+    conn.close()
+    return cid
+
+def listar_comunicados(status: Optional[str] = None) -> List[Dict[str, Any]]:
+    conn = get_connection()
+    cursor = conn.cursor()
+    if status:
+        cursor.execute("SELECT * FROM comunicados WHERE status = ? ORDER BY id DESC", (status,))
+    else:
+        cursor.execute("SELECT * FROM comunicados ORDER BY id DESC")
+    rows = cursor.fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+def obter_comunicado(comunicado_id: int) -> Optional[Dict[str, Any]]:
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM comunicados WHERE id = ?", (comunicado_id,))
+    row = cursor.fetchone()
+    conn.close()
+    return dict(row) if row else None
+
+def atualizar_comunicado(comunicado_id: int, dados: Dict[str, Any]) -> bool:
+    conn = get_connection()
+    cursor = conn.cursor()
+    campos = []
+    valores = []
+    for k in ["titulo", "mensagem", "imagem_banner", "tipo", "publico_alvo", "exibir_popup_app", "enviar_push_notification", "enviar_whatsapp", "status"]:
+        if k in dados and dados[k] is not None:
+            campos.append(f"{k} = ?")
+            if isinstance(dados[k], bool):
+                valores.append(int(dados[k]))
+            else:
+                valores.append(dados[k])
+    if not campos:
+        conn.close()
+        return False
+    
+    campos.append("atualizado_em = CURRENT_TIMESTAMP")
+    query = f"UPDATE comunicados SET {', '.join(campos)} WHERE id = ?"
+    valores.append(comunicado_id)
+    
+    cursor.execute(query, valores)
+    afetados = cursor.rowcount
+    conn.commit()
+    conn.close()
+    return afetados > 0
+
+def excluir_comunicado(comunicado_id: int) -> bool:
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM comunicados WHERE id = ?", (comunicado_id,))
+    afetados = cursor.rowcount
+    conn.commit()
+    conn.close()
+    return afetados > 0
+
+def marcar_comunicado_lido(comunicado_id: int, aluno_id: int) -> bool:
+    comunicado = obter_comunicado(comunicado_id)
+    if not comunicado:
+        return False
+    
+    try:
+        lidos = json.loads(comunicado.get("lido_por") or "[]")
+    except json.JSONDecodeError:
+        lidos = []
+        
+    if aluno_id not in lidos:
+        lidos.append(aluno_id)
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute("UPDATE comunicados SET lido_por = ? WHERE id = ?", (json.dumps(lidos), comunicado_id))
+        conn.commit()
+        conn.close()
+    
+    return True
+
+def obter_comunicados_nao_lidos(aluno_id: int) -> List[Dict[str, Any]]:
+    todos = listar_comunicados(status="publicado")
+    nao_lidos = []
+    for c in todos:
+        try:
+            lidos = json.loads(c.get("lido_por") or "[]")
+        except json.JSONDecodeError:
+            lidos = []
+        if aluno_id not in lidos:
+            nao_lidos.append(c)
+    return nao_lidos
+
+def obter_comunicados_popup(aluno_id: int) -> List[Dict[str, Any]]:
+    nao_lidos = obter_comunicados_nao_lidos(aluno_id)
+    return [c for c in nao_lidos if c.get("exibir_popup_app") == 1]
+
+# --- Device Token ---
+
+def salvar_device_token(aluno_id: int, token: str) -> bool:
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("UPDATE alunos SET device_token = ? WHERE id = ?", (token, aluno_id))
+    afetados = cursor.rowcount
+    conn.commit()
+    conn.close()
+    return afetados > 0
 
 # Inicializar ao importar
 init_db()
