@@ -6422,6 +6422,10 @@ async function processarSalvarComunicado(statusAlvo) {
     showToast(statusAlvo === 'publicado' ? 'Comunicado publicado com sucesso! 📢' : 'Rascunho salvo!');
     await carregarComunicadosAdmin();
 
+    if (statusAlvo === 'publicado' && push && savedId) {
+      fetch(`/api/admin/comunicados/${savedId}/disparar-push`, { method: 'POST' }).catch(() => {});
+    }
+
     if (statusAlvo === 'publicado' && wa) {
       abrirModalWaDisparo(savedId);
     }

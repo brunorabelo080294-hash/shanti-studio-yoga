@@ -1994,15 +1994,20 @@ def api_admin_listar_comunicados():
     return db.listar_comunicados()
 
 @app.post("/api/admin/comunicados")
-def api_admin_criar_comunicado(dados: ComunicadoCreate):
+def api_admin_criar_comunicado(dados: ComunicadoCreate, background_tasks: BackgroundTasks):
     cid = db.criar_comunicado(dados.model_dump())
+    if dados.status == "publicado" and dados.enviar_push_notification:
+        background_tasks.add_task(disparar_push_comunicado, cid)
     return {"sucesso": True, "id": cid, "mensagem": "Comunicado criado com sucesso!"}
 
 @app.put("/api/admin/comunicados/{comunicado_id}")
-def api_admin_atualizar_comunicado(comunicado_id: int, dados: ComunicadoUpdate):
+def api_admin_atualizar_comunicado(comunicado_id: int, dados: ComunicadoUpdate, background_tasks: BackgroundTasks):
     ok = db.atualizar_comunicado(comunicado_id, dados.model_dump(exclude_unset=True))
     if not ok:
         raise HTTPException(status_code=404, detail="Comunicado não encontrado.")
+    com = db.obter_comunicado(comunicado_id)
+    if com and com.get("status") == "publicado" and com.get("enviar_push_notification"):
+        background_tasks.add_task(disparar_push_comunicado, comunicado_id)
     return {"sucesso": True, "mensagem": "Comunicado atualizado!"}
 
 @app.delete("/api/admin/comunicados/{comunicado_id}")
