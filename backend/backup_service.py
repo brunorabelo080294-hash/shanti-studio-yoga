@@ -249,8 +249,12 @@ class GoogleDriveBackupManager:
     """
 
     def __init__(self):
-        self.folder_id = os.getenv("GOOGLE_DRIVE_FOLDER_ID", "").strip()
+        raw_fid = os.getenv("GOOGLE_DRIVE_FOLDER_ID", "").strip()
+        if "folders/" in raw_fid:
+            raw_fid = raw_fid.split("folders/")[1].split("?")[0].split("/")[0].strip()
+        self.folder_id = raw_fid
         self.service_account_json_raw = os.getenv("GOOGLE_SERVICE_ACCOUNT_JSON", "").strip()
+
         self.service_account_file = os.getenv("GOOGLE_SERVICE_ACCOUNT_FILE", "").strip()
         self._token: Optional[str] = None
         self._token_expiry: float = 0
