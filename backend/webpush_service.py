@@ -56,10 +56,12 @@ def enviar_push_para_subscription(subscription_data: Any, payload: Dict[str, Any
             data=data_str,
             vapid_private_key=VAPID_OBJ,
             vapid_claims=VAPID_CLAIMS,
-            ttl=86400
+            ttl=86400,
+            headers={"Urgency": "high"}
         )
         logger.info(f"Web Push enviado com sucesso ({getattr(resp, 'status_code', 200)}) para {endpoint[:45]}...")
         return True
+
     except WebPushException as ex:
         logger.warning(f"Falha ao enviar Web Push: {ex}")
         status = getattr(getattr(ex, 'response', None), 'status_code', None)

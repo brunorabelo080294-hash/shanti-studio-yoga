@@ -1,5 +1,4 @@
-// Service Worker Exclusivo - Shanti Studio Aluno (/aluno/)
-const CACHE_NAME = 'shanti-aluno-pwa-v41';
+const CACHE_NAME = 'shanti-aluno-pwa-v43';
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();
@@ -36,13 +35,13 @@ self.addEventListener('fetch', (event) => {
   );
 });
 
-// Suporte a Notificações Push
+// Suporte a Notificações Push (Padrão iFood / WhatsApp no Android e Lockscreen)
 self.addEventListener('push', (event) => {
   let data = {
-    title: 'Studio Shanti',
+    title: 'Studio Shanti 🧘‍♀️',
     body: 'Você tem uma nova mensagem do estúdio!',
-    icon: '/favicon.ico',
-    badge: '/favicon.ico',
+    icon: '/icons/icon-aluno-192.png',
+    badge: '/icons/icon-aluno-96.png',
     url: '/aluno/'
   };
 
@@ -57,18 +56,29 @@ self.addEventListener('push', (event) => {
 
   const options = {
     body: data.body,
-    icon: data.icon || '/favicon.ico',
-    badge: data.badge || '/favicon.ico',
+    icon: data.icon || '/icons/icon-aluno-192.png',
+    badge: data.badge || '/icons/icon-aluno-96.png',
     data: {
       url: data.url || '/aluno/'
     },
-    vibrate: [100, 50, 100]
+    vibrate: [300, 100, 300, 100, 300],
+    requireInteraction: true,
+    renotify: true,
+    tag: data.tag || ('shanti-comunicado-' + Date.now()),
+    actions: [
+      { action: 'open', title: 'Abrir no App 📲' }
+    ]
   };
 
+  if (data.image) {
+    options.image = data.image;
+  }
+
   event.waitUntil(
-    self.registration.showNotification(data.title || 'Studio Shanti', options)
+    self.registration.showNotification(data.title || 'Studio Shanti 🧘‍♀️', options)
   );
 });
+
 
 // Clique na Notificação Push
 self.addEventListener('notificationclick', (event) => {

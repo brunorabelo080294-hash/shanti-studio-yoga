@@ -2026,11 +2026,17 @@ def disparar_push_comunicado(comunicado_id: int):
     payload = {
         "title": f"Studio Shanti: {com.get('titulo', 'Novo Aviso')}",
         "body": com.get("mensagem", ""),
-        "icon": "/favicon.ico",
-        "badge": "/favicon.ico",
+        "icon": "/icons/icon-aluno-192.png",
+        "badge": "/icons/icon-aluno-96.png",
         "url": "/aluno/",
-        "tag": f"shanti-comunicado-{com['id']}"
+        "tag": f"shanti-comunicado-{com['id']}",
+        "requireInteraction": True,
+        "renotify": True,
+        "vibrate": [300, 100, 300, 100, 300]
     }
+    if com.get("imagem_banner"):
+        payload["image"] = com.get("imagem_banner")
+
     for a in alunos:
         token = a.get("device_token")
         if token:
@@ -2085,11 +2091,15 @@ def api_aluno_testar_push_servidor(request: Request, background_tasks: Backgroun
     payload = {
         "title": "Studio Shanti 🧘‍♀️",
         "body": "Notificação real enviada pelo servidor! Chegou com o app fechado no seu celular! ✨",
-        "icon": "/favicon.ico",
-        "badge": "/favicon.ico",
+        "icon": "/icons/icon-aluno-192.png",
+        "badge": "/icons/icon-aluno-96.png",
         "url": "/aluno/",
-        "tag": f"teste-servidor-{int(time.time())}"
+        "tag": f"teste-servidor-{int(time.time())}",
+        "requireInteraction": True,
+        "renotify": True,
+        "vibrate": [300, 100, 300, 100, 300]
     }
+
     background_tasks.add_task(enviar_push_com_delay, token, payload, delay)
     return {
         "sucesso": True,
