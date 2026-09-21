@@ -254,17 +254,20 @@ class GoogleDriveBackupManager:
             raw_fid = raw_fid.split("folders/")[1].split("?")[0].split("/")[0].strip()
         self.folder_id = raw_fid
         self.service_account_json_raw = os.getenv("GOOGLE_SERVICE_ACCOUNT_JSON", "").strip()
-
         self.service_account_file = os.getenv("GOOGLE_SERVICE_ACCOUNT_FILE", "").strip()
+        self.client_id = os.getenv("GOOGLE_DRIVE_CLIENT_ID", "").strip()
+        self.client_secret = os.getenv("GOOGLE_DRIVE_CLIENT_SECRET", "").strip()
+        self.refresh_token = os.getenv("GOOGLE_DRIVE_REFRESH_TOKEN", "").strip()
         self._token: Optional[str] = None
         self._token_expiry: float = 0
         self._service_email: Optional[str] = None
 
     def esta_configurado(self) -> bool:
         """Verifica se as variáveis mínimas do Google Drive estão configuradas."""
-        tem_credencial = bool(self.service_account_json_raw or (self.service_account_file and os.path.exists(self.service_account_file)))
+        tem_oauth = bool(self.client_id and self.client_secret and self.refresh_token)
+        tem_sa = bool(self.service_account_json_raw or (self.service_account_file and os.path.exists(self.service_account_file)))
         tem_pasta = bool(self.folder_id)
-        return tem_credencial and tem_pasta
+        return (tem_oauth or tem_sa) and tem_pasta
 
     def obter_status_resumido(self) -> Dict[str, Any]:
         """Retorna status sem jamais expor dados confidenciais da credencial."""
@@ -276,16 +279,20 @@ class GoogleDriveBackupManager:
                 prefixo = partes[0]
                 mascara = prefixo[:3] + "..." + prefixo[-2:] if len(prefixo) > 5 else "***"
                 email_mascarado = f"{mascara}@{partes[1]}"
+        elif self.refresh_token:
+            email_mascarado = "OAuth2 (Conta Pessoal Autorizada)"
 
         pasta_mascarada = None
         if self.folder_id:
             pasta_mascarada = self.folder_id[:4] + "..." + self.folder_id[-4:] if len(self.folder_id) > 8 else "***"
 
+        modo = "oauth2_user" if (self.client_id and self.refresh_token) else "service_account_v3"
+
         return {
             "configurado": configurado,
             "pasta_id": pasta_mascarada,
             "email_servico": email_mascarado,
-            "modo": "service_account_v3"
+            "modo": modo
         }
 
     def _obter_credenciais_dict(self) -> Dict[str, Any]:
@@ -306,11 +313,32 @@ class GoogleDriveBackupManager:
             raise ValueError("Nenhuma credencial de conta de serviço Google fornecida.")
 
     def obter_token_acesso(self) -> str:
-        """Obtém ou renova token de acesso OAuth2 usando a Conta de Serviço."""
+        """Obtém ou renova token de acesso OAuth2 usando OAuth2 User ou Conta de Serviço."""
         agora = time.time()
         if self._token and agora < (self._token_expiry - 60):
             return self._token
 
+        # 1. Se estiver configurado com credenciais OAuth2 do Usuário (Refresh Token)
+        if self.refresh_token and self.client_id and self.client_secret:
+            try:
+                res = requests.post("https://oauth2.googleapis.com/token", data={
+                    "client_id": self.client_id,
+                    "client_secret": self.client_secret,
+                    "refresh_token": self.refresh_token,
+                    "grant_type": "refresh_token"
+                }, timeout=30)
+                if res.status_code == 200:
+                    dados = res.json()
+                    self._token = dados.get("access_token")
+                    expires_in = dados.get("expires_in", 3600)
+                    self._token_expiry = agora + (expires_in - 100)
+                    return self._token
+                else:
+                    print(f"Erro OAuth2 token refresh: {res.text}")
+            except Exception as e:
+                print(f"Exceção OAuth2 token refresh: {e}")
+
+        # 2. Caso contrário, usa Conta de Serviço
         cred_info = self._obter_credenciais_dict()
         self._service_email = cred_info.get("client_email")
 
@@ -334,13 +362,14 @@ class GoogleDriveBackupManager:
             raise RuntimeError("Google Drive não está configurado.")
 
         token = self.obter_token_acesso()
-        url = "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart"
+        url = "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&supportsAllDrives=true"
 
         metadata = {
             "name": nome_arquivo,
             "parents": [self.folder_id],
             "description": f"Backup automático Shanti Studio de Yoga - {obter_agora_sp().strftime('%Y-%m-%d %H:%M:%S')}"
         }
+
 
         with open(caminho_arquivo, "rb") as f:
             conteudo_bytes = f.read()
@@ -380,7 +409,7 @@ class GoogleDriveBackupManager:
 
         token = self.obter_token_acesso()
         q = f"'{self.folder_id}' in parents and trashed = false and name contains 'backup-shanti'"
-        url = f"https://www.googleapis.com/drive/v3/files?q={urllib.parse.quote(q)}&orderBy=createdTime desc&fields=files(id, name, createdTime, size)"
+        url = f"https://www.googleapis.com/drive/v3/files?q={urllib.parse.quote(q)}&orderBy=createdTime desc&fields=files(id, name, createdTime, size)&supportsAllDrives=true&includeItemsFromAllDrives=true"
 
         headers = {"Authorization": f"Bearer {token}"}
         res = requests.get(url, headers=headers, timeout=30)
@@ -429,7 +458,8 @@ class GoogleDriveBackupManager:
 
                     if deve_deletar:
                         fid = arq.get("id")
-                        del_url = f"https://www.googleapis.com/drive/v3/files/{fid}"
+                        del_url = f"https://www.googleapis.com/drive/v3/files/{fid}?supportsAllDrives=true"
+
                         del_res = requests.delete(del_url, headers={"Authorization": f"Bearer {token}"}, timeout=20)
                         if del_res.status_code in (200, 204):
                             removidos.append(f"drive:{nome}")
