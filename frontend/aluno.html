@@ -1894,9 +1894,26 @@
     <div id="screen-inicio" class="tab-screen active" style="padding: 0;">
       <div class="screen-content-pad">
         
+        <!-- BANNER DE ATIVAÇÃO DE NOTIFICAÇÕES (ESTILO IFOOD / PUSH) -->
+        <div id="banner-ativar-notificacoes" style="display: none; background: linear-gradient(135deg, #A85938, #8D472B); color: white; padding: 14px 16px; border-radius: 16px; margin-bottom: 18px; box-shadow: 0 4px 14px rgba(168,89,56,0.22); align-items: center; justify-content: space-between; gap: 12px;">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="background: rgba(255,255,255,0.2); width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+              <i class="fa-solid fa-bell" style="font-size: 18px; color: #fff;"></i>
+            </div>
+            <div>
+              <div style="font-weight: 700; font-size: 14px; line-height: 1.2;">Ativar Avisos no Celular</div>
+              <div style="font-size: 12px; opacity: 0.9; margin-top: 2px;">Receba lembretes de aulas e comunicados estilo iFood.</div>
+            </div>
+          </div>
+          <button type="button" onclick="solicitarPermissaoPushDireta()" style="background: #ffffff; color: #8D472B; font-weight: 800; border: none; padding: 10px 14px; border-radius: 10px; font-size: 13px; cursor: pointer; white-space: nowrap; box-shadow: 0 2px 6px rgba(0,0,0,0.15);">
+            Ativar 🔔
+          </button>
+        </div>
+
         <!-- SEÇÃO: PRÓXIMAS AULAS -->
         <div>
           <h3 class="section-block-title">Próximas aulas</h3>
+
           <div class="aulas-horizontal-container" id="container-proximas-aulas">
             <!-- Cards injetados via JS com botões Confirmar / Desmarcar -->
           </div>
@@ -2617,12 +2634,14 @@
         // 9. Atualizar Notificações e Badge
         carregarNotificacoes();
 
-        // 10. Registrar Notificações Push
-        if ("serviceWorker" in navigator && navigator.serviceWorker.ready) {
+        // 10. Registrar Notificações Push e Banner
+        verificarExibicaoBannerNotificacoes();
+        if ("serviceWorker" in navigator) {
           navigator.serviceWorker.ready.then(reg => {
             registrarPushNotifications(reg);
           });
         }
+
 
       } catch (e) {
         console.error("Erro ao carregar dashboard:", e);
@@ -3043,9 +3062,48 @@
       }
 
     }
+ 
+    async function solicitarPermissaoPushDireta() {
+      if (!('Notification' in window)) {
+        showToast("Seu dispositivo não suporta notificações web.");
+        return;
+      }
+      try {
+        let perm = await Notification.requestPermission();
+        if (perm === 'granted') {
+          showToast("Notificações ativadas! Conectando ao estúdio... ✨");
+          if ('serviceWorker' in navigator) {
+            const reg = await navigator.serviceWorker.ready;
+            await registrarPushNotifications(reg, true);
+          }
+          const banner = document.getElementById("banner-ativar-notificacoes");
+          if (banner) banner.style.display = "none";
+          showToast("Pronto! Seu celular receberá os avisos mesmo com o app fechado 📲");
+        } else {
+          showToast("Permissão não concedida. Toque no ícone de cadeado/configurações do Chrome e ative Notificações.");
+        }
+      } catch (err) {
+        console.error("Erro ao solicitar permissão de push:", err);
+      }
+    }
+
+    function verificarExibicaoBannerNotificacoes() {
+      const banner = document.getElementById("banner-ativar-notificacoes");
+      if (!banner) return;
+      if (!('Notification' in window)) {
+        banner.style.display = "none";
+        return;
+      }
+      if (Notification.permission !== 'granted') {
+        banner.style.display = "flex";
+      } else {
+        banner.style.display = "none";
+      }
+    }
 
     // Carrega Comunicados e Atualiza o Badge de Notificações
     async function carregarNotificacoes() {
+
       try {
         const resp = await fetch("/api/aluno/comunicados", { headers: getAuthHeaders() });
         if (!resp.ok) return;
@@ -4080,15 +4138,15 @@
           const { publicKey } = await resVapid.json();
           if (!publicKey) return;
 
-          // 2. Verifica se a inscrição existente precisa ser renovada (VAPID v43 ou legado /fcm/send/)
+          // 2. Verifica se a inscrição existente precisa ser renovada (VAPID v44 ou legado /fcm/send/)
           let subscription = await swRegistration.pushManager.getSubscription();
           const versaoPush = localStorage.getItem("shanti_push_version");
           const isLegado = subscription && subscription.endpoint && subscription.endpoint.includes("/fcm/send/");
-          const precisaRenovar = forcarRenovacao || versaoPush !== "v43_vapid" || isLegado;
+          const precisaRenovar = forcarRenovacao || versaoPush !== "v44_vapid" || isLegado;
 
           if (subscription && precisaRenovar) {
             try {
-              console.log("Renovando inscrição Web Push para versão VAPID v43...");
+              console.log("Renovando inscrição Web Push para versão VAPID v44...");
               await subscription.unsubscribe();
               subscription = null;
             } catch (unsubErr) {
@@ -4122,7 +4180,7 @@
               body: JSON.stringify({ token: JSON.stringify(subscription) })
             });
             if (resp.ok) {
-              localStorage.setItem("shanti_push_version", "v43_vapid");
+              localStorage.setItem("shanti_push_version", "v44_vapid");
             }
             return subscription;
           }
@@ -4147,7 +4205,7 @@
           });
 
           // Registra o Service Worker exclusivo do Aluno com escopo /aluno/
-          navigator.serviceWorker.register("/service-worker-aluno.js?v=43", { scope: "/aluno/" }).then(async reg => {
+          navigator.serviceWorker.register("/service-worker-aluno.js?v=44", { scope: "/aluno/" }).then(async reg => {
             await reg.update();
             if (alunoToken) {
               await registrarPushNotifications(reg);
@@ -4156,6 +4214,7 @@
             console.log("SW Aluno reg:", e);
           });
         };
+
 
 
 

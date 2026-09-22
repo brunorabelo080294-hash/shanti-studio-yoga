@@ -1,4 +1,4 @@
-const CACHE_NAME = 'shanti-aluno-pwa-v43';
+const CACHE_NAME = 'shanti-aluno-pwa-v44';
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();
