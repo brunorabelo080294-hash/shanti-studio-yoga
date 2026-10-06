@@ -4121,7 +4121,7 @@ function abrirModalLinksAutentique(alunoId, alunoNome, docId, linkAluno, telefon
   }
 
   // URL do PDF Assinado
-  const urlAssinadoPadrao = docId ? `https://api.autentique.com.br/documentos/${docId}/assinado.pdf` : '';
+  const urlAssinadoPadrao = `/api/alunos/${alunoId}/contrato/arquivo`;
   const inputPdfAssinado = document.getElementById('links-autentique-pdf-assinado-url');
   if (inputPdfAssinado) inputPdfAssinado.value = urlAssinadoPadrao;
 
@@ -4516,9 +4516,7 @@ function renderizarContratos() {
     let btnWaIcon = 'fa-brands fa-whatsapp';
 
     if (estaEmDia) {
-      const linkPdfAssinado = c.autentique_doc_id
-        ? `https://api.autentique.com.br/documentos/${c.autentique_doc_id}/assinado.pdf`
-        : `${window.location.origin}/api/alunos/${c.id}/contrato/arquivo`;
+      const linkPdfAssinado = `${window.location.origin}/api/alunos/${c.id}/contrato/arquivo`;
       msgWa = encodeURIComponent(
         `📜 *CONTRATO DE MATRÍCULA ASSINADO - Studio Shanti* 🧘‍♀️✨\n\n` +
         `Olá, *${c.nome}*!\n\n` +

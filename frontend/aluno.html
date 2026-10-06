@@ -2169,6 +2169,9 @@
             <a id="perfil-contrato-btn" href="#" target="_blank" class="btn-secondary" style="text-decoration: none; margin-top: 4px; display: none;">
               <i class="fa-solid fa-signature"></i> Assinar no Autentique
             </a>
+            <button id="perfil-contrato-download-btn" onclick="baixarContratoAssinado()" class="btn-primary" style="margin-top: 8px; display: none; width: 100%;">
+              <i class="fa-solid fa-download"></i> Baixar Contrato Assinado
+            </button>
           </div>
 
           <button class="btn-secondary" onclick="fazerLogout()" style="color: #B83A3A; border-color: rgba(184, 58, 58, 0.2); margin-top: 8px;">
@@ -4073,7 +4076,18 @@
         const txtStatus = stContrato === "assinado" ? "Assinado e Válido ✓" : "Assinatura Pendente";
         document.getElementById("perfil-contrato-status").textContent = `Status: ${txtStatus}`;
 
-        const btnContrato = document.getElementById("perfil-contrato-btn");
+        
+          const btnContrato = document.getElementById("perfil-contrato-btn");
+          const btnDownload = document.getElementById("perfil-contrato-download-btn");
+          
+          if (btnDownload) {
+             if (alunoDados.contrato_assinado_arquivo) {
+                 btnDownload.style.display = "block";
+             } else {
+                 btnDownload.style.display = "none";
+             }
+          }
+
         if (alunoDados.autentique_link) {
           btnContrato.style.display = "flex";
           btnContrato.href = alunoDados.autentique_link;
@@ -4087,7 +4101,45 @@
       };
     }
 
-    function fecharModalPerfil() {
+    
+      async function baixarContratoAssinado() {
+        try {
+          const btn = document.getElementById("perfil-contrato-download-btn");
+          const originalText = btn.innerHTML;
+          btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Baixando...';
+          btn.disabled = true;
+
+          const resp = await fetch("/api/aluno/contrato/arquivo", { headers: getAuthHeaders() });
+          if (!resp.ok) {
+            showToast("Erro ao baixar o contrato. Talvez ele ainda não tenha sido gerado.");
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+            return;
+          }
+          
+          const blob = await resp.blob();
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.style.display = 'none';
+          a.href = url;
+          a.download = `Contrato_Studio_Shanti.pdf`;
+          document.body.appendChild(a);
+          a.click();
+          window.URL.revokeObjectURL(url);
+          
+          btn.innerHTML = originalText;
+          btn.disabled = false;
+        } catch (e) {
+          console.error("Erro ao baixar:", e);
+          showToast("Erro de conexão ao baixar contrato.");
+          const btn = document.getElementById("perfil-contrato-download-btn");
+          btn.innerHTML = '<i class="fa-solid fa-download"></i> Baixar Contrato Assinado';
+          btn.disabled = false;
+        }
+      }
+
+      function fecharModalPerfil() {
+
       document.getElementById("modal-perfil").classList.remove("active");
     }
 
@@ -4142,7 +4194,7 @@
           let subscription = await swRegistration.pushManager.getSubscription();
           const versaoPush = localStorage.getItem("shanti_push_version");
           const isLegado = subscription && subscription.endpoint && subscription.endpoint.includes("/fcm/send/");
-          const precisaRenovar = forcarRenovacao || versaoPush !== "v44_vapid" || isLegado;
+          const precisaRenovar = forcarRenovacao || versaoPush !== "v45_vapid" || isLegado;
 
           if (subscription && precisaRenovar) {
             try {
@@ -4180,7 +4232,7 @@
               body: JSON.stringify({ token: JSON.stringify(subscription) })
             });
             if (resp.ok) {
-              localStorage.setItem("shanti_push_version", "v44_vapid");
+              localStorage.setItem("shanti_push_version", "v45_vapid");
             }
             return subscription;
           }
@@ -4205,7 +4257,7 @@
           });
 
           // Registra o Service Worker exclusivo do Aluno com escopo /aluno/
-          navigator.serviceWorker.register("/service-worker-aluno.js?v=44", { scope: "/aluno/" }).then(async reg => {
+          navigator.serviceWorker.register("/service-worker-aluno.js?v=45", { scope: "/aluno/" }).then(async reg => {
             await reg.update();
             if (alunoToken) {
               await registrarPushNotifications(reg);

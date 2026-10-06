@@ -4373,7 +4373,8 @@ def obter_resumo_aluno_dashboard(aluno_id: int) -> Dict[str, Any]:
         "label": contrato_label,
         "autentique_link": aluno.get("autentique_link") or "",
         "pode_assinar": pode_assinar,
-        "data_vigencia": aluno.get("data_vigencia_contrato") or ""
+        "data_vigencia": aluno.get("data_vigencia_contrato") or "",
+        "tem_arquivo": bool(aluno.get("contrato_assinado_arquivo"))
     }
 
     # 7. Frase do Dia

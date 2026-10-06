@@ -1783,6 +1783,24 @@ def api_aluno_contrato(request: Request):
         "data_contrato": aluno.get("data_contrato")
     }
 
+@app.get("/api/aluno/contrato/arquivo")
+def api_aluno_download_contrato(request: Request):
+    '''Permite que o aluno baixe seu proprio contrato assinado.'''
+    aluno_id = obter_aluno_autenticado(request)
+    aluno = db.obter_aluno(aluno_id)
+    if not aluno:
+        raise HTTPException(status_code=404, detail="Aluno não encontrado.")
+    
+    arq_relativo = aluno.get("contrato_assinado_arquivo")
+    if not arq_relativo:
+        raise HTTPException(status_code=404, detail="Nenhum contrato assinado anexado.")
+    
+    caminho_completo = os.path.join(os.path.dirname(os.path.abspath(__file__)), arq_relativo.replace("/", os.sep))
+    if not os.path.exists(caminho_completo):
+        raise HTTPException(status_code=404, detail="Arquivo físico do contrato não encontrado no servidor.")
+    return FileResponse(caminho_completo)
+
+
 @app.post("/api/aluno/aulas/confirmar")
 def api_aluno_confirmar_aula(dados: AlunoConfirmarAulaRequest, request: Request):
     aluno_id = obter_aluno_autenticado(request)
