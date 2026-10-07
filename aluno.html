@@ -1,0 +1,4282 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Shanti Studio · Aluno</title>
+  
+  <!-- PWA & Mobile Meta -->
+  <link rel="manifest" href="/manifest-aluno.json">
+  <meta name="theme-color" content="#3F4E3A">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Shanti Aluno">
+  <link rel="icon" type="image/png" href="/icons/icon-aluno-192.png">
+  <link rel="apple-touch-icon" href="/icons/icon-aluno-192.png">
+
+  <!-- Typography & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;1,400;1,600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <style>
+    /* ==========================================================================
+       DESIGN SYSTEM & CSS VARIABLES (Aprovado em media_1789600495818.png)
+       ========================================================================== */
+    :root {
+      --bg-warm: #FAF7F2;
+      --forest-green: #3F4E3A;
+      --forest-green-dark: #2C3828;
+      --forest-green-light: #52654C;
+      --status-green: #4F6B45;
+      --terracotta: #B8674A;
+      --terracotta-light: #F7EFE9;
+      --white: #FFFFFF;
+      --text-main: #232D20;
+      --text-muted: #7D8878;
+      --text-light: #9DA899;
+      --border-subtle: #ECE7DE;
+      --border-card: rgba(63, 78, 58, 0.08);
+      --shadow-card: 0 10px 28px rgba(44, 56, 40, 0.07), 0 2px 6px rgba(0, 0, 0, 0.02);
+      --shadow-float: 0 14px 34px rgba(44, 56, 40, 0.12);
+      --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-serif: 'Playfair Display', Georgia, serif;
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 20px;
+      --radius-full: 9999px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background-color: var(--bg-warm);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    #app-container {
+      width: 100%;
+      max-width: 480px;
+      min-height: 100vh;
+      background-color: var(--bg-warm);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      padding-bottom: 84px; /* espaço para a bottom nav */
+    }
+
+    /* --- TOPO / HEADER VERDE FLORESTA SÓLIDO (#354231) COM CURVATURA --- */
+    .top-header {
+      background-color: #354231;
+      color: var(--white);
+      padding: 36px 20px 28px 20px;
+      position: relative;
+      border-bottom-left-radius: 32px;
+      border-bottom-right-radius: 32px;
+      overflow: hidden;
+      box-shadow: 0 8px 24px rgba(44, 56, 40, 0.12);
+    }
+
+    .top-header::after {
+      content: "";
+      position: absolute;
+      top: -30px;
+      right: -30px;
+      width: 140px;
+      height: 140px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.05);
+      pointer-events: none;
+    }
+
+    .header-user-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .header-avatar-initial {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background-color: var(--terracotta);
+      color: #FFFFFF;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      font-weight: 800;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+      flex-shrink: 0;
+    }
+
+    .header-greeting-box {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .header-greeting-sub {
+      font-size: 15px;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.9);
+      line-height: 1.2;
+    }
+
+    .header-greeting-name {
+      font-size: 24px;
+      font-weight: 800;
+      color: #FFFFFF;
+      line-height: 1.2;
+      letter-spacing: -0.01em;
+    }
+
+    .header-actions {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .icon-btn-header {
+      width: 42px;
+      height: 42px;
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 12px;
+      color: var(--white);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      cursor: pointer;
+      position: relative;
+      transition: all 0.2s ease;
+    }
+
+    .icon-btn-header:active {
+      transform: scale(0.95);
+      background: rgba(255, 255, 255, 0.22);
+    }
+
+    .notification-badge {
+      position: absolute;
+      top: -4px;
+      right: -4px;
+      min-width: 19px;
+      height: 19px;
+      background-color: var(--terracotta);
+      border-radius: 999px;
+      color: #FFFFFF;
+      font-size: 11px;
+      font-weight: 800;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 0 5px;
+      border: 2px solid #354231;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+    }
+
+    .notification-dot {
+      position: absolute;
+      top: 9px;
+      right: 9px;
+      width: 8px;
+      height: 8px;
+      background-color: var(--terracotta);
+      border-radius: 50%;
+      border: 2px solid #354231;
+    }
+
+    /* --- STATUS CHIPS NO HEADER (MENSALIDADE & CONTRATO COMPACTOS) --- */
+    .status-chips-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 14px;
+      position: relative;
+      z-index: 2;
+      flex-wrap: wrap;
+    }
+
+    .status-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 14px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1.2;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+      cursor: pointer;
+      transition: transform 0.15s ease, opacity 0.15s ease;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    .status-chip:active {
+      transform: scale(0.96);
+    }
+
+    .status-chip.chip-em-dia {
+      background: rgba(79, 107, 69, 0.45);
+      color: #E8F5E9;
+      border: 1px solid rgba(165, 214, 167, 0.4);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+
+    .status-chip.chip-atrasado {
+      background: #B8674A;
+      color: #FFFFFF;
+      border: 1px solid rgba(255, 205, 210, 0.5);
+    }
+
+    .status-chip.chip-vigente {
+      background: rgba(184, 103, 74, 0.7);
+      color: #FFFFFF;
+      border: 1px solid rgba(244, 235, 230, 0.4);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+
+    .status-chip.chip-pendente {
+      background: rgba(217, 119, 6, 0.85);
+      color: #FFFFFF;
+      border: 1px solid rgba(254, 243, 199, 0.5);
+    }
+
+    /* --- SUA SEMANA VISUAL (D S T Q Q S S REDESIGN PROFISSIONAL) --- */
+    .header-week-section {
+      margin-top: 18px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .week-card-box {
+      background: rgba(255, 255, 255, 0.10);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-radius: 20px;
+      padding: 16px 18px 14px 18px;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.10);
+    }
+
+    .week-header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .week-header-title {
+      font-size: 15.5px;
+      font-weight: 700;
+      color: #FFFFFF;
+      letter-spacing: -0.01em;
+    }
+
+    .week-counter-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 13.5px;
+      font-weight: 800;
+      color: #FFFFFF;
+      background: rgba(255, 255, 255, 0.18);
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.22);
+    }
+
+    .week-days-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+
+    .week-day-col {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .week-day-letter {
+      font-size: 12.5px;
+      font-weight: 800;
+      color: rgba(255, 255, 255, 0.88);
+      text-transform: uppercase;
+    }
+
+    .week-day-circle {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      transition: all 0.2s ease;
+    }
+
+    .week-day-circle.circle-done {
+      background: #4F6B45;
+      color: #FFFFFF;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    }
+
+    .week-day-circle.circle-locked {
+      background: rgba(255, 255, 255, 0.12);
+      color: rgba(255, 255, 255, 0.45);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+    }
+
+    .week-day-circle.circle-today {
+      border: 2px solid #FFFFFF;
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+    }
+
+    .week-progress-track {
+      width: 100%;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.18);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .week-progress-fill {
+      height: 100%;
+      background: var(--terracotta);
+      border-radius: 999px;
+      transition: width 0.4s ease;
+    }
+
+    /* --- CONTEÚDO PRINCIPAL (INÍCIO) --- */
+    .screen-content-pad {
+      padding: 20px 20px 28px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .section-block-title {
+      font-size: 17.5px;
+      font-weight: 800;
+      color: #263321;
+      margin-bottom: 12px;
+    }
+
+    /* ==========================================================================
+       CARROSSEL HORIZONTAL DE PRÓXIMAS AULAS (REDESIGN PROFISSIONAL & ELEGANTE)
+       ========================================================================== */
+    .aulas-horizontal-container {
+      display: flex;
+      gap: 16px;
+      overflow-x: auto;
+      padding: 4px 4px 14px 4px;
+      scroll-snap-type: x mandatory;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+
+    .aulas-horizontal-container::-webkit-scrollbar {
+      display: none;
+    }
+
+    .aula-card-snap {
+      flex: 0 0 280px;
+      max-width: 86vw;
+      background: #FFFFFF;
+      border-radius: 22px;
+      padding: 18px;
+      border: 1.5px solid rgba(63, 78, 58, 0.10);
+      box-shadow: 0 10px 24px -4px rgba(44, 56, 40, 0.08), 0 3px 8px rgba(0, 0, 0, 0.02);
+      scroll-snap-align: start;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s;
+    }
+
+    .aula-card-snap:active {
+      transform: scale(0.99);
+    }
+
+    /* Top row: Tag de Destaque (Hoje/Amanhã/Dia) e Badge de Data */
+    .aula-card-top-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .aula-tag-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 5px 11px;
+      border-radius: 999px;
+      line-height: 1;
+    }
+
+    .aula-tag-pill.tag-hoje {
+      background: #FDF2EE;
+      color: #B8674A;
+      border: 1px solid rgba(184, 103, 74, 0.28);
+    }
+
+    .aula-tag-pill.tag-amanha {
+      background: #F2F6F0;
+      color: #354231;
+      border: 1px solid rgba(63, 78, 58, 0.22);
+    }
+
+    .aula-tag-pill.tag-dia {
+      background: #F5F3EF;
+      color: #4A5645;
+      border: 1px solid rgba(63, 78, 58, 0.15);
+    }
+
+    /* Badge Elegante de Data com Ícone de Calendário */
+    .aula-date-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(53, 66, 49, 0.05);
+      border: 1px solid rgba(53, 66, 49, 0.12);
+      padding: 5px 11px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #232D20;
+      line-height: 1;
+    }
+
+    .aula-date-badge i {
+      color: #B8674A;
+      font-size: 13px;
+    }
+
+    /* Bloco da Data por Extenso em Destaque */
+    .aula-card-date-highlight {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #FAF7F2;
+      border-radius: 12px;
+      padding: 8px 11px;
+      margin-bottom: 12px;
+      border: 1px solid rgba(63, 78, 58, 0.07);
+    }
+
+    .aula-card-date-highlight i {
+      color: #4F6B45;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+
+    .aula-card-date-highlight span {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: #263321;
+    }
+
+    /* Corpo Principal do Card: Ícone + Turma + Modalidade */
+    .aula-card-main-info {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .aula-card-emblem {
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #F5EFEB, #E8E2D8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #B8674A;
+      font-size: 20px;
+      flex-shrink: 0;
+      box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.7);
+    }
+
+    .aula-card-title-group {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .aula-card-nome {
+      font-size: 18.5px;
+      font-weight: 800;
+      color: #232D20;
+      line-height: 1.25;
+      margin: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .aula-card-subtitulo {
+      font-size: 13px;
+      font-weight: 600;
+      color: #768371;
+      margin-top: 2px;
+      display: block;
+    }
+
+    /* Meta Chips (Horário e Local) */
+    .aula-card-meta-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .aula-meta-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #354231;
+      background: #F4F7F2;
+      padding: 4px 9px;
+      border-radius: 8px;
+      border: 1px solid rgba(63, 78, 58, 0.12);
+    }
+
+    .aula-meta-chip i {
+      font-size: 12.5px;
+      color: #556250;
+    }
+
+    /* Linha Divisória Sutil */
+    .aula-card-divider {
+      height: 1px;
+      background: rgba(63, 78, 58, 0.08);
+      margin-bottom: 12px;
+    }
+
+    /* Ações e Estados do Card */
+    .aula-card-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn-card-confirmar {
+      flex: 1.2;
+      min-height: 48px;
+      background-color: #354231;
+      color: #FFFFFF;
+      border: none;
+      border-radius: 14px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      transition: all 0.15s ease;
+      box-shadow: 0 4px 12px rgba(53, 66, 49, 0.22);
+    }
+
+    .btn-card-confirmar:active {
+      transform: scale(0.96);
+      background-color: #273324;
+    }
+
+    .btn-card-desmarcar {
+      flex: 1;
+      min-height: 48px;
+      background-color: #FFF9F7;
+      color: #9C4123;
+      border: 1.5px solid #E8B6A4;
+      border-radius: 14px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+
+    .btn-card-desmarcar:active {
+      transform: scale(0.96);
+      background-color: #FCECE6;
+    }
+
+    /* Banners de Status Aprovados / Cancelados */
+    .aula-card-status-box {
+      border-radius: 14px;
+      padding: 10px 12px;
+      text-align: center;
+    }
+
+    .aula-card-status-box.box-confirmada {
+      background: #F1F7EF;
+      border: 1.5px solid #BCD7B8;
+      color: #23451B;
+    }
+
+    .aula-card-status-box.box-desmarcada {
+      background: #FDF3EF;
+      border: 1.5px solid #F2C7B8;
+      color: #9C4123;
+    }
+
+    /* Rumo à Próxima Conquista */
+    .card-conquista-resumo {
+      background: #FFFFFF;
+      border-radius: 20px;
+      padding: 18px 20px;
+      border: 1px solid rgba(63, 78, 58, 0.08);
+      box-shadow: 0 6px 18px rgba(44, 56, 40, 0.05);
+    }
+
+    .conquista-title-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .conquista-header-label {
+      font-size: 16px;
+      font-weight: 800;
+      color: #263321;
+    }
+
+    .conquista-track {
+      width: 100%;
+      height: 12px;
+      background-color: #E6E0D5;
+      border-radius: 10px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .conquista-fill {
+      height: 100%;
+      background-color: #B8674A;
+      border-radius: 10px;
+      transition: width 0.5s ease;
+    }
+
+    .conquista-badges-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .conquista-badge-item {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      font-weight: 800;
+    }
+
+    .badge-item-done {
+      background-color: #354231;
+      color: #FFFFFF;
+    }
+
+    .badge-item-locked {
+      background-color: #FAF8F5;
+      border: 1.5px solid #D9D2C5;
+      color: #8C9886;
+    }
+
+    /* Cards de Informação de Status (Financeiro e Contrato) */
+    .card-status-info {
+      background: #FFFFFF;
+      border-radius: 20px;
+      padding: 18px 20px;
+      border: 1px solid rgba(63, 78, 58, 0.08);
+      box-shadow: 0 6px 18px rgba(44, 56, 40, 0.05);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .card-status-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .card-status-category {
+      font-size: 13.5px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #5D6858;
+    }
+
+    .badge-status-pill {
+      font-size: 13.5px;
+      font-weight: 700;
+      padding: 4px 12px;
+      border-radius: 20px;
+    }
+
+    .pill-em-dia {
+      background: rgba(79, 107, 69, 0.15);
+      color: #2C3828;
+      border: 1px solid rgba(79, 107, 69, 0.3);
+    }
+
+    .pill-atrasado {
+      background: rgba(184, 103, 74, 0.15);
+      color: #9C4123;
+      border: 1px solid rgba(184, 103, 74, 0.35);
+    }
+
+    .pill-pendente-contrato {
+      background: #FFF4E5;
+      color: #B35E1B;
+      border: 1px solid #FFD8A8;
+    }
+
+    .card-status-detail {
+      font-size: 15px;
+      font-weight: 600;
+      color: #263321;
+      line-height: 1.4;
+    }
+
+    .btn-assinar-contrato-aluno {
+      min-height: 48px;
+      background-color: #B8674A;
+      color: #FFFFFF;
+      border: none;
+      border-radius: 12px;
+      font-size: 14.5px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s;
+      margin-top: 4px;
+    }
+
+    .btn-assinar-contrato-aluno:active {
+      transform: scale(0.97);
+      background-color: #9C4123;
+    }
+
+    /* Card Frase do Dia em Destaque na Área Verde */
+    .header-frase-dia {
+      margin-top: 18px;
+      background: rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-radius: 18px;
+      padding: 14px 18px;
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      border-left: 4px solid var(--terracotta);
+      position: relative;
+      z-index: 2;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    }
+
+    .header-frase-tag {
+      font-size: 11.5px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #F3C5B5;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 6px;
+    }
+
+    .header-frase-texto {
+      font-family: var(--font-serif);
+      font-size: 15px;
+      font-style: italic;
+      font-weight: 500;
+      color: #FFFFFF;
+      line-height: 1.45;
+      margin: 0;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Card Nova Leitura */
+    .card-nova-leitura {
+      background: #FFFFFF;
+      border-radius: 20px;
+      padding: 16px 20px;
+      border: 1px solid rgba(63, 78, 58, 0.08);
+      box-shadow: 0 6px 18px rgba(44, 56, 40, 0.05);
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .card-nova-leitura:active {
+      transform: scale(0.98);
+      background-color: #FAF7F2;
+    }
+
+    .nova-leitura-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: rgba(184, 103, 74, 0.12);
+      color: #B8674A;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+
+    .nova-leitura-title {
+      font-size: 15.5px;
+      font-weight: 700;
+      color: #232D20;
+      line-height: 1.35;
+    }
+
+    /* --- CARROSSEL MULTIMÍDIA DA BIBLIOTECA (VÍDEO / ÁUDIO / ARTIGO) --- */
+    .biblioteca-carousel {
+      display: flex;
+      gap: 14px;
+      overflow-x: auto;
+      padding: 4px 4px 14px 4px;
+      scroll-snap-type: x mandatory;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+
+    .biblioteca-carousel::-webkit-scrollbar {
+      display: none;
+    }
+
+    .biblioteca-media-card {
+      flex: 0 0 165px;
+      background: #FFFFFF;
+      border-radius: 18px;
+      border: 1.5px solid rgba(63, 78, 58, 0.10);
+      box-shadow: 0 6px 18px rgba(44, 56, 40, 0.06);
+      scroll-snap-align: start;
+      overflow: hidden;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s;
+    }
+
+    .biblioteca-media-card:active {
+      transform: scale(0.97);
+    }
+
+    .biblioteca-media-thumb {
+      width: 100%;
+      height: 110px;
+      background: #E8ECE5;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .biblioteca-media-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .biblioteca-play-overlay {
+      position: absolute;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: rgba(0, 0, 0, 0.45);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      color: #FFFFFF;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      padding-left: 2px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      transition: transform 0.2s;
+    }
+
+    .biblioteca-media-badge {
+      position: absolute;
+      bottom: 6px;
+      right: 6px;
+      background: rgba(0, 0, 0, 0.65);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      color: #FFFFFF;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 6px;
+      line-height: 1;
+    }
+
+    .biblioteca-media-info {
+      padding: 10px 12px 12px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .biblioteca-media-type-tag {
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--terracotta);
+    }
+
+    .biblioteca-media-title {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: #263321;
+      line-height: 1.25;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    /* --- POP-UP DE CAMPANHAS / COMUNICADOS --- */
+    .popup-campanha-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.65);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .popup-campanha-card {
+      background: #FFFFFF;
+      border-radius: 24px;
+      max-width: 360px;
+      width: 100%;
+      overflow: hidden;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+      position: relative;
+    }
+
+    .popup-campanha-close {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: rgba(0, 0, 0, 0.45);
+      color: #FFFFFF;
+      border: none;
+      font-size: 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 3;
+    }
+
+    .popup-campanha-banner {
+      width: 100%;
+      max-height: 180px;
+      object-fit: cover;
+      display: block;
+    }
+
+    .popup-campanha-body {
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .popup-campanha-titulo {
+      font-size: 18px;
+      font-weight: 800;
+      color: #263321;
+      line-height: 1.25;
+    }
+
+    .popup-campanha-mensagem {
+      font-size: 14px;
+      color: #4A5645;
+      line-height: 1.5;
+      white-space: pre-line;
+    }
+
+    .popup-campanha-btn {
+      width: 100%;
+      min-height: 48px;
+      background: #354231;
+      color: #FFFFFF;
+      border: none;
+      border-radius: 14px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    /* --- MODAL PLAYER MULTIMÍDIA --- */
+    .player-midia-content {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      padding: 10px 0 20px 0;
+    }
+
+    .player-video-wrapper {
+      width: 100%;
+      border-radius: 16px;
+      overflow: hidden;
+      background: #000;
+      aspect-ratio: 16 / 9;
+    }
+
+    .player-video-wrapper video,
+    .player-video-wrapper iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+
+    .player-audio-card {
+      background: #FAF7F2;
+      border-radius: 18px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      border: 1px solid rgba(63, 78, 58, 0.1);
+    }
+
+    .player-audio-cover {
+      width: 120px;
+      height: 120px;
+      border-radius: 18px;
+      background: var(--terracotta);
+      color: #FFFFFF;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 42px;
+      box-shadow: 0 8px 20px rgba(184, 103, 74, 0.3);
+      overflow: hidden;
+    }
+
+    .player-audio-cover img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .player-audio-card audio {
+      width: 100%;
+      border-radius: 10px;
+    }
+
+    /* --- BOTTOM NAVIGATION BAR CAPSULE STYLE --- */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 480px;
+      height: 72px;
+      background: #FAF7F2;
+      border-top: 1px solid #E6DFD5;
+      box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.04);
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      z-index: 100;
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+
+    .nav-tab-btn {
+      background: none;
+      border: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      color: #7D8878;
+      font-family: var(--font-sans);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      padding: 6px 10px;
+      position: relative;
+      transition: all 0.2s ease;
+      min-height: 48px;
+      min-width: 60px;
+      border-radius: 16px;
+    }
+
+    .nav-tab-btn i {
+      font-size: 18px;
+      transition: all 0.2s ease;
+    }
+
+    .nav-tab-btn.active {
+      color: #263321;
+      font-weight: 800;
+    }
+
+    .nav-tab-btn .nav-icon-pill {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4px 16px;
+      border-radius: 20px;
+      transition: all 0.2s;
+    }
+
+    .nav-tab-btn.active .nav-icon-pill {
+      background-color: #E6DFD5;
+      color: #263321;
+    }
+
+    /* --- TELAS SECUNDÁRIAS (Aulas, Conquistas, Leituras) --- */
+    .tab-screen {
+      display: none;
+      flex-direction: column;
+      gap: 20px;
+      padding: 0 20px 24px 20px;
+    }
+
+    .tab-screen.active {
+      display: flex;
+    }
+
+    .screen-header-inner {
+      padding: 32px 4px 12px 4px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .screen-title {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--forest-green);
+      letter-spacing: -0.01em;
+    }
+
+    /* Cards de Aulas & Turmas */
+    .turma-card {
+      background: var(--white);
+      border-radius: var(--radius-md);
+      padding: 18px 20px;
+      box-shadow: var(--shadow-card);
+      border: 1px solid var(--border-card);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .turma-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .turma-card-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .turma-dias-badge {
+      background: rgba(63, 78, 58, 0.09);
+      color: var(--forest-green);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: var(--radius-full);
+    }
+
+    .turma-card-details {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .turma-card-details span {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .turma-card-details i {
+      color: var(--forest-green);
+      width: 16px;
+    }
+
+    /* Botão Primário Estilizado */
+    .btn-primary {
+      background: var(--forest-green);
+      color: var(--white);
+      border: none;
+      padding: 14px 20px;
+      border-radius: var(--radius-md);
+      font-family: var(--font-sans);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 12px rgba(63, 78, 58, 0.2);
+    }
+
+    .btn-primary:active {
+      transform: scale(0.98);
+      background: var(--forest-green-dark);
+    }
+
+    .btn-terracotta {
+      background: var(--terracotta);
+      color: var(--white);
+      border: none;
+      padding: 14px 20px;
+      border-radius: var(--radius-md);
+      font-family: var(--font-sans);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 12px rgba(184, 103, 74, 0.25);
+    }
+
+    .btn-terracotta:active {
+      transform: scale(0.98);
+      background: #A3573C;
+    }
+
+    .btn-secondary {
+      background: var(--white);
+      color: var(--forest-green);
+      border: 1px solid var(--border-subtle);
+      padding: 12px 18px;
+      border-radius: var(--radius-md);
+      font-family: var(--font-sans);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+    }
+
+    /* Histórico de Frequência */
+    .historico-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .historico-item {
+      background: var(--white);
+      border-radius: var(--radius-sm);
+      padding: 12px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border: 1px solid var(--border-card);
+      font-size: 13px;
+    }
+
+    .hist-presente {
+      color: var(--status-green);
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .hist-faltou {
+      color: var(--terracotta);
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* TELA CONQUISTAS (MARCOS DE FREQUÊNCIA) */
+    .conquistas-progresso-card {
+      background: var(--white);
+      border-radius: var(--radius-lg);
+      padding: 22px;
+      box-shadow: var(--shadow-card);
+      border: 1px solid var(--border-card);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .progresso-bar-bg {
+      width: 100%;
+      height: 10px;
+      background-color: var(--border-subtle);
+      border-radius: var(--radius-full);
+      overflow: hidden;
+    }
+
+    .progresso-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--forest-green), var(--terracotta));
+      border-radius: var(--radius-full);
+      transition: width 0.6s ease;
+    }
+
+    .marcos-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    .marco-card {
+      background: var(--white);
+      border-radius: var(--radius-md);
+      padding: 18px 16px;
+      box-shadow: var(--shadow-card);
+      border: 1px solid var(--border-card);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 10px;
+      position: relative;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .marco-card.desbloqueado {
+      border: 1.5px solid rgba(63, 78, 58, 0.25);
+    }
+
+    .marco-card.desbloqueado .marco-icon {
+      background: rgba(63, 78, 58, 0.1);
+      color: var(--forest-green);
+    }
+
+    .marco-card.bloqueado {
+      opacity: 0.65;
+      background: #F8F5F0;
+    }
+
+    .marco-card.bloqueado .marco-icon {
+      background: #EAE5DC;
+      color: #9BA596;
+    }
+
+    .marco-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+    }
+
+    .marco-qtd {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .marco-status-label {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    /* TELA LEITURAS & ARTIGOS */
+    .biblioteca-list {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .leitura-card {
+      background: var(--white);
+      border-radius: var(--radius-md);
+      padding: 18px 20px;
+      box-shadow: var(--shadow-card);
+      border: 1px solid var(--border-card);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .leitura-card:active {
+      transform: scale(0.99);
+      background: #FDFBF8;
+    }
+
+    .leitura-tag {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--terracotta);
+    }
+
+    .leitura-titulo {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-main);
+      line-height: 1.35;
+    }
+
+    .leitura-subtitulo {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.45;
+    }
+
+    .leitura-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      color: var(--text-light);
+      margin-top: 4px;
+    }
+
+    /* --- MODAIS (Login, Reposição, Leitor, Perfil) --- */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(35, 45, 32, 0.6);
+      backdrop-filter: blur(4px);
+      z-index: 200;
+      justify-content: center;
+      align-items: flex-end; /* Abre como bottom sheet no mobile */
+      padding: 0;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal-sheet {
+      width: 100%;
+      max-width: 480px;
+      max-height: 90vh;
+      background: var(--white);
+      border-top-left-radius: 24px;
+      border-top-right-radius: 24px;
+      padding: 24px 24px 36px 24px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.15);
+      animation: slideUp 0.25s ease-out;
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(100%); }
+      to { transform: translateY(0); }
+    }
+
+    .modal-sheet-handle {
+      width: 40px;
+      height: 4px;
+      background: #D8D2C6;
+      border-radius: 2px;
+      align-self: center;
+      margin-bottom: 4px;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-title {
+      font-size: 19px;
+      font-weight: 700;
+      color: var(--forest-green);
+    }
+
+    .modal-close-btn {
+      background: none;
+      border: none;
+      font-size: 20px;
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 4px;
+    }
+
+    /* Form Inputs */
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .form-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .form-input, .form-select, .form-textarea {
+      width: 100%;
+      padding: 13px 15px;
+      border: 1.5px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      font-family: var(--font-sans);
+      font-size: 14px;
+      color: var(--text-main);
+      background-color: var(--bg-warm);
+      outline: none;
+      transition: border-color 0.2s ease;
+    }
+
+    .form-input:focus, .form-select:focus, .form-textarea:focus {
+      border-color: var(--forest-green);
+      background-color: var(--white);
+    }
+
+    /* TELA CHEIA DE LOGIN / AUTH OVERLAY */
+    #auth-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: var(--bg-warm);
+      z-index: 300;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    #auth-screen.active {
+      display: flex;
+    }
+
+    .auth-card {
+      width: 100%;
+      max-width: 390px;
+      background: var(--white);
+      border-radius: var(--radius-lg);
+      padding: 32px 26px;
+      box-shadow: var(--shadow-float);
+      border: 1px solid var(--border-card);
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      text-align: center;
+    }
+
+    .auth-logo {
+      width: 58px;
+      height: 58px;
+      background: var(--forest-green);
+      color: var(--white);
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+      margin: 0 auto 4px auto;
+    }
+
+    .auth-title {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--forest-green);
+    }
+
+    .auth-subtitle {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    .auth-links {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 4px;
+    }
+
+    .auth-link-btn {
+      background: none;
+      border: none;
+      color: var(--terracotta);
+      font-family: var(--font-sans);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: underline;
+    }
+
+    /* Estilos do fluxo de Instalação PWA */
+    .install-box {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      text-align: center;
+    }
+
+    .install-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      background: rgba(79, 107, 69, 0.12);
+      color: var(--status-green);
+      font-size: 11px;
+      font-weight: 700;
+      border-radius: var(--radius-full);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin: 0 auto;
+    }
+
+    .install-instructions-card {
+      background: var(--bg-warm);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      text-align: left;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .install-device-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--forest-green);
+      border-bottom: 1px solid var(--border-subtle);
+      padding-bottom: 8px;
+    }
+
+    .install-step-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 12px;
+      line-height: 1.45;
+      color: var(--text-main);
+    }
+
+    .install-step-num {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--forest-green);
+      color: var(--white);
+      font-size: 11px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .btn-install-cta {
+      background-color: var(--forest-green);
+      color: var(--white);
+      border: none;
+      padding: 16px 20px;
+      border-radius: var(--radius-sm);
+      font-family: var(--font-sans);
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      box-shadow: 0 8px 20px rgba(63, 78, 58, 0.25);
+      transition: all 0.2s ease;
+      width: 100%;
+    }
+
+    .btn-install-cta:active {
+      transform: scale(0.98);
+      background-color: var(--forest-green-dark);
+    }
+
+    @keyframes pulseSoft {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.02); box-shadow: 0 10px 26px rgba(63, 78, 58, 0.35); }
+    }
+
+    .btn-install-cta.anim-pulse {
+      animation: pulseSoft 2s infinite ease-in-out;
+    }
+
+    /* Toast Notification */
+    #toast-msg {
+      position: fixed;
+      bottom: 90px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: var(--forest-green-dark);
+      color: var(--white);
+      padding: 12px 22px;
+      border-radius: var(--radius-full);
+      font-size: 13px;
+      font-weight: 500;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+      z-index: 400;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.3s ease;
+      white-space: nowrap;
+    }
+
+    #toast-msg.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+  </style>
+</head>
+<body>
+
+  <div id="app-container">
+    
+    <!-- 1. TOPO / HEADER VERDE FLORESTA SÓLIDO (#354231) -->
+    <header class="top-header">
+      <div class="header-user-row">
+        <div class="header-avatar-initial" id="header-avatar-initial">C</div>
+        <div class="header-greeting-box">
+          <span class="header-greeting-sub" id="header-greeting-sub">Bom dia,</span>
+          <h1 class="header-greeting-name" id="header-greeting-name">Aluno</h1>
+        </div>
+        <div class="header-actions">
+          <button class="icon-btn-header" id="btn-notificacoes" title="Notificações" onclick="abrirNotificacoes()">
+            <i class="fa-regular fa-bell"></i>
+            <span class="notification-badge" id="notification-badge">0</span>
+            <span class="notification-dot" id="notification-dot" style="display: none;"></span>
+          </button>
+          <button class="icon-btn-header" id="btn-perfil" title="Meu Perfil" onclick="abrirPerfil()">
+            <i class="fa-solid fa-gear"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- CHIPS COMPACTOS DE MENSALIDADE E CONTRATO (Mockup v2.0) -->
+      <div class="status-chips-row">
+        <span class="status-chip chip-em-dia" id="chip-mensalidade" onclick="aoClicarChipMensalidade()">
+          Mensalidade: Em Dia ✅
+        </span>
+        <span class="status-chip chip-vigente" id="chip-contrato" onclick="aoClicarChipContrato()">
+          Contrato: Vigente 🤝
+        </span>
+      </div>
+
+      <!-- SUA SEMANA (D S T Q Q S S - Mockup v2.0) -->
+      <div class="header-week-section">
+        <div class="week-card-box">
+          <div class="week-header-row">
+            <span class="week-header-title">Sua Semana</span>
+            <span class="week-counter-badge" id="week-counter">🧘 3/5</span>
+          </div>
+          <div class="week-days-grid" id="week-days-grid">
+            <!-- 7 dias D S T Q Q S S injetados via JS -->
+          </div>
+          <div class="week-progress-track">
+            <div class="week-progress-fill" id="week-progress-fill" style="width: 60%;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- FRASE DO DIA EM DESTAQUE NA ÁREA VERDE -->
+      <div class="header-frase-dia" id="header-frase-dia">
+        <div class="header-frase-tag">
+          <i class="fa-solid fa-quote-left"></i> FRASE DO DIA
+        </div>
+        <p class="header-frase-texto" id="frase-dia-texto">
+          "A constância na prática transforma esforço em leveza."
+        </p>
+      </div>
+    </header>
+
+    <!-- 2. CONTEÚDO PRINCIPAL (COM AS 4 TELAS) -->
+    
+    <!-- TAB 1: INÍCIO (Design v2.0 Consolidado) -->
+    <div id="screen-inicio" class="tab-screen active" style="padding: 0;">
+      <div class="screen-content-pad">
+        
+        <!-- BANNER DE ATIVAÇÃO DE NOTIFICAÇÕES (ESTILO IFOOD / PUSH) -->
+        <div id="banner-ativar-notificacoes" style="display: none; background: linear-gradient(135deg, #A85938, #8D472B); color: white; padding: 14px 16px; border-radius: 16px; margin-bottom: 18px; box-shadow: 0 4px 14px rgba(168,89,56,0.22); align-items: center; justify-content: space-between; gap: 12px;">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="background: rgba(255,255,255,0.2); width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+              <i class="fa-solid fa-bell" style="font-size: 18px; color: #fff;"></i>
+            </div>
+            <div>
+              <div style="font-weight: 700; font-size: 14px; line-height: 1.2;">Ativar Avisos no Celular</div>
+              <div style="font-size: 12px; opacity: 0.9; margin-top: 2px;">Receba lembretes de aulas e comunicados estilo iFood.</div>
+            </div>
+          </div>
+          <button type="button" onclick="solicitarPermissaoPushDireta()" style="background: #ffffff; color: #8D472B; font-weight: 800; border: none; padding: 10px 14px; border-radius: 10px; font-size: 13px; cursor: pointer; white-space: nowrap; box-shadow: 0 2px 6px rgba(0,0,0,0.15);">
+            Ativar 🔔
+          </button>
+        </div>
+
+        <!-- SEÇÃO: PRÓXIMAS AULAS -->
+        <div>
+          <h3 class="section-block-title">Próximas aulas</h3>
+
+          <div class="aulas-horizontal-container" id="container-proximas-aulas">
+            <!-- Cards injetados via JS com botões Confirmar / Desmarcar -->
+          </div>
+        </div>
+
+        <!-- SEÇÃO: BIBLIOTECA (CARROSSEL MULTIMÍDIA) -->
+        <div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <h3 class="section-block-title" style="margin-bottom: 0;">Biblioteca</h3>
+            <span style="font-size: 13.5px; font-weight: 700; color: #5D6858; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;" onclick="mudarAba('leituras')">
+              Ver tudo <i class="fa-solid fa-chevron-right" style="font-size: 11px;"></i>
+            </span>
+          </div>
+          <div class="biblioteca-carousel" id="biblioteca-carousel-inicio">
+            <!-- Cards multimídia injetados via JS -->
+          </div>
+        </div>
+
+        <!-- SEÇÃO: RUMO À PRÓXIMA CONQUISTA -->
+        <div class="card-conquista-resumo" id="card-conquista-resumo" onclick="mudarAba('conquistas')" style="cursor: pointer;" title="Toque para ver todas as suas conquistas">
+          <div class="conquista-title-row">
+            <span class="conquista-header-label" id="conquista-header-label">Rumo à próxima conquista · 18 de 25</span>
+          </div>
+          <div class="conquista-track">
+            <div class="conquista-fill" id="conquista-fill-bar" style="width: 72%;"></div>
+          </div>
+          <div class="conquista-badges-row" id="conquista-badges-row">
+            <div class="conquista-badge-item badge-item-done"><i class="fa-solid fa-check"></i></div>
+            <div class="conquista-badge-item badge-item-done"><i class="fa-solid fa-check"></i></div>
+            <div class="conquista-badge-item badge-item-locked"><i class="fa-solid fa-lock"></i></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- TAB 2: AULAS & REPOSIÇÕES -->
+    <div id="screen-aulas" class="tab-screen">
+      <div class="screen-header-inner">
+        <h2 class="screen-title">Minhas Aulas</h2>
+        <span class="turma-dias-badge" id="aulas-plano-badge">Plano Ativo</span>
+      </div>
+
+      <!-- Turmas Matriculadas -->
+      <div id="lista-turmas-aluno" style="display: flex; flex-direction: column; gap: 12px;">
+        <!-- Injetado via JS -->
+      </div>
+
+      <!-- Botão Solicitar Reposição -->
+      <button class="btn-primary" onclick="abrirModalReposicao()" style="min-height: 48px; font-size: 15px; font-weight: 700;">
+        <i class="fa-solid fa-plus"></i> Solicitar Reposição de Aula
+      </button>
+
+      <!-- Minhas Solicitações de Reposição Recentes -->
+      <h3 style="font-size: 16px; font-weight: 800; color: var(--forest-green); margin-top: 10px;">
+        Solicitações de Reposição
+      </h3>
+      <div id="lista-reposicoes-aluno" style="display: flex; flex-direction: column; gap: 10px;">
+        <p style="font-size: 14px; font-weight: 600; color: var(--text-muted);">Nenhuma solicitação em andamento.</p>
+      </div>
+
+      <!-- Histórico de Presenças -->
+      <h3 style="font-size: 16px; font-weight: 800; color: var(--forest-green); margin-top: 10px;">
+        Histórico Recente de Presenças
+      </h3>
+      <div class="historico-list" id="lista-historico-presencas">
+        <!-- Injetado via JS -->
+      </div>
+    </div>
+
+    <!-- TAB 3: CONQUISTAS (MARCOS DE FREQUÊNCIA 10, 25, 50, 100, 200) -->
+    <div id="screen-conquistas" class="tab-screen">
+      <div class="screen-header-inner">
+        <h2 class="screen-title">Sua Jornada</h2>
+        <span class="turma-dias-badge" id="conquistas-total-badge">0 Aulas</span>
+      </div>
+
+      <!-- Cartão de Progresso até o Próximo Marco -->
+      <div class="conquistas-progresso-card">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span style="font-size: 15px; font-weight: 700; color: var(--text-main);">Próxima Conquista</span>
+          <span style="font-size: 15px; font-weight: 800; color: var(--terracotta);" id="conq-prox-label">18/25 aulas</span>
+        </div>
+        <div class="progresso-bar-bg">
+          <div class="progresso-bar-fill" id="conq-progresso-fill" style="width: 72%;"></div>
+        </div>
+        <p style="font-size: 14px; font-weight: 600; color: var(--text-muted); line-height: 1.45;" id="conq-incentivo-texto">
+          Cada aula no tatame é um passo de autoconhecimento e constância.
+        </p>
+      </div>
+
+      <!-- Grade dos 5 Marcos -->
+      <h3 style="font-size: 16px; font-weight: 800; color: var(--forest-green); margin-top: 8px;">
+        Marcos de Prática
+      </h3>
+      <div class="marcos-grid" id="grid-marcos-conquistas">
+        <!-- Injetado via JS -->
+      </div>
+    </div>
+
+    <!-- TAB 4: LEITURAS (BIBLIOTECA DE CONTEÚDOS DE NATÁLIA) -->
+    <div id="screen-leituras" class="tab-screen">
+      <div class="screen-header-inner">
+        <h2 class="screen-title">Biblioteca</h2>
+        <span class="turma-dias-badge">Inspiração & Filosofia</span>
+      </div>
+
+      <div class="biblioteca-list" id="lista-artigos-biblioteca">
+        <!-- Injetado via JS -->
+      </div>
+    </div>
+
+    <!-- 3. BOTTOM NAVIGATION BAR CAPSULE STYLE (media_1789606846595.png) -->
+    <nav class="bottom-nav">
+      <button class="nav-tab-btn active" data-tab="inicio" onclick="mudarAba('inicio')">
+        <div class="nav-icon-pill"><i class="fa-solid fa-house"></i></div>
+        <span>Início</span>
+      </button>
+      <button class="nav-tab-btn" data-tab="aulas" onclick="mudarAba('aulas')">
+        <div class="nav-icon-pill"><i class="fa-regular fa-calendar"></i></div>
+        <span>Aulas</span>
+      </button>
+      <button class="nav-tab-btn" data-tab="conquistas" onclick="mudarAba('conquistas')">
+        <div class="nav-icon-pill"><i class="fa-solid fa-award"></i></div>
+        <span>Conquistas</span>
+      </button>
+      <button class="nav-tab-btn" data-tab="leituras" onclick="mudarAba('leituras')">
+        <div class="nav-icon-pill"><i class="fa-solid fa-book-open"></i></div>
+        <span>Leituras</span>
+      </button>
+    </nav>
+
+    <!-- MODAL: SOLICITAR REPOSIÇÃO -->
+    <div class="modal-overlay" id="modal-reposicao">
+      <div class="modal-sheet">
+        <div class="modal-sheet-handle"></div>
+        <div class="modal-header">
+          <h3 class="modal-title">Solicitar Reposição</h3>
+          <button class="modal-close-btn" onclick="fecharModalReposicao()">&times;</button>
+        </div>
+        <p style="font-size: 13px; color: var(--text-muted); line-height: 1.4;">
+          Informe a data em que faltou (ou faltará) para combinarmos uma turma de reposição.
+        </p>
+        <div class="form-group">
+          <label class="form-label">Data da Falta *</label>
+          <input type="date" class="form-input" id="repo-data-falta" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Data Pretendida para Reposição (opcional)</label>
+          <input type="date" class="form-input" id="repo-data-sugerida">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Motivo / Observações</label>
+          <textarea class="form-textarea" id="repo-motivo" rows="2" placeholder="Ex: Viagem de trabalho, consulta médica..."></textarea>
+        </div>
+        <button class="btn-terracotta" onclick="enviarSolicitacaoReposicao()">
+          <i class="fa-solid fa-paper-plane"></i> Enviar Solicitação
+        </button>
+      </div>
+    </div>
+
+    <!-- MODAL: ASSINATURA DE CONTRATO -->
+    <div class="modal-overlay" id="modal-assinar-contrato">
+      <div class="modal-sheet">
+        <div class="modal-sheet-handle"></div>
+        <div class="modal-header">
+          <h3 class="modal-title">Assinatura do Contrato</h3>
+          <button class="modal-close-btn" onclick="fecharModalAssinarContrato()">&times;</button>
+        </div>
+        <p style="font-size: 15px; font-weight: 600; color: #263321; line-height: 1.5; margin: 8px 0;">
+          Ao confirmar abaixo, você assina digitalmente os Termos de Prática e Matrícula do <strong>Shanti Studio de Yoga</strong>, garantindo sua vaga regular com vigência anual.
+        </p>
+        <div style="background: #FAF7F2; border: 1px solid #ECE7DE; border-radius: 12px; padding: 14px; margin: 12px 0;">
+          <label style="display: flex; align-items: flex-start; gap: 10px; font-size: 14px; font-weight: 600; color: #354231; cursor: pointer;">
+            <input type="checkbox" id="chk-concordo-contrato" style="margin-top: 3px; width: 20px; height: 20px; accent-color: #B8674A;">
+            <span>Declaro que li e estou ciente do regulamento das aulas, reposições e cancelamentos do estúdio.</span>
+          </label>
+        </div>
+        <div id="box-autentique-link" style="display: none; margin-bottom: 14px;">
+          <a id="link-externo-autentique" href="#" target="_blank" style="display: block; text-align: center; color: #B8674A; font-weight: 700; font-size: 14.5px; text-decoration: underline;">
+            Visualizar documento completo no Autentique ↗
+          </a>
+        </div>
+        <button class="btn-primary" onclick="confirmarAssinaturaContrato()" style="min-height: 48px; font-size: 15px; font-weight: 700; width: 100%;">
+          <i class="fa-solid fa-signature"></i> Confirmar Assinatura Digital
+        </button>
+      </div>
+    </div>
+
+    <!-- MODAL: DETALHES DA CONQUISTA (CELEBRAÇÃO NO WHATSAPP) -->
+    <div class="modal-overlay" id="modal-conquista-detalhe">
+      <div class="modal-sheet" style="text-align: center;">
+        <div class="modal-sheet-handle"></div>
+        <div class="modal-header">
+          <h3 class="modal-title" id="modal-conq-titulo">Conquista</h3>
+          <button class="modal-close-btn" onclick="fecharModalConquista()">&times;</button>
+        </div>
+        <div style="margin: 12px 0;">
+          <div class="marco-icon" id="modal-conq-icon" style="margin: 0 auto; width: 72px; height: 72px; font-size: 32px; background: rgba(184, 103, 74, 0.12); color: var(--terracotta);">
+            <i class="fa-solid fa-trophy"></i>
+          </div>
+        </div>
+        <h4 style="font-size: 18px; font-weight: 700; color: var(--text-main);" id="modal-conq-marco-nome">25 Aulas Praticadas</h4>
+        <p style="font-size: 14px; color: var(--text-muted); line-height: 1.5; margin: 6px 0;" id="modal-conq-mensagem">
+          Parabéns pela sua dedicação e constância no Shanti Studio!
+        </p>
+        <button class="btn-primary" id="btn-conq-whatsapp" style="margin-top: 8px;">
+          <i class="fa-brands fa-whatsapp"></i> Comemorar com Natália no WhatsApp
+        </button>
+      </div>
+    </div>
+
+    <!-- MODAL: LEITOR IMERSIVO DE ARTIGO -->
+    <div class="modal-overlay" id="modal-leitura">
+      <div class="modal-sheet" style="max-height: 95vh;">
+        <div class="modal-sheet-handle"></div>
+        <div class="modal-header">
+          <span class="leitura-tag" id="leitor-tag">FILOSOFIA DO YOGA</span>
+          <button class="modal-close-btn" onclick="fecharModalLeitura()">&times;</button>
+        </div>
+        <h3 class="modal-title" id="leitor-titulo" style="font-size: 21px; line-height: 1.35;">Título</h3>
+        <p style="font-size: 13px; color: var(--text-muted);" id="leitor-subtitulo">Subtítulo</p>
+        <hr style="border: none; border-top: 1px solid var(--border-subtle); margin: 4px 0;">
+        <div id="leitor-conteudo" style="font-size: 14px; line-height: 1.7; color: var(--text-main); white-space: pre-line;">
+          <!-- Texto -->
+        </div>
+        <div id="leitor-anexo-box" style="display: none; margin-top: 12px;">
+          <a id="leitor-anexo-btn" href="#" target="_blank" class="btn-secondary" style="text-decoration: none;">
+            <i class="fa-solid fa-file-pdf"></i> Baixar Anexo em PDF
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: PERFIL DO ALUNO & CONTRATO -->
+    <div class="modal-overlay" id="modal-perfil">
+      <div class="modal-sheet">
+        <div class="modal-sheet-handle"></div>
+        <div class="modal-header">
+          <h3 class="modal-title">Meu Perfil</h3>
+          <button class="modal-close-btn" onclick="fecharModalPerfil()">&times;</button>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px; font-size: 14px;">
+          <div style="background: var(--bg-warm); padding: 14px; border-radius: var(--radius-sm);">
+            <strong id="perfil-nome">Nome do Aluno</strong><br>
+            <span style="color: var(--text-muted); font-size: 12px;" id="perfil-contato">telefone · cpf</span><br>
+            <span style="color: var(--forest-green); font-weight: 600; font-size: 12px;" id="perfil-plano">Plano</span>
+          </div>
+
+          <div id="perfil-contrato-box" style="background: var(--bg-warm); padding: 14px; border-radius: var(--radius-sm); display: flex; flex-direction: column; gap: 6px;">
+            <strong style="font-size: 13px;">Contrato de Prestação de Serviços</strong>
+            <span id="perfil-contrato-status" style="font-size: 12px; color: var(--text-muted);">Status: Pendente</span>
+            <a id="perfil-contrato-btn" href="#" target="_blank" class="btn-secondary" style="text-decoration: none; margin-top: 4px; display: none;">
+              <i class="fa-solid fa-signature"></i> Assinar no Autentique
+            </a>
+            <button id="perfil-contrato-download-btn" onclick="baixarContratoAssinado()" class="btn-primary" style="margin-top: 8px; display: none; width: 100%;">
+              <i class="fa-solid fa-download"></i> Baixar Contrato Assinado
+            </button>
+          </div>
+
+          <button class="btn-secondary" onclick="fazerLogout()" style="color: #B83A3A; border-color: rgba(184, 58, 58, 0.2); margin-top: 8px;">
+            <i class="fa-solid fa-arrow-right-from-bracket"></i> Sair da Conta
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: NOTIFICAÇÕES & AVISOS -->
+    <div class="modal-overlay" id="modal-notificacoes">
+      <div class="modal-sheet">
+        <div class="modal-sheet-handle"></div>
+        <div class="modal-header">
+          <h3 class="modal-title">Notificações</h3>
+          <button class="modal-close-btn" onclick="fecharModalNotificacoes()">&times;</button>
+        </div>
+        <div id="lista-notificacoes" style="display: flex; flex-direction: column; gap: 10px; font-size: 13px;">
+          <div style="background: var(--bg-warm); padding: 12px; border-radius: var(--radius-sm); border-left: 3px solid var(--forest-green);">
+            <strong>Boas-vindas ao App do Aluno! 🧘‍♀️</strong><br>
+            <span style="color: var(--text-muted); font-size: 12px;">Acompanhe aqui sua frequência, conquistas e leituras.</span>
+          </div>
+        </div>
+
+        <div style="margin-top: 14px; border-top: 1px solid var(--border-card); padding-top: 12px;">
+          <button type="button" onclick="testarNotificacaoCelular()" style="width: 100%; background: var(--forest-green); color: white; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 13.5px; padding: 11px 16px; border-radius: 12px; cursor: pointer; border: none; font-weight: 700; box-shadow: var(--shadow-sm);">
+            <i class="fa-solid fa-bell"></i> Testar Notificação no Celular 📲
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: DETALHES DA MENSALIDADE & CHAVE PIX -->
+    <div class="modal-overlay" id="modal-pix-mensalidade">
+      <div class="modal-sheet">
+        <div class="modal-sheet-handle"></div>
+        <div class="modal-header">
+          <h3 class="modal-title">Situação da Mensalidade</h3>
+          <button class="modal-close-btn" onclick="fecharModalPixMensalidade()">&times;</button>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 14px; font-size: 14px; padding: 4px 0 16px 0;">
+          <div style="background: var(--bg-warm); padding: 14px; border-radius: var(--radius-sm); border-left: 4px solid var(--forest-green);" id="box-info-mensalidade">
+            <strong id="modal-mensalidade-titulo" style="font-size: 15px; color: #263321;">Mensalidade em Dia</strong><br>
+            <span style="color: var(--text-muted); font-size: 13px;" id="modal-mensalidade-detalhe">Vencimento dia 10</span>
+          </div>
+
+          <div id="modal-pix-box" style="background: #FDF8F5; border: 1.5px solid rgba(184, 103, 74, 0.25); border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 10px;">
+            <div style="font-size: 13.5px; font-weight: 700; color: #263321; display: flex; align-items: center; gap: 6px;">
+              <i class="fa-solid fa-qrcode" style="color: #B8674A; font-size: 18px;"></i> Pagamento via PIX do Estúdio:
+            </div>
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <code style="background: #FFFFFF; padding: 10px 14px; border-radius: 10px; font-weight: 700; font-size: 14.5px; color: #263321; flex: 1; border: 1px solid rgba(63, 78, 58, 0.15); user-select: all;" id="modal-pix-chave">329988887777</code>
+              <button onclick="copiarPixEstudio()" style="min-height: 44px; padding: 0 18px; background: #B8674A; color: #fff; border: none; border-radius: 10px; font-weight: 700; font-size: 14px; cursor: pointer;">Copiar</button>
+            </div>
+            <p style="font-size: 12px; color: var(--text-muted); margin: 0;">
+              Após o pagamento, sua regularização é confirmada pela Natália.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: PLAYER MULTIMÍDIA (VÍDEO & ÁUDIO NATIVOS) -->
+    <div class="modal-overlay" id="modal-player-midia">
+      <div class="modal-sheet">
+        <div class="modal-sheet-handle"></div>
+        <div class="modal-header">
+          <h3 class="modal-title" id="player-midia-titulo">Aula da Biblioteca</h3>
+          <button class="modal-close-btn" onclick="fecharPlayerMidia()">&times;</button>
+        </div>
+        <div class="player-midia-content" id="player-midia-container">
+          <!-- Conteúdo do player injetado via JS -->
+        </div>
+      </div>
+    </div>
+
+    <!-- POP-UP DE CAMPANHAS / COMUNICADOS COM IMAGEM BANNER -->
+    <div class="popup-campanha-overlay" id="popup-campanha" style="display: none;">
+      <div class="popup-campanha-card">
+        <button class="popup-campanha-close" onclick="fecharPopupCampanha()">&times;</button>
+        <img class="popup-campanha-banner" id="popup-campanha-banner" src="" alt="Campanha" style="display: none;">
+        <div class="popup-campanha-body">
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <span class="aula-tag-pill tag-hoje" id="popup-campanha-tipo" style="font-size: 10.5px;">Aviso</span>
+          </div>
+          <h3 class="popup-campanha-titulo" id="popup-campanha-titulo">Título</h3>
+          <p class="popup-campanha-mensagem" id="popup-campanha-mensagem">Mensagem</p>
+          <button class="popup-campanha-btn" onclick="fecharPopupCampanha()">
+            <i class="fa-solid fa-check"></i> Entendi
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div> <!-- /#app-container -->
+
+  <!-- ==========================================================================
+       TELA DE LOGIN / AUTENTICAÇÃO DO ALUNO (TELA CHEIA SE DESLOGADO)
+       ========================================================================== -->
+  <div id="auth-screen">
+    <div class="auth-card">
+      <div class="auth-logo" style="background: none; border-radius: 20px; overflow: hidden; width: 72px; height: 72px; box-shadow: 0 6px 20px rgba(44,56,40,0.12); border: 2px solid var(--border-subtle); margin-bottom: 8px;">
+        <img src="/icons/icon-aluno-192.png" alt="Shanti Studio Aluno" style="width: 100%; height: 100%; object-fit: cover;">
+      </div>
+      <div>
+        <h2 class="auth-title">Shanti Studio</h2>
+        <p class="auth-subtitle">Espaço de prática, presença e conexão</p>
+      </div>
+
+      <!-- TELA 0: BAIXAR E INSTALAR APLICATIVO (EXIBIDO NO NAVEGADOR) -->
+      <div id="view-instalar" class="install-box">
+        <div class="install-pill">
+          <i class="fa-solid fa-mobile-screen"></i> App Exclusivo do Aluno
+        </div>
+
+        <p style="font-size: 13.5px; color: var(--text-main); line-height: 1.5; font-weight: 500;">
+          Para criar sua conta e acessar suas aulas, <strong>baixe e instale o aplicativo</strong> no seu celular.
+        </p>
+
+        <button id="btn-instalar-app" class="btn-install-cta anim-pulse" onclick="clicarInstalarApp()">
+          <i class="fa-solid fa-cloud-arrow-down"></i> Baixar e Instalar Aplicativo
+        </button>
+
+        <!-- Instruções Dinâmicas por Dispositivo -->
+        <!-- 1. Android (Chrome) -->
+        <div id="instrucoes-android" class="install-instructions-card">
+          <div class="install-device-header">
+            <i class="fa-brands fa-android" style="font-size: 16px; color: #3DDC84;"></i>
+            <span>Como baixar no Android (Chrome)</span>
+          </div>
+          <div class="install-step-item">
+            <div class="install-step-num">1</div>
+            <div>Toque no botão verde <strong>"Baixar e Instalar"</strong> acima (ou nos três pontinhos <strong>⋮</strong> no topo do Chrome).</div>
+          </div>
+          <div class="install-step-item">
+            <div class="install-step-num">2</div>
+            <div>Selecione <strong>"Instalar aplicativo"</strong> ou <strong>"Adicionar à tela inicial"</strong>.</div>
+          </div>
+          <div class="install-step-item">
+            <div class="install-step-num">3</div>
+            <div>Abra o aplicativo pelo ícone na tela do celular para <strong>criar sua conta</strong>.</div>
+          </div>
+        </div>
+
+        <!-- 2. iPhone (Safari) -->
+        <div id="instrucoes-ios" class="install-instructions-card" style="display: none;">
+          <div class="install-device-header">
+            <i class="fa-brands fa-apple" style="font-size: 16px; color: var(--text-main);"></i>
+            <span>Como baixar no iPhone (Safari)</span>
+          </div>
+          <div class="install-step-item">
+            <div class="install-step-num">1</div>
+            <div>No Safari, toque no ícone de <strong>Compartilhar <i class="fa-solid fa-arrow-up-from-bracket"></i></strong> na barra inferior.</div>
+          </div>
+          <div class="install-step-item">
+            <div class="install-step-num">2</div>
+            <div>Role para baixo e toque em <strong>"Adicionar à Tela de Início (+)"</strong>.</div>
+          </div>
+          <div class="install-step-item">
+            <div class="install-step-num">3</div>
+            <div>Toque em <strong>Adicionar</strong> e abra o app instalado para <strong>criar sua senha</strong>.</div>
+          </div>
+        </div>
+
+        <!-- 3. Computador / Desktop (Chrome / Edge) -->
+        <div id="instrucoes-desktop" class="install-instructions-card" style="display: none;">
+          <div class="install-device-header">
+            <i class="fa-solid fa-desktop" style="font-size: 15px; color: var(--forest-green);"></i>
+            <span>No Computador (Chrome / Edge)</span>
+          </div>
+          <div class="install-step-item">
+            <div class="install-step-num">1</div>
+            <div>Clique no botão <strong>"Baixar e Instalar"</strong> acima (ou no ícone de instalar aplicativo na barra de endereços, ao lado da estrela).</div>
+          </div>
+          <div class="install-step-item">
+            <div class="install-step-num">2</div>
+            <div>Confirme a instalação para abrir o app em tela cheia e criar sua conta.</div>
+          </div>
+        </div>
+
+        <div style="background: var(--bg-warm); border-radius: var(--radius-sm); padding: 12px 14px; border: 1.5px solid var(--border-subtle); margin-top: 8px; text-align: center;">
+          <span style="font-size: 12.5px; color: var(--forest-green); font-weight: 600; line-height: 1.45; display: block;">
+            <i class="fa-solid fa-mobile-screen-button"></i> Após baixar, abra o aplicativo <strong>"Shanti Aluno"</strong> pelo ícone na tela inicial para fazer login ou criar sua senha.
+          </span>
+        </div>
+      </div>
+
+      <!-- TELA 1: CRIAR CONTA (DENTRO DO APP INSTALADO) -->
+      <form id="form-cadastrar" onsubmit="realizarCadastro(event)" style="display: none; flex-direction: column; gap: 14px; text-align: left;">
+        <div class="install-pill" style="margin-bottom: 2px;">
+          <i class="fa-solid fa-user-plus"></i> Novo Acesso
+        </div>
+        <p style="font-size: 13px; color: var(--forest-green); font-weight: 600; text-align: center; margin-bottom: 2px;">
+          Crie sua senha no app
+        </p>
+        <div class="form-group">
+          <label class="form-label">Telefone ou CPF cadastrado no estúdio</label>
+          <input type="text" class="form-input" id="cadastro-login-input" placeholder="(11) 99999-9999 ou CPF" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Crie sua senha</label>
+          <input type="password" class="form-input" id="cadastro-senha-input" placeholder="Mínimo 6 caracteres" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Confirme sua senha</label>
+          <input type="password" class="form-input" id="cadastro-senha-conf" placeholder="Repita a senha" required>
+        </div>
+        <button type="submit" class="btn-primary" style="margin-top: 6px;">
+          <i class="fa-solid fa-user-plus"></i> Criar minha conta
+        </button>
+      </form>
+
+      <!-- TELA 2: LOGIN (OCULTA POR PADRÃO) -->
+      <form id="form-login" onsubmit="realizarLogin(event)" style="display: none; flex-direction: column; gap: 14px; text-align: left;">
+        <div class="install-pill" style="margin-bottom: 2px;">
+          <i class="fa-solid fa-lock"></i> Acesso ao Studio
+        </div>
+        <div class="form-group">
+          <label class="form-label">Telefone ou CPF</label>
+          <input type="text" class="form-input" id="auth-login-input" placeholder="(11) 99999-9999 ou CPF" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Senha</label>
+          <input type="password" class="form-input" id="auth-senha-input" placeholder="Sua senha" required>
+        </div>
+        <button type="submit" class="btn-primary" style="margin-top: 6px;">
+          <i class="fa-solid fa-door-open"></i> Entrar
+        </button>
+      </form>
+
+      <div class="auth-links" id="auth-links-container" style="display: none;">
+        <button class="auth-link-btn" id="btn-toggle-auth" onclick="alternarTelaAuth()">
+          Já tenho conta · Entrar
+        </button>
+        <button class="auth-link-btn" id="btn-esqueci-senha" onclick="abrirModalEsqueciSenha()" style="display: none;">
+          Esqueci minha senha
+        </button>
+        <button class="auth-link-btn" onclick="voltarParaInstalacao()" style="font-size: 11px; color: var(--text-light); text-decoration: none; margin-top: 4px;">
+          <i class="fa-solid fa-arrow-left"></i> Voltar para instruções de instalação
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: ESQUECI SENHA (CÓDIGO DE RECUPERAÇÃO WHATSAPP) -->
+  <div class="modal-overlay" id="modal-esqueci-senha">
+    <div class="modal-sheet">
+      <div class="modal-sheet-handle"></div>
+      <div class="modal-header">
+        <h3 class="modal-title">Recuperar Senha</h3>
+        <button class="modal-close-btn" onclick="fecharModalEsqueciSenha()">&times;</button>
+      </div>
+      <p style="font-size: 13px; color: var(--text-muted); line-height: 1.4;">
+        Informe seu Telefone ou CPF cadastrado para receber um código de validação via WhatsApp.
+      </p>
+      
+      <div id="etapa-esqueci-1" style="display: flex; flex-direction: column; gap: 12px;">
+        <div class="form-group">
+          <label class="form-label">Telefone ou CPF</label>
+          <input type="text" class="form-input" id="recup-login-input" placeholder="Seu telefone ou CPF" required>
+        </div>
+        <button class="btn-primary" onclick="solicitarCodigoRecuperacao()">
+          <i class="fa-brands fa-whatsapp"></i> Enviar Código no WhatsApp
+        </button>
+      </div>
+
+      <div id="etapa-esqueci-2" style="display: none; flex-direction: column; gap: 12px;">
+        <div class="form-group">
+          <label class="form-label">Código de 6 dígitos recebido</label>
+          <input type="text" class="form-input" id="recup-codigo-input" placeholder="123456" maxlength="6">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Nova Senha</label>
+          <input type="password" class="form-input" id="recup-nova-senha" placeholder="Mínimo 6 dígitos">
+        </div>
+        <button class="btn-terracotta" onclick="confirmarRedefinicaoSenha()">
+          <i class="fa-solid fa-check"></i> Redefinir Senha
+        </button>
+        <a id="link-whatsapp-recup" href="#" target="_blank" style="display:none; font-size:12px; color:var(--forest-green); text-align:center;">
+          Abrir mensagem no WhatsApp
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: PRIMEIRO ACESSO (CADASTRAR SENHA PESSOAL) -->
+  <div class="modal-overlay" id="modal-primeiro-acesso">
+    <div class="modal-sheet">
+      <div class="modal-sheet-handle"></div>
+      <div class="modal-header">
+        <h3 class="modal-title">Defina sua Senha</h3>
+      </div>
+      <p style="font-size: 13px; color: var(--text-muted); line-height: 1.4;">
+        Bem-vindo(a) ao Shanti Studio! Para sua segurança, defina uma nova senha pessoal para os próximos acessos.
+      </p>
+      <div class="form-group">
+        <label class="form-label">Nova Senha Pessoal</label>
+        <input type="password" class="form-input" id="pa-nova-senha" placeholder="Mínimo 6 caracteres" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Confirmar Nova Senha</label>
+        <input type="password" class="form-input" id="pa-conf-senha" placeholder="Repita a senha" required>
+      </div>
+      <button class="btn-primary" onclick="salvarSenhaPrimeiroAcesso()">
+        <i class="fa-solid fa-lock"></i> Gravar Senha e Entrar
+      </button>
+    </div>
+  </div>
+
+  <div id="toast-msg">Mensagem</div>
+
+  <!-- ==========================================================================
+       JAVASCRIPT DO APP DO ALUNO
+       ========================================================================== -->
+  <script>
+    // Estado do Aluno
+    let alunoToken = localStorage.getItem("shanti_aluno_token") || "";
+    let alunoDados = null;
+    let pendentePrimeiroAcessoAlunoId = null;
+
+    // Toast helper
+    function showToast(msg) {
+      const t = document.getElementById("toast-msg");
+      t.textContent = msg;
+      t.classList.add("show");
+      setTimeout(() => t.classList.remove("show"), 3200);
+    }
+
+    let dashboardCache = null;
+
+    // Navegação entre abas
+    function mudarAba(nomeAba) {
+      document.querySelectorAll(".tab-screen").forEach(s => s.classList.remove("active"));
+      document.querySelectorAll(".nav-tab-btn").forEach(b => b.classList.remove("active"));
+
+      const targetScreen = document.getElementById(`screen-${nomeAba}`);
+      const targetBtn = document.querySelector(`.nav-tab-btn[data-tab="${nomeAba}"]`);
+
+      if (targetScreen) targetScreen.classList.add("active");
+      if (targetBtn) targetBtn.classList.add("active");
+
+      // O cabeçalho verde curvo estilizado da referência pertence à tela de Início
+      const topHeader = document.querySelector(".top-header");
+      if (topHeader) {
+        topHeader.style.display = (nomeAba === "inicio") ? "block" : "none";
+      }
+
+      window.scrollTo({ top: 0, behavior: "smooth" });
+
+      if (nomeAba === "inicio") carregarDashboard();
+      if (nomeAba === "aulas") carregarAulasAluno();
+      if (nomeAba === "conquistas") carregarConquistasAluno();
+      if (nomeAba === "leituras") carregarLeiturasAluno();
+    }
+
+    const mostrarToast = showToast;
+
+    // Cabeçalho de autorização
+    function getAuthHeaders() {
+      return {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${alunoToken}`
+      };
+    }
+
+    // Inicialização
+    window.addEventListener("DOMContentLoaded", () => {
+      verificarSessao();
+      configurarEventosHeader();
+      registrarServiceWorker();
+    });
+
+    async function verificarSessao() {
+      // REGRA: Se o aluno abriu pelo navegador comum (não pelo app instalado):
+      // SEMPRE exibir a tela para baixar e instalar o aplicativo!
+      if (!isRunningRealStandalone()) {
+        document.getElementById("auth-screen").classList.add("active");
+        ajustarTelaAuthInicial();
+        return;
+      }
+
+      if (!alunoToken) {
+        document.getElementById("auth-screen").classList.add("active");
+        ajustarTelaAuthInicial();
+        return;
+      }
+      try {
+        const resp = await fetch("/api/aluno/me", { headers: getAuthHeaders() });
+        if (!resp.ok) {
+          fazerLogout();
+          return;
+        }
+        alunoDados = await resp.json();
+        document.getElementById("auth-screen").classList.remove("active");
+        carregarDashboard();
+      } catch (e) {
+        console.error("Erro ao verificar sessão:", e);
+        document.getElementById("auth-screen").classList.add("active");
+        ajustarTelaAuthInicial();
+      }
+    }
+
+    // 1. CARREGAR DASHBOARD (Design v2.0 Consolidado)
+    async function carregarDashboard() {
+      try {
+        const resp = await fetch("/api/aluno/dashboard", { headers: getAuthHeaders() });
+        if (!resp.ok) return;
+        const data = await resp.json();
+        dashboardCache = data;
+
+        // 1. Saudação, Inicial e Nome
+        const elInit = document.getElementById("header-avatar-initial");
+        if (elInit) elInit.textContent = data.inicial || "Y";
+
+        const elSub = document.getElementById("header-greeting-sub");
+        if (elSub) elSub.textContent = data.saudacao || "Bom dia,";
+
+        const elNome = document.getElementById("header-greeting-name");
+        if (elNome) elNome.textContent = data.primeiro_nome || "Aluno";
+
+        // 2. Chips Compactos no Header (Mensalidade e Contrato)
+        atualizarChipsStatus(data.situacao_financeira, data.contrato);
+
+        // 3. Sua Semana Visual (D S T Q Q S S)
+        renderizarSemanaVisual(data.semana_atual);
+
+        // 4. Frase do Dia em Destaque na Área Verde
+        if (data.mensagem_dia) {
+          const elFrase = document.getElementById("frase-dia-texto");
+          if (elFrase) elFrase.textContent = `"${data.mensagem_dia}"`;
+        }
+
+        // 5. Próximas Aulas (Carrossel Horizontal com Confirmar / Desmarcar)
+        renderizarCardsProximasAulas(data.proximas_aulas || []);
+
+        // 6. Carrossel Multimídia da Biblioteca (Vídeo, Áudio, Artigos)
+        renderizarBibliotecaCarousel(data.biblioteca_destaques || []);
+
+        // 7. Rumo à Próxima Conquista
+        if (data.conquistas) {
+          const c = data.conquistas;
+          const elConqLbl = document.getElementById("conquista-header-label");
+          if (elConqLbl) elConqLbl.textContent = `Rumo à próxima conquista · ${c.progresso_str || '18 de 25'}`;
+
+          const elConqBar = document.getElementById("conquista-fill-bar");
+          if (elConqBar) elConqBar.style.width = `${c.progresso_pct || 72}%`;
+
+          const elBadges = document.getElementById("conquista-badges-row");
+          if (elBadges && c.marcos) {
+            elBadges.innerHTML = c.marcos.map(m => {
+              if (m.desbloqueado) {
+                return `<div class="conquista-badge-item badge-item-done" title="${m.titulo} - Concluído!"><i class="fa-solid fa-check"></i></div>`;
+              } else {
+                return `<div class="conquista-badge-item badge-item-locked" title="${m.titulo} - Próximo marco"><i class="fa-solid fa-lock"></i></div>`;
+              }
+            }).join("");
+          }
+        }
+
+        // 8. Verificar Pop-up de Campanhas/Comunicados
+        verificarPopupCampanha();
+
+        // 9. Atualizar Notificações e Badge
+        carregarNotificacoes();
+
+        // 10. Registrar Notificações Push e Banner
+        verificarExibicaoBannerNotificacoes();
+        if ("serviceWorker" in navigator) {
+          navigator.serviceWorker.ready.then(reg => {
+            registrarPushNotifications(reg);
+          });
+        }
+
+
+      } catch (e) {
+        console.error("Erro ao carregar dashboard:", e);
+      }
+    }
+
+    // Atualiza os Chips Compactos no Header
+    function atualizarChipsStatus(fin, cont) {
+      const chipMens = document.getElementById("chip-mensalidade");
+      const chipCont = document.getElementById("chip-contrato");
+
+      if (chipMens && fin) {
+        if (fin.status === "atrasado") {
+          chipMens.className = "status-chip chip-atrasado";
+          chipMens.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> Mensalidade: Em Atraso ⚠️`;
+        } else {
+          chipMens.className = "status-chip chip-em-dia";
+          chipMens.innerHTML = `Mensalidade: Em Dia ✅`;
+        }
+      }
+
+      if (chipCont && cont) {
+        if (cont.status === "em_dia") {
+          chipCont.className = "status-chip chip-vigente";
+          chipCont.innerHTML = `Contrato: Vigente 🤝`;
+        } else {
+          chipCont.className = "status-chip chip-pendente";
+          chipCont.innerHTML = `<i class="fa-solid fa-pen-nib"></i> Contrato: Pendente ✍️`;
+        }
+      }
+    }
+
+    // Clique no Chip de Mensalidade
+    function aoClicarChipMensalidade() {
+      const modal = document.getElementById("modal-pix-mensalidade");
+      if (!modal) return;
+      const fin = dashboardCache && dashboardCache.situacao_financeira;
+      const elTit = document.getElementById("modal-mensalidade-titulo");
+      const elDet = document.getElementById("modal-mensalidade-detalhe");
+      const boxInfo = document.getElementById("box-info-mensalidade");
+
+      if (fin && fin.status === "atrasado") {
+        if (elTit) elTit.innerHTML = `<span style="color: #9C4123;">Mensalidade em Atraso (${fin.dias_atraso} dias)</span>`;
+        if (elDet) elDet.textContent = "Regularize sua mensalidade via chave PIX para manter sua vaga e práticas ativas.";
+        if (boxInfo) boxInfo.style.borderLeftColor = "var(--terracotta)";
+      } else {
+        if (elTit) elTit.textContent = "Mensalidade em Dia ✅";
+        if (elDet) elDet.textContent = `Vencimento todo dia ${fin ? (fin.dia_vencimento || 10) : 10}. Práticas e presença 100% regulares.`;
+        if (boxInfo) boxInfo.style.borderLeftColor = "var(--forest-green)";
+      }
+      modal.classList.add("active");
+    }
+
+    function fecharModalPixMensalidade() {
+      const modal = document.getElementById("modal-pix-mensalidade");
+      if (modal) modal.classList.remove("active");
+    }
+
+    // Clique no Chip de Contrato
+    function aoClicarChipContrato() {
+      const cont = dashboardCache && dashboardCache.contrato;
+      if (cont && cont.status !== "em_dia") {
+        if (cont.autentique_link) {
+          window.open(cont.autentique_link, "_blank");
+        } else {
+          abrirModalAssinarContrato();
+        }
+      } else {
+        showToast("Contrato de Matrícula assinado digitalmente e 100% regularizado! 🤝");
+      }
+    }
+
+    // Renderiza o Tracker Semanal Visual (D S T Q Q S S)
+    function renderizarSemanaVisual(semana) {
+      const grid = document.getElementById("week-days-grid");
+      const counter = document.getElementById("week-counter");
+      const bar = document.getElementById("week-progress-fill");
+
+      if (!semana) {
+        semana = {
+          dias: [
+            { dia: "D", status: "passado", icone: "lock", concluida: false },
+            { dia: "S", status: "presente", icone: "check", concluida: true },
+            { dia: "T", status: "presente", icone: "check", concluida: true },
+            { dia: "Q", status: "presente", icone: "check", concluida: true },
+            { dia: "Q", status: "futuro", icone: "lock", concluida: false },
+            { dia: "S", status: "futuro", icone: "lock", concluida: false },
+            { dia: "S", status: "futuro", icone: "lock", concluida: false }
+          ],
+          progresso_str: "3/5",
+          progresso_pct: 60
+        };
+      }
+
+      if (counter) counter.innerHTML = `🧘 ${semana.progresso_str || '3/5'}`;
+      if (bar) bar.style.width = `${semana.progresso_pct || 60}%`;
+
+      if (grid && semana.dias) {
+        grid.innerHTML = semana.dias.map(d => {
+          const isDone = d.concluida;
+          const circleClass = isDone ? "circle-done" : "circle-locked";
+          const todayClass = d.hoje ? " circle-today" : "";
+          const icon = isDone ? '<i class="fa-solid fa-check"></i>' : '<i class="fa-solid fa-lock"></i>';
+          return `
+            <div class="week-day-col">
+              <span class="week-day-letter">${d.dia}</span>
+              <div class="week-day-circle ${circleClass}${todayClass}">
+                ${icon}
+              </div>
+            </div>
+          `;
+        }).join("");
+      }
+    }
+
+    // Renderiza Carrossel Multimídia da Biblioteca na Home
+    function renderizarBibliotecaCarousel(itens) {
+      const container = document.getElementById("biblioteca-carousel-inicio");
+      if (!container) return;
+
+      if (!itens || itens.length === 0) {
+        itens = [
+          {
+            id: 1,
+            titulo: "Yoga Express: Energia Matinal",
+            tipo: "video",
+            duracao_minutos: 15,
+            url_capa: "https://images.unsplash.com/photo-1545205597-3d9d02c29597?w=500&auto=format&fit=crop&q=80",
+            arquivo_url: "https://www.youtube.com/watch?v=inpok4MKVLM"
+          },
+          {
+            id: 2,
+            titulo: "Meditação Guiada: Presença & Calma",
+            tipo: "audio",
+            duracao_minutos: 10,
+            url_capa: "https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=500&auto=format&fit=crop&q=80",
+            arquivo_url: ""
+          },
+          {
+            id: 3,
+            titulo: "Pranayamas: Respiração Consciente",
+            tipo: "texto",
+            duracao_minutos: 5,
+            url_capa: "https://images.unsplash.com/photo-1508672019048-805c876b67e2?w=500&auto=format&fit=crop&q=80",
+            conteudo: "A respiração consciente é a ferramenta mais poderosa para acalmar a mente e estabilizar as emoções."
+          }
+        ];
+      }
+
+      window._bibliotecaItensCache = itens;
+
+      container.innerHTML = itens.map((item, idx) => {
+        const tipoLower = (item.tipo || "texto").toLowerCase();
+        let badgeText = "Artigo";
+        let overlayIcon = "";
+        let tipoLabel = "Artigo";
+
+        if (tipoLower === "video") {
+          badgeText = `${item.duracao_minutos || 15} min`;
+          overlayIcon = '<div class="biblioteca-play-overlay"><i class="fa-solid fa-play"></i></div>';
+          tipoLabel = "Vídeo";
+        } else if (tipoLower === "audio") {
+          badgeText = "Áudio";
+          overlayIcon = '<div class="biblioteca-play-overlay"><i class="fa-solid fa-headphones"></i></div>';
+          tipoLabel = "Áudio";
+        } else {
+          badgeText = item.duracao_minutos ? `${item.duracao_minutos} min` : "Leitura";
+          tipoLabel = item.arquivo_url ? "PDF" : "Artigo";
+        }
+
+        const thumbImg = item.url_capa ? `<img src="${item.url_capa}" alt="${item.titulo}">` : `
+          <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #354231 0%, #4F6B45 100%); color: #FFFFFF; font-size: 28px;">
+            <i class="${tipoLower === 'video' ? 'fa-solid fa-video' : (tipoLower === 'audio' ? 'fa-solid fa-music' : 'fa-solid fa-book-open')}"></i>
+          </div>
+        `;
+
+        return `
+          <div class="biblioteca-media-card" onclick="aoClicarItemBibliotecaIdx(${idx})">
+            <div class="biblioteca-media-thumb">
+              ${thumbImg}
+              ${overlayIcon}
+              <span class="biblioteca-media-badge">${badgeText}</span>
+            </div>
+            <div class="biblioteca-media-info">
+              <span class="biblioteca-media-type-tag">${tipoLabel}</span>
+              <div class="biblioteca-media-title">${item.titulo}</div>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function aoClicarItemBibliotecaIdx(idx) {
+      const item = window._bibliotecaItensCache && window._bibliotecaItensCache[idx];
+      if (item) abrirMidiaBiblioteca(item);
+    }
+
+    // Player Multimídia Nativo
+    function abrirMidiaBiblioteca(item) {
+      const modal = document.getElementById("modal-player-midia");
+      const tit = document.getElementById("player-midia-titulo");
+      const container = document.getElementById("player-midia-container");
+      if (!modal || !container) return;
+
+      if (tit) tit.textContent = item.titulo || "Biblioteca Shanti";
+
+      const tipo = (item.tipo || "texto").toLowerCase();
+      let html = "";
+
+      if (tipo === "video") {
+        const url = item.arquivo_url || "";
+        if (url.includes("youtube.com") || url.includes("youtu.be")) {
+          let videoId = "";
+          if (url.includes("youtu.be/")) {
+            videoId = url.split("youtu.be/")[1].split("?")[0];
+          } else if (url.includes("v=")) {
+            videoId = url.split("v=")[1].split("&")[0];
+          }
+          html = `
+            <div class="player-video-wrapper">
+              <iframe src="https://www.youtube.com/embed/${videoId}?autoplay=1" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+            </div>
+            <div style="font-size: 14px; color: #263321; line-height: 1.5; padding: 4px;">
+              <strong>${item.titulo}</strong>
+              <p style="color: var(--text-muted); font-size: 13px; margin-top: 4px;">${item.subtitulo || "Pratique no seu ritmo com esta aula guiada."}</p>
+            </div>
+          `;
+        } else {
+          html = `
+            <div class="player-video-wrapper">
+              <video controls autoplay playsinline src="${url}" style="width: 100%; height: 100%;">
+                Seu navegador não suporta reprodução de vídeo.
+              </video>
+            </div>
+            <div style="font-size: 14px; color: #263321; line-height: 1.5; padding: 4px;">
+              <strong>${item.titulo}</strong>
+              <p style="color: var(--text-muted); font-size: 13px; margin-top: 4px;">${item.subtitulo || ""}</p>
+            </div>
+          `;
+        }
+      } else if (tipo === "audio") {
+        const coverImg = item.url_capa ? `<img src="${item.url_capa}" alt="${item.titulo}">` : `<i class="fa-solid fa-music"></i>`;
+        html = `
+          <div class="player-audio-card">
+            <div class="player-audio-cover">
+              ${coverImg}
+            </div>
+            <div style="text-align: center;">
+              <strong style="font-size: 16px; color: #263321;">${item.titulo}</strong>
+              <div style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">${item.subtitulo || "Áudio Guiado Shanti Studio"}</div>
+            </div>
+            <audio controls autoplay style="width: 100%; margin-top: 8px;" src="${item.arquivo_url || ''}">
+              Seu navegador não suporta reprodução de áudio.
+            </audio>
+          </div>
+        `;
+      } else {
+        abrirModalLeitura(item);
+        return;
+      }
+
+      container.innerHTML = html;
+      modal.classList.add("active");
+    }
+
+    function fecharPlayerMidia() {
+      const modal = document.getElementById("modal-player-midia");
+      const container = document.getElementById("player-midia-container");
+      if (container) {
+        const video = container.querySelector("video");
+        if (video) video.pause();
+        const audio = container.querySelector("audio");
+        if (audio) audio.pause();
+        container.innerHTML = "";
+      }
+      if (modal) modal.classList.remove("active");
+    }
+
+    // Pop-up de Campanhas e Comunicados
+    let comunicadosNaoLidos = [];
+
+    async function verificarPopupCampanha() {
+      try {
+        const resp = await fetch("/api/aluno/comunicados/popup", { headers: getAuthHeaders() });
+        if (!resp.ok) return;
+        const popups = await resp.json();
+        if (!popups || popups.length === 0) return;
+
+        const hoje = new Date().toISOString().slice(0, 10);
+        const popup = popups.find(p => !localStorage.getItem(`popup_visto_${p.id}_${hoje}`));
+        if (!popup) return;
+
+        window._popupAtivo = popup;
+        const elOverlay = document.getElementById("popup-campanha");
+        const elTit = document.getElementById("popup-campanha-titulo");
+        const elMsg = document.getElementById("popup-campanha-mensagem");
+        const elBanner = document.getElementById("popup-campanha-banner");
+        const elTipo = document.getElementById("popup-campanha-tipo");
+
+        if (elTit) elTit.textContent = popup.titulo;
+        if (elMsg) elMsg.textContent = popup.mensagem;
+        if (elTipo) elTipo.textContent = (popup.tipo || "aviso").toUpperCase();
+
+        if (popup.imagem_banner && elBanner) {
+          elBanner.src = popup.imagem_banner;
+          elBanner.style.display = "block";
+        } else if (elBanner) {
+          elBanner.style.display = "none";
+        }
+
+        if (elOverlay) elOverlay.style.display = "flex";
+      } catch (e) {
+        console.error("Erro ao verificar popup de campanhas:", e);
+      }
+    }
+
+    async function fecharPopupCampanha() {
+      const elOverlay = document.getElementById("popup-campanha");
+      if (elOverlay) elOverlay.style.display = "none";
+
+      if (window._popupAtivo) {
+        const p = window._popupAtivo;
+        const hoje = new Date().toISOString().slice(0, 10);
+        localStorage.setItem(`popup_visto_${p.id}_${hoje}`, "true");
+        try {
+          await fetch(`/api/aluno/comunicados/${p.id}/lido`, {
+            method: "POST",
+            headers: getAuthHeaders()
+          });
+        } catch (e) {}
+        window._popupAtivo = null;
+      }
+    }
+
+    // Disparo de Notificação Nativa no Sistema do Celular (Android / iOS / Desktop)
+    async function dispararNotificacaoSistema(c) {
+      if (!('Notification' in window)) return;
+
+      try {
+        let perm = Notification.permission;
+        if (perm !== 'granted') {
+          perm = await Notification.requestPermission();
+        }
+        if (perm !== 'granted') return;
+
+        const options = {
+          body: c.mensagem || 'Você tem um novo aviso do estúdio.',
+          icon: '/icons/icon-aluno-192.png',
+          badge: '/icons/icon-aluno-96.png',
+          tag: `shanti-comunicado-${c.id}`,
+          renotify: true,
+          requireInteraction: true,
+          vibrate: [300, 100, 300, 100, 300],
+          data: {
+            url: '/aluno/',
+            comunicadoId: c.id
+          }
+        };
+
+
+        if ('serviceWorker' in navigator) {
+          const reg = await navigator.serviceWorker.ready;
+          if (reg && reg.showNotification) {
+            await reg.showNotification(c.titulo || 'Studio Shanti 🧘‍♀️', options);
+            return;
+          }
+        }
+        new Notification(c.titulo || 'Studio Shanti 🧘‍♀️', options);
+      } catch (err) {
+        console.log("Erro ao disparar notificação do sistema:", err);
+      }
+    }
+
+    // Teste imediato de notificação no celular (inclusive com app fechado via Servidor)
+    async function testarNotificacaoCelular() {
+      if (!('Notification' in window)) {
+        showToast("Seu dispositivo não suporta notificações web.");
+        return;
+      }
+      try {
+        let perm = Notification.permission;
+        if (perm !== 'granted') {
+          perm = await Notification.requestPermission();
+        }
+        if (perm !== 'granted') {
+          showToast("Permissão de notificação não concedida nas configurações.");
+          return;
+        }
+
+        // 1. Garante que o Service Worker e o PushManager com VAPID estão ativos com token renovado
+        let swReg = null;
+        if ('serviceWorker' in navigator) {
+          swReg = await navigator.serviceWorker.ready;
+          await registrarPushNotifications(swReg, true);
+        }
+
+        // 2. Dispara notificação de teste agendada no servidor (delay de 4 segundos)
+        try {
+          const resp = await fetch('/api/aluno/testar-push-servidor?delay=4', {
+            method: 'POST',
+            headers: getAuthHeaders()
+          });
+          const data = await resp.json();
+          if (data.sucesso) {
+            showToast("⏱️ Feche o app ou bloqueie a tela agora! A notificação chegará em 4 segundos...");
+            return;
+          } else {
+            showToast("⚠️ " + (data.detail || data.mensagem || "Falha ao agendar teste."));
+            return;
+          }
+        } catch (e) {
+          console.log("Falha no teste de push do servidor:", e);
+          showToast("Falha na conexão com o servidor para envio de push.");
+        }
+      } catch (e) {
+        console.log("Erro teste notif:", e);
+        showToast("Erro ao emitir notificação de teste.");
+      }
+
+    }
+ 
+    async function solicitarPermissaoPushDireta() {
+      if (!('Notification' in window)) {
+        showToast("Seu dispositivo não suporta notificações web.");
+        return;
+      }
+      try {
+        let perm = await Notification.requestPermission();
+        if (perm === 'granted') {
+          showToast("Notificações ativadas! Conectando ao estúdio... ✨");
+          if ('serviceWorker' in navigator) {
+            const reg = await navigator.serviceWorker.ready;
+            await registrarPushNotifications(reg, true);
+          }
+          const banner = document.getElementById("banner-ativar-notificacoes");
+          if (banner) banner.style.display = "none";
+          showToast("Pronto! Seu celular receberá os avisos mesmo com o app fechado 📲");
+        } else {
+          showToast("Permissão não concedida. Toque no ícone de cadeado/configurações do Chrome e ative Notificações.");
+        }
+      } catch (err) {
+        console.error("Erro ao solicitar permissão de push:", err);
+      }
+    }
+
+    function verificarExibicaoBannerNotificacoes() {
+      const banner = document.getElementById("banner-ativar-notificacoes");
+      if (!banner) return;
+      if (!('Notification' in window)) {
+        banner.style.display = "none";
+        return;
+      }
+      if (Notification.permission !== 'granted') {
+        banner.style.display = "flex";
+      } else {
+        banner.style.display = "none";
+      }
+    }
+
+    // Carrega Comunicados e Atualiza o Badge de Notificações
+    async function carregarNotificacoes() {
+
+      try {
+        const resp = await fetch("/api/aluno/comunicados", { headers: getAuthHeaders() });
+        if (!resp.ok) return;
+        const comunicados = await resp.json();
+        comunicadosNaoLidos = comunicados || [];
+
+        const badge = document.getElementById("notification-badge");
+        const dot = document.getElementById("notification-dot");
+        const count = comunicadosNaoLidos.length;
+
+        if (count > 0) {
+          if (badge) {
+            badge.textContent = count > 9 ? "9+" : String(count);
+            badge.style.display = "flex";
+          }
+          if (dot) dot.style.display = "none";
+        } else {
+          if (badge) badge.style.display = "none";
+          if (dot) dot.style.display = "none";
+        }
+
+        // Disparar notificação nativa no celular para comunicados que ainda não foram notificados no aparelho
+        let jaNotificados = [];
+        try {
+          jaNotificados = JSON.parse(localStorage.getItem('shanti_notificados_dispositivo') || '[]');
+        } catch(e) { jaNotificados = []; }
+
+        comunicadosNaoLidos.forEach(c => {
+          if (!jaNotificados.includes(c.id)) {
+            dispararNotificacaoSistema(c);
+            jaNotificados.push(c.id);
+          }
+        });
+        localStorage.setItem('shanti_notificados_dispositivo', JSON.stringify(jaNotificados));
+
+        const lista = document.getElementById("lista-notificacoes");
+        if (lista) {
+          if (comunicadosNaoLidos.length === 0) {
+            lista.innerHTML = `
+              <div style="background: var(--bg-warm); padding: 14px; border-radius: var(--radius-sm); border-left: 3px solid var(--forest-green); text-align: center;">
+                <strong>Tudo em dia! 🧘‍♀️</strong><br>
+                <span style="color: var(--text-muted); font-size: 12.5px;">Você não tem nenhum novo aviso pendente.</span>
+              </div>
+            `;
+          } else {
+            lista.innerHTML = comunicadosNaoLidos.map(c => `
+              <div style="background: var(--bg-warm); padding: 14px; border-radius: var(--radius-sm); border-left: 4px solid var(--terracotta); display: flex; flex-direction: column; gap: 6px; cursor: pointer;" onclick="marcarAvisoLido(${c.id})">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <strong style="font-size: 14px; color: #263321;">${c.titulo}</strong>
+                  <span style="font-size: 11px; background: rgba(184, 103, 74, 0.15); color: #B8674A; padding: 2px 8px; border-radius: 999px; font-weight: 700;">${(c.tipo || 'aviso').toUpperCase()}</span>
+                </div>
+                <p style="font-size: 13px; color: #4A5645; margin: 0; line-height: 1.4;">${c.mensagem}</p>
+                <span style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">Toque para marcar como lido</span>
+              </div>
+            `).join("");
+          }
+        }
+      } catch (e) {
+        console.error("Erro ao carregar notificações:", e);
+      }
+    }
+
+    // Monitoramento de visibilidade e checagem periódica a cada 20 segundos
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible' && alunoToken) {
+        carregarNotificacoes();
+      }
+    });
+
+    setInterval(() => {
+      if (alunoToken) {
+        carregarNotificacoes();
+      }
+    }, 20000);
+
+    async function marcarAvisoLido(comunicadoId) {
+      try {
+        await fetch(`/api/aluno/comunicados/${comunicadoId}/lido`, {
+          method: "POST",
+          headers: getAuthHeaders()
+        });
+        carregarNotificacoes();
+        showToast("Aviso marcado como lido! ✓");
+      } catch (e) {
+        console.error("Erro ao marcar comunicado como lido:", e);
+      }
+    }
+
+    function abrirNotificacoes() {
+      const modal = document.getElementById("modal-notificacoes");
+      if (modal) {
+        modal.classList.add("active");
+        carregarNotificacoes();
+      }
+    }
+
+    // Formatação de data em português para os cards de aula
+    function formatarDataCardAluno(dataStr, tagDia) {
+      const mesesAbrev = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
+      const mesesCompleto = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+      const diasSemana = ["Domingo", "Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado"];
+
+      if (!dataStr) return { dataBadge: "Em breve", dataExtenso: "Data a definir", diaSemana: "", dataNumerica: "" };
+
+      const partes = dataStr.split("-");
+      if (partes.length !== 3) return { dataBadge: dataStr, dataExtenso: dataStr, diaSemana: "", dataNumerica: dataStr };
+
+      const ano = parseInt(partes[0], 10);
+      const mesIndex = parseInt(partes[1], 10) - 1;
+      const diaNum = parseInt(partes[2], 10);
+      const dataObj = new Date(ano, mesIndex, diaNum);
+
+      const diaFormatado = String(diaNum).padStart(2, '0');
+      const mesAbrevStr = mesesAbrev[mesIndex] || "";
+      const mesCompletoStr = mesesCompleto[mesIndex] || "";
+      const diaSemanaStr = diasSemana[dataObj.getDay()] || "";
+
+      return {
+        dataBadge: `${diaFormatado} de ${mesAbrevStr}`,
+        dataNumerica: `${diaFormatado}/${String(mesIndex + 1).padStart(2, '0')}`,
+        dataExtenso: `${diaFormatado} de ${mesCompletoStr}`,
+        diaSemana: diaSemanaStr
+      };
+    }
+
+    // Renderização dos Cards de Próximas Aulas
+    function renderizarCardsProximasAulas(aulas) {
+      const container = document.getElementById("container-proximas-aulas");
+      if (!container) return;
+
+      if (!aulas || aulas.length === 0) {
+        container.innerHTML = `
+          <div style="background: #FFFFFF; border-radius: 20px; padding: 24px; text-align: center; width: 100%; border: 1.5px solid rgba(63, 78, 58, 0.1); box-shadow: 0 4px 12px rgba(44, 56, 40, 0.04);">
+            <div style="width: 46px; height: 46px; border-radius: 50%; background: #FAF7F2; margin: 0 auto 10px; display: flex; align-items: center; justify-content: center; color: #7D8878; font-size: 20px;">
+              <i class="fa-regular fa-calendar-xmark"></i>
+            </div>
+            <p style="font-size: 15px; font-weight: 700; color: #2C3828;">Nenhuma próxima aula agendada</p>
+            <p style="font-size: 13px; font-weight: 500; color: #7D8878; margin-top: 4px;">Suas próximas práticas aparecerão aqui assim que agendadas.</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = aulas.map(a => {
+        const isHoje = (a.tag_dia === "HOJE");
+        const isAmanha = (a.tag_dia === "AMANHÃ");
+
+        let tagClass = "tag-dia";
+        let tagIcon = '<i class="fa-regular fa-calendar"></i>';
+        let tagTexto = a.tag_dia || "AULA";
+
+        if (isHoje) {
+          tagClass = "tag-hoje";
+          tagIcon = '<i class="fa-solid fa-sparkles"></i>';
+          tagTexto = "Hoje";
+        } else if (isAmanha) {
+          tagClass = "tag-amanha";
+          tagIcon = '<i class="fa-regular fa-sun"></i>';
+          tagTexto = "Amanhã";
+        }
+
+        const infoData = formatarDataCardAluno(a.data, a.tag_dia);
+        const dataBadgeTexto = a.data_extenso_curta || infoData.dataBadge;
+        const dataExtensoTexto = a.data_extenso || infoData.dataExtenso;
+        const diaSemanaTexto = a.dia_semana_extenso || infoData.diaSemana;
+        const dataNumericaTexto = a.data_formatada || infoData.dataNumerica;
+
+        // Banner informativo de data legível e com alto contraste
+        let linhaDataTexto = "";
+        if (isHoje) {
+          linhaDataTexto = `<strong>Hoje</strong> · ${dataExtensoTexto} (${dataNumericaTexto})`;
+        } else if (isAmanha) {
+          linhaDataTexto = `<strong>Amanhã</strong> · ${dataExtensoTexto} (${dataNumericaTexto})`;
+        } else {
+          linhaDataTexto = `${diaSemanaTexto ? diaSemanaTexto + ' · ' : ''}<strong>${dataExtensoTexto}</strong> (${dataNumericaTexto})`;
+        }
+
+        let actionsHtml = "";
+        if (a.status_presenca === "agendada") {
+          actionsHtml = `
+            <div class="aula-card-actions">
+              <button class="btn-card-confirmar" onclick="confirmarAula(${a.turma_id}, '${a.data}')" title="Confirmar presença nesta aula">
+                <i class="fa-solid fa-check"></i> Confirmar
+              </button>
+              <button class="btn-card-desmarcar" onclick="desmarcarAula(${a.turma_id}, '${a.data}')" title="Desmarcar esta aula">
+                <i class="fa-solid fa-xmark"></i> Desmarcar
+              </button>
+            </div>
+          `;
+        } else if (a.status_presenca === "confirmado_aluno") {
+          actionsHtml = `
+            <div class="aula-card-status-box box-confirmada">
+              <div style="display: flex; align-items: center; justify-content: center; gap: 7px; font-size: 14px; font-weight: 800;">
+                <i class="fa-solid fa-circle-check" style="font-size: 16px; color: #38762B;"></i> Presença Confirmada!
+              </div>
+              <span style="display: block; font-size: 12.5px; font-weight: 600; color: #4A5645; margin-top: 3px;">Aguardando validação da Natália</span>
+              <div style="margin-top: 8px; border-top: 1px dashed rgba(79, 107, 69, 0.25); padding-top: 6px;">
+                <button onclick="desmarcarAula(${a.turma_id}, '${a.data}')" style="background: none; border: none; color: #9C4123; font-size: 13px; font-weight: 700; text-decoration: underline; cursor: pointer;">Desmarcar esta aula</button>
+              </div>
+            </div>
+          `;
+        } else if (a.status_presenca === "desmarcado") {
+          actionsHtml = `
+            <div class="aula-card-status-box box-desmarcada">
+              <div style="display: flex; align-items: center; justify-content: center; gap: 7px; font-size: 14px; font-weight: 800;">
+                <i class="fa-solid fa-calendar-xmark" style="font-size: 16px; color: #B8674A;"></i> Aula Desmarcada
+              </div>
+              <button onclick="mudarAba('aulas'); abrirModalReposicao();" style="min-height: 44px; width: 100%; margin-top: 8px; background: #B8674A; color: #FFF; border: none; border-radius: 12px; font-size: 13.5px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 4px 10px rgba(184, 103, 74, 0.25);">
+                <i class="fa-solid fa-arrow-rotate-right"></i> Solicitar Reposição
+              </button>
+            </div>
+          `;
+        } else if (a.status_presenca === "presente") {
+          actionsHtml = `
+            <div style="background: #354231; color: #FFFFFF; padding: 12px; border-radius: 14px; font-size: 14px; font-weight: 700; text-align: center; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 12px rgba(53, 66, 49, 0.2);">
+              <i class="fa-solid fa-check-double"></i> Presença Validada
+            </div>
+          `;
+        } else {
+          actionsHtml = `
+            <div style="background: #EAE6DF; color: #5D6858; padding: 10px; border-radius: 12px; font-size: 13.5px; font-weight: 700; text-align: center;">
+              ${a.status_label || 'Agendada'}
+            </div>
+          `;
+        }
+
+        return `
+          <div class="aula-card-snap">
+            <div>
+              <!-- Top Row: Tag (Hoje/Amanhã/Dia) + Badge de Data -->
+              <div class="aula-card-top-row">
+                <span class="aula-tag-pill ${tagClass}">${tagIcon} ${tagTexto}</span>
+                <span class="aula-date-badge" title="Data da aula">
+                  <i class="fa-regular fa-calendar-days"></i>
+                  <span>${dataBadgeTexto}</span>
+                </span>
+              </div>
+
+              <!-- Faixa Elegante com Data Completa -->
+              <div class="aula-card-date-highlight">
+                <i class="fa-regular fa-calendar-check"></i>
+                <span>${linhaDataTexto}</span>
+              </div>
+
+              <!-- Informações Principais da Turma com Ícone Om / Yoga -->
+              <div class="aula-card-main-info">
+                <div class="aula-card-emblem">
+                  <i class="fa-solid fa-om"></i>
+                </div>
+                <div class="aula-card-title-group">
+                  <h4 class="aula-card-nome" title="${a.turma_nome}">${a.turma_nome}</h4>
+                  <span class="aula-card-subtitulo">Hatha Yoga & Respiração</span>
+                </div>
+              </div>
+
+              <!-- Metadados: Horário e Local -->
+              <div class="aula-card-meta-chips">
+                <span class="aula-meta-chip"><i class="fa-regular fa-clock"></i> ${a.horario}</span>
+                <span class="aula-meta-chip"><i class="fa-solid fa-location-dot"></i> Sala Shanti</span>
+              </div>
+            </div>
+
+            <div class="aula-card-divider"></div>
+
+            <!-- Ações: Confirmar / Desmarcar -->
+            ${actionsHtml}
+          </div>
+        `;
+      }).join("");
+    }
+
+    // Ações de Aula pelo Aluno: Confirmar e Desmarcar
+    async function confirmarAula(turmaId, dataStr) {
+      try {
+        const btn = event?.currentTarget;
+        if (btn) {
+          btn.disabled = true;
+          btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Confirmando...';
+        }
+        const resp = await fetch("/api/aluno/aulas/confirmar", {
+          method: "POST",
+          headers: getAuthHeaders(),
+          body: JSON.stringify({ turma_id: turmaId, data: dataStr })
+        });
+        const res = await resp.json();
+        if (res.sucesso) {
+          showToast(res.mensagem || "Presença confirmada! Aguardando validação da Natália.");
+          await carregarDashboard();
+        } else {
+          showToast(res.detail || "Erro ao confirmar presença.");
+        }
+      } catch (err) {
+        console.error("Erro ao confirmar aula:", err);
+        showToast("Erro de conexão ao confirmar aula.");
+      }
+    }
+
+    async function desmarcarAula(turmaId, dataStr) {
+      const conf = confirm("Deseja realmente desmarcar esta aula? Ela será computada no estúdio como falta e você poderá solicitar reposição.");
+      if (!conf) return;
+
+      try {
+        const resp = await fetch("/api/aluno/aulas/desmarcar", {
+          method: "POST",
+          headers: getAuthHeaders(),
+          body: JSON.stringify({ turma_id: turmaId, data: dataStr })
+        });
+        const res = await resp.json();
+        if (res.sucesso) {
+          showToast(res.mensagem || "Aula desmarcada.");
+          await carregarDashboard();
+        } else {
+          showToast(res.detail || "Erro ao desmarcar aula.");
+        }
+      } catch (err) {
+        console.error("Erro ao desmarcar aula:", err);
+        showToast("Erro de conexão ao desmarcar aula.");
+      }
+    }
+
+    // Ações de Contrato
+    function abrirModalAssinarContrato() {
+      const modal = document.getElementById("modal-assinar-contrato");
+      if (modal) modal.classList.add("active");
+    }
+
+    function fecharModalAssinarContrato() {
+      const modal = document.getElementById("modal-assinar-contrato");
+      if (modal) modal.classList.remove("active");
+    }
+
+    async function confirmarAssinaturaContrato() {
+      const chk = document.getElementById("chk-concordo-contrato");
+      if (!chk || !chk.checked) {
+        alert("Por favor, marque a caixa confirmando a leitura das regras para assinar.");
+        return;
+      }
+      try {
+        const resp = await fetch("/api/aluno/contrato/assinar", {
+          method: "POST",
+          headers: getAuthHeaders()
+        });
+        const res = await resp.json();
+        if (res.sucesso) {
+          fecharModalAssinarContrato();
+          showToast("Contrato assinado digitalmente com sucesso! Namastê.");
+          await carregarDashboard();
+        } else {
+          showToast(res.detail || "Erro ao assinar contrato.");
+        }
+      } catch (err) {
+        console.error("Erro ao assinar contrato:", err);
+        showToast("Erro de conexão.");
+      }
+    }
+
+    function abrirLeituraRecente() {
+      if (dashboardCache && dashboardCache.leitura_recente && dashboardCache.leitura_recente.id) {
+        abrirArtigo(dashboardCache.leitura_recente.id);
+      } else {
+        mudarAba('leituras');
+      }
+    }
+
+    function copiarPixEstudio() {
+      navigator.clipboard.writeText("329988887777").then(() => {
+        showToast("Chave PIX copiada com sucesso!");
+      }).catch(() => {
+        showToast("Chave PIX: 329988887777");
+      });
+    }
+
+    // 2. CARREGAR AULAS DO ALUNO
+    async function carregarAulasAluno() {
+      try {
+        const resp = await fetch("/api/aluno/aulas", { headers: getAuthHeaders() });
+        if (!resp.ok) return;
+        const data = await resp.json();
+
+        // Badge do plano
+        document.getElementById("aulas-plano-badge").textContent = data.plano || "Plano Ativo";
+
+        // Turmas
+        const cTurmas = document.getElementById("lista-turmas-aluno");
+        cTurmas.innerHTML = "";
+        if (data.turmas && data.turmas.length > 0) {
+          data.turmas.forEach(t => {
+            const card = document.createElement("div");
+            card.className = "turma-card";
+            card.innerHTML = `
+              <div class="turma-card-header">
+                <span class="turma-card-title">${t.nome || "Aula de Yoga"}</span>
+                <span class="turma-dias-badge">${t.dias_semana || "Semanal"}</span>
+              </div>
+              <div class="turma-card-details">
+                <span><i class="fa-regular fa-clock"></i> ${t.horario || "18:30"}</span>
+                <span><i class="fa-regular fa-compass"></i> ${t.sala || "Sala Principal"}</span>
+                <span><i class="fa-solid fa-chalkboard-user"></i> Professora Natália</span>
+              </div>
+            `;
+            cTurmas.appendChild(card);
+          });
+        } else {
+          cTurmas.innerHTML = `<div class="turma-card"><p style="font-size:13px; color:var(--text-muted);">Nenhuma turma regular vinculada.</p></div>`;
+        }
+
+        // Histórico de Presenças
+        const cHist = document.getElementById("lista-historico-presencas");
+        cHist.innerHTML = "";
+        if (data.historico && data.historico.length > 0) {
+          data.historico.forEach(h => {
+            const row = document.createElement("div");
+            row.className = "historico-item";
+            const isPres = h.status === "presente";
+            row.innerHTML = `
+              <span>${formatarDataBr(h.data)}</span>
+              <span class="${isPres ? 'hist-presente' : 'hist-faltou'}">
+                <i class="fa-solid ${isPres ? 'fa-circle-check' : 'fa-circle-xmark'}"></i>
+                ${isPres ? 'Presente' : 'Falta'}
+              </span>
+            `;
+            cHist.appendChild(row);
+          });
+        } else {
+          cHist.innerHTML = `<p style="font-size:13px; color:var(--text-muted);">Nenhuma presença registrada ainda.</p>`;
+        }
+
+        // Solicitações de Reposição
+        carregarReposicoesAluno();
+
+      } catch (e) {
+        console.error("Erro ao carregar aulas:", e);
+      }
+    }
+
+    // 3. CARREGAR REPOSIÇÕES
+    async function carregarReposicoesAluno() {
+      try {
+        const resp = await fetch("/api/aluno/reposicoes", { headers: getAuthHeaders() });
+        if (!resp.ok) return;
+        const repos = await resp.json();
+        const c = document.getElementById("lista-reposicoes-aluno");
+        c.innerHTML = "";
+        if (repos.length === 0) {
+          c.innerHTML = `<p style="font-size: 13px; color: var(--text-muted);">Nenhuma solicitação de reposição.</p>`;
+          return;
+        }
+        repos.forEach(r => {
+          const div = document.createElement("div");
+          div.className = "historico-item";
+          const st = r.status || "pendente";
+          let badgeColor = "var(--terracotta)";
+          let statusLabel = "Pendente";
+          if (st === "aprovada") {
+            badgeColor = "var(--status-green)";
+            statusLabel = "Aprovada";
+          } else if (st === "rejeitada") {
+            badgeColor = "#A83232";
+            statusLabel = "Não disponível";
+          }
+
+          div.innerHTML = `
+            <div>
+              <strong>Falta em: ${formatarDataBr(r.data_falta)}</strong><br>
+              <span style="font-size:11px; color:var(--text-muted);">${r.motivo || "Sem motivo informado"}</span>
+            </div>
+            <span style="font-size:12px; font-weight:700; color:${badgeColor};">
+              ${statusLabel}
+            </span>
+          `;
+          c.appendChild(div);
+        });
+      } catch (e) {
+        console.error("Erro ao carregar reposições:", e);
+      }
+    }
+
+    // 4. CARREGAR CONQUISTAS (MARCOS 10, 25, 50, 100, 200 AULAS)
+    async function carregarConquistasAluno() {
+      try {
+        const resp = await fetch("/api/aluno/conquistas", { headers: getAuthHeaders() });
+        if (!resp.ok) return;
+        const data = await resp.json();
+
+        document.getElementById("conquistas-total-badge").textContent = `${data.total_presencas} Aulas Praticadas`;
+        document.getElementById("conq-prox-label").textContent = `${data.progresso_str} aulas`;
+        document.getElementById("conq-progresso-fill").style.width = `${data.progresso_pct}%`;
+
+        const grid = document.getElementById("grid-marcos-conquistas");
+        grid.innerHTML = "";
+
+        if (data.marcos && data.marcos.length > 0) {
+          data.marcos.forEach(m => {
+            const card = document.createElement("div");
+            const desbloq = m.desbloqueado;
+            card.className = `marco-card ${desbloq ? 'desbloqueado' : 'bloqueado'}`;
+            
+            card.innerHTML = `
+              <div class="marco-icon">
+                <i class="fa-solid ${desbloq ? m.icone : 'fa-lock'}"></i>
+              </div>
+              <span class="marco-qtd">${m.marco} Aulas</span>
+              <span class="marco-status-label">${desbloq ? (m.data_alcancada ? 'Alcançado em ' + formatarDataBr(m.data_alcancada) : 'Conquistado!') : 'Bloqueado'}</span>
+            `;
+
+            if (desbloq) {
+              card.onclick = () => abrirModalConquista(m);
+            }
+
+            grid.appendChild(card);
+          });
+        }
+      } catch (e) {
+        console.error("Erro ao carregar conquistas:", e);
+      }
+    }
+
+    // 5. CARREGAR BIBLIOTECA DE LEITURAS
+    async function carregarLeiturasAluno() {
+      try {
+        const resp = await fetch("/api/aluno/leituras", { headers: getAuthHeaders() });
+        if (!resp.ok) return;
+        const artigos = await resp.json();
+        const c = document.getElementById("lista-artigos-biblioteca");
+        c.innerHTML = "";
+
+        if (artigos.length === 0) {
+          c.innerHTML = `<div class="leitura-card"><p style="font-size:13px; color:var(--text-muted);">Nenhuma leitura publicada no momento.</p></div>`;
+          return;
+        }
+
+        artigos.forEach(a => {
+          const card = document.createElement("div");
+          card.className = "leitura-card";
+          card.innerHTML = `
+            <span class="leitura-tag">${a.tipo === 'pdf' ? 'MATERIAL EM PDF' : 'LEITURA & REFLEXÃO'}</span>
+            <h3 class="leitura-titulo">${a.titulo}</h3>
+            ${a.subtitulo ? `<p class="leitura-subtitulo">${a.subtitulo}</p>` : ''}
+            <div class="leitura-footer">
+              <span>Studio Shanti · Natália</span>
+              <span><i class="fa-solid fa-chevron-right"></i></span>
+            </div>
+          `;
+          card.onclick = () => abrirModalLeitura(a);
+          c.appendChild(card);
+        });
+      } catch (e) {
+        console.error("Erro ao carregar leituras:", e);
+      }
+    }
+
+    // --- CONTROLE DE INSTALAÇÃO PWA E ACESSO DO ALUNO ---
+    let deferredPrompt = null;
+    window.addEventListener("beforeinstallprompt", (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      const btn = document.getElementById("btn-instalar-app");
+      if (btn) btn.classList.add("anim-pulse");
+    });
+
+    window.addEventListener("appinstalled", () => {
+      showToast("Aplicativo instalado com sucesso! 🎉 Abra pelo ícone na tela inicial.");
+    });
+
+    function isRunningRealStandalone() {
+      // Verifica estritamente se está rodando dentro do PWA instalado (standalone/fullscreen)
+      const isStandaloneMatch = window.matchMedia("(display-mode: standalone)").matches;
+      const isFullscreenMatch = window.matchMedia("(display-mode: fullscreen)").matches;
+      const isMinimalUiMatch = window.matchMedia("(display-mode: minimal-ui)").matches;
+      const isNavStandalone = window.navigator.standalone === true;
+      return isStandaloneMatch || isFullscreenMatch || isMinimalUiMatch || isNavStandalone;
+    }
+    const isRunningStandalone = isRunningRealStandalone;
+
+    function detectarEAjustarGuiaDispositivo() {
+      const ua = navigator.userAgent || navigator.vendor || window.opera || "";
+      const isIos = /iPad|iPhone|iPod/.test(ua) && !window.MSStream;
+      const isAndroid = /android/i.test(ua);
+
+      const boxIos = document.getElementById("instrucoes-ios");
+      const boxAndroid = document.getElementById("instrucoes-android");
+      const boxDesktop = document.getElementById("instrucoes-desktop");
+
+      if (boxIos) boxIos.style.display = isIos ? "flex" : "none";
+      if (boxAndroid) boxAndroid.style.display = isAndroid ? "flex" : "none";
+      if (boxDesktop) boxDesktop.style.display = (!isIos && !isAndroid) ? "flex" : "none";
+    }
+
+    function ajustarTelaAuthInicial() {
+      const viewInstalar = document.getElementById("view-instalar");
+      const formCadastro = document.getElementById("form-cadastrar");
+      const formLogin = document.getElementById("form-login");
+      const authLinks = document.getElementById("auth-links-container");
+
+      detectarEAjustarGuiaDispositivo();
+
+      if (isRunningRealStandalone()) {
+        // Dentro do app instalado: exibe diretamente formulários de cadastro ou login
+        if (viewInstalar) viewInstalar.style.display = "none";
+        if (formCadastro) formCadastro.style.display = "flex";
+        if (formLogin) formLogin.style.display = "none";
+        if (authLinks) authLinks.style.display = "flex";
+      } else {
+        // No navegador comum: SEMPRE exige e exibe a tela de baixar o app!
+        if (viewInstalar) viewInstalar.style.display = "flex";
+        if (formCadastro) formCadastro.style.display = "none";
+        if (formLogin) formLogin.style.display = "none";
+        if (authLinks) authLinks.style.display = "none";
+      }
+    }
+
+    async function clicarInstalarApp() {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === "accepted") {
+          showToast("Instalação iniciada! Abra o app na tela inicial do celular.");
+        }
+        deferredPrompt = null;
+      } else {
+        const ua = navigator.userAgent || "";
+        const isIos = /iPad|iPhone|iPod/.test(ua);
+        if (isIos) {
+          showToast("No iPhone: toque no ícone de Compartilhar ⎋ e em 'Adicionar à Tela de Início'!");
+        } else {
+          showToast("Toque no ícone de instalar no topo do navegador ou no menu ⋮ para baixar!");
+        }
+      }
+    }
+
+    function liberarTelaCadastro() {
+      document.getElementById("view-instalar").style.display = "none";
+      document.getElementById("form-cadastrar").style.display = "flex";
+      document.getElementById("form-login").style.display = "none";
+      document.getElementById("auth-links-container").style.display = "flex";
+      authModoCadastro = true;
+      document.getElementById("btn-toggle-auth").textContent = "Já tenho conta · Entrar";
+      document.getElementById("btn-esqueci-senha").style.display = "none";
+    }
+
+    function mostrarLoginDireto() {
+      document.getElementById("view-instalar").style.display = "none";
+      document.getElementById("form-cadastrar").style.display = "none";
+      document.getElementById("form-login").style.display = "flex";
+      document.getElementById("auth-links-container").style.display = "flex";
+      authModoCadastro = false;
+      document.getElementById("btn-toggle-auth").textContent = "Não tenho conta · Criar agora";
+      document.getElementById("btn-esqueci-senha").style.display = "block";
+    }
+
+    function voltarParaInstalacao() {
+      document.getElementById("view-instalar").style.display = "flex";
+      document.getElementById("form-cadastrar").style.display = "none";
+      document.getElementById("form-login").style.display = "none";
+      document.getElementById("auth-links-container").style.display = "none";
+    }
+
+    // --- AUTENTICAÇÃO DO ALUNO ---
+    let authModoCadastro = true; // true = tela de cadastro, false = tela de login
+
+    function alternarTelaAuth() {
+      authModoCadastro = !authModoCadastro;
+      const formCadastro = document.getElementById("form-cadastrar");
+      const formLogin = document.getElementById("form-login");
+      const btnToggle = document.getElementById("btn-toggle-auth");
+      const btnEsqueci = document.getElementById("btn-esqueci-senha");
+
+      if (authModoCadastro) {
+        formCadastro.style.display = "flex";
+        formLogin.style.display = "none";
+        btnToggle.textContent = "Já tenho conta · Entrar";
+        btnEsqueci.style.display = "none";
+      } else {
+        formCadastro.style.display = "none";
+        formLogin.style.display = "flex";
+        btnToggle.textContent = "Não tenho conta · Criar agora";
+        btnEsqueci.style.display = "block";
+      }
+    }
+
+    async function realizarCadastro(e) {
+      e.preventDefault();
+      const login = document.getElementById("cadastro-login-input").value.trim();
+      const senha = document.getElementById("cadastro-senha-input").value.trim();
+      const senhaConf = document.getElementById("cadastro-senha-conf").value.trim();
+
+      if (!login || !senha) return;
+
+      if (senha.length < 6) {
+        showToast("A senha deve ter pelo menos 6 caracteres.");
+        return;
+      }
+
+      if (senha !== senhaConf) {
+        showToast("As senhas não coincidem.");
+        return;
+      }
+
+      try {
+        const resp = await fetch("/api/aluno/auth/cadastrar", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ login, nova_senha: senha })
+        });
+        const data = await resp.json();
+
+        if (!data.sucesso) {
+          if (data.ja_cadastrado) {
+            showToast(data.mensagem);
+            alternarTelaAuth(); // Muda para tela de login
+          } else {
+            showToast(data.mensagem || "Erro ao criar conta.");
+          }
+          return;
+        }
+
+        alunoToken = data.token;
+        localStorage.setItem("shanti_aluno_token", alunoToken);
+        alunoDados = data.aluno;
+        document.getElementById("auth-screen").classList.remove("active");
+        showToast("Conta criada com sucesso! Bem-vindo(a)! 🧘‍♀️");
+        carregarDashboard();
+      } catch (err) {
+        showToast("Erro na conexão com o servidor.");
+      }
+    }
+
+    async function realizarLogin(e) {
+      e.preventDefault();
+      const login = document.getElementById("auth-login-input").value.trim();
+      const senha = document.getElementById("auth-senha-input").value.trim();
+
+      if (!login || !senha) return;
+
+      try {
+        const resp = await fetch("/api/aluno/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ login, senha })
+        });
+        const data = await resp.json();
+
+        if (!data.sucesso) {
+          showToast(data.mensagem || "Erro ao entrar.");
+          return;
+        }
+
+        if (data.primeiro_acesso) {
+          pendentePrimeiroAcessoAlunoId = data.aluno.id;
+          document.getElementById("modal-primeiro-acesso").classList.add("active");
+          return;
+        }
+
+        alunoToken = data.token;
+        localStorage.setItem("shanti_aluno_token", alunoToken);
+        alunoDados = data.aluno;
+        document.getElementById("auth-screen").classList.remove("active");
+        showToast("Login realizado com sucesso! 🙏");
+        carregarDashboard();
+
+      } catch (err) {
+        showToast("Erro na conexão com o servidor.");
+      }
+    }
+
+    async function salvarSenhaPrimeiroAcesso() {
+      const s1 = document.getElementById("pa-nova-senha").value.trim();
+      const s2 = document.getElementById("pa-conf-senha").value.trim();
+
+      if (s1.length < 6) {
+        showToast("A senha deve ter pelo menos 6 caracteres.");
+        return;
+      }
+      if (s1 !== s2) {
+        showToast("As senhas não coincidem.");
+        return;
+      }
+
+      try {
+        const resp = await fetch("/api/aluno/auth/primeiro-acesso", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ aluno_id: pendentePrimeiroAcessoAlunoId, nova_senha: s1 })
+        });
+        const data = await resp.json();
+        if (data.sucesso) {
+          alunoToken = data.token;
+          localStorage.setItem("shanti_aluno_token", alunoToken);
+          document.getElementById("modal-primeiro-acesso").classList.remove("active");
+          document.getElementById("auth-screen").classList.remove("active");
+          showToast("Senha cadastrada com sucesso! Bem-vindo(a)!");
+          verificarSessao();
+        } else {
+          showToast(data.mensagem || "Erro ao cadastrar senha.");
+        }
+      } catch (err) {
+        showToast("Erro na conexão.");
+      }
+    }
+
+    function fazerLogout() {
+      alunoToken = "";
+      alunoDados = null;
+      localStorage.removeItem("shanti_aluno_token");
+      fecharModalPerfil();
+      document.getElementById("auth-screen").classList.add("active");
+    }
+
+    // --- RECUPERAÇÃO DE SENHA WHATSAPP ---
+    function abrirModalEsqueciSenha() {
+      document.getElementById("modal-esqueci-senha").classList.add("active");
+      document.getElementById("etapa-esqueci-1").style.display = "flex";
+      document.getElementById("etapa-esqueci-2").style.display = "none";
+    }
+
+    function fecharModalEsqueciSenha() {
+      document.getElementById("modal-esqueci-senha").classList.remove("active");
+    }
+
+    async function solicitarCodigoRecuperacao() {
+      const login = document.getElementById("recup-login-input").value.trim();
+      if (!login) return;
+      try {
+        const resp = await fetch("/api/aluno/auth/esqueci-senha", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ login })
+        });
+        const data = await resp.json();
+        if (data.sucesso) {
+          showToast(data.mensagem);
+          document.getElementById("etapa-esqueci-1").style.display = "none";
+          document.getElementById("etapa-esqueci-2").style.display = "flex";
+
+          if (data.link_whatsapp) {
+            const linkWa = document.getElementById("link-whatsapp-recup");
+            linkWa.href = data.link_whatsapp;
+            linkWa.style.display = "block";
+          }
+        } else {
+          showToast(data.mensagem || "Aluno não encontrado.");
+        }
+      } catch (err) {
+        showToast("Erro ao solicitar código.");
+      }
+    }
+
+    async function confirmarRedefinicaoSenha() {
+      const login = document.getElementById("recup-login-input").value.trim();
+      const codigo = document.getElementById("recup-codigo-input").value.trim();
+      const nova_senha = document.getElementById("recup-nova-senha").value.trim();
+
+      if (!codigo || nova_senha.length < 6) {
+        showToast("Preencha o código e uma senha de no mínimo 6 caracteres.");
+        return;
+      }
+
+      try {
+        const resp = await fetch("/api/aluno/auth/redefinir-senha", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ login, codigo, nova_senha })
+        });
+        const data = await resp.json();
+        if (data.sucesso) {
+          showToast(data.mensagem);
+          fecharModalEsqueciSenha();
+        } else {
+          showToast(data.mensagem || "Erro ao redefinir.");
+        }
+      } catch (err) {
+        showToast("Erro na conexão.");
+      }
+    }
+
+    // --- MODAIS DE NEGÓCIO ---
+    function abrirModalReposicao() {
+      document.getElementById("modal-reposicao").classList.add("active");
+    }
+
+    function fecharModalReposicao() {
+      document.getElementById("modal-reposicao").classList.remove("active");
+    }
+
+    async function enviarSolicitacaoReposicao() {
+      const dtFalta = document.getElementById("repo-data-falta").value;
+      const dtSug = document.getElementById("repo-data-sugerida").value;
+      const motivo = document.getElementById("repo-motivo").value.trim();
+
+      if (!dtFalta) {
+        showToast("Selecione a data da falta.");
+        return;
+      }
+
+      try {
+        const resp = await fetch("/api/aluno/reposicoes", {
+          method: "POST",
+          headers: getAuthHeaders(),
+          body: JSON.stringify({
+            data_falta: dtFalta,
+            data_sugerida: dtSug || null,
+            motivo: motivo
+          })
+        });
+        const data = await resp.json();
+        if (data.sucesso) {
+          showToast("Solicitação enviada com sucesso para a Natália! 🙏");
+          fecharModalReposicao();
+          carregarReposicoesAluno();
+        } else {
+          showToast(data.mensagem || "Erro ao solicitar.");
+        }
+      } catch (err) {
+        showToast("Erro ao enviar reposição.");
+      }
+    }
+
+    function abrirModalConquista(m) {
+      document.getElementById("modal-conquista-detalhe").classList.add("active");
+      document.getElementById("modal-conq-titulo").textContent = m.titulo;
+      document.getElementById("modal-conq-marco-nome").textContent = `${m.marco} Aulas Praticadas`;
+      
+      const pNome = alunoDados && alunoDados.nome ? alunoDados.nome.split(" ")[0] : "Aluno";
+      const textoMsg = `Oi Natália! 🧘‍♀️ Acabei de alcançar o marco de ${m.marco} aulas praticadas no Shanti Studio! Estou muito feliz com a minha prática. Namastê! 🙏✨`;
+      document.getElementById("modal-conq-mensagem").textContent = `Parabéns, ${pNome}! Sua jornada de ${m.marco} aulas é uma inspiração de constância e presença.`;
+
+      const btnWa = document.getElementById("btn-conq-whatsapp");
+      btnWa.onclick = () => {
+        window.open(`https://wa.me/5511999999999?text=${encodeURIComponent(textoMsg)}`, "_blank");
+      };
+    }
+
+    function fecharModalConquista() {
+      document.getElementById("modal-conquista-detalhe").classList.remove("active");
+    }
+
+    function abrirModalLeitura(item) {
+      document.getElementById("modal-leitura").classList.add("active");
+      document.getElementById("leitor-titulo").textContent = item.titulo;
+      document.getElementById("leitor-subtitulo").textContent = item.subtitulo || "";
+      document.getElementById("leitor-conteudo").textContent = item.conteudo || "";
+
+      const boxAnexo = document.getElementById("leitor-anexo-box");
+      const btnAnexo = document.getElementById("leitor-anexo-btn");
+      if (item.arquivo_url) {
+        boxAnexo.style.display = "block";
+        btnAnexo.href = item.arquivo_url;
+      } else {
+        boxAnexo.style.display = "none";
+      }
+    }
+
+    function fecharModalLeitura() {
+      document.getElementById("modal-leitura").classList.remove("active");
+    }
+
+    // Modal Perfil
+    function configurarEventosHeader() {
+      document.getElementById("btn-perfil").onclick = () => {
+        if (!alunoDados) return;
+        document.getElementById("modal-perfil").classList.add("active");
+        document.getElementById("perfil-nome").textContent = alunoDados.nome || "Aluno";
+        document.getElementById("perfil-contato").textContent = `${alunoDados.telefone || ''} · CPF: ${alunoDados.cpf || 'Não informado'}`;
+        document.getElementById("perfil-plano").textContent = `Plano: ${alunoDados.plano || '2x na semana'}`;
+
+        const stContrato = alunoDados.status_contrato || "pendente";
+        const txtStatus = stContrato === "assinado" ? "Assinado e Válido ✓" : "Assinatura Pendente";
+        document.getElementById("perfil-contrato-status").textContent = `Status: ${txtStatus}`;
+
+        
+          const btnContrato = document.getElementById("perfil-contrato-btn");
+          const btnDownload = document.getElementById("perfil-contrato-download-btn");
+          
+          if (btnDownload) {
+             if (alunoDados.contrato_assinado_arquivo) {
+                 btnDownload.style.display = "block";
+             } else {
+                 btnDownload.style.display = "none";
+             }
+          }
+
+        if (alunoDados.autentique_link) {
+          btnContrato.style.display = "flex";
+          btnContrato.href = alunoDados.autentique_link;
+        } else {
+          btnContrato.style.display = "none";
+        }
+      };
+
+      document.getElementById("btn-notificacoes").onclick = () => {
+        abrirNotificacoes();
+      };
+    }
+
+    
+      async function baixarContratoAssinado() {
+        try {
+          const btn = document.getElementById("perfil-contrato-download-btn");
+          const originalText = btn.innerHTML;
+          btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Baixando...';
+          btn.disabled = true;
+
+          const resp = await fetch("/api/aluno/contrato/arquivo", { headers: getAuthHeaders() });
+          if (!resp.ok) {
+            showToast("Erro ao baixar o contrato. Talvez ele ainda não tenha sido gerado.");
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+            return;
+          }
+          
+          const blob = await resp.blob();
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.style.display = 'none';
+          a.href = url;
+          a.download = `Contrato_Studio_Shanti.pdf`;
+          document.body.appendChild(a);
+          a.click();
+          window.URL.revokeObjectURL(url);
+          
+          btn.innerHTML = originalText;
+          btn.disabled = false;
+        } catch (e) {
+          console.error("Erro ao baixar:", e);
+          showToast("Erro de conexão ao baixar contrato.");
+          const btn = document.getElementById("perfil-contrato-download-btn");
+          btn.innerHTML = '<i class="fa-solid fa-download"></i> Baixar Contrato Assinado';
+          btn.disabled = false;
+        }
+      }
+
+      function fecharModalPerfil() {
+
+      document.getElementById("modal-perfil").classList.remove("active");
+    }
+
+    function fecharModalNotificacoes() {
+      document.getElementById("modal-notificacoes").classList.remove("active");
+    }
+
+    // Utilitários
+    function formatarDataBr(dataIso) {
+      if (!dataIso) return "";
+      const partes = dataIso.split("-");
+      if (partes.length === 3) return `${partes[2]}/${partes[1]}/${partes[0]}`;
+      return dataIso;
+    }
+
+    // Normaliza URL para garantir o escopo /aluno/ com barra final
+    if (window.location.pathname === '/aluno') {
+      window.history.replaceState({}, '', '/aluno/' + window.location.search);
+    }
+
+    // Converte chave pública VAPID em Uint8Array para o PushManager
+    function urlB64ToUint8Array(base64String) {
+      const padding = '='.repeat((4 - base64String.length % 4) % 4);
+      const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
+      const rawData = window.atob(base64);
+      const outputArray = new Uint8Array(rawData.length);
+      for (let i = 0; i < rawData.length; ++i) {
+        outputArray[i] = rawData.charCodeAt(i);
+      }
+      return outputArray;
+    }
+
+    // Registro Real de Web Push no Dispositivo do Aluno via VAPID / FCM
+    async function registrarPushNotifications(swRegistration, forcarRenovacao = false) {
+      if (!('Notification' in window)) return;
+      if (!alunoToken) return;
+
+      try {
+        let permission = Notification.permission;
+        if (permission === 'default') {
+          permission = await Notification.requestPermission();
+        }
+
+        if (permission === 'granted' && swRegistration && swRegistration.pushManager) {
+          // 1. Busca chave pública VAPID oficial do servidor
+          const resVapid = await fetch('/api/push/vapid-public-key');
+          if (!resVapid.ok) return;
+          const { publicKey } = await resVapid.json();
+          if (!publicKey) return;
+
+          // 2. Verifica se a inscrição existente precisa ser renovada (VAPID v44 ou legado /fcm/send/)
+          let subscription = await swRegistration.pushManager.getSubscription();
+          const versaoPush = localStorage.getItem("shanti_push_version");
+          const isLegado = subscription && subscription.endpoint && subscription.endpoint.includes("/fcm/send/");
+          const precisaRenovar = forcarRenovacao || versaoPush !== "v45_vapid" || isLegado;
+
+          if (subscription && precisaRenovar) {
+            try {
+              console.log("Renovando inscrição Web Push para versão VAPID v44...");
+              await subscription.unsubscribe();
+              subscription = null;
+            } catch (unsubErr) {
+              console.warn("Erro ao desinscrever subscription antiga:", unsubErr);
+            }
+          }
+
+          try {
+            if (!subscription) {
+              subscription = await swRegistration.pushManager.subscribe({
+                userVisibleOnly: true,
+                applicationServerKey: urlB64ToUint8Array(publicKey)
+              });
+            }
+          } catch (subErr) {
+            console.log("Falha ao criar subscription, tentando desinscrever e recriar:", subErr);
+            if (subscription) {
+              try { await subscription.unsubscribe(); } catch(e) {}
+            }
+            subscription = await swRegistration.pushManager.subscribe({
+              userVisibleOnly: true,
+              applicationServerKey: urlB64ToUint8Array(publicKey)
+            });
+          }
+
+          if (subscription) {
+            // 3. Salva a subscrição criptografada completa no backend para envios em segundo plano
+            const resp = await fetch('/api/aluno/device-token', {
+              method: 'POST',
+              headers: getAuthHeaders(),
+              body: JSON.stringify({ token: JSON.stringify(subscription) })
+            });
+            if (resp.ok) {
+              localStorage.setItem("shanti_push_version", "v45_vapid");
+            }
+            return subscription;
+          }
+        }
+      } catch (err) {
+        console.log("Erro no registro Web Push VAPID:", err);
+      }
+      return null;
+    }
+
+    // Service Worker PWA Exclusivo do Aluno (/aluno/)
+    function registrarServiceWorker() {
+      if ("serviceWorker" in navigator) {
+        const iniciarReg = () => {
+          // Limpa registros antigos com escopo raiz '/' se existirem
+          navigator.serviceWorker.getRegistrations().then(regs => {
+            for (let r of regs) {
+              if (r.scope.endsWith('/') && !r.scope.includes('/gestao') && !r.scope.includes('/aluno')) {
+                r.unregister();
+              }
+            }
+          });
+
+          // Registra o Service Worker exclusivo do Aluno com escopo /aluno/
+          navigator.serviceWorker.register("/service-worker-aluno.js?v=45", { scope: "/aluno/" }).then(async reg => {
+            await reg.update();
+            if (alunoToken) {
+              await registrarPushNotifications(reg);
+            }
+          }).catch(e => {
+            console.log("SW Aluno reg:", e);
+          });
+        };
+
+
+
+
+        if (document.readyState === 'complete' || document.readyState === 'interactive') {
+          iniciarReg();
+        } else {
+          window.addEventListener("load", iniciarReg);
+        }
+      }
+    }
+  </script>
+</body>
+</html>

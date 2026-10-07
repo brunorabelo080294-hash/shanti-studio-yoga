@@ -1,0 +1,3106 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Studio Shanti - Painel de Gestão</title>
+
+  <!-- Favicon & PWA Meta Tags -->
+  <link rel="icon" type="image/png" href="/favicon.png?v=30">
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#3F4E3A">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Shanti Gestão">
+  <meta name="application-name" content="Shanti Gestão">
+  <link rel="apple-touch-icon" href="/icons/icon-192.png?v=30">
+
+  <!-- Fontes Google & Ícones FontAwesome -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Marcellus&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <!-- WhatsApp Luxe Theme Stylesheet -->
+  <link rel="stylesheet" href="/css/whatsapp-theme.css?v=35">
+</head>
+<body>
+
+<!-- Splash Screen Centralizada - Fase 1 -->
+<div id="pwa-splash-screen" class="pwa-splash-screen" title="Toque para entrar">
+  <div class="pwa-splash-content">
+    <img src="/icons/icon-512.png?v=20" alt="Studio Shanti" class="pwa-splash-logo">
+    <h1 class="pwa-splash-title">Studio Shanti</h1>
+    <p class="pwa-splash-subtitle">Painel de Gestão</p>
+  </div>
+</div>
+
+<script>
+  (function() {
+    function fecharSplashImediato() {
+      var s = document.getElementById('pwa-splash-screen');
+      if (s && !s.classList.contains('hidden')) {
+        s.classList.add('hidden');
+        setTimeout(function() { s.style.display = 'none'; }, 400);
+      }
+    }
+    var splashEl = document.getElementById('pwa-splash-screen');
+    if (splashEl) splashEl.addEventListener('click', fecharSplashImediato);
+    window.addEventListener('load', function() { setTimeout(fecharSplashImediato, 400); });
+    setTimeout(fecharSplashImediato, 1800);
+  })();
+</script>
+
+<!-- ======================================================================
+     TELA DE DOWNLOAD / INSTALAÇÃO DO APP DE GESTÃO (EXIBIDO NO NAVEGADOR)
+     ====================================================================== -->
+<div id="pwa-install-screen-gestao" class="pwa-login-screen" style="display: none;">
+  <div class="pwa-login-card" style="max-width: 420px; padding: 26px 22px;">
+    
+    <!-- Logo & Marca Boutique Gestão -->
+    <div class="pwa-login-header">
+      <div class="pwa-login-logo-wrapper">
+        <img src="/icons/lotus-brand.png?v=1" alt="Studio Shanti Gestão" class="pwa-login-logo">
+      </div>
+      <h2 class="pwa-login-brand">Studio Shanti</h2>
+      <p class="pwa-login-tagline">Gestão Integrada & Administração</p>
+      <div class="pwa-login-badge" style="background: var(--shanti-sage-light); color: var(--shanti-forest); border-color: var(--shanti-sage-border);">
+        <i class="fa-solid fa-shield-halved"></i> App Exclusivo de Gestão
+      </div>
+    </div>
+
+    <!-- Mensagem de Orientação -->
+    <div style="background: var(--shanti-sand-light); border-radius: 16px; padding: 14px 16px; border: 1.5px solid var(--shanti-sand-border); margin-bottom: 18px; text-align: center;">
+      <p style="font-size: 15px; color: var(--shanti-forest); line-height: 1.5; font-weight: 700; margin: 0 0 6px 0;">
+        Acesso exclusivo pelo aplicativo instalado
+      </p>
+      <p style="font-size: 14px; color: var(--shanti-stone); line-height: 1.45; margin: 0;">
+        Por segurança e para evitar conflitos, o acesso ao painel e a tela de login só funcionam no <strong>aplicativo instalado no seu celular</strong>.
+      </p>
+    </div>
+
+    <!-- Botão de Instalação com Destaque -->
+    <button id="btn-instalar-gestao" type="button" class="pwa-btn-enter" onclick="clicarInstalarAppGestao()" style="margin-bottom: 16px; background: linear-gradient(135deg, var(--shanti-forest), #283624); box-shadow: 0 8px 24px rgba(63, 78, 58, 0.4); justify-content: center;">
+      <i class="fa-solid fa-cloud-arrow-down" style="font-size: 18px; margin-right: 8px;"></i>
+      <span style="font-weight: 700; font-size: 14px;">Baixar e Instalar App de Gestão</span>
+    </button>
+
+    <!-- Instruções por Dispositivo -->
+    <!-- Android (Chrome) -->
+    <div id="gestao-instrucoes-android" style="display: none; background: #FFFFFF; border-radius: 14px; padding: 14px; border: 1.5px solid var(--shanti-sand-border); margin-bottom: 14px; text-align: left;">
+      <div style="display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 700; color: var(--shanti-forest); margin-bottom: 10px;">
+        <i class="fa-brands fa-android" style="font-size: 17px; color: #3DDC84;"></i>
+        <span>Como baixar no Android (Chrome):</span>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 8px; font-size: 14px; color: var(--shanti-charcoal);">
+        <div style="display: flex; gap: 8px; align-items: flex-start;">
+          <span style="background: var(--shanti-forest); color: #fff; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13.5px; font-weight: 700; flex-shrink: 0;">1</span>
+          <span>Toque no botão <strong>"Baixar e Instalar"</strong> acima (ou nos três pontinhos <strong>⋮</strong> no topo do Chrome).</span>
+        </div>
+        <div style="display: flex; gap: 8px; align-items: flex-start;">
+          <span style="background: var(--shanti-forest); color: #fff; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13.5px; font-weight: 700; flex-shrink: 0;">2</span>
+          <span>Selecione <strong>"Instalar aplicativo"</strong> ou <strong>"Adicionar à tela inicial"</strong>.</span>
+        </div>
+        <div style="display: flex; gap: 8px; align-items: flex-start;">
+          <span style="background: var(--shanti-forest); color: #fff; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13.5px; font-weight: 700; flex-shrink: 0;">3</span>
+          <span>Abra o app <strong>"Shanti Gestão"</strong> pela tela inicial do celular para fazer login.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- iPhone (Safari) -->
+    <div id="gestao-instrucoes-ios" style="display: none; background: #FFFFFF; border-radius: 14px; padding: 14px; border: 1.5px solid var(--shanti-sand-border); margin-bottom: 14px; text-align: left;">
+      <div style="display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 700; color: var(--shanti-forest); margin-bottom: 10px;">
+        <i class="fa-brands fa-apple" style="font-size: 17px; color: #111;"></i>
+        <span>Como baixar no iPhone (Safari):</span>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 8px; font-size: 14px; color: var(--shanti-charcoal);">
+        <div style="display: flex; gap: 8px; align-items: flex-start;">
+          <span style="background: var(--shanti-forest); color: #fff; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13.5px; font-weight: 700; flex-shrink: 0;">1</span>
+          <span>No Safari, toque no ícone de <strong>Compartilhar <i class="fa-solid fa-arrow-up-from-bracket"></i></strong> na barra inferior.</span>
+        </div>
+        <div style="display: flex; gap: 8px; align-items: flex-start;">
+          <span style="background: var(--shanti-forest); color: #fff; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13.5px; font-weight: 700; flex-shrink: 0;">2</span>
+          <span>Role para baixo e toque em <strong>"Adicionar à Tela de Início (+)"</strong>.</span>
+        </div>
+        <div style="display: flex; gap: 8px; align-items: flex-start;">
+          <span style="background: var(--shanti-forest); color: #fff; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13.5px; font-weight: 700; flex-shrink: 0;">3</span>
+          <span>Toque em <strong>Adicionar</strong> e abra o app instalado pela tela inicial.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Desktop / Computador -->
+    <div id="gestao-instrucoes-desktop" style="display: none; background: #FFFFFF; border-radius: 14px; padding: 14px; border: 1.5px solid var(--shanti-sand-border); margin-bottom: 14px; text-align: left;">
+      <div style="display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 700; color: var(--shanti-forest); margin-bottom: 10px;">
+        <i class="fa-solid fa-desktop" style="font-size: 15px; color: var(--shanti-forest);"></i>
+        <span>No Computador (Chrome / Edge):</span>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 8px; font-size: 14px; color: var(--shanti-charcoal);">
+        <div style="display: flex; gap: 8px; align-items: flex-start;">
+          <span style="background: var(--shanti-forest); color: #fff; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13.5px; font-weight: 700; flex-shrink: 0;">1</span>
+          <span>Clique em <strong>"Baixar e Instalar"</strong> acima ou no ícone de instalar na barra de endereços (ao lado da estrela).</span>
+        </div>
+        <div style="display: flex; gap: 8px; align-items: flex-start;">
+          <span style="background: var(--shanti-forest); color: #fff; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13.5px; font-weight: 700; flex-shrink: 0;">2</span>
+          <span>Confirme para instalar e abrir a janela independente de Gestão.</span>
+        </div>
+      </div>
+    </div>
+
+    <div style="text-align: center; font-size: 13.5px; color: var(--shanti-stone);">
+      <i class="fa-solid fa-shield-halved"></i> Ambiente de Gestão Seguro · Studio Shanti
+    </div>
+
+  </div>
+</div>
+
+<!-- ======================================================================
+     TELA DE ACESSO SEGURO / LOGIN (BOUTIQUE SHANTI)
+     ====================================================================== -->
+<div id="pwa-login-screen" class="pwa-login-screen" style="display: none;">
+  <div class="pwa-login-card">
+    
+    <!-- Logo & Marca Boutique -->
+    <div class="pwa-login-header">
+      <div class="pwa-login-logo-wrapper">
+        <img src="/icons/lotus-brand.png?v=1" alt="Studio Shanti" class="pwa-login-logo">
+      </div>
+      <h2 class="pwa-login-brand">Studio Shanti</h2>
+      <p class="pwa-login-tagline">Yoga & Gestão Integrada</p>
+      <div class="pwa-login-badge">
+        <i class="fa-solid fa-lock"></i> Acesso Restrito ao Studio
+      </div>
+    </div>
+
+    <!-- Formulário de Autenticação -->
+    <form id="form-login-pwa" class="pwa-login-form" autocomplete="on">
+      
+      <!-- Seletor Rápido de Perfis -->
+      <label class="pwa-login-label">Selecione seu perfil de acesso:</label>
+      <div class="pwa-profile-selector" id="pwa-profile-selector">
+        <!-- Perfil 1: Natália Garufe -->
+        <button type="button" class="pwa-profile-btn active" data-username="natalia" id="btn-perfil-natalia">
+          <div class="pwa-profile-avatar">🧘‍♀️</div>
+          <div class="pwa-profile-info">
+            <span class="pwa-profile-name">Natalia Garufe</span>
+            <span class="pwa-profile-desc">Gestão & Studio Shanti</span>
+          </div>
+          <div class="pwa-profile-check"><i class="fa-solid fa-check"></i></div>
+        </button>
+
+        <!-- Perfil 2: Bruno Dev -->
+        <button type="button" class="pwa-profile-btn" data-username="bruno" id="btn-perfil-bruno">
+          <div class="pwa-profile-avatar">💻</div>
+          <div class="pwa-profile-info">
+            <span class="pwa-profile-name">Bruno Dev</span>
+            <span class="pwa-profile-desc">Desenvolvedor Master</span>
+          </div>
+          <div class="pwa-profile-check"><i class="fa-solid fa-check"></i></div>
+        </button>
+      </div>
+
+      <!-- Campo de Usuário (oculto para seleção visual rápida) -->
+      <input type="hidden" id="login-username" name="username" value="natalia">
+
+      <!-- Campo de Senha -->
+      <div class="pwa-input-group">
+        <label for="login-senha" class="pwa-login-label">
+          <span>Senha de Acesso</span>
+        </label>
+        <div class="pwa-password-wrapper">
+          <i class="fa-solid fa-key pwa-input-icon"></i>
+          <input 
+            type="password" 
+            id="login-senha" 
+            name="password"
+            class="pwa-login-input" 
+            placeholder="Digite sua senha..." 
+            required 
+            autocomplete="current-password"
+          >
+          <button type="button" id="btn-toggle-login-senha" class="pwa-btn-toggle-eye" title="Mostrar/Ocultar Senha">
+            <i class="fa-solid fa-eye" id="icon-toggle-login-senha"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Opção de Lembrar Login no Celular e Redefinir Senha -->
+      <div class="pwa-login-options" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px;">
+        <label class="pwa-checkbox-label">
+          <input type="checkbox" id="login-lembrar" checked>
+          <span>Lembrar de mim</span>
+        </label>
+        <button type="button" id="btn-abrir-redefinir-senha" class="pwa-link-esqueci" onclick="abrirModalRedefinirSenhaGestao()" style="background: none; border: none; color: var(--shanti-terracotta); font-size: 13.5px; font-weight: 700; cursor: pointer; text-decoration: underline; padding: 4px;">
+          Redefinir senha
+        </button>
+      </div>
+
+      <!-- Alerta de Erro de Login -->
+      <div id="login-error-box" class="pwa-login-error" style="display: none;">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+        <span id="login-error-text">Senha incorreta. Verifique e tente novamente.</span>
+      </div>
+
+      <!-- Botão Entrar -->
+      <button type="submit" id="btn-submit-login" class="pwa-btn-enter">
+        <span id="btn-login-spinner" class="fa-solid fa-spinner fa-spin" style="display: none;"></span>
+        <span id="btn-login-text">Entrar no Studio</span>
+        <i class="fa-solid fa-arrow-right" id="btn-login-arrow"></i>
+      </button>
+
+      <!-- Rodapé com Criptografia -->
+      <div class="pwa-login-footer">
+        <i class="fa-solid fa-shield-halved"></i> Conexão segura protegida por criptografia
+      </div>
+    </form>
+
+  </div>
+</div>
+
+<div id="app-container">
+  
+  <!-- Header Studio Shanti (Fase 1) -->
+  <header class="wa-header">
+    <div class="wa-header-left">
+      <div class="wa-avatar-wrapper">
+        <img src="/icons/lotus-brand.png?v=1" alt="Studio Shanti" class="wa-avatar-img">
+      </div>
+      <div class="wa-header-title">
+        <h1 id="header-studio-name">Studio Shanti</h1>
+        <div class="wa-status-text">
+          <span id="header-user-status">Yoga Studio Management</span>
+        </div>
+      </div>
+    </div>
+    <div class="wa-header-actions">
+      <button class="wa-icon-btn" id="btn-header-install" title="Instalar Aplicativo Nativo (Sem ícone do Chrome)" style="display:none; color: var(--shanti-gold);">
+        <i class="fa-solid fa-download"></i>
+      </button>
+      <button class="wa-icon-btn" id="btn-header-action" title="Atualizar dados">
+        <i class="fa-solid fa-arrows-rotate"></i>
+      </button>
+      <button class="wa-icon-btn" id="btn-header-menu" title="Configurações">
+        <i class="fa-solid fa-gear"></i>
+      </button>
+      <button class="wa-icon-btn" id="btn-header-logout" title="Sair da Conta" style="color: #ef4444;">
+        <i class="fa-solid fa-arrow-right-from-bracket"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- Banner de Instalação Nativa WebAPK (Sem Símbolo do Chrome) -->
+  <div id="pwa-install-banner" style="display:none; background: linear-gradient(135deg, var(--shanti-forest), #283624); color: #ffffff; padding: 10px 14px; border-radius: 14px; margin: 8px 12px 4px 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); align-items: center; justify-content: space-between; gap: 10px;">
+    <div style="display: flex; align-items: center; gap: 10px; flex: 1;">
+      <img src="/icons/icon-192.png?v=30" alt="Studio Shanti" style="width: 36px; height: 36px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.25);">
+      <div style="line-height: 1.25;">
+        <div style="font-weight: 700; font-size: 14px;">Instalar App Studio Shanti</div>
+        <div style="font-size: 13.5px; opacity: 0.88;">WebAPK nativo sem o símbolo do Chrome</div>
+      </div>
+    </div>
+    <div style="display: flex; align-items: center; gap: 6px;">
+      <button id="btn-pwa-install-now" style="background: #ffffff; color: var(--shanti-forest); border: none; font-weight: 700; font-size: 13.5px; padding: 6px 12px; border-radius: 8px; cursor: pointer;">Instalar</button>
+      <button id="btn-pwa-install-dismiss" style="background: transparent; border: none; color: #ffffff; opacity: 0.7; font-size: 15px; padding: 4px; cursor: pointer;" title="Fechar"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+  </div>
+
+
+  <!-- ====================================================================
+       TELA 1: CHAT COM A IA (ÁUDIO E TEXTO)
+       ==================================================================== -->
+  <section class="wa-screen active" id="screen-chat">
+    <div class="wa-chat-container">
+
+      <!-- Atalhos de Acesso Rápido na Tela Inicial (Fase 5) -->
+      <div class="wa-quick-shortcuts-bar" id="quick-shortcuts-bar">
+        <div class="wa-shortcuts-header">
+          <span class="wa-shortcuts-title">
+            <i class="fa-solid fa-bolt" style="color: var(--shanti-terracotta);"></i> Atalhos Rápidos
+          </span>
+          <span class="wa-shortcuts-hint">Toque para consultar</span>
+        </div>
+        <div class="wa-shortcuts-scroll">
+          <button type="button" class="wa-shortcut-chip" data-query="Quem está com a matrícula atrasada este mês?">
+            <span class="shortcut-icon icon-danger"><i class="fa-solid fa-triangle-exclamation"></i></span>
+            <span class="shortcut-text">Atrasados do Mês</span>
+          </button>
+          <button type="button" class="wa-shortcut-chip" data-query="Quem já pagou este mês?">
+            <span class="shortcut-icon icon-success"><i class="fa-solid fa-circle-check"></i></span>
+            <span class="shortcut-text">Quem Já Pagou</span>
+          </button>
+          <button type="button" class="wa-shortcut-chip" data-query="Quantos alunos ativos temos hoje?">
+            <span class="shortcut-icon icon-primary"><i class="fa-solid fa-users"></i></span>
+            <span class="shortcut-text">Alunos Ativos</span>
+          </button>
+          <button type="button" class="wa-shortcut-chip" data-query="Quem são os aniversariantes do mês?">
+            <span class="shortcut-icon icon-pink"><i class="fa-solid fa-cake-candles"></i></span>
+            <span class="shortcut-text">Aniversariantes</span>
+          </button>
+          <button type="button" class="wa-shortcut-chip" data-query="Quais contratos vencem nos próximos 30 dias?">
+            <span class="shortcut-icon icon-warning"><i class="fa-solid fa-file-contract"></i></span>
+            <span class="shortcut-text">Contratos a Vencer</span>
+          </button>
+          <button type="button" class="wa-shortcut-chip" data-query="Me envie o relatório financeiro do mês">
+            <span class="shortcut-icon icon-gold"><i class="fa-solid fa-chart-pie"></i></span>
+            <span class="shortcut-text">Relatório Financeiro</span>
+          </button>
+          <button type="button" class="wa-shortcut-chip" data-query="Consultar despesas e saldo do mês">
+            <span class="shortcut-icon icon-purple"><i class="fa-solid fa-receipt"></i></span>
+            <span class="shortcut-text">Despesas & Saldo</span>
+          </button>
+          <button type="button" class="wa-shortcut-chip" data-query="Envie cobrança para os alunos atrasados">
+            <span class="shortcut-icon icon-whatsapp"><i class="fa-brands fa-whatsapp"></i></span>
+            <span class="shortcut-text">Cobrar Atrasados</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Lista de Mensagens do Chat -->
+      <div class="wa-messages-list" id="chat-messages">
+        <!-- Mensagem de boas-vindas da IA com avatar Shanti -->
+        <div class="wa-message-row">
+          <img src="/icons/lotus-brand.png?v=1" alt="Shanti" class="wa-msg-avatar" style="border-radius: 8px; border: 1px solid var(--shanti-sand-border); background: #FFFFFF; padding: 2px;">
+          <div class="wa-message bot">
+            <div class="wa-message-content">
+              🧘‍♀️ <b>Namastê! Seja bem-vindo(a) ao Studio Shanti.</b>
+
+              Eu sou sua assistente de gestão integrada. Você pode me <b>mandar áudios</b> ou digitar comandos para gerenciar o estúdio!
+              
+              💡 <b>Consultas e comandos frequentes:</b>
+              • "Quem está com a mensalidade atrasada?"
+              • "Me envie o relatório financeiro do mês"
+              • "Envie cobrança para os alunos atrasados"
+              • "Qual o quantitativo de alunos ativos?"
+            </div>
+            <div class="wa-message-footer">
+              <span class="wa-msg-time" id="welcome-time">12:00</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Barra Inferior de Entrada (WhatsApp Input Bar) -->
+      <div class="wa-input-bar">
+        
+        <!-- Overlay durante a gravação de áudio -->
+        <div class="wa-audio-recording-overlay" id="recording-overlay">
+          <div class="wa-recording-waves">
+            <div class="wa-wave-bar"></div>
+            <div class="wa-wave-bar"></div>
+            <div class="wa-wave-bar"></div>
+            <div class="wa-wave-bar"></div>
+          </div>
+          <span id="recording-timer">0:00</span>
+          <span id="recording-hint" style="font-size: 14px; color: #63736d;">Gravando sua voz... solte para enviar</span>
+          <button id="btn-cancel-record" style="background:none; border:none; color:var(--wa-danger); font-size:16px; cursor:pointer;" title="Cancelar">
+            <i class="fa-solid fa-trash"></i>
+          </button>
+        </div>
+
+        <!-- Campo de Texto Normal -->
+        <div class="wa-input-pill" id="input-pill">
+          <i class="fa-regular fa-face-smile" style="color: #9ca3af; font-size: 18px;"></i>
+          <input type="text" id="chat-input" placeholder="Mensagem ou fale no microfone..." autocomplete="off">
+        </div>
+
+        <!-- Botão de Microfone ou Enviar -->
+        <button class="wa-mic-btn" id="btn-mic" title="Toque para falar por voz">
+          <i class="fa-solid fa-microphone" id="mic-icon"></i>
+        </button>
+        <button class="wa-send-btn" id="btn-send" style="display:none;" title="Enviar">
+          <i class="fa-solid fa-paper-plane"></i>
+        </button>
+
+        <!-- Captura de áudio nativa para celulares em redes locais -->
+        <input type="file" id="mobile-mic-input" accept="audio/*" capture="microphone" style="display:none;">
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ====================================================================
+       TELA 2: LISTA DE ALUNOS (ESTILO CONTATOS DO WHATSAPP)
+       ==================================================================== -->
+  <section class="wa-screen" id="screen-alunos">
+    <div class="wa-students-container">
+      
+      <!-- Busca de Aluno -->
+      <div class="wa-search-bar">
+        <i class="fa-solid fa-magnifying-glass" style="color: #63736d;"></i>
+        <input type="text" class="wa-search-input" id="search-students" placeholder="Pesquisar aluno por nome ou telefone...">
+      </div>
+
+      <!-- Filtros rápidos -->
+      <div class="wa-students-filter">
+        <button class="wa-filter-chip active" data-filter="todos">Todos (<span id="count-todos">0</span>)</button>
+        <button class="wa-filter-chip" data-filter="atrasados">Atrasados (<span id="count-atrasados">0</span>)</button>
+        <button class="wa-filter-chip" data-filter="em-dia">Em Dia (<span id="count-emdia">0</span>)</button>
+        <button class="wa-filter-chip" data-filter="inativo">Inativos (<span id="count-inativos">0</span>)</button>
+      </div>
+
+      <!-- Lista de Alunos -->
+      <div class="wa-students-list" id="students-list">
+        <!-- Renderizado dinamicamente -->
+      </div>
+
+      <!-- Botão Flutuante (FAB) para Adicionar Aluno -->
+      <button class="wa-fab" id="btn-open-add-student" title="Nova Matrícula">
+        <i class="fa-solid fa-user-plus"></i>
+      </button>
+
+    </div>
+  </section>
+
+  <!-- ====================================================================
+       TELA CALENDÁRIO: FREQUÊNCIA, CHAMADA E RETENÇÃO POR TURMA
+       ==================================================================== -->
+  <section class="wa-screen" id="screen-calendario">
+    <div class="wa-reports-container" id="cal-main-container">
+      
+      <!-- Card Superior: Calendário Mensal Compacto (Padrão Referência) -->
+      <div class="wa-card cal-month-card">
+        <!-- Navegador de Mês -->
+        <div class="cal-compact-header">
+          <button class="cal-nav-btn" id="btn-cal-prev" title="Mês Anterior">
+            <i class="fa-solid fa-chevron-left"></i>
+          </button>
+          <div style="text-align: center;">
+            <button type="button" class="cal-month-title-btn" id="btn-abrir-seletor-mes-ano" onclick="abrirSeletorMesAno()" title="Toque para escolher Mês e Ano">
+              <span class="cal-month-title" id="cal-month-name">Setembro 2026</span>
+              <i class="fa-solid fa-caret-down cal-caret-icon"></i>
+            </button>
+            <span style="font-size: 13.5px; color: var(--shanti-stone); display: block;" id="cal-month-summary">Carregando aulas...</span>
+          </div>
+          <div style="display: flex; gap: 6px; align-items: center;">
+            <button class="cal-nav-btn today" id="btn-cal-today" title="Ir para Hoje">
+              Hoje
+            </button>
+            <button class="cal-nav-btn" id="btn-cal-next" title="Próximo Mês">
+              <i class="fa-solid fa-chevron-right"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Grade dos Dias da Semana -->
+        <div class="cal-weekdays">
+          <span>Seg</span>
+          <span>Ter</span>
+          <span>Qua</span>
+          <span>Qui</span>
+          <span>Sex</span>
+          <span>Sáb</span>
+          <span>Dom</span>
+        </div>
+
+        <!-- Grade dos Dias (Círculos Compactos) -->
+        <div class="cal-days-grid" id="cal-days-container">
+          <!-- Células circulares geradas via JavaScript -->
+        </div>
+
+        <!-- Legenda Estruturada em 2 Linhas -->
+        <div class="cal-legend-wrapper">
+          <div class="cal-legend-header">
+            <span class="cal-legend-title">Legenda Visual</span>
+            <button type="button" class="cal-legend-help-trigger" onclick="abrirModalAjudaCalendario()" title="Entenda as cores e marcações">
+              <i class="fa-solid fa-circle-question"></i> Como funciona?
+            </button>
+          </div>
+
+          <!-- Linha 1: Tipo do Dia (Cores do Círculo) -->
+          <div class="cal-legend-row line-tipo">
+            <div class="cal-legend-item" title="Dia com turmas regulares do estúdio">
+              <span class="cal-legend-circle studio"></span>
+              <span>Aula no Estúdio</span>
+            </div>
+            <div class="cal-legend-item" title="Workshop ou particular da Natália">
+              <span class="cal-legend-circle externo"></span>
+              <span>Compromisso Externo</span>
+            </div>
+            <div class="cal-legend-item" title="Estúdio + Compromisso Externo">
+              <span class="cal-legend-circle misto"></span>
+              <span>Estúdio + Externo</span>
+            </div>
+            <div class="cal-legend-item" title="Dia atual em São Paulo">
+              <span class="cal-legend-circle hoje"></span>
+              <span>Hoje</span>
+            </div>
+          </div>
+
+          <!-- Linha 2: Status da Aula (Barrinha Inferior) -->
+          <div class="cal-legend-row line-status">
+            <div class="cal-legend-item" title="Todos os alunos presentes ou checados">
+              <span class="cal-legend-bar concluido"></span>
+              <span>Check-in Feito</span>
+            </div>
+            <div class="cal-legend-item" title="Alguns alunos com check-in pendente">
+              <span class="cal-legend-bar parcial"></span>
+              <span>Em Andamento</span>
+            </div>
+            <div class="cal-legend-item" title="Aula futura programada">
+              <span class="cal-legend-bar pendente"></span>
+              <span>Aula Prevista</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card: Compromissos & Aulas Externas do Dia Selecionado -->
+      <div class="wa-card cal-eventos-card" id="card-eventos-dia">
+        <div class="cal-eventos-header">
+          <div class="cal-eventos-title">
+            <i class="fa-solid fa-star" style="color: #D97706;"></i>
+            <span>Compromissos & Aulas Externas</span>
+            <span class="wa-tab-badge" id="badge-eventos-dia" style="background: #FEF3C7; color: #92400E; display: none;">0</span>
+          </div>
+          <button type="button" class="wa-btn-primary" id="btn-novo-evento" onclick="abrirModalNovoEvento()" style="background: #D97706; padding: 6px 12px; font-size: 14px; border-radius: 10px; display: inline-flex; align-items: center; gap: 6px; font-weight: 600; border: none; cursor: pointer; color: #FFFFFF;">
+            <i class="fa-solid fa-plus"></i> Novo Compromisso
+          </button>
+        </div>
+        <div id="cal-eventos-dia-list">
+          <!-- Eventos renderizados dinamicamente via JS -->
+        </div>
+      </div>
+
+      <!-- Card Inferior: Agenda de Turmas & Chamada do Dia Selecionado -->
+      <div class="wa-card cal-agenda-card" id="cal-daily-sheet">
+        <div class="cal-daily-header">
+          <div class="cal-daily-title" id="cal-selected-day-title">
+            <i class="fa-solid fa-calendar-day" style="color: var(--shanti-forest);"></i>
+            <span>Selecione um dia...</span>
+          </div>
+          <div class="cal-daily-pills" id="cal-selected-day-pills">
+            <span class="cal-pill esperados" id="pill-esperados">0 esperados</span>
+            <span class="cal-pill presentes" id="pill-presentes">0 presentes</span>
+            <span class="cal-pill faltas" id="pill-faltas">0 faltas</span>
+            <span class="cal-pill pendentes" id="pill-pendentes">0 pendentes</span>
+          </div>
+        </div>
+
+        <div id="cal-turmas-chamada-list">
+          <!-- Turmas e alunos renderizados dinamicamente -->
+        </div>
+      </div>
+
+      <!-- Card 3: Retenção & Alunos Ausentes (14 dias) -->
+      <div class="wa-card cal-retencao-card" id="card-cal-retencao">
+        <div class="cal-retencao-header">
+          <div class="cal-retencao-title">
+            <i class="fa-solid fa-heart-pulse"></i>
+            <span>Retenção & Alunos Ausentes (Últimas 2 Semanas)</span>
+          </div>
+          <span class="wa-tab-badge danger" id="badge-cal-retencao" style="display: none;">0</span>
+        </div>
+        <p style="font-size: 14px; color: var(--shanti-charcoal); margin: 0 0 10px 0; line-height: 1.4;">
+          Alunos com <strong>2 ou mais faltas consecutivas</strong> explícitas registradas nas aulas previstas. O status <em>Pendente</em> nunca aciona ausência.
+        </p>
+        <div id="cal-retencao-list">
+          <div style="font-size: 14px; color: var(--shanti-stone); text-align: center; padding: 12px; background: #FFFFFF; border: 1px dashed var(--shanti-sand-border); border-radius: 10px;">
+            Nenhum aluno em risco de evasão no momento! 🙏
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ====================================================================
+       TELA 3: FINANCEIRO EXCLUSIVO DO STUDIO (FASE 3)
+       ==================================================================== -->
+  <section class="wa-screen" id="screen-financeiro">
+    <div class="wa-reports-container">
+      
+      <!-- Barra Superior: Filtro de Mês/Competência -->
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; gap: 8px;">
+        <span style="font-size: 15px; font-weight: 700; color: var(--shanti-charcoal);"><i class="fa-solid fa-file-invoice-dollar" style="color: var(--shanti-terracotta);"></i> Painel Financeiro</span>
+        <input type="month" id="filtro-financeiro-mes" class="wa-form-control" style="width: auto; padding: 6px 12px; font-size: 14px; font-weight: 500; cursor: pointer; border-radius: 20px; border-color: var(--shanti-sand-border); background: #FFFFFF;">
+      </div>
+
+      <!-- Card 1: Balanço & Lucro Real do Mês -->
+      <div class="wa-card">
+        <div class="wa-card-header">
+          <div class="wa-card-title">
+            <i class="fa-solid fa-wallet" style="color: #5A7854;"></i>
+            <span>Balanço Financeiro Mensal</span>
+          </div>
+          <span style="font-size: 13.5px; font-weight: 500; color: var(--shanti-stone);" id="rep-mes-atual">Mês Atual</span>
+        </div>
+        <div class="wa-stat-grid">
+          <div class="wa-stat-box">
+            <span class="wa-stat-value" id="stat-faturamento-previsto">R$ 0,00</span>
+            <span class="wa-stat-label">Faturamento Previsto</span>
+          </div>
+          <div class="wa-stat-box">
+            <span class="wa-stat-value success" id="stat-faturamento-realizado">R$ 0,00</span>
+            <span class="wa-stat-label">Já Recebido</span>
+          </div>
+          <div class="wa-stat-box">
+            <span class="wa-stat-value danger" id="stat-total-despesas">R$ 0,00</span>
+            <span class="wa-stat-label">Despesas do Mês</span>
+          </div>
+          <div class="wa-stat-box" style="background: #F8F4EF; border: 1.5px solid var(--shanti-sand);">
+            <span class="wa-stat-value" id="stat-lucro-real" style="color: var(--shanti-charcoal); font-weight: 700;">R$ 0,00</span>
+            <span class="wa-stat-label" style="font-weight: 600; color: var(--shanti-forest);">Lucro Líquido Real</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 2: Pagamentos Recebidos no Mês (Quem Pagou) -->
+      <div class="wa-card" id="card-pagamentos-gestao">
+        <div class="wa-card-header">
+          <div class="wa-card-title">
+            <i class="fa-solid fa-circle-check" style="color: #5A7854;"></i>
+            <span>Pagamentos Recebidos no Mês</span>
+          </div>
+          <span style="font-size: 13.5px; font-weight: 600; color: #3F4E3A; background: var(--shanti-sage-light); border: 1px solid var(--shanti-sage-border); padding: 2px 8px; border-radius: 12px;" id="badge-total-pagantes">0 confirmados</span>
+        </div>
+        <p style="font-size: 14px; color: var(--shanti-stone); margin-bottom: 10px;">
+          Relação de alunos que efetuaram o pagamento da mensalidade nesta competência.
+        </p>
+        <div id="lista-pagamentos-detalhada" style="display: flex; flex-direction: column; gap: 8px;">
+          <!-- Preenchido dinamicamente via app.js -->
+        </div>
+      </div>
+
+      <!-- Card 3: Gestão Completa de Despesas & Contas a Pagar -->
+      <div class="wa-card" id="card-despesas-gestao">
+        <div class="wa-card-header">
+          <div class="wa-card-title">
+            <i class="fa-solid fa-money-bill-transfer" style="color: var(--shanti-terracotta);"></i>
+            <span>Despesas do Estúdio</span>
+          </div>
+          <button class="wa-btn-primary" id="btn-abrir-modal-despesa" style="padding: 6px 14px; font-size: 13.5px; width: auto; background: var(--shanti-terracotta); color: #ffffff; border: none; border-radius: 20px; font-weight: 600; box-shadow:none; cursor:pointer;">
+            <i class="fa-solid fa-plus"></i> Nova Despesa
+          </button>
+        </div>
+
+        <!-- Banner Dinâmico de Alertas de Vencimento -->
+        <div id="alerta-despesas-vencimento" style="display:none; margin: 10px 0; padding: 10px 12px; border-radius: 12px; font-size: 14px; font-weight: 600;"></div>
+
+        <!-- Lista Detalhada de Despesas com Botões Editar & Excluir -->
+        <div id="lista-despesas-detalhada" style="display: flex; flex-direction: column; gap: 8px; margin-top: 10px;">
+          <!-- Preenchido dinamicamente via app.js -->
+        </div>
+      </div>
+
+      <!-- Card 4: Cobranças e Lembretes de Vencimento via WhatsApp -->
+      <div class="wa-card" style="text-align: center; border-left: 4px solid var(--shanti-whatsapp-green);">
+        <div class="wa-card-title" style="justify-content: center; margin-bottom: 8px;">
+          <i class="fa-brands fa-whatsapp" style="color: var(--shanti-whatsapp-green); font-size: 22px;"></i>
+          <span>Lembretes de Mensalidade</span>
+        </div>
+        <p style="font-size: 15px; color: var(--shanti-stone); margin-bottom: 14px; line-height: 1.5;">
+          Envie lembretes com a chave PIX do Shanti Studio para os alunos com mensalidades em atraso com apenas 1 toque.
+        </p>
+        <button class="wa-action-btn-whatsapp" id="btn-gerar-cobrancas-relatorio" style="margin: 0 auto; width: 100%; max-width: 260px;">
+          <i class="fa-brands fa-whatsapp"></i> Ver Alunos para Cobrar
+        </button>
+      </div>
+
+      <!-- Card 5: Emissão Oficial de Relatório em PDF (Posicionado ao Final da Página) -->
+      <div class="wa-card" style="background: linear-gradient(135deg, var(--shanti-forest) 0%, #2D3929 100%); color: #ffffff; border: 1px solid var(--shanti-sand-border); box-shadow: 0 4px 18px rgba(63, 78, 58, 0.18);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-file-pdf" style="color: var(--shanti-sand); font-size: 20px;"></i>
+            <span style="font-family: var(--font-brand); font-size: 15px; font-weight: 600; color: #FFFFFF; letter-spacing: 0.5px;">Relatório Oficial em PDF</span>
+          </div>
+          <span style="font-size: 12.5px; background: rgba(212, 185, 155, 0.2); color: var(--shanti-sand); padding: 2px 8px; border-radius: 8px; border: 1px solid rgba(212, 185, 155, 0.4); font-weight: 600;">PDF OFICIAL</span>
+        </div>
+        <p style="font-size: 14px; color: #E8E0D5; margin-bottom: 14px; line-height: 1.5;">
+          Baixe o balanço contábil completo com receitas, detalhamento de despesas, inadimplências e lucratividade líquida formatado para impressão ou arquivamento.
+        </p>
+        <button class="wa-btn-primary" id="btn-baixar-relatorio-pdf" style="background: var(--shanti-terracotta); color: #ffffff; font-weight: 600; font-size: 15px; border: none; border-radius: 20px; box-shadow: 0 4px 14px rgba(177, 106, 76, 0.35); cursor: pointer;">
+          <i class="fa-solid fa-download"></i> Baixar Relatório Financeiro (PDF)
+        </button>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ====================================================================
+       TELA 4: ESTÚDIO (TURMAS, ALUNOS MATRICULADOS & ROTINA)
+       ==================================================================== -->
+  <section class="wa-screen" id="screen-estudio">
+    <div class="wa-reports-container">
+      
+      <!-- Card 1: Turmas, Horários & Relação de Alunos Matriculados -->
+              <!-- Card 1: Agenda Mista (Turmas e Calendário Diário) -->
+        <div class="wa-card" id="card-agenda-estudio">
+          <div class="wa-card-header">
+            <div class="wa-card-title">
+              <i class="fa-solid fa-calendar-day" style="color: var(--shanti-forest);"></i>
+              <span>Agenda Diária</span>
+            </div>
+            <span class="wa-tab-badge" id="badge-estudio-turmas" style="background: var(--shanti-sage-light); color: var(--shanti-forest); font-weight: 600; border: 1px solid var(--shanti-sage-border); padding: 2px 10px; border-radius: 12px;">Carregando...</span>
+          </div>
+          <p style="font-size: 14px; color: var(--shanti-stone); margin-bottom: 12px; line-height: 1.5;">
+            Acompanhe a ocupação, registre faltas ou presenças integradas em tempo real com o aplicativo dos alunos.
+          </p>
+          
+          <!-- Pílulas dos Dias da Semana -->
+          <div style="display: flex; gap: 8px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 4px; scrollbar-width: none;" id="pilulas-dias-semana">
+            <!-- Pílulas geradas no JS -->
+          </div>
+          
+          <!-- Lista de Turmas e Eventos -->
+          <div id="lista-turmas-alunos-estudio" style="display: flex; flex-direction: column; gap: 12px;">
+            <div style="text-align: center; padding: 20px; color: var(--shanti-stone);">
+              <i class="fa-solid fa-spinner fa-spin"></i> Carregando agenda...
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 2: Aniversariantes do Mês -->
+      <div class="wa-card" id="card-aniversariantes">
+        <div class="wa-card-header">
+          <div class="wa-card-title">
+            <i class="fa-solid fa-cake-candles" style="color: var(--shanti-terracotta);"></i>
+            <span>Aniversariantes do Mês</span>
+          </div>
+          <span class="wa-tab-badge" id="badge-aniversariantes" style="background: var(--shanti-terracotta-light); color: var(--shanti-terracotta); border: 1px solid var(--shanti-terracotta-border); font-weight: 600; padding: 2px 8px; border-radius: 12px;">0</span>
+        </div>
+        <div id="list-aniversariantes" style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px;">
+          <div style="font-size: 14px; color: var(--shanti-stone); text-align: center; padding: 12px; background: var(--shanti-sand-light); border: 1px dashed var(--shanti-sand-border); border-radius: 10px;">Nenhum aniversariante neste mês.</div>
+        </div>
+      </div>
+
+      <!-- Card 3: Alunos Ausentes / Sem Praticar -->
+      <div class="wa-card" id="card-ausentes">
+        <div class="wa-card-header">
+          <div class="wa-card-title">
+            <i class="fa-solid fa-heart-pulse" style="color: #C98A4B;"></i>
+            <span>Alunos Ausentes (>10 dias)</span>
+          </div>
+          <span class="wa-tab-badge" id="badge-ausentes" style="background: #FDF3E7; color: #B45309; border: 1px solid #F6D6B2; font-weight: 600; padding: 2px 8px; border-radius: 12px;">0</span>
+        </div>
+        <div id="list-ausentes" style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px;">
+          <div style="font-size: 14px; color: var(--shanti-stone); text-align: center; padding: 12px; background: var(--shanti-sand-light); border: 1px dashed var(--shanti-sand-border); border-radius: 10px;">Todos os alunos ativos estão frequentando!</div>
+        </div>
+      </div>
+
+      <!-- Card 4: Quantitativo Geral de Alunos -->
+      <div class="wa-card">
+        <div class="wa-card-header">
+          <div class="wa-card-title">
+            <i class="fa-solid fa-chart-pie" style="color: var(--shanti-forest);"></i>
+            <span>Métricas & Quantitativo</span>
+          </div>
+        </div>
+        <div class="wa-stat-grid">
+          <div class="wa-stat-box">
+            <span class="wa-stat-value success" id="stat-alunos-ativos">0</span>
+            <span class="wa-stat-label">Alunos Ativos</span>
+          </div>
+          <div class="wa-stat-box">
+            <span class="wa-stat-value danger" id="stat-alunos-inadimplentes">0</span>
+            <span class="wa-stat-label">Em Atraso</span>
+          </div>
+          <div class="wa-stat-box">
+            <span class="wa-stat-value" id="stat-novos-matriculados">0</span>
+            <span class="wa-stat-label">Novas Matrículas</span>
+          </div>
+          <div class="wa-stat-box">
+            <span class="wa-stat-value" style="color: var(--shanti-stone);" id="stat-alunos-inativos">0</span>
+            <span class="wa-stat-label">Inativos / Saídas</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ====================================================================
+       TELA CONTRATOS: GESTÃO DE CONTRATOS DIGITAIS & RENOVAÇÕES
+       ==================================================================== -->
+  <section class="wa-screen" id="screen-contratos">
+    <div class="wa-reports-container">
+      
+      <!-- Banner de Alerta de Contratos Vencendo (30 dias) -->
+      <div id="banner-alerta-contratos" style="display: none; background: #FDF3E7; border: 1px solid #F6D6B2; border-radius: 14px; padding: 14px 16px; margin-bottom: 14px; box-shadow: var(--shadow-sm);">
+        <div style="display: flex; align-items: flex-start; gap: 12px;">
+          <i class="fa-solid fa-bell" style="color: #B45309; font-size: 20px; margin-top: 2px;"></i>
+          <div style="flex: 1;">
+            <strong style="color: #B45309; font-size: 14px; display: block; margin-bottom: 2px;" id="banner-alerta-titulo">Contratos Próximos do Vencimento!</strong>
+            <p style="color: var(--shanti-charcoal); font-size: 14px; margin: 0; line-height: 1.4;" id="banner-alerta-desc">Existem contratos que expiram em menos de 30 dias. Entre em contato com os alunos para a renovação anual.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card de Estatísticas de Contratos -->
+      <div class="wa-card" style="padding: 16px; border-radius: 16px; box-shadow: var(--shadow-sm); margin-bottom: 14px; border: 1px solid var(--shanti-sand-border);">
+        <div class="wa-card-header" style="display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid var(--shanti-sand-border);">
+          <div class="wa-card-title" style="font-size: 15.5px; font-weight: 600; color: var(--shanti-charcoal); display: flex; align-items: center; gap: 8px; margin: 0; font-family: var(--font-brand);">
+            <i class="fa-solid fa-file-contract" style="color: var(--shanti-forest); font-size: 17px;"></i>
+            <span>Contratos Digitais</span>
+          </div>
+          <a href="/matricula" target="_blank" class="wa-btn-primary" style="width: auto; padding: 6px 14px; font-size: 13.5px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; text-decoration: none; border-radius: 20px; white-space: nowrap; background: var(--shanti-terracotta); color: #ffffff; border: none; box-shadow: var(--shadow-sm);">
+            <i class="fa-solid fa-user-plus"></i> Link Matrícula
+          </a>
+        </div>
+        <p style="font-size: 14px; color: var(--shanti-stone); margin-bottom: 12px; line-height: 1.5;">
+          Controle da vigência anual (365 dias), envio de contrato pelo WhatsApp e upload do documento assinado por ambas as partes (Studio Shanti / Natália e Aluno).
+        </p>
+
+        <!-- Grade Responsiva 2x2 sem cortes no celular -->
+        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;">
+          <div class="wa-stat-box" style="cursor: pointer; padding: 12px 10px; border-radius: 12px; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; background: var(--shanti-sand-light); border: 1px solid var(--shanti-sand-border); transition: transform 0.15s;" onclick="filtrarContratos('em_dia')">
+            <span class="wa-stat-value success" id="stat-contratos-em-dia" style="font-size: 22px; font-weight: 700; color: #3F4E3A; line-height: 1.1;">0</span>
+            <span class="wa-stat-label" style="font-size: 13.5px; font-weight: 600; color: #3F4E3A; margin-top: 4px; letter-spacing: 0.2px;">Em Dia</span>
+          </div>
+          <div class="wa-stat-box" style="cursor: pointer; padding: 12px 10px; border-radius: 12px; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #FDF3E7; border: 1px solid #F6D6B2; transition: transform 0.15s;" onclick="filtrarContratos('a_vencer')">
+            <span class="wa-stat-value" id="stat-contratos-a-vencer" style="font-size: 22px; font-weight: 700; color: #B45309; line-height: 1.1;">0</span>
+            <span class="wa-stat-label" style="font-size: 13.5px; font-weight: 600; color: #B45309; margin-top: 4px; letter-spacing: 0.2px;">A Vencer (≤30d)</span>
+          </div>
+          <div class="wa-stat-box" style="cursor: pointer; padding: 12px 10px; border-radius: 12px; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; background: var(--shanti-sand-light); border: 1px solid var(--shanti-sand-border); transition: transform 0.15s;" onclick="filtrarContratos('pendente')">
+            <span class="wa-stat-value" id="stat-contratos-pendentes" style="font-size: 22px; font-weight: 700; color: var(--shanti-charcoal); line-height: 1.1;">0</span>
+            <span class="wa-stat-label" style="font-size: 13.5px; font-weight: 600; color: var(--shanti-stone); margin-top: 4px; letter-spacing: 0.2px;">Pendentes</span>
+          </div>
+          <div class="wa-stat-box" style="cursor: pointer; padding: 12px 10px; border-radius: 12px; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; background: var(--shanti-terracotta-light); border: 1px solid var(--shanti-terracotta-border); transition: transform 0.15s;" onclick="filtrarContratos('vencido')">
+            <span class="wa-stat-value danger" id="stat-contratos-vencidos" style="font-size: 22px; font-weight: 700; color: var(--shanti-terracotta); line-height: 1.1;">0</span>
+            <span class="wa-stat-label" style="font-size: 13.5px; font-weight: 600; color: var(--shanti-terracotta); margin-top: 4px; letter-spacing: 0.2px;">Vencidos</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Barra de Filtros e Busca -->
+      <div style="display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; align-items: center;">
+        <div style="flex: 1; min-width: 200px; position: relative;">
+          <input type="text" id="input-busca-contrato" placeholder="Buscar aluno por nome ou CPF..." style="width: 100%; padding: 10px 14px 10px 36px; border-radius: 12px; border: 1px solid var(--shanti-sand-border); background: #FFFFFF; color: var(--shanti-charcoal); font-size: 15px;" oninput="filtrarContratosTexto(this.value)">
+          <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 13px; top: 50%; transform: translateY(-50%); color: var(--shanti-stone); font-size: 15px;"></i>
+        </div>
+        <div class="wa-filter-chips" style="display: flex; gap: 6px; flex-wrap: wrap;">
+          <button class="wa-filter-chip active" id="chip-contrato-todos" onclick="filtrarContratos('todos')">Todos</button>
+          <button class="wa-filter-chip" id="chip-contrato-em_dia" onclick="filtrarContratos('em_dia')">Em Dia</button>
+          <button class="wa-filter-chip" id="chip-contrato-a_vencer" onclick="filtrarContratos('a_vencer')">A Vencer (30d)</button>
+          <button class="wa-filter-chip" id="chip-contrato-pendente" onclick="filtrarContratos('pendente')">Pendentes</button>
+          <button class="wa-filter-chip" id="chip-contrato-vencido" onclick="filtrarContratos('vencido')">Vencidos</button>
+        </div>
+      </div>
+
+      <!-- Lista de Cards de Contratos -->
+      <div id="lista-contratos-container" style="display: flex; flex-direction: column; gap: 12px;">
+        <div style="text-align: center; padding: 24px; color: var(--shanti-stone);">
+          <i class="fa-solid fa-spinner fa-spin" style="font-size: 20px; color: var(--shanti-terracotta);"></i>
+          <p style="margin-top: 8px; font-size: 15px;">Carregando contratos...</p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ====================================================================
+       TELA 5: AJUSTES E CONFIGURAÇÕES (ACIONADA PELA ENGRENAGEM)
+       ==================================================================== -->
+  <section class="wa-screen" id="screen-ajustes">
+    <div class="wa-settings-container">
+      
+      <!-- Botão Voltar ao Painel -->
+      <div style="margin-bottom: 14px;">
+        <button id="btn-voltar-ajustes" style="display: inline-flex; align-items: center; gap: 8px; background: var(--shanti-sand-light); border: 1px solid var(--shanti-sand-border); border-radius: 20px; padding: 8px 18px; font-size: 14px; font-weight: 600; color: var(--shanti-forest); cursor: pointer; transition: all 0.2s ease;">
+          <i class="fa-solid fa-arrow-left"></i> Voltar ao Painel
+        </button>
+      </div>
+      
+      <div class="wa-card" style="text-align: center; margin-bottom: 16px;">
+        <img id="cfg-logo-preview" src="/icons/icon-192.png?v=9" alt="Studio Shanti" style="width: 80px; height: 80px; border-radius: 20px; border: 2px solid var(--shanti-sand-border); margin: 0 auto 10px; display: block; box-shadow: 0 4px 14px rgba(63,78,58,0.12); object-fit: contain; background: var(--shanti-forest); padding: 6px;">
+        <h3 style="font-family: var(--font-brand); font-size: 20px; font-weight: 600; color: var(--shanti-forest); letter-spacing: 0.5px;">Studio Shanti</h3>
+        <p style="font-size: 14px; color: var(--shanti-stone);">Identidade Visual & Configurações</p>
+      </div>
+
+      <!-- Card: Usuário Conectado e Segurança -->
+      <div class="wa-card" id="card-seguranca-acesso" style="border: 1.5px solid var(--shanti-sand-border); background: #ffffff;">
+        <div class="wa-card-title" style="margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-shield-halved" style="color: var(--shanti-terracotta); font-size: 16px;"></i>
+            <span style="font-weight: 700; color: var(--shanti-forest); font-size: 15px;">Segurança & Conta Conectada</span>
+          </div>
+          <span id="badge-user-role" style="font-size: 13.5px; font-weight: 700; padding: 2px 8px; border-radius: 12px; background: var(--shanti-sage-light); color: var(--shanti-forest); border: 0.5px solid var(--shanti-sage-border);">
+            Admin
+          </span>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 12px; padding: 12px; background: var(--shanti-sand-light); border-radius: 12px; margin-bottom: 14px; border: 1px solid var(--shanti-sand-border);">
+          <div id="cfg-user-avatar" style="font-size: 26px; width: 44px; height: 44px; border-radius: 50%; background: #ffffff; display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-sm); border: 1.5px solid var(--shanti-forest); flex-shrink: 0;">
+            🧘‍♀️
+          </div>
+          <div style="flex: 1; line-height: 1.3;">
+            <div id="cfg-user-nome" style="font-weight: 700; font-size: 14px; color: var(--shanti-forest);">Natalia Garufe</div>
+            <div id="cfg-user-titulo" style="font-size: 14px; color: var(--shanti-stone);">Gestão & Studio Shanti</div>
+            <div id="cfg-user-username" style="font-size: 13.5px; color: var(--shanti-terracotta); font-weight: 600; margin-top: 2px;">Usuário: natalia</div>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+          <button type="button" id="btn-abrir-modal-senha" class="wa-btn-primary" style="flex: 1; min-width: 140px; padding: 9px 14px; font-size: 14px; background: var(--shanti-forest); color: #ffffff; border: none; border-radius: 10px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 6px;">
+            <i class="fa-solid fa-key"></i> Alterar Minha Senha
+          </button>
+          <button type="button" id="btn-logout-ajustes" class="wa-btn-primary" style="flex: 1; min-width: 140px; padding: 9px 14px; font-size: 14px; background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; border-radius: 10px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 6px;">
+            <i class="fa-solid fa-arrow-right-from-bracket"></i> Sair do Aplicativo
+          </button>
+        </div>
+      </div>
+
+      <!-- Card: Ícone e Splash Screen do PWA (Fase 1) -->
+      <div class="wa-card">
+        <div class="wa-card-title" style="margin-bottom: 12px;">
+          <i class="fa-solid fa-wand-magic-sparkles" style="color: var(--shanti-terracotta);"></i>
+          <span>Ícone e Splash Screen do App</span>
+        </div>
+        <p style="font-size: 14px; color: var(--shanti-stone); margin-bottom: 14px; line-height: 1.4;">
+          Ajuste a imagem, margens e centralização da logo para o ícone instalado no celular (PWA) e para a tela de abertura.
+        </p>
+
+        <!-- Previews em tempo real -->
+        <div style="display: flex; gap: 14px; justify-content: center; align-items: center; margin-bottom: 16px; background: var(--shanti-sand-light); padding: 16px; border-radius: 14px; border: 1px solid var(--shanti-sand-border);">
+          <!-- Quadrado (Ícone Padrão) -->
+          <div style="text-align: center;">
+            <div id="preview-icon-square" style="width: 68px; height: 68px; background: var(--shanti-forest); border-radius: 16px; border: 1.5px solid var(--shanti-sand-border); overflow: hidden; display: flex; align-items: center; justify-content: center; margin: 0 auto 6px; box-shadow: 0 4px 12px rgba(63,78,58,0.2);">
+              <img id="img-preview-square" src="/icons/icon-192.png?v=9" alt="Preview Padrão" style="width: 75%; height: 75%; object-fit: contain; transition: all 0.15s ease;">
+            </div>
+            <span style="font-size: 13.5px; color: var(--shanti-stone); font-weight: 500;">Padrão</span>
+          </div>
+
+          <!-- Circular (Máscara Android/iOS) -->
+          <div style="text-align: center;">
+            <div id="preview-icon-round" style="width: 68px; height: 68px; background: var(--shanti-forest); border-radius: 50%; border: 1.5px solid var(--shanti-sand-border); overflow: hidden; display: flex; align-items: center; justify-content: center; margin: 0 auto 6px; box-shadow: 0 4px 12px rgba(63,78,58,0.2);">
+              <img id="img-preview-round" src="/icons/icon-192.png?v=9" alt="Preview Circular" style="width: 75%; height: 75%; object-fit: contain; transition: all 0.15s ease;">
+            </div>
+            <span style="font-size: 13.5px; color: var(--shanti-stone); font-weight: 500;">Máscara</span>
+          </div>
+
+          <!-- Splash Screen Mini -->
+          <div style="text-align: center;">
+            <div id="preview-icon-splash" style="width: 52px; height: 68px; background: var(--shanti-forest); border-radius: 10px; border: 1.5px solid var(--shanti-sand-border); overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; margin: 0 auto 6px; box-shadow: 0 4px 12px rgba(63,78,58,0.2);">
+              <img id="img-preview-splash" src="/icons/icon-192.png?v=9" alt="Preview Splash" style="width: 65%; height: auto; object-fit: contain; transition: all 0.15s ease;">
+              <span style="font-size: 11px; color: var(--shanti-sand-light); font-family: var(--font-brand); letter-spacing: 0.8px; margin-top: 3px;">SHANTI</span>
+            </div>
+            <span style="font-size: 13.5px; color: var(--shanti-stone); font-weight: 500;">Splash</span>
+          </div>
+        </div>
+
+        <!-- Controles Interativos -->
+        <div class="wa-form-group">
+          <label>Trocar Imagem da Logo</label>
+          <input type="file" id="cfg-icon-file" accept="image/png, image/jpeg, image/webp" class="wa-form-control" style="font-size: 14px;">
+        </div>
+
+        <div class="wa-form-group">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+            <label style="margin-bottom: 0;">Escala da Logo no Ícone</label>
+            <span id="cfg-icon-scale-val" style="font-size: 14px; font-weight: 600; color: var(--shanti-terracotta);">75%</span>
+          </div>
+          <input type="range" id="cfg-icon-scale" min="45" max="95" value="75" class="wa-form-control" style="cursor: pointer; accent-color: var(--shanti-terracotta);">
+          <small style="font-size: 13.5px; color: var(--shanti-stone); display: block; margin-top: 4px;">
+            Dica: valores entre 65% e 75% garantem margens seguras e perfeitas em qualquer celular sem cortar a logo.
+          </small>
+        </div>
+
+        <button type="button" class="wa-btn-primary" id="btn-salvar-icone" style="margin-top: 6px; background: var(--shanti-forest); border: none; color: #ffffff; border-radius: 12px; font-weight: 600; padding: 10px 16px;">
+          <i class="fa-solid fa-arrows-rotate"></i> Aplicar e Gerar Ícones do PWA
+        </button>
+      </div>
+
+      <div class="wa-card">
+        <div class="wa-card-title" style="margin-bottom: 14px;">
+          <i class="fa-solid fa-store" style="color: var(--shanti-forest);"></i>
+          <span>Dados do Studio</span>
+        </div>
+
+        <div class="wa-form-group">
+          <label>Nome do Studio</label>
+          <input type="text" class="wa-form-control" id="cfg-nome-studio" placeholder="Studio Shanti">
+        </div>
+
+        <div class="wa-form-group">
+          <label>Tipo de Chave PIX</label>
+          <select class="wa-form-control" id="cfg-tipo-pix">
+            <option value="E-mail">E-mail</option>
+            <option value="CNPJ / CPF">CNPJ / CPF</option>
+            <option value="Celular">Celular</option>
+            <option value="Chave Aleatória">Chave Aleatória</option>
+          </select>
+        </div>
+
+        <div class="wa-form-group">
+          <label>Chave PIX (para receber mensalidades)</label>
+          <input type="text" class="wa-form-control" id="cfg-chave-pix" placeholder="Ex: financeiro@shantiyoga.com.br">
+        </div>
+      </div>
+
+      <div class="wa-card">
+        <div class="wa-card-title" style="margin-bottom: 14px;">
+          <i class="fa-solid fa-tags" style="color: var(--shanti-terracotta);"></i>
+          <span>Planos e Valores de Referência (Studio Shanti)</span>
+        </div>
+
+        <div style="display: flex; gap: 12px; margin-bottom: 6px;">
+          <div class="wa-form-group" style="flex: 1;">
+            <label>1x na Semana (R$)</label>
+            <input type="number" step="0.01" class="wa-form-control" id="cfg-valor-plano-1x" placeholder="120.00">
+          </div>
+          <div class="wa-form-group" style="flex: 1;">
+            <label>2x na Semana (R$)</label>
+            <input type="number" step="0.01" class="wa-form-control" id="cfg-valor-plano-2x" placeholder="150.00">
+          </div>
+        </div>
+        <small style="font-size: 13.5px; color: var(--shanti-stone); display: block; line-height: 1.4;">
+          Valores base configuráveis do estúdio. Ao matricular novos alunos, esses valores serão preenchidos automaticamente.
+        </small>
+      </div>
+
+      <!-- ==================================================================
+           CARD: INSTALAÇÃO DO APLICATIVO NO CELULAR (SEM ÍCONE DO CHROME)
+           ================================================================== -->
+      <div class="wa-card" id="card-pwa-instalacao" style="border: 1px solid var(--shanti-sand-border); background: #ffffff;">
+        <div class="wa-card-title" style="margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-mobile-screen-button" style="color: var(--shanti-terracotta);"></i>
+            <span style="font-weight: 700; color: var(--shanti-forest);">Aplicativo no Celular (WebAPK Nativo)</span>
+          </div>
+          <span id="badge-pwa-status" style="font-size: 12.5px; font-weight: 700; padding: 2px 8px; border-radius: 12px; background: var(--shanti-sage-light); color: var(--shanti-forest);">
+            Ícone Oficial
+          </span>
+        </div>
+        <p style="font-size: 14px; color: var(--shanti-stone); line-height: 1.45; margin-bottom: 10px;">
+          Se ao adicionar à tela inicial o ícone ficou com o <b>símbolo pequeno do Chrome no canto</b>, remova aquele atalho antigo e toque no botão abaixo para instalar como aplicativo nativo (WebAPK):
+        </p>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 6px;">
+          <button type="button" id="btn-instalar-app-ajustes" class="wa-btn-primary" style="background: var(--shanti-forest); color: #ffffff; border: none; border-radius: 12px; font-weight: 600; padding: 10px 16px; display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-download"></i> <span>Instalar Aplicativo Oficial</span>
+          </button>
+        </div>
+        <small style="font-size: 13.5px; color: var(--shanti-stone); display: block; line-height: 1.35;">
+          💡 No menu do Google Chrome (3 pontinhos), escolha <b>"Instalar aplicativo"</b> (evite a opção "Adicionar atalho").
+        </small>
+      </div>
+
+      <!-- ==================================================================
+           CARD: INTELIGÊNCIA ARTIFICIAL (GROQ - LLAMA 3.3 / QWEN & WHISPER)
+           ================================================================== -->
+      <div class="wa-card" style="border: 1px solid var(--shanti-sand-border); background: #ffffff;">
+        <div class="wa-card-title" style="margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-bolt" style="color: var(--shanti-terracotta);"></i>
+            <span style="font-weight: 700; color: var(--shanti-forest); font-size: 15px;">Inteligência Artificial (Groq AI)</span>
+          </div>
+          <span style="font-size: 12.5px; font-weight: 700; padding: 2px 8px; border-radius: 12px; background: var(--shanti-sage-light); color: var(--shanti-forest);">
+            Ultra Rápido (~250ms)
+          </span>
+        </div>
+
+        <p style="font-size: 14px; color: var(--shanti-stone); margin-bottom: 12px; line-height: 1.4;">
+          O Groq processa mensagens de texto e áudio (Whisper) em milissegundos com plano 100% gratuito. O app também funciona offline pelo motor local integrado.
+        </p>
+
+        <div class="wa-form-group">
+          <label style="font-weight: 600; color: var(--shanti-forest);">Chave de API Groq (Recomendado)</label>
+          <div style="position: relative;">
+            <input type="password" class="wa-form-control" id="cfg-groq-key" placeholder="Cole sua chave gsk_..." style="padding-right: 40px;">
+            <button type="button" id="btn-toggle-groq-key" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--shanti-stone); cursor: pointer;" title="Mostrar/Ocultar Chave">
+              <i class="fa-solid fa-eye"></i>
+            </button>
+          </div>
+          <small style="font-size: 13.5px; color: var(--shanti-stone); display: block; margin-top: 5px; line-height: 1.4;">
+            Obtenha sua chave gratuita em <a href="https://console.groq.com/keys" target="_blank" style="color: var(--shanti-terracotta); font-weight: 600;">console.groq.com</a> (sem necessidade de cartão de crédito).
+          </small>
+        </div>
+
+        <!-- Provedor Fallback Opcional: Gemini -->
+        <details style="margin-bottom: 14px; background: var(--shanti-sand-light); border-radius: 10px; padding: 8px 12px; border: 1px solid var(--shanti-sand-border);">
+          <summary style="cursor: pointer; font-size: 14px; font-weight: 600; color: var(--shanti-forest);">
+            <i class="fa-brands fa-google" style="color: var(--shanti-terracotta); margin-right: 4px;"></i> Provedor Alternativo: Google Gemini (Opcional)
+          </summary>
+          <div style="margin-top: 10px;">
+            <label style="font-size: 13.5px; font-weight: 600; color: var(--shanti-charcoal);">Chave Google Gemini</label>
+            <input type="password" class="wa-form-control" id="cfg-gemini-key" placeholder="Cole sua chave AIzaSy..." style="margin-top: 4px;">
+            <small style="font-size: 13.5px; color: var(--shanti-stone); display: block; margin-top: 4px;">
+              Usado como fallback automático caso a chave do Groq não esteja presente.
+            </small>
+          </div>
+        </details>
+
+        <button class="wa-btn-primary" id="btn-salvar-configuracoes" style="background: var(--shanti-forest); color: #ffffff; border: none; border-radius: 12px; font-weight: 600; padding: 10px 16px;">
+          <i class="fa-solid fa-floppy-disk"></i> Salvar Configurações
+        </button>
+      </div>
+
+
+      <!-- ==================================================================
+           CARD: ASSINATURA DIGITAL (AUTENTIQUE)
+           ================================================================== -->
+      <div class="wa-card" id="card-autentique-config" style="border: 1px solid var(--shanti-sand-border); background: #ffffff;">
+        <div class="wa-card-title" style="margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-file-signature" style="color: var(--shanti-terracotta); font-size: 16px;"></i>
+            <span style="font-weight: 700; color: var(--shanti-forest); font-size: 15px;">Assinatura Digital (Autentique)</span>
+          </div>
+          <span id="badge-autentique-status" style="font-size: 13.5px; font-weight: 700; padding: 2px 8px; border-radius: 12px; background: var(--shanti-sage-light); color: var(--shanti-forest); border: 0.5px solid var(--shanti-sage-border);">
+            Disponível
+          </span>
+        </div>
+        <p style="font-size: 14px; color: var(--shanti-stone); margin-bottom: 12px; line-height: 1.4;">
+          Integração oficial com a plataforma <b>Autentique</b>. Os contratos gerados são enviados automaticamente para assinatura eletrônica com validade jurídica pelo celular (WhatsApp/E-mail).
+        </p>
+
+        <div class="wa-form-group">
+          <label>Token da API do Autentique</label>
+          <div style="position: relative;">
+            <input type="password" class="wa-form-control" id="cfg-autentique-token" placeholder="Cole seu token gerado no painel do Autentique..." style="padding-right: 40px;">
+            <button type="button" id="btn-toggle-autentique-token" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--shanti-stone); cursor: pointer;" title="Mostrar/Ocultar Token">
+              <i class="fa-solid fa-eye"></i>
+            </button>
+          </div>
+          <small style="font-size: 13.5px; color: var(--shanti-stone); display: block; margin-top: 4px; line-height: 1.4;">
+            Obtenha seu token gratuito no menu <i>Configurações > API / Tokens</i> em <a href="https://painel.autentique.com.br" target="_blank" style="color: var(--shanti-terracotta); font-weight: 600;">painel.autentique.com.br</a>.
+          </small>
+        </div>
+
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; background: var(--shanti-sand-light); border-radius: 10px; margin-bottom: 14px; border: 1px solid var(--shanti-sand-border);">
+          <div>
+            <span style="font-size: 15px; font-weight: 600; color: var(--shanti-forest); display: block;">Modo Sandbox (Testes Gratuitos)</span>
+            <small style="font-size: 13.5px; color: var(--shanti-stone);">Não consome sua cota de 20 documentos mensais gratuitos do Autentique.</small>
+          </div>
+          <label class="wa-switch">
+            <input type="checkbox" id="cfg-autentique-sandbox" checked>
+            <span class="wa-switch-slider"></span>
+          </label>
+        </div>
+
+        <!-- Webhook URL Box -->
+        <div style="background: var(--shanti-sand-light); border: 1px dashed var(--shanti-sand-border); border-radius: 10px; padding: 10px 12px; margin-bottom: 14px;">
+          <span style="font-size: 13.5px; font-weight: 600; color: var(--shanti-charcoal); display: block; margin-bottom: 4px;">
+            <i class="fa-solid fa-link" style="color: var(--shanti-terracotta);"></i> URL do Webhook do Estúdio (cadastrar no Autentique):
+          </span>
+          <div style="display: flex; gap: 6px; align-items: center;">
+            <input type="text" readonly id="cfg-autentique-webhook-url" value="https://shanti-studio-yoga.onrender.com/api/webhooks/autentique" style="flex: 1; font-size: 13.5px; padding: 6px 8px; border: 1px solid var(--shanti-sand-border); border-radius: 6px; background: #ffffff; color: var(--shanti-charcoal); font-family: monospace;">
+            <button type="button" class="wa-btn-primary" id="btn-copiar-webhook-url" style="padding: 6px 10px; font-size: 13.5px; background: var(--shanti-sand-light); border: 1px solid var(--shanti-sand-border); color: var(--shanti-forest); border-radius: 6px;" title="Copiar URL">
+              <i class="fa-solid fa-copy"></i>
+            </button>
+          </div>
+          <small style="font-size: 13.5px; color: var(--shanti-stone); display: block; margin-top: 4px;">
+            No painel do Autentique, acesse <i>Configurações > Webhooks</i>, cadastre esta URL e selecione o evento <b>document.finished</b>.
+          </small>
+        </div>
+
+        <!-- Botões de Ação do Card -->
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+          <button type="button" class="wa-btn-primary" id="btn-testar-autentique" style="flex: 1; min-width: 140px; padding: 8px 12px; font-size: 14px; background: var(--shanti-sand-light); color: var(--shanti-forest); border: 1px solid var(--shanti-sand-border); border-radius: 10px; font-weight: 600;">
+            <i class="fa-solid fa-plug"></i> Testar Conexão
+          </button>
+          <button type="button" class="wa-btn-primary" id="btn-salvar-autentique" style="flex: 1; min-width: 140px; padding: 8px 12px; font-size: 14px; background: var(--shanti-forest); color: #ffffff; border: none; border-radius: 10px; font-weight: 600;">
+            <i class="fa-solid fa-floppy-disk"></i> Salvar Autentique
+          </button>
+        </div>
+
+        <!-- Resultado do Teste -->
+        <div id="resultado-teste-autentique" style="display: none; margin-top: 12px; padding: 10px 12px; border-radius: 8px; font-size: 14px; line-height: 1.45;"></div>
+      </div>
+
+      <!-- ==================================================================
+           CARD: DIAGNÓSTICO DO SISTEMA & OBSERVABILIDADE (RENDER VS. GROQ IA)
+           ================================================================== -->
+      <div class="wa-card" id="card-diagnostico-sistema" style="border: 1px solid var(--shanti-sand-border); background: #ffffff;">
+        <div class="wa-card-title" style="margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-gauge-high" style="color: var(--shanti-terracotta); font-size: 16px;"></i>
+            <span style="font-weight: 700; color: var(--shanti-forest); font-size: 15px;">Saúde do Sistema & Diagnóstico</span>
+          </div>
+          <span id="badge-diag-geral" style="font-size: 13.5px; font-weight: 700; padding: 2px 8px; border-radius: 12px; background: var(--shanti-sage-light); color: var(--shanti-forest); border: 0.5px solid var(--shanti-sage-border);">
+            ● Online
+          </span>
+        </div>
+
+        <p style="font-size: 14px; color: var(--shanti-stone); margin-bottom: 14px; line-height: 1.4;">
+          Monitore o desempenho do servidor Render (hibernação e pings keep-alive) e a resposta da IA Groq (Llama / Qwen) de forma 100% isolada e transparente.
+        </p>
+
+        <!-- Grade com 2 Blocos de Status: Servidor e IA -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px;">
+          
+          <!-- Bloco Servidor (Render) -->
+          <div style="background: var(--shanti-sand-light); border: 1px solid var(--shanti-sand-border); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+                <span style="font-size: 13.5px; font-weight: 700; color: var(--shanti-forest);"><i class="fa-solid fa-server" style="color: var(--shanti-terracotta);"></i> Servidor</span>
+                <span id="badge-diag-servidor" style="font-size: 12.5px; font-weight: 700; padding: 1px 6px; border-radius: 6px; background: var(--shanti-sage-light); color: var(--shanti-forest);">
+                  Online
+                </span>
+              </div>
+              <div style="font-size: 13.5px; color: var(--shanti-stone); margin-bottom: 4px;">
+                Uptime: <b id="diag-servidor-uptime" style="color: var(--shanti-charcoal);">Carregando...</b>
+              </div>
+              <div style="font-size: 13.5px; color: var(--shanti-stone);">
+                Cold Start: <span id="diag-servidor-coldstart" style="font-weight: 600; color: var(--shanti-forest);">Não (Quente)</span>
+              </div>
+            </div>
+            
+            <div style="margin-top: 10px; padding-top: 8px; border-top: 0.5px dashed var(--shanti-sand-border); font-size: 12.5px;">
+              <span style="display: block; color: var(--shanti-stone); margin-bottom: 2px;">Keep-alive 24/7:</span>
+              <span id="diag-keepalive-status" style="font-weight: 600; color: var(--shanti-forest);">
+                <i class="fa-solid fa-circle-check"></i> Ativo
+              </span>
+            </div>
+          </div>
+
+          <!-- Bloco IA (Groq) -->
+          <div style="background: var(--shanti-sand-light); border: 1px solid var(--shanti-sand-border); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+                <span style="font-size: 13.5px; font-weight: 700; color: var(--shanti-forest);"><i class="fa-solid fa-bolt" style="color: var(--shanti-terracotta);"></i> IA (Groq)</span>
+                <span id="badge-diag-ia" style="font-size: 12.5px; font-weight: 700; padding: 1px 6px; border-radius: 6px; background: var(--shanti-sage-light); color: var(--shanti-forest);">
+                  Operando
+                </span>
+              </div>
+              <div style="font-size: 13.5px; color: var(--shanti-stone); margin-bottom: 4px;">
+                Latência: <b id="diag-ia-latencia" style="color: var(--shanti-charcoal);">-- ms</b>
+              </div>
+              <div style="font-size: 13.5px; color: var(--shanti-stone);">
+                Modelo: <span id="diag-ia-modelo" style="font-weight: 600; color: var(--shanti-forest);">Auto</span>
+              </div>
+            </div>
+
+            <div style="margin-top: 10px; padding-top: 8px; border-top: 0.5px dashed var(--shanti-sand-border); font-size: 12.5px;">
+              <span style="display: block; color: var(--shanti-stone); margin-bottom: 2px;">Diagnóstico da IA:</span>
+              <span id="diag-ia-mensagem" style="font-weight: 500; color: var(--shanti-stone); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.25;">
+                Aguardando teste...
+              </span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Botão de Ação: Rodar Diagnóstico Agora -->
+        <div style="margin-bottom: 14px;">
+          <button type="button" id="btn-rodar-diagnostico" class="wa-btn-primary" style="background: var(--shanti-forest); border: none; color: #ffffff; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 10px 14px; border-radius: 12px; cursor: pointer; transition: all 0.2s;">
+            <i class="fa-solid fa-stethoscope"></i>
+            <span>Rodar Diagnóstico Completo Agora</span>
+          </button>
+        </div>
+
+        <!-- Histórico Recente de Respostas & Pings -->
+        <div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <span style="font-size: 14px; font-weight: 700; color: var(--shanti-forest);">
+              <i class="fa-solid fa-list-check" style="color: var(--shanti-terracotta);"></i> Histórico Recente de Atividades
+            </span>
+            <span style="font-size: 12.5px; color: var(--shanti-stone);">Render vs. Groq IA</span>
+          </div>
+
+
+          <div id="lista-logs-diagnostico" style="display: flex; flex-direction: column; gap: 6px; max-height: 240px; overflow-y: auto; padding-right: 4px;">
+            <div style="text-align: center; padding: 14px; font-size: 14px; color: var(--shanti-stone);">
+              <i class="fa-solid fa-spinner fa-spin" style="color: var(--shanti-terracotta);"></i> Carregando histórico de diagnósticos...
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Card de Backup Automático para o Google Drive -->
+      <div class="wa-card" id="card-backup-banco" style="border: 1px solid var(--shanti-sand-border); background: #ffffff; margin-top: 14px;">
+        <div class="wa-card-title" style="margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-cloud-arrow-up" style="color: var(--shanti-terracotta); font-size: 16px;"></i>
+            <span style="font-weight: 700; color: var(--shanti-forest); font-size: 15px;">Backup Automático do Banco de Dados</span>
+          </div>
+          <span id="badge-diag-backup" style="font-size: 13.5px; font-weight: 700; padding: 2px 8px; border-radius: 12px; background: var(--shanti-sage-light); color: var(--shanti-forest); border: 0.5px solid var(--shanti-sage-border);">
+            ● Ativo (Diário)
+          </span>
+        </div>
+
+        <p style="font-size: 14px; color: var(--shanti-stone); margin-bottom: 14px; line-height: 1.4;">
+          Exportação completa diária (.sql) para proteção dos dados contra falhas de infraestrutura ou bugs. Os backups rodam diariamente às 03:00 (Brasília) e mantêm os últimos 30 dias de histórico.
+        </p>
+
+        <!-- Informações do Backup e do Google Drive -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px;">
+          <!-- Bloco Google Drive -->
+          <div style="background: var(--shanti-sand-light); border: 1px solid var(--shanti-sand-border); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+                <span style="font-size: 13.5px; font-weight: 700; color: var(--shanti-forest);"><i class="fa-brands fa-google-drive" style="color: #0f9d58;"></i> Google Drive</span>
+                <span id="badge-backup-drive" style="font-size: 12.5px; font-weight: 700; padding: 1px 6px; border-radius: 6px; background: #fef3c7; color: #b45309;">
+                  Verificando...
+                </span>
+              </div>
+              <div style="font-size: 13.5px; color: var(--shanti-stone); margin-bottom: 4px;">
+                Pasta: <span id="backup-drive-pasta" style="font-weight: 600; color: var(--shanti-charcoal);">--</span>
+              </div>
+              <div style="font-size: 12.5px; color: var(--shanti-stone);">
+                Retenção: <span style="font-weight: 600; color: var(--shanti-forest);">30 dias de histórico</span>
+              </div>
+            </div>
+            <div style="margin-top: 8px; padding-top: 6px; border-top: 0.5px dashed var(--shanti-sand-border); font-size: 12.5px; color: var(--shanti-stone);" id="backup-drive-detalhes">
+              Gratuito via Service Account
+            </div>
+          </div>
+
+          <!-- Bloco Último Backup -->
+          <div style="background: var(--shanti-sand-light); border: 1px solid var(--shanti-sand-border); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+                <span style="font-size: 13.5px; font-weight: 700; color: var(--shanti-forest);"><i class="fa-solid fa-clock-rotate-left" style="color: var(--shanti-terracotta);"></i> Último Backup</span>
+                <span id="badge-backup-ultimo" style="font-size: 12.5px; font-weight: 700; padding: 1px 6px; border-radius: 6px; background: var(--shanti-sand); color: var(--shanti-stone);">
+                  --
+                </span>
+              </div>
+              <div style="font-size: 13.5px; color: var(--shanti-stone); margin-bottom: 4px;">
+                Data: <b id="backup-ultimo-data" style="color: var(--shanti-charcoal);">--</b>
+              </div>
+              <div style="font-size: 12.5px; color: var(--shanti-stone);">
+                Tamanho: <span id="backup-ultimo-tamanho" style="font-weight: 600; color: var(--shanti-forest);">--</span>
+              </div>
+            </div>
+            <div style="margin-top: 8px; padding-top: 6px; border-top: 0.5px dashed var(--shanti-sand-border); font-size: 12.5px; color: var(--shanti-stone);">
+              Próximo: <span id="backup-proximo-horario" style="font-weight: 600; color: var(--shanti-forest);">Hoje às 03:00 (Brasília)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Banner de Alerta se houver erro recente -->
+        <div id="banner-alerta-backup" style="display: none; background: #fef2f2; border: 1px solid #f87171; border-radius: 10px; padding: 10px 12px; margin-bottom: 12px; font-size: 13.5px; color: #991b1b;">
+          <div style="display: flex; align-items: center; gap: 8px; font-weight: 700; margin-bottom: 4px;">
+            <i class="fa-solid fa-triangle-exclamation" style="color: #dc2626;"></i>
+            <span>Atenção: Houve uma falha no último backup automático!</span>
+          </div>
+          <div id="texto-alerta-backup" style="margin-bottom: 8px; font-size: 13.5px; color: #7f1d1d;"></div>
+          <a id="link-whatsapp-suporte-backup" href="https://wa.me/5522988423287?text=Ol%C3%A1%20Nat%C3%A1lia,%20houve%20um%20alerta%20de%20falha%20no%20backup%20do%20sistema%20Shanti%20Studio." target="_blank" class="wa-btn-primary" style="background: #dc2626; color: #ffffff; text-decoration: none; padding: 6px 10px; border-radius: 6px; font-size: 12.5px; display: inline-flex; align-items: center; gap: 6px;">
+            <i class="fa-brands fa-whatsapp"></i> Notificar Suporte Técnico
+          </a>
+        </div>
+
+        <!-- Botões de Ação: Fazer Backup Agora e Baixar Cópia -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+          <button type="button" id="btn-executar-backup-agora" class="wa-btn-primary" style="background: var(--shanti-forest); border: none; color: #ffffff; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 9px 12px; border-radius: 12px; cursor: pointer; transition: all 0.2s; font-size: 14px;">
+            <i class="fa-solid fa-play"></i>
+            <span>Fazer Backup Agora</span>
+          </button>
+          <a id="btn-download-backup-sql" href="/api/backup/download-ultimo" download class="wa-btn-primary" style="background: var(--shanti-sand); border: 1px solid var(--shanti-sand-border); color: var(--shanti-forest); font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 9px 12px; border-radius: 12px; text-decoration: none; transition: all 0.2s; font-size: 14px;">
+            <i class="fa-solid fa-download"></i>
+            <span>Baixar Cópia (.SQL)</span>
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ====================================================================
+       TELA 7: ÁREA DO ALUNO & ENGAJAMENTO (QR CODE, BIBLIOTECA, CONQUISTAS, REPOSIÇÕES)
+       ==================================================================== -->
+  <section class="wa-screen" id="screen-gestao-aluno" style="overflow-y: auto; height: 100%; -webkit-overflow-scrolling: touch;">
+    <div class="wa-settings-container" style="overflow-y: auto; padding: 18px 18px 100px 18px; min-height: 100%; -webkit-overflow-scrolling: touch;">
+
+      <!-- Header da Área do Aluno -->
+      <div class="wa-card" style="margin-bottom: 12px; background: linear-gradient(135deg, var(--shanti-forest), #283624); color: #ffffff; border-radius: 16px; padding: 18px 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="width: 36px; height: 36px; background: rgba(255,255,255,0.15); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px;">
+              <i class="fa-solid fa-graduation-cap"></i>
+            </div>
+            <div>
+              <h2 style="font-size: 17px; font-weight: 700; margin: 0; color: #ffffff;">Área do Aluno & Engajamento</h2>
+              <p style="font-size: 13.5px; opacity: 0.85; margin: 0;">Portal do Aluno, QR Code de Acesso, Biblioteca e Conquistas</p>
+            </div>
+          </div>
+          <a href="/aluno" target="_blank" class="wa-btn-primary" style="background: #ffffff; color: var(--shanti-forest); text-decoration: none; padding: 6px 12px; font-size: 13.5px; font-weight: 700; border-radius: 20px; display: inline-flex; align-items: center; gap: 6px;" title="Abrir App do Aluno em Nova Aba">
+            <i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir App
+          </a>
+        </div>
+      </div>
+
+      <!-- Sub-abas de Navegação Interna -->
+      <div style="display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 12px;" id="subnav-gestao-aluno">
+        <button type="button" class="wa-filter-chip active" data-subtab="qrcode">
+          <i class="fa-solid fa-qrcode"></i> QR Code & Acesso
+        </button>
+        <button type="button" class="wa-filter-chip" data-subtab="biblioteca">
+          <i class="fa-solid fa-book-open"></i> Biblioteca
+        </button>
+        <button type="button" class="wa-filter-chip" data-subtab="reposicoes">
+          <i class="fa-solid fa-arrow-rotate-right"></i> Reposições
+          <span class="wa-tab-badge danger" id="badge-sub-reposicoes" style="display:none;">0</span>
+        </button>
+        <button type="button" class="wa-filter-chip" data-subtab="conquistas">
+          <i class="fa-solid fa-award"></i> Conquistas
+        </button>
+        <button type="button" class="wa-filter-chip" data-subtab="comunicados">
+          <i class="fa-solid fa-bullhorn"></i> Comunicados
+        </button>
+      </div>
+
+      <!-- PAINEL 1: QR CODE & GERENCIAMENTO DE ACESSO -->
+      <div class="subpane-gestao-aluno active" id="subpane-qrcode">
+        <!-- Card QR Code de Recepção -->
+        <div class="wa-card" style="margin-bottom: 14px; text-align: center; padding: 22px 18px; border: 1px solid var(--shanti-sand-border); border-radius: 16px; background: #ffffff;">
+          <h3 style="font-size: 16px; font-weight: 700; color: var(--shanti-forest); margin-bottom: 4px;">
+            Placa de Recepção & Acesso dos Alunos
+          </h3>
+          <p style="font-size: 14px; color: var(--shanti-stone); margin-bottom: 16px;">
+            Gere a placa de balcão para seus alunos apontarem a câmera e instalarem o App do Aluno instantaneamente.
+          </p>
+
+          <div style="display: inline-block; padding: 16px; background: #FAF7F2; border: 2px solid var(--shanti-forest); border-radius: 20px; box-shadow: 0 8px 24px rgba(63,78,58,0.1); margin-bottom: 14px;" id="box-qrcode-container">
+            <img id="img-qrcode-aluno" src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=https%3A%2F%2Fshanti-studio-yoga.onrender.com%2Faluno&margin=1" alt="QR Code App do Aluno" style="width: 180px; height: 180px; display: block; border-radius: 8px;">
+          </div>
+
+          <div style="font-size: 14px; color: var(--shanti-charcoal); font-weight: 600; margin-bottom: 14px; word-break: break-all;">
+            Link direto: <a href="/aluno" target="_blank" id="link-aluno-url-display" style="color: var(--shanti-forest); text-decoration: underline;">https://shanti-studio-yoga.onrender.com/aluno</a>
+          </div>
+
+          <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
+            <button type="button" class="wa-btn-primary" onclick="imprimirPlacaRecepcao()" style="background: var(--shanti-forest); color: #ffffff; border: none; padding: 9px 18px; border-radius: 20px; font-size: 14px; font-weight: 700; cursor: pointer;">
+              <i class="fa-solid fa-print"></i> Imprimir Placa de Balcão (A4)
+            </button>
+            <button type="button" class="wa-btn-primary" onclick="copiarLinkAppAluno()" style="background: var(--shanti-sand-light); color: var(--shanti-forest); border: 1px solid var(--shanti-sand-border); padding: 9px 16px; border-radius: 20px; font-size: 14px; font-weight: 600; cursor: pointer;">
+              <i class="fa-solid fa-copy"></i> Copiar Link
+            </button>
+          </div>
+        </div>
+
+        <!-- Tabela de Alunos & Senhas de Acesso -->
+        <div class="wa-card" style="padding: 16px; border: 1px solid var(--shanti-sand-border); border-radius: 16px; background: #ffffff;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <h3 style="font-size: 14.5px; font-weight: 700; color: var(--shanti-forest); margin: 0;">
+              <i class="fa-solid fa-key" style="color: var(--shanti-terracotta);"></i> Acessos dos Alunos
+            </h3>
+            <span id="badge-acessos-stats" style="font-size: 13.5px; color: var(--shanti-stone);">0 Alunos</span>
+          </div>
+
+          <div style="margin-bottom: 12px;">
+            <input type="text" id="busca-aluno-acesso" class="wa-form-control" placeholder="Buscar aluno por nome, telefone ou CPF..." oninput="filtrarAlunosAcesso()">
+          </div>
+
+          <div id="lista-alunos-acesso" style="display: flex; flex-direction: column; gap: 12px; max-height: 580px; overflow-y: auto; padding-right: 2px;">
+            <!-- Injetado via JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- PAINEL 2: BIBLIOTECA DE LEITURAS -->
+      <div class="subpane-gestao-aluno" id="subpane-biblioteca" style="display: none;">
+        <div class="wa-card" style="padding: 16px; border: 1px solid var(--shanti-sand-border); border-radius: 16px; background: #ffffff;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+            <div>
+              <h3 style="font-size: 15px; font-weight: 700; color: var(--shanti-forest); margin: 0;">Biblioteca do Studio</h3>
+              <p style="font-size: 13.5px; color: var(--shanti-stone); margin: 0;">Artigos, textos e materiais em PDF para seus alunos</p>
+            </div>
+            <button type="button" class="wa-btn-primary" onclick="abrirModalCriarLeitura()" style="background: var(--shanti-terracotta); border: none; color: #ffffff; padding: 7px 14px; border-radius: 20px; font-size: 14px; font-weight: 600; cursor: pointer;">
+              <i class="fa-solid fa-plus"></i> Nova Leitura
+            </button>
+          </div>
+
+          <div id="lista-conteudos-biblioteca" style="display: flex; flex-direction: column; gap: 10px;">
+            <!-- Injetado via JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- PAINEL 3: SOLICITAÇÕES DE REPOSIÇÃO -->
+      <div class="subpane-gestao-aluno" id="subpane-reposicoes" style="display: none;">
+        <div class="wa-card" style="padding: 16px; border: 1px solid var(--shanti-sand-border); border-radius: 16px; background: #ffffff;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+            <div>
+              <h3 style="font-size: 15px; font-weight: 700; color: var(--shanti-forest); margin: 0;">Solicitações de Reposição</h3>
+              <p style="font-size: 13.5px; color: var(--shanti-stone); margin: 0;">Alunos que avisaram falta e solicitaram reposição</p>
+            </div>
+            <select id="filtro-status-reposicao" class="wa-form-control" style="width: auto; font-size: 13.5px; padding: 4px 8px;" onchange="carregarReposicoesAdmin()">
+              <option value="">Todas</option>
+              <option value="pendente" selected>Pendentes</option>
+              <option value="aprovada">Aprovadas</option>
+              <option value="rejeitada">Recusadas</option>
+            </select>
+          </div>
+
+          <div id="lista-solicitacoes-reposicao-admin" style="display: flex; flex-direction: column; gap: 10px;">
+            <!-- Injetado via JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- PAINEL 4: MURAL DE CONQUISTAS -->
+      <div class="subpane-gestao-aluno" id="subpane-conquistas" style="display: none;">
+        <div class="wa-card" style="padding: 16px; border: 1px solid var(--shanti-sand-border); border-radius: 16px; background: #ffffff;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+            <div>
+              <h3 style="font-size: 15px; font-weight: 700; color: var(--shanti-forest); margin: 0;">Mural de Conquistas & Frequência</h3>
+              <p style="font-size: 13.5px; color: var(--shanti-stone); margin: 0;">Marcos de 10, 25, 50, 100 e 200 aulas praticadas</p>
+            </div>
+            <span id="badge-total-conquistas-desbloqueadas" style="font-size: 13.5px; font-weight: 700; padding: 3px 8px; border-radius: 12px; background: var(--shanti-sage-light); color: var(--shanti-forest);">
+              0 Conquistas
+            </span>
+          </div>
+
+          <div id="lista-mural-conquistas" style="display: flex; flex-direction: column; gap: 10px;">
+            <!-- Injetado via JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- PAINEL 5: CENTRAL DE COMUNICAÇÃO & AVISOS (v2.0) -->
+      <div class="subpane-gestao-aluno" id="subpane-comunicados" style="display: none;">
+        <div class="wa-card" style="padding: 16px; border: 1px solid var(--shanti-sand-border); border-radius: 16px; background: #ffffff;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
+            <div>
+              <h3 style="font-size: 15px; font-weight: 700; color: var(--shanti-forest); margin: 0;">Central de Comunicação</h3>
+              <p style="font-size: 13.5px; color: var(--shanti-stone); margin: 0;">Campanhas, avisos de feriado, pop-ups e disparos de WhatsApp</p>
+            </div>
+            <button type="button" class="wa-btn-primary" onclick="abrirModalNovoComunicado()" style="background: var(--shanti-terracotta); border: none; color: #ffffff; padding: 7px 14px; border-radius: 20px; font-size: 14px; font-weight: 600; cursor: pointer;">
+              <i class="fa-solid fa-plus"></i> Novo Comunicado
+            </button>
+          </div>
+
+          <div id="lista-comunicados-admin" style="display: flex; flex-direction: column; gap: 12px;">
+            <!-- Injetado via JS -->
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Barra de Navegação Inferior (Dock de Alta Acessibilidade) -->
+  <nav class="wa-nav-tabs" id="wa-bottom-nav">
+    <button class="wa-tab-btn active" data-tab="chat">
+      <i class="fa-solid fa-comment-dots"></i>
+      <span>Conversas</span>
+    </button>
+    <button class="wa-tab-btn" data-tab="alunos">
+      <i class="fa-solid fa-users"></i>
+      <span>Alunos</span>
+      <span class="wa-tab-badge danger" id="badge-atrasados" style="display:none;">0</span>
+    </button>
+    <button class="wa-tab-btn" data-tab="calendario">
+      <i class="fa-solid fa-calendar-days"></i>
+      <span>Calendário</span>
+      <span class="wa-tab-badge warning" id="badge-calendario-alert" style="display:none;">0</span>
+    </button>
+    <button class="wa-tab-btn" data-tab="financeiro">
+      <i class="fa-solid fa-file-invoice-dollar"></i>
+      <span>Financeiro</span>
+    </button>
+    <button class="wa-tab-btn" data-tab="estudio">
+      <i class="fa-solid fa-spa"></i>
+      <span>Estúdio</span>
+    </button>
+    <button class="wa-tab-btn" data-tab="contratos">
+      <i class="fa-solid fa-file-signature"></i>
+      <span>Contratos</span>
+      <span class="wa-tab-badge warning" id="badge-contratos-alert" style="display:none;">0</span>
+    </button>
+    <button class="wa-tab-btn" data-tab="gestao-aluno">
+      <i class="fa-solid fa-graduation-cap"></i>
+      <span>Área do Aluno</span>
+      <span class="wa-tab-badge warning" id="badge-reposicoes-admin" style="display:none;">0</span>
+    </button>
+  </nav>
+
+</div>
+
+<!-- ======================================================================
+     MODAL: REGISTRAR DESPESA DO ESTÚDIO
+     ====================================================================== -->
+<div class="wa-modal-overlay" id="modal-add-despesa">
+  <div class="wa-modal-sheet">
+    <div class="wa-modal-header">
+      <h3 class="wa-modal-title"><i class="fa-solid fa-money-bill-transfer" style="color:var(--shanti-terracotta);"></i> Registrar Despesa</h3>
+      <button class="wa-modal-close" data-close-modal="modal-add-despesa">&times;</button>
+    </div>
+
+    <form id="form-add-despesa">
+      <div class="wa-form-group">
+        <label>Descrição da Despesa *</label>
+        <input type="text" class="wa-form-control" id="desp-desc" required placeholder="Ex: Incensos e aromatizadores, Conta de Luz...">
+      </div>
+
+      <div class="wa-form-group">
+        <label>Valor (R$) *</label>
+        <input type="number" step="0.01" class="wa-form-control" id="desp-valor" required placeholder="Ex: 150.00">
+      </div>
+
+      <!-- Opção de Parcelamento -->
+      <div class="wa-form-group" style="margin-bottom: 12px;">
+        <label style="font-weight: 600; font-size: 14px; color: var(--shanti-forest); display: flex; align-items: center; gap: 6px; margin-bottom: 6px;">
+          <i class="fa-solid fa-receipt" style="color: var(--shanti-terracotta);"></i> Forma de Pagamento
+        </label>
+        <div style="display: flex; gap: 8px;">
+          <label class="wa-radio-btn" style="flex: 1; text-align: center; padding: 8px 10px; border-radius: 10px; border: 1.5px solid var(--shanti-forest); background: var(--shanti-sage-light); cursor: pointer; font-size: 14px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 6px; color: var(--shanti-forest);" id="lbl-tipo-avista">
+            <input type="radio" name="desp-tipo-pgto" id="radio-tipo-avista" value="avista" checked style="accent-color: var(--shanti-forest);"> À Vista (1x)
+          </label>
+          <label class="wa-radio-btn" style="flex: 1; text-align: center; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--shanti-sand-border); background: var(--shanti-sand-light); cursor: pointer; font-size: 14px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 6px; color: var(--shanti-charcoal);" id="lbl-tipo-parcelado">
+            <input type="radio" name="desp-tipo-pgto" id="radio-tipo-parcelado" value="parcelado" style="accent-color: var(--shanti-forest);"> <i class="fa-solid fa-credit-card" style="color: var(--shanti-terracotta);"></i> Parcelado
+          </label>
+        </div>
+      </div>
+
+      <!-- Bloco de Campos de Parcelamento (Oculto se À Vista) -->
+      <div id="box-despesa-parcelamento" style="display: none; background: rgba(63,78,58,0.04); border: 1px dashed var(--shanti-sage-border); border-radius: 12px; padding: 12px; margin-bottom: 14px;">
+        <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+          <div style="flex: 1;">
+            <label style="font-size: 13.5px; font-weight: 600; color: var(--shanti-forest);">Nº de Parcelas *</label>
+            <select class="wa-form-control" id="desp-num-parcelas" style="margin-top: 4px;">
+              <option value="2">2x (2 meses)</option>
+              <option value="3">3x (3 meses)</option>
+              <option value="4">4x (4 meses)</option>
+              <option value="5">5x (5 meses)</option>
+              <option value="6" selected>6x (6 meses)</option>
+              <option value="7">7x (7 meses)</option>
+              <option value="8">8x (8 meses)</option>
+              <option value="9">9x (9 meses)</option>
+              <option value="10">10x (10 meses)</option>
+              <option value="12">12x (1 ano)</option>
+              <option value="18">18x (1 ano e meio)</option>
+              <option value="24">24x (2 anos)</option>
+              <option value="36">36x (3 anos)</option>
+              <option value="48">48x (4 anos)</option>
+            </select>
+          </div>
+          <div style="flex: 1.2;">
+            <label style="font-size: 13.5px; font-weight: 600; color: var(--shanti-forest);">O valor digitado é:</label>
+            <select class="wa-form-control" id="desp-tipo-calculo" style="margin-top: 4px;">
+              <option value="total" selected>Valor Total da Compra</option>
+              <option value="parcela">Valor de Cada Parcela</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="margin-bottom: 10px;">
+          <label style="display: flex; align-items: center; gap: 8px; font-size: 13.5px; color: var(--shanti-charcoal); cursor: pointer;">
+            <input type="checkbox" id="desp-primeira-paga" style="accent-color: var(--shanti-forest); width: 16px; height: 16px;">
+            <span>1ª parcela já paga no ato (as demais ficam pendentes mês a mês)</span>
+          </label>
+        </div>
+
+        <!-- Banner de Prévia do Parcelamento -->
+        <div id="box-previa-parcelas" style="background: #ffffff; border: 1px solid var(--shanti-sand-border); border-radius: 10px; padding: 8px 12px; font-size: 13.5px; color: var(--shanti-forest); display: flex; align-items: center; gap: 8px;">
+          <i class="fa-solid fa-circle-info" style="color: var(--shanti-terracotta); font-size: 15px;"></i>
+          <span id="texto-previa-parcelas">Preencha o valor para visualizar o cronograma das parcelas.</span>
+        </div>
+      </div>
+
+      <div class="wa-form-group">
+        <label>Categoria</label>
+        <select class="wa-form-control" id="desp-cat">
+          <option value="Aluguel">Aluguel do Espaço</option>
+          <option value="Energia/Água">Energia, Água & Internet</option>
+          <option value="Materiais">Materiais, Óleos & Incensos</option>
+          <option value="Marketing">Marketing & Divulgação</option>
+          <option value="Manutenção">Limpeza & Manutenção</option>
+          <option value="Geral" selected>Geral / Outros</option>
+        </select>
+      </div>
+
+      <div style="display: flex; gap: 10px;">
+        <div class="wa-form-group" style="flex: 1;">
+          <label>Data de Emissão</label>
+          <input type="date" class="wa-form-control" id="desp-data">
+        </div>
+        <div class="wa-form-group" style="flex: 1;">
+          <label id="lbl-desp-vencimento">Data de Vencimento *</label>
+          <input type="date" class="wa-form-control" id="desp-vencimento" required>
+        </div>
+      </div>
+
+      <div class="wa-form-group" id="box-desp-status-avista">
+        <label>Status do Pagamento</label>
+        <select class="wa-form-control" id="desp-status">
+          <option value="pago" selected>Já Paga (Quitada)</option>
+          <option value="pendente">Pendente (A Pagar)</option>
+        </select>
+      </div>
+
+      <button type="submit" class="wa-btn-primary" style="margin-top: 10px;">
+        <i class="fa-solid fa-check"></i> Salvar Despesa
+      </button>
+    </form>
+  </div>
+</div>
+
+<!-- ======================================================================
+     MODAL: SELETOR DIRETO DE MÊS E ANO DO CALENDÁRIO
+     ====================================================================== -->
+<div class="wa-modal-overlay" id="modal-cal-picker">
+  <div class="wa-modal-sheet" style="max-width: 360px; padding: 18px 20px;">
+    <div class="wa-modal-header" style="margin-bottom: 14px;">
+      <h3 class="wa-modal-title" style="font-size: 16px; color: var(--shanti-forest); display: flex; align-items: center; gap: 8px;">
+        <i class="fa-solid fa-calendar-days" style="color: var(--shanti-terracotta);"></i> Selecionar Mês & Ano
+      </h3>
+      <button class="wa-modal-close" data-close-modal="modal-cal-picker">&times;</button>
+    </div>
+
+    <!-- Navegador de Ano -->
+    <div style="display: flex; justify-content: space-between; align-items: center; background: var(--shanti-sand-light); border: 1px solid var(--shanti-sand-border); border-radius: 14px; padding: 6px 10px; margin-bottom: 14px;">
+      <button type="button" id="btn-picker-prev-year" class="cal-nav-btn" style="width: 32px; height: 32px; padding: 0; justify-content: center;" title="Ano Anterior">
+        <i class="fa-solid fa-chevron-left"></i>
+      </button>
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span style="font-size: 13.5px; color: var(--shanti-stone); font-weight: 600;">Ano:</span>
+        <select id="picker-select-year" style="font-size: 16px; font-weight: 700; color: var(--shanti-forest); background: transparent; border: none; outline: none; cursor: pointer; padding: 2px 4px;">
+          <!-- Opções geradas via JS de 2020 a 2035 -->
+        </select>
+      </div>
+      <button type="button" id="btn-picker-next-year" class="cal-nav-btn" style="width: 32px; height: 32px; padding: 0; justify-content: center;" title="Próximo Ano">
+        <i class="fa-solid fa-chevron-right"></i>
+      </button>
+    </div>
+
+    <!-- Grade dos 12 Meses -->
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 16px;" id="picker-months-grid">
+      <!-- 12 botões de meses renderizados via JS -->
+    </div>
+
+    <!-- Botão de Retorno Rápido ao Mês Atual -->
+    <div style="display: flex; gap: 8px;">
+      <button type="button" id="btn-picker-go-today" class="wa-btn-primary" style="background: var(--shanti-forest); flex: 1; padding: 9px; font-size: 14px; border-radius: 12px; font-weight: 600;">
+        <i class="fa-solid fa-calendar-check"></i> Ir para Mês Atual
+      </button>
+      <button type="button" class="wa-btn-secondary" data-close-modal="modal-cal-picker" style="padding: 9px 14px; font-size: 14px; border-radius: 12px; border: 1px solid var(--shanti-sand-border); background: var(--shanti-sand-light); color: var(--shanti-stone); cursor: pointer; font-weight: 600;">
+        Fechar
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ======================================================================
+     MODAL: COMPROMISSO EXTERNO / AGENDA NATÁLIA
+     ====================================================================== -->
+<div class="wa-modal-overlay" id="modal-evento-agenda">
+  <div class="wa-modal-sheet" style="max-width: 460px;">
+    <div class="wa-modal-header">
+      <h3 class="wa-modal-title">
+        <i class="fa-solid fa-star" style="color: #D97706;"></i>
+        <span id="modal-evento-titulo-texto">Novo Compromisso Externo</span>
+      </h3>
+      <button class="wa-modal-close" data-close-modal="modal-evento-agenda">&times;</button>
+    </div>
+
+    <form id="form-evento-agenda" onsubmit="salvarEventoAgenda(event)">
+      <input type="hidden" id="evento-form-id" value="">
+
+      <div class="wa-form-group">
+        <label>Título do Compromisso *</label>
+        <input type="text" class="wa-form-control" id="evento-form-titulo" placeholder="Ex: Workshop de Respiração no Parque" required>
+      </div>
+
+      <div style="display: flex; gap: 10px;">
+        <div class="wa-form-group" style="flex: 1;">
+          <label>Data *</label>
+          <input type="date" class="wa-form-control" id="evento-form-data" required>
+        </div>
+        <div class="wa-form-group" style="flex: 1;">
+          <label>Tipo de Evento</label>
+          <select class="wa-form-control" id="evento-form-tipo">
+            <option value="externo">Compromisso Externo</option>
+            <option value="workshop">Workshop / Vivência</option>
+            <option value="particular">Aula Particular</option>
+          </select>
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 10px;">
+        <div class="wa-form-group" style="flex: 1;">
+          <label>Horário Início *</label>
+          <input type="time" class="wa-form-control" id="evento-form-inicio" required>
+        </div>
+        <div class="wa-form-group" style="flex: 1;">
+          <label>Horário Fim (Opcional)</label>
+          <input type="time" class="wa-form-control" id="evento-form-fim">
+        </div>
+      </div>
+
+      <div class="wa-form-group">
+        <label>Local / Endereço</label>
+        <input type="text" class="wa-form-control" id="evento-form-local" placeholder="Ex: Parque das Nações, Sala Studio Parceiro">
+      </div>
+
+      <div class="wa-form-group">
+        <label>Observações / Materiais</label>
+        <textarea class="wa-form-control" id="evento-form-obs" rows="2" placeholder="Ex: Levar 5 tapetes extras, chave com o zelador..."></textarea>
+      </div>
+
+      <div style="display: flex; gap: 8px; margin-top: 14px; align-items: center;">
+        <button type="button" id="btn-excluir-evento-modal" onclick="confirmarExclusaoEventoModal()" style="background: #FEE2E2; color: #DC2626; border: 1px solid #FECACA; padding: 9px 14px; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; display: none;">
+          <i class="fa-solid fa-trash"></i> Excluir
+        </button>
+        <div style="flex: 1;"></div>
+        <button type="button" class="wa-btn-secondary" data-close-modal="modal-evento-agenda" style="padding: 9px 16px; font-size: 15px; border-radius: 12px; border: 1px solid var(--shanti-sand-border); background: var(--shanti-sand-light); color: var(--shanti-stone); cursor: pointer; font-weight: 600;">
+          Cancelar
+        </button>
+        <button type="submit" class="wa-btn-primary" id="btn-salvar-evento-submit" style="background: #D97706; padding: 9px 18px; font-size: 15px; border-radius: 12px; border: none; color: #FFFFFF; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+          <i class="fa-solid fa-check"></i> Salvar
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ======================================================================
+     MODAL: AJUDA VISUAL DAS CORES DO CALENDÁRIO
+     ====================================================================== -->
+<div class="wa-modal-overlay" id="modal-ajuda-calendario">
+  <div class="wa-modal-sheet" style="max-width: 440px;">
+    <div class="wa-modal-header">
+      <h3 class="wa-modal-title" style="color: var(--shanti-forest);">
+        <i class="fa-solid fa-palette" style="color: var(--shanti-terracotta);"></i>
+        Cores & Símbolos do Calendário
+      </h3>
+      <button class="wa-modal-close" data-close-modal="modal-ajuda-calendario">&times;</button>
+    </div>
+
+    <div style="padding: 6px 0 14px 0;">
+      <h4 style="font-size: 15px; font-weight: 700; color: var(--shanti-forest); margin: 0 0 10px 0; display: flex; align-items: center; gap: 6px;">
+        <i class="fa-solid fa-circle-dot" style="color: var(--shanti-forest);"></i> 1. Cor de Fundo do Dia (Tipo de Atividade)
+      </h4>
+      <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px;">
+        <div style="display: flex; align-items: center; gap: 10px; padding: 7px 10px; background: #F8FAFC; border-radius: 10px; border: 1px solid #F1F5F9;">
+          <span style="width: 28px; height: 28px; border-radius: 50%; background: #E8F5E9; border: 1.5px solid #86EFAC; display: inline-flex; align-items: center; justify-content: center; font-size: 13.5px; font-weight: 700; color: #166534; flex-shrink: 0;">15</span>
+          <span style="font-size: 14px; color: var(--shanti-charcoal); line-height: 1.35;"><strong>Círculo Verde:</strong> Dia com aula regular na grade do Studio Shanti.</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px; padding: 7px 10px; background: #F8FAFC; border-radius: 10px; border: 1px solid #F1F5F9;">
+          <span style="width: 28px; height: 28px; border-radius: 50%; background: #FEF3C7; border: 1.5px solid #FCD34D; display: inline-flex; align-items: center; justify-content: center; font-size: 13.5px; font-weight: 700; color: #92400E; flex-shrink: 0;">18</span>
+          <span style="font-size: 14px; color: var(--shanti-charcoal); line-height: 1.35;"><strong>Círculo Dourado:</strong> Workshop, vivência ou aula particular externa da Natália.</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px; padding: 7px 10px; background: #F8FAFC; border-radius: 10px; border: 1px solid #F1F5F9;">
+          <span style="width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg, #E8F5E9 50%, #FEF3C7 50%); border: 1.5px solid #F59E0B; display: inline-flex; align-items: center; justify-content: center; font-size: 13.5px; font-weight: 800; color: #1E293B; flex-shrink: 0;">20</span>
+          <span style="font-size: 14px; color: var(--shanti-charcoal); line-height: 1.35;"><strong>Círculo Bicolor:</strong> Dia com turmas no estúdio E compromisso externo agendado.</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px; padding: 7px 10px; background: #F8FAFC; border-radius: 10px; border: 1px solid #F1F5F9;">
+          <span style="width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--shanti-terracotta); background: rgba(177, 106, 76, 0.1); display: inline-flex; align-items: center; justify-content: center; font-size: 13.5px; font-weight: 800; color: var(--shanti-terracotta); flex-shrink: 0;">Hoje</span>
+          <span style="font-size: 14px; color: var(--shanti-charcoal); line-height: 1.35;"><strong>Aro Terracota:</strong> Dia de hoje (move-se sozinho no horário de Brasília).</span>
+        </div>
+      </div>
+
+      <h4 style="font-size: 15px; font-weight: 700; color: var(--shanti-forest); margin: 0 0 10px 0; display: flex; align-items: center; gap: 6px;">
+        <i class="fa-solid fa-minus" style="color: var(--shanti-forest);"></i> 2. Barrinha Inferior (Progresso da Chamada)
+      </h4>
+      <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px;">
+        <div style="display: flex; align-items: center; gap: 10px; padding: 7px 10px; background: #F8FAFC; border-radius: 10px; border: 1px solid #F1F5F9;">
+          <span style="width: 22px; height: 4px; border-radius: 2px; background: #16A34A; display: inline-block; flex-shrink: 0;"></span>
+          <span style="font-size: 14px; color: var(--shanti-charcoal); line-height: 1.35;"><strong>Barrinha Verde:</strong> Check-in concluído para todos os alunos esperados do dia.</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px; padding: 7px 10px; background: #F8FAFC; border-radius: 10px; border: 1px solid #F1F5F9;">
+          <span style="width: 22px; height: 4px; border-radius: 2px; background: #D97706; display: inline-block; flex-shrink: 0;"></span>
+          <span style="font-size: 14px; color: var(--shanti-charcoal); line-height: 1.35;"><strong>Barrinha Âmbar:</strong> Aula em andamento (alguns alunos ainda estão pendentes).</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px; padding: 7px 10px; background: #F8FAFC; border-radius: 10px; border: 1px solid #F1F5F9;">
+          <span style="width: 22px; height: 4px; border-radius: 2px; background: #94A3B8; display: inline-block; flex-shrink: 0;"></span>
+          <span style="font-size: 14px; color: var(--shanti-charcoal); line-height: 1.35;"><strong>Barrinha Cinza:</strong> Aula futura prevista (chamada ainda não foi realizada).</span>
+        </div>
+      </div>
+    </div>
+
+    <button type="button" class="wa-btn-primary" data-close-modal="modal-ajuda-calendario" style="width: 100%; padding: 10px; border-radius: 12px; font-size: 15px; font-weight: 600; background: var(--shanti-forest); border: none; cursor: pointer; color: #FFFFFF;">
+      Entendi! 🙏
+    </button>
+  </div>
+</div>
+
+<!-- ======================================================================
+     MODAL: EDITAR DESPESA DO ESTÚDIO (FASE 3)
+     ====================================================================== -->
+<div class="wa-modal-overlay" id="modal-edit-despesa">
+  <div class="wa-modal-sheet">
+    <div class="wa-modal-header">
+      <h3 class="wa-modal-title"><i class="fa-solid fa-pen-to-square" style="color:var(--shanti-terracotta);"></i> Editar Despesa</h3>
+      <button class="wa-modal-close" data-close-modal="modal-edit-despesa">&times;</button>
+    </div>
+
+    <form id="form-edit-despesa">
+      <input type="hidden" id="edit-desp-id">
+
+      <div class="wa-form-group">
+        <label>Descrição da Despesa *</label>
+        <input type="text" class="wa-form-control" id="edit-desp-desc" required>
+      </div>
+
+      <div class="wa-form-group">
+        <label>Valor (R$) *</label>
+        <input type="number" step="0.01" class="wa-form-control" id="edit-desp-valor" required>
+      </div>
+
+      <div class="wa-form-group">
+        <label>Categoria</label>
+        <select class="wa-form-control" id="edit-desp-cat">
+          <option value="Aluguel">Aluguel do Espaço</option>
+          <option value="Energia/Água">Energia, Água & Internet</option>
+          <option value="Materiais">Materiais, Óleos & Incensos</option>
+          <option value="Marketing">Marketing & Divulgação</option>
+          <option value="Manutenção">Limpeza & Manutenção</option>
+          <option value="Geral">Geral / Outros</option>
+        </select>
+      </div>
+
+      <div style="display: flex; gap: 10px;">
+        <div class="wa-form-group" style="flex: 1;">
+          <label>Data de Emissão</label>
+          <input type="date" class="wa-form-control" id="edit-desp-data">
+        </div>
+        <div class="wa-form-group" style="flex: 1;">
+          <label>Data de Vencimento *</label>
+          <input type="date" class="wa-form-control" id="edit-desp-vencimento" required>
+        </div>
+      </div>
+
+      <div class="wa-form-group">
+        <label>Status do Pagamento</label>
+        <select class="wa-form-control" id="edit-desp-status">
+          <option value="pago">Já Paga (Quitada)</option>
+          <option value="pendente">Pendente (A Pagar)</option>
+        </select>
+      </div>
+
+      <button type="submit" class="wa-btn-primary" style="margin-top: 10px; background: var(--shanti-primary);">
+        <i class="fa-solid fa-floppy-disk"></i> Salvar Alterações
+      </button>
+    </form>
+  </div>
+</div>
+
+<!-- ======================================================================
+     MODAL: NOVA MATRÍCULA DE ALUNO
+     ====================================================================== -->
+<div class="wa-modal-overlay" id="modal-add-student">
+  <div class="wa-modal-sheet">
+    <div class="wa-modal-header">
+      <h3 class="wa-modal-title"><i class="fa-solid fa-user-plus" style="color:var(--shanti-terracotta);"></i> Nova Matrícula</h3>
+      <button class="wa-modal-close" data-close-modal="modal-add-student">&times;</button>
+    </div>
+
+    <form id="form-add-student">
+      <div class="wa-form-group">
+        <label>Nome Completo do Aluno *</label>
+        <input type="text" class="wa-form-control" id="cad-nome" required placeholder="Ex: Juliana Mendes">
+      </div>
+
+      <div class="wa-form-group">
+        <label>WhatsApp (com DDD) *</label>
+        <input type="tel" class="wa-form-control" id="cad-telefone" required placeholder="Ex: 11987654321">
+      </div>
+
+      <div class="wa-form-group">
+        <label>CPF do Aluno (para o Contrato Digital)</label>
+        <input type="text" class="wa-form-control" id="cad-cpf" placeholder="000.000.000-00">
+      </div>
+
+      <div class="wa-form-group">
+        <label>E-mail (opcional)</label>
+        <input type="email" class="wa-form-control" id="cad-email" placeholder="juliana@email.com">
+      </div>
+
+      <div class="wa-form-group">
+        <label>Data de Nascimento (para parabenizar no aniversário)</label>
+        <input type="date" class="wa-form-control" id="cad-nascimento">
+      </div>
+
+      <div class="wa-form-group">
+        <label>Plano Contratado *</label>
+        <select class="wa-form-control" id="cad-plano">
+          <option value="1x na semana">1x na semana (Ref. R$ 120,00)</option>
+          <option value="2x na semana" selected>2x na semana (Ref. R$ 150,00)</option>
+        </select>
+      </div>
+
+      <!-- Turma(s) e Horário(s) - Vem ANTES do Dia Pretendido -->
+      <div class="wa-form-group">
+        <label style="font-weight: 600; color: var(--shanti-charcoal);">Turma(s) e Horário(s) *</label>
+        <div id="cad-turmas-container" style="display: flex; flex-direction: column; gap: 8px; background: var(--shanti-sand-light); padding: 10px 14px; border-radius: 12px; border: 1px solid var(--shanti-sand-border);">
+          <!-- Preenchido dinamicamente via JavaScript -->
+        </div>
+      </div>
+
+      <!-- Campo Condicional: Dia da Semana (Apenas para 1x na semana) -->
+      <div class="wa-form-group" id="group-cad-dia-semana-1x" style="display: none; background: var(--shanti-sand-light); border: 1px solid var(--shanti-sand-border); border-radius: 12px; padding: 12px 14px; margin-top: 4px; margin-bottom: 14px;">
+        <label style="font-weight: 600; color: var(--shanti-forest); font-size: 15px; display: flex; align-items: center; gap: 6px; margin-bottom: 6px;">
+          <i class="fa-solid fa-calendar-check" style="color: var(--shanti-forest);"></i>
+          Dia da Semana Escolhido (Plano 1x na semana) *
+        </label>
+        <select class="wa-form-control" id="cad-dia-semana-1x" style="border-color: var(--shanti-sand-border); background: #fff; font-weight: 600;">
+          <option value="">Selecione o dia da semana...</option>
+          <option value="Segunda-feira">Segunda-feira</option>
+          <option value="Terça-feira">Terça-feira</option>
+          <option value="Quarta-feira">Quarta-feira</option>
+          <option value="Quinta-feira">Quinta-feira</option>
+          <option value="Sexta-feira">Sexta-feira</option>
+          <option value="Sábado">Sábado</option>
+        </select>
+        <small style="color: var(--shanti-stone); font-size: 13.5px; display: block; margin-top: 5px; line-height: 1.3;">
+          <i class="fa-solid fa-circle-info" style="color:var(--shanti-sage);"></i> Informe qual dia da semana o aluno irá comparecer para controle de chamada.
+        </small>
+      </div>
+
+      <div style="display: flex; gap: 12px;">
+        <div class="wa-form-group" style="flex: 1;">
+          <label>Dia Vencimento</label>
+          <input type="number" class="wa-form-control" id="cad-vencimento" min="1" max="31" value="10" required>
+        </div>
+        <div class="wa-form-group" style="flex: 1;">
+          <label>Valor Mensal (R$)</label>
+          <input type="number" step="0.01" class="wa-form-control" id="cad-valor" value="150.00" required>
+        </div>
+      </div>
+      
+      <div class="wa-form-group">
+        <label>Mês de Matrícula (Mês/Ano) *</label>
+        <input type="month" class="wa-form-control" id="cad-mes-matricula" required>
+      </div>
+
+      <div class="wa-form-group">
+        <label>Forma de Pagamento</label>
+        <select class="wa-form-control" id="cad-forma-pagamento">
+          <option value="PIX">PIX</option>
+          <option value="Cartão de Crédito">Cartão de Crédito</option>
+          <option value="Dinheiro">Dinheiro</option>
+          <option value="Boleto">Boleto</option>
+        </select>
+      </div>
+
+      <div class="wa-form-group" style="background: var(--shanti-sand-light); border: 1px solid var(--shanti-sand-border); border-radius: 12px; padding: 12px 14px;">
+        <label style="font-weight: 600; color: var(--shanti-charcoal); font-size: 15px; display: block; margin-bottom: 8px;">
+          <i class="fa-solid fa-camera" style="color: var(--shanti-forest); margin-right: 5px;"></i>
+          Autoriza o uso da imagem para divulgação do Shanti? *
+        </label>
+        <div style="display: flex; gap: 24px; align-items: center;">
+          <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px; font-weight: 600; color: #3F4E3A;">
+            <input type="radio" name="cad-autoriza-imagem" value="1" checked style="accent-color: var(--shanti-forest); cursor: pointer;">
+            SIM
+          </label>
+          <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px; font-weight: 600; color: var(--shanti-terracotta);">
+            <input type="radio" name="cad-autoriza-imagem" value="0" style="accent-color: var(--shanti-terracotta); cursor: pointer;">
+            NÃO
+          </label>
+        </div>
+        <small style="color: var(--shanti-stone); font-size: 13.5px; display: block; margin-top: 6px;">
+          Poderá ser alterado a qualquer momento na ficha do aluno.
+        </small>
+      </div>
+
+      <div class="wa-form-group">
+        <label>Observações / Restrições Físicas</label>
+        <input type="text" class="wa-form-control" id="cad-obs" placeholder="Ex: Dor lombar, iniciante...">
+      </div>
+
+      <button type="submit" class="wa-btn-primary" style="margin-top: 10px; background: var(--shanti-terracotta); color: #ffffff; border: none; border-radius: 20px; font-weight: 600; box-shadow: var(--shadow-sm);">
+        <i class="fa-solid fa-check"></i> Concluir Matrícula
+      </button>
+    </form>
+  </div>
+</div>
+
+<!-- ======================================================================
+     MODAL: DETALHES DO ALUNO E HISTÓRICO
+     ====================================================================== -->
+<div class="wa-modal-overlay" id="modal-student-details">
+  <div class="wa-modal-sheet">
+    <div class="wa-modal-header">
+      <h3 class="wa-modal-title" id="det-nome">Nome do Aluno</h3>
+      <button class="wa-modal-close" data-close-modal="modal-student-details">&times;</button>
+    </div>
+
+    <div id="det-content">
+      <!-- Banner de Aprovação Pendente (Entrou, Pagou) -->
+      <div id="det-box-aprovacao-pendente" style="display: none; background: #fffbeb; border: 1.5px solid #f59e0b; border-radius: 12px; padding: 12px 14px; margin-bottom: 14px;">
+        <div style="font-weight: 700; color: #92400e; font-size: 15px; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+          <i class="fa-solid fa-clock" style="color: #d97706;"></i> Matrícula Pendente de Aprovação
+        </div>
+        <p style="font-size: 14px; color: #b45309; margin: 0 0 8px 0; line-height: 1.4;">
+          O aluno realizou a matrícula online e aguarda confirmação do PIX da 1ª mensalidade. Ao confirmar, o aluno é ativado e a mensalidade é lançada automaticamente como Paga ("Entrou, Pagou").
+        </p>
+        <button type="button" id="det-btn-aprovar-pagamento" class="wa-btn-primary" style="width: 100%; background: #16a34a; color: #fff; padding: 8px 12px; font-size: 14px; font-weight: 700; border: none;">
+          <i class="fa-solid fa-circle-check"></i> Confirmar Pagamento da Matrícula (Entrou, Pagou)
+        </button>
+      </div>
+
+      <div style="background-color: var(--shanti-sand); border: 1px solid var(--wa-border); border-radius: 12px; padding: 14px; margin-bottom: 14px;">
+        <div style="font-size: 15px; line-height: 1.7;">
+          <div><b>WhatsApp:</b> <span id="det-telefone"></span></div>
+          <div><b>CPF:</b> <span id="det-cpf">Não informado</span></div>
+          <div><b>Plano:</b> <span id="det-plano"></span></div>
+          <div id="det-box-dia-1x" style="display:none; margin: 4px 0; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 6px 10px; font-size: 14px; color: #166534;">
+            <b><i class="fa-regular fa-calendar-check"></i> Dia Escolhido (1x):</b> <span id="det-dia-semana-1x" style="font-weight: 700;"></span>
+            <button type="button" id="det-btn-alterar-dia-1x" title="Alterar dia da semana" style="margin-left: 8px; font-size: 13.5px; padding: 2px 8px; border-radius: 4px; border: 1px solid #86efac; background: #ffffff; cursor: pointer; color: #166534; font-weight: 600;">
+              <i class="fa-solid fa-pen"></i> Alterar Dia
+            </button>
+          </div>
+          <div><b>Turma(s):</b> <span id="det-turmas" style="color: var(--shanti-primary); font-weight: 600;">Nenhuma</span></div>
+          <div><b>Mensalidade:</b> R$ <span id="det-valor"></span> (Vencimento todo dia <span id="det-dia-venc"></span>)</div>
+          <div><b>Aniversário:</b> <span id="det-nascimento">Não informado</span></div>
+          <div style="display: flex; align-items: center; gap: 8px; margin: 3px 0;">
+            <b>Uso de Imagem:</b> 
+            <span id="det-autoriza-imagem-badge" class="wa-student-badge"></span>
+            <button type="button" id="det-btn-toggle-imagem" title="Alterar autorização de uso de imagem" style="font-size: 13.5px; padding: 2px 8px; border-radius: 4px; border: 1px solid var(--wa-border); background: #ffffff; cursor: pointer; color: var(--shanti-primary); font-weight: 600;">
+              <i class="fa-solid fa-repeat"></i> Alternar
+            </button>
+          </div>
+          <div><b>Situação Atual:</b> <span id="det-status-badge"></span></div>
+          <div id="det-motivo-box" style="display:none; color: var(--wa-danger); margin-top: 4px;">
+            <b>Motivo Saída:</b> <span id="det-motivo-saida"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Gestão do Contrato Digital do Aluno -->
+      <div style="background: #ffffff; border: 1.5px solid var(--wa-border); border-radius: 12px; padding: 14px; margin-bottom: 14px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <h4 style="font-size: 15px; margin: 0; color: var(--shanti-forest); font-weight: 700; display: flex; align-items: center; gap: 6px;">
+            <i class="fa-solid fa-file-signature" style="color: var(--shanti-terracotta);"></i> Contrato Digital (1 Ano)
+          </h4>
+          <span id="det-contrato-status-badge" class="wa-student-badge">Pendente</span>
+        </div>
+        
+        <div style="font-size: 14px; color: var(--wa-text-secondary); margin-bottom: 10px; line-height: 1.5;">
+          <div><b>Vigência:</b> <span id="det-contrato-vigencia" style="font-weight: 600; color: var(--wa-text-primary);">Pendente de assinatura</span></div>
+          <div><b>Documento Assinado:</b> <span id="det-contrato-arquivo-status">Nenhum arquivo enviado</span></div>
+        </div>
+
+        <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+          <a id="det-btn-contrato-pdf" href="#" target="_blank" class="wa-btn-primary" style="flex: 1; min-width: 105px; padding: 6px 8px; font-size: 13.5px; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 5px; background: var(--shanti-sand-light); color: var(--shanti-forest); border: 1px solid var(--shanti-sand-border); border-radius: 8px;">
+            <i class="fa-solid fa-file-pdf"></i> Minuta PDF
+          </a>
+          <a id="det-btn-contrato-wa" href="#" target="_blank" class="wa-btn-primary" style="flex: 1; min-width: 105px; padding: 6px 8px; font-size: 13.5px; background: #25D366; color: #fff; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 5px; border-color: #22c55e; border-radius: 8px;">
+            <i class="fa-brands fa-whatsapp"></i> WhatsApp
+          </a>
+          <button type="button" id="det-btn-contrato-upload" class="wa-btn-primary" style="flex: 1; min-width: 105px; padding: 6px 8px; font-size: 13.5px; background: var(--shanti-terracotta); color: #ffffff; border: none; border-radius: 8px;">
+            <i class="fa-solid fa-upload"></i> Upload
+          </button>
+          <a id="det-btn-contrato-ver" href="#" target="_blank" class="wa-btn-primary" style="flex: 1; min-width: 105px; padding: 6px 8px; font-size: 13.5px; background: #3b82f6; color: #fff; text-decoration: none; display: none; align-items: center; justify-content: center; gap: 5px; border-color: #2563eb; border-radius: 8px;">
+            <i class="fa-solid fa-eye"></i> Ver
+          </a>
+        </div>
+      </div>
+
+      <!-- Ações Rápidas do Aluno -->
+      <div style="display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap;">
+        <a id="det-btn-whatsapp" href="#" target="_blank" class="wa-action-btn-whatsapp" style="flex: 1; min-width: 140px;">
+          <i class="fa-brands fa-whatsapp"></i> Conversar / Cobrar
+        </a>
+        <button id="det-btn-dar-baixa" class="wa-btn-primary" style="flex: 1; min-width: 140px; padding: 8px 12px;">
+          <i class="fa-solid fa-receipt"></i> Baixar Pagamento
+        </button>
+        <button id="det-btn-presenca" class="wa-btn-primary" style="flex: 1; min-width: 140px; padding: 8px 12px; background: #e0f2fe; color: #0284c7; border: 1px solid #bae6fd; box-shadow:none;">
+          <i class="fa-solid fa-clipboard-check"></i> Marcar Presença
+        </button>
+      </div>
+
+      <!-- Histórico de Pagamentos -->
+      <h4 style="font-size: 14px; margin-bottom: 8px; color: var(--shanti-primary); font-weight: 700;">Histórico de Mensalidades:</h4>
+      <div id="det-historico-pagamentos" style="max-height: 130px; overflow-y: auto; border: 1px solid var(--wa-border); border-radius: 10px; padding: 10px; background: #ffffff; margin-bottom: 14px;">
+        <!-- Lista de pagamentos do aluno -->
+      </div>
+
+      <!-- Histórico de Presenças -->
+      <h4 style="font-size: 14px; margin-bottom: 8px; color: var(--shanti-primary); font-weight: 700;">Últimas Presenças nas Aulas:</h4>
+      <div id="det-historico-presencas" style="max-height: 120px; overflow-y: auto; border: 1px solid var(--wa-border); border-radius: 10px; padding: 10px; background: #ffffff;">
+        <!-- Lista de presenças do aluno -->
+      </div>
+
+      <!-- Botão de Inativar / Saída de Aluno / Exclusão -->
+      <div style="margin-top: 16px; border-top: 1px solid var(--wa-border); padding-top: 12px; display: flex; flex-direction: column; gap: 8px;">
+        <button id="det-btn-inativar" class="wa-btn-primary" style="background: #fef2f2; color: var(--wa-danger); border: 1px solid #fee2e2; box-shadow: none;">
+          <i class="fa-solid fa-user-xmark"></i> Registrar Saída / Desistência
+        </button>
+        <button id="det-btn-reativar" class="wa-btn-primary" style="background: #ecfdf5; color: var(--wa-success); border: 1px solid #a7f3d0; box-shadow: none; display:none;">
+          <i class="fa-solid fa-user-check"></i> Reativar Matrícula
+        </button>
+        <button id="det-btn-excluir" class="wa-btn-primary" style="background: #fee2e2; color: #991b1b; border: 1px solid #f87171; box-shadow: none; display:none;">
+          <i class="fa-solid fa-trash-can"></i> Excluir Aluno Inativo Definitivamente
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ======================================================================
+     MODAL: REGISTRAR PAGAMENTO (BAIXA)
+     ====================================================================== -->
+<div class="wa-modal-overlay" id="modal-pay">
+  <div class="wa-modal-sheet">
+    <div class="wa-modal-header">
+      <h3 class="wa-modal-title"><i class="fa-solid fa-receipt" style="color:var(--shanti-gold);"></i> Baixar Mensalidade</h3>
+      <button class="wa-modal-close" data-close-modal="modal-pay">&times;</button>
+    </div>
+
+    <form id="form-pay">
+      <input type="hidden" id="pay-aluno-id">
+      <div class="wa-form-group">
+        <label>Aluno(a)</label>
+        <input type="text" class="wa-form-control" id="pay-aluno-nome" readonly style="background-color: var(--shanti-sand);">
+      </div>
+
+      <div style="display: flex; gap: 10px;">
+        <div class="wa-form-group" style="flex: 1;">
+          <label>Mês de Referência</label>
+          <input type="month" class="wa-form-control" id="pay-mes-referencia" required>
+        </div>
+        <div class="wa-form-group" style="flex: 1;">
+          <label>Valor Pago (R$)</label>
+          <input type="number" step="0.01" class="wa-form-control" id="pay-valor" required>
+        </div>
+      </div>
+
+      <div class="wa-form-group">
+        <label>Forma de Pagamento</label>
+        <select class="wa-form-control" id="pay-forma">
+          <option value="PIX">PIX</option>
+          <option value="Cartão">Cartão</option>
+          <option value="Dinheiro">Dinheiro</option>
+          <option value="Boleto">Boleto</option>
+        </select>
+      </div>
+
+      <button type="submit" class="wa-btn-primary" style="margin-top: 10px; background: linear-gradient(135deg, #10b981, #059669);">
+        <i class="fa-solid fa-check"></i> Confirmar Pagamento
+      </button>
+    </form>
+  </div>
+</div>
+
+<!-- ======================================================================
+     MODAL: UPLOAD DO CONTRATO ASSINADO (AMBAS AS ASSINATURAS)
+     ====================================================================== -->
+<div class="wa-modal-overlay" id="modal-upload-contrato">
+  <div class="wa-modal-sheet">
+    <div class="wa-modal-header">
+      <h3 class="wa-modal-title"><i class="fa-solid fa-file-arrow-up" style="color:var(--shanti-forest);"></i> Upload Contrato Assinado</h3>
+      <button class="wa-modal-close" data-close-modal="modal-upload-contrato">&times;</button>
+    </div>
+
+    <form id="form-upload-contrato">
+      <input type="hidden" id="upload-contrato-aluno-id">
+
+      <div style="background: var(--shanti-sand-light); border: 1px solid var(--shanti-sand-border); border-radius: 12px; padding: 12px 14px; margin-bottom: 14px;">
+        <div style="font-size: 14px; font-weight: 700; color: var(--shanti-charcoal); margin-bottom: 4px;" id="upload-contrato-aluno-nome">
+          Nome do Aluno
+        </div>
+        <div style="font-size: 14px; color: var(--shanti-stone);" id="upload-contrato-aluno-info">
+          Plano / Turma
+        </div>
+      </div>
+
+      <div style="background: var(--shanti-sage-light); border: 1px solid var(--shanti-sage-border); border-radius: 12px; padding: 12px 14px; margin-bottom: 14px; font-size: 14px; color: #3F4E3A; line-height: 1.5;">
+        <i class="fa-solid fa-circle-check" style="color: #3F4E3A; margin-right: 4px;"></i>
+        <b>Regra de Assinatura Oficial:</b> Este documento deve conter <u>ambas as assinaturas</u> (Studio Shanti / Natália de Carvalho Garufe e Aluno). Ao enviar o arquivo, o contrato é automaticamente validado como <b>Em Dia</b> com vigência de <b>1 ano (365 dias)</b>.
+      </div>
+
+      <div class="wa-form-group">
+        <label>Arquivo Digitalizado / Foto do Contrato (PDF, JPG, PNG) *</label>
+        <input type="file" class="wa-form-control" id="upload-contrato-arquivo" accept=".pdf,.jpg,.jpeg,.png" required style="padding: 8px;">
+        <small style="color: var(--shanti-stone); font-size: 13.5px; display: block; margin-top: 4px;">
+          Formatos suportados: PDF, JPG, JPEG, PNG. Limite de 10 MB.
+        </small>
+      </div>
+
+      <div style="display: flex; gap: 8px; margin-top: 16px;">
+        <button type="button" class="wa-btn-primary" data-close-modal="modal-upload-contrato" style="flex: 1; background: var(--shanti-sand-light); color: var(--shanti-charcoal); border: 1px solid var(--shanti-sand-border); border-radius: 20px; font-weight: 500; box-shadow: none;">
+          Cancelar
+        </button>
+        <button type="submit" class="wa-btn-primary" id="btn-submit-upload-contrato" style="flex: 2; background: var(--shanti-terracotta); color: #ffffff; border: none; border-radius: 20px; font-weight: 600; box-shadow: var(--shadow-sm);">
+          <i class="fa-solid fa-cloud-arrow-up"></i> Salvar Contrato
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+
+<!-- ======================================================================
+     MODAL: ENVIAR CONTRATO PARA ASSINATURA DIGITAL (AUTENTIQUE)
+     ====================================================================== -->
+<div class="wa-modal-overlay" id="modal-enviar-autentique">
+  <div class="wa-modal-sheet">
+    <div class="wa-modal-header">
+      <h3 class="wa-modal-title"><i class="fa-solid fa-paper-plane" style="color:var(--shanti-forest);"></i> Gerar Contrato no Autentique</h3>
+      <button class="wa-modal-close" data-close-modal="modal-enviar-autentique">&times;</button>
+    </div>
+
+    <form id="form-enviar-autentique">
+      <input type="hidden" id="autentique-envio-aluno-id">
+
+      <div style="background: var(--shanti-sand-light); border: 1px solid var(--shanti-sand-border); border-radius: 12px; padding: 12px 14px; margin-bottom: 14px;">
+        <div style="font-size: 14px; font-weight: 700; color: var(--shanti-charcoal); margin-bottom: 4px;" id="autentique-envio-aluno-nome">
+          Nome do Aluno
+        </div>
+        <div style="font-size: 14px; color: var(--shanti-stone);" id="autentique-envio-aluno-info">
+          Plano / CPF
+        </div>
+      </div>
+
+      <div style="background: var(--shanti-sage-light); border: 1px solid var(--shanti-sage-border); border-radius: 12px; padding: 12px 14px; margin-bottom: 14px; font-size: 14px; color: #3F4E3A; line-height: 1.5;">
+        <i class="fa-solid fa-wand-magic-sparkles" style="color: var(--shanti-forest); margin-right: 4px;"></i>
+        <b>Como Funciona a Assinatura:</b>
+        <ul style="margin: 6px 0 0 16px; padding: 0;">
+          <li>O contrato é gerado com as <b>cláusulas 1 a 13 oficiais congeladas</b>.</li>
+          <li>O Autentique enviará o link para assinatura via <b>WhatsApp</b> para Natália de Carvalho Garufe e para o aluno.</li>
+          <li>Após ambas as assinaturas pelo celular, o estúdio é notificado e o contrato é arquivado como <b>Em Dia</b> com 1 ano de vigência.</li>
+        </ul>
+      </div>
+
+      <!-- Aviso se token não estiver configurado -->
+      <div id="aviso-token-autentique-modal" style="display:none; background: #fffbeb; border: 1px solid #fde68a; border-radius: 10px; padding: 10px 12px; margin-bottom: 14px; font-size: 14px; color: #92400e;">
+        <i class="fa-solid fa-triangle-exclamation" style="color: #d97706;"></i>
+        <b>Token da API não configurado:</b> Para disparar contratos, insira o seu token gratuito do Autentique em <a href="#" id="link-ir-ajustes-autentique" style="color: #b45309; font-weight:700; text-decoration: underline;">Ajustes</a>.
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; font-size: 14px;">
+        <div style="display: flex; justify-content: space-between; padding: 8px 12px; background: #FFFFFF; border-radius: 8px; border: 1px solid var(--shanti-sand-border);">
+          <span><b>Signatária 1 (Estúdio):</b></span>
+          <span style="color: var(--shanti-charcoal);">Natália de Carvalho Garufe (Telefone)</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; padding: 8px 12px; background: #FFFFFF; border-radius: 8px; border: 1px solid var(--shanti-sand-border);">
+          <span><b>Signatário 2 (Aluno):</b></span>
+          <span id="autentique-envio-aluno-wa" style="color: var(--shanti-charcoal);">-</span>
+        </div>
+      </div>
+
+      <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: #FDF3E7; border-radius: 12px; margin-bottom: 16px; border: 1px solid #F6D6B2;">
+        <div>
+          <span style="font-size: 14px; font-weight: 600; color: #B45309; display: block;">Modo Sandbox (Testes)</span>
+          <small style="font-size: 13.5px; color: var(--shanti-charcoal);">Recomendado para testar o envio sem gastar créditos do mês.</small>
+        </div>
+        <label class="wa-switch">
+          <input type="checkbox" id="autentique-envio-sandbox" checked>
+          <span class="wa-switch-slider"></span>
+        </label>
+      </div>
+
+      <div style="display: flex; gap: 8px;">
+        <button type="button" class="wa-btn-primary" data-close-modal="modal-enviar-autentique" style="flex: 1; background: var(--shanti-sand-light); color: var(--shanti-charcoal); border: 1px solid var(--shanti-sand-border); border-radius: 20px; font-weight: 500; box-shadow: none;">
+          Cancelar
+        </button>
+        <button type="submit" class="wa-btn-primary" id="btn-submit-enviar-autentique" style="flex: 2; background: var(--shanti-forest); color: #ffffff; border: none; border-radius: 20px; font-weight: 600; box-shadow: var(--shadow-sm);">
+          <i class="fa-solid fa-paper-plane"></i> Enviar p/ Autentique
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ======================================================================
+     MODAL: ACOMPANHAMENTO E LINKS DE ASSINATURA AUTENTIQUE (FLUXO 2 ETAPAS)
+     ====================================================================== -->
+<div class="wa-modal-overlay" id="modal-links-autentique">
+  <div class="wa-modal-sheet" style="max-width: 500px;">
+    <div class="wa-modal-header">
+      <h3 class="wa-modal-title"><i class="fa-solid fa-file-signature" style="color:var(--shanti-forest);"></i> Assinatura Digital do Contrato</h3>
+      <button class="wa-modal-close" data-close-modal="modal-links-autentique">&times;</button>
+    </div>
+
+    <input type="hidden" id="links-autentique-aluno-id">
+
+    <div style="background: var(--shanti-sand-light); border: 1px solid var(--shanti-sand-border); border-radius: 12px; padding: 12px 14px; margin-bottom: 12px;">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div style="font-size: 14px; font-weight: 700; color: var(--shanti-charcoal);" id="links-autentique-aluno-nome">
+          Nome do Aluno
+        </div>
+        <span id="links-autentique-etapa-badge" class="wa-badge" style="background: #fffbeb; color: #b45309; border: 1px solid #fde68a; font-size: 13.5px; padding: 3px 8px; border-radius: 12px; font-weight: 600;">
+          1ª Etapa: Natália
+        </span>
+      </div>
+      <div style="font-size: 13.5px; color: var(--shanti-stone); margin-top: 3px;" id="links-autentique-doc-id">
+        Doc ID: -
+      </div>
+    </div>
+
+    <!-- Status Atual do Autentique -->
+    <div id="links-autentique-status-box" style="background: #f8fcf9; border: 1px solid #dcfce7; border-radius: 10px; padding: 10px 14px; margin-bottom: 12px; font-size: 14px; color: var(--shanti-charcoal);">
+      <i class="fa-solid fa-circle-info" style="color:var(--shanti-sage);"></i> Carregando status do documento...
+    </div>
+
+    <!-- ETAPA 1: ASSINATURA DA PROFESSORA NATÁLIA (ESTÚDIO) -->
+    <div id="box-etapa-natalia" style="background: #ffffff; border: 1px solid var(--shanti-sand-border); border-radius: 12px; padding: 14px; margin-bottom: 12px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+        <span style="font-size: 14px; font-weight: 700; color: var(--shanti-forest);">
+          <span style="background: var(--shanti-forest); color: #fff; width: 18px; height: 18px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12.5px; margin-right: 4px;">1</span>
+          Assinatura da Professora Natália
+        </span>
+        <span id="status-natalia-badge" style="font-size: 13.5px; font-weight: 600; padding: 2px 8px; border-radius: 10px; background: #fffbeb; color: #b45309;">
+          ⏳ Pendente
+        </span>
+      </div>
+      <p style="font-size: 13.5px; color: var(--shanti-stone); margin: 0 0 10px 0; line-height: 1.4;">
+        A professora Natália assina diretamente aqui no aplicativo como Contratada.
+      </p>
+      
+      <!-- Bloco quando pendente -->
+      <div id="area-acao-natalia-pendente">
+        <a id="btn-abrir-link-natalia" href="#" target="_blank" class="wa-btn-primary" style="width: 100%; padding: 10px 14px; font-size: 14px; background: var(--shanti-forest); color: #fff; text-decoration: none; border: none; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-weight: 600; box-shadow: var(--shadow-sm);" title="Assinar Agora">
+          <i class="fa-solid fa-pen-nib"></i> Assinar Contrato Agora
+        </a>
+      </div>
+
+      <!-- Bloco quando já assinado -->
+      <div id="area-acao-natalia-assinado" style="display: none; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; padding: 9px 12px; font-size: 14px; color: #15803d; font-weight: 600; align-items: center; gap: 8px;">
+        <i class="fa-solid fa-circle-check" style="font-size: 16px;"></i>
+        <span>Você já assinou este contrato como Contratada.</span>
+      </div>
+    </div>
+
+    <!-- ETAPA 2: ASSINATURA E ENVIO AO ALUNO -->
+    <div id="box-etapa-aluno" style="background: #ffffff; border: 1px solid var(--shanti-sand-border); border-radius: 12px; padding: 14px; margin-bottom: 14px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+        <span style="font-size: 14px; font-weight: 700; color: var(--shanti-charcoal);">
+          <span style="background: var(--shanti-sage); color: #fff; width: 18px; height: 18px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12.5px; margin-right: 4px;">2</span>
+          Assinatura e Envio ao Aluno
+        </span>
+        <span id="status-aluno-badge" style="font-size: 13.5px; font-weight: 600; padding: 2px 8px; border-radius: 10px; background: #f3f4f6; color: #6b7280;">
+          Aguardando Natália
+        </span>
+      </div>
+
+      <!-- Aviso se Natália ainda não assinou -->
+      <div id="aviso-aluno-bloqueado" style="background: #fdf8f6; border: 1px dashed #fcd34d; border-radius: 8px; padding: 10px 12px; font-size: 13.5px; color: #92400e; margin-bottom: 0; line-height: 1.4;">
+        <i class="fa-solid fa-lock" style="margin-right: 4px;"></i>
+        O envio ao aluno será liberado assim que a Natália concluir sua assinatura acima.
+      </div>
+
+      <!-- Área liberada para envio ao aluno (Quando Natália já assinou, mas aluno ainda não) -->
+      <div id="area-envio-aluno" style="display: none;">
+        <p style="font-size: 13.5px; color: var(--shanti-stone); margin: 0 0 8px 0; line-height: 1.4;">
+          A Natália já assinou! Envie o link seguro abaixo para o aluno assinar pelo WhatsApp:
+        </p>
+        <div style="display: flex; gap: 6px; margin-bottom: 8px;">
+          <input type="text" readonly id="links-autentique-aluno-url" class="wa-form-control" style="font-size: 13.5px; font-family: monospace; background: #fff;" placeholder="Link do Aluno">
+          <button type="button" class="wa-btn-primary" id="btn-copiar-link-aluno" style="padding: 6px 12px; background: #ffffff; color: var(--shanti-forest); border: 1px solid var(--shanti-sand-border); border-radius: 10px;" title="Copiar Link do Aluno">
+            <i class="fa-solid fa-copy"></i>
+          </button>
+        </div>
+        <a id="btn-wa-link-aluno" href="#" target="_blank" class="wa-btn-primary" style="width: 100%; padding: 10px 12px; background: var(--shanti-whatsapp-green); color: #fff; text-decoration: none; border: none; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-weight: 600; font-size: 14px; box-shadow: 0 2px 8px rgba(37, 211, 102, 0.25);" title="Enviar Link de Assinatura via WhatsApp ao Aluno">
+          <i class="fa-brands fa-whatsapp" style="font-size: 16px;"></i> Enviar Link de Assinatura ao Aluno (WhatsApp)
+        </a>
+      </div>
+
+      <!-- Área liberada após ambas as partes assinarem (Contrato 100% Concluído) -->
+      <div id="area-contrato-finalizado" style="display: none;">
+        <p style="font-size: 13.5px; color: #15803d; font-weight: 600; margin: 0 0 8px 0; line-height: 1.4;">
+          <i class="fa-solid fa-circle-check"></i> Contrato 100% assinado por ambas as partes! Envie a via oficial assinada para o WhatsApp do aluno guardar:
+        </p>
+        <div style="display: flex; gap: 6px; margin-bottom: 8px;">
+          <input type="text" readonly id="links-autentique-pdf-assinado-url" class="wa-form-control" style="font-size: 13.5px; font-family: monospace; background: #fff;" placeholder="Link do Contrato Assinado (PDF)">
+          <button type="button" class="wa-btn-primary" id="btn-copiar-link-pdf-assinado" style="padding: 6px 12px; background: #ffffff; color: var(--shanti-forest); border: 1px solid var(--shanti-sand-border); border-radius: 10px;" title="Copiar Link do PDF Assinado">
+            <i class="fa-solid fa-copy"></i>
+          </button>
+        </div>
+        <a id="btn-wa-pdf-assinado" href="#" target="_blank" class="wa-btn-primary" style="width: 100%; padding: 10px 12px; background: var(--shanti-whatsapp-green); color: #fff; text-decoration: none; border: none; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-weight: 600; font-size: 14px; margin-bottom: 8px; box-shadow: 0 2px 8px rgba(37, 211, 102, 0.25);" title="Enviar Contrato Assinado ao Aluno">
+          <i class="fa-brands fa-whatsapp" style="font-size: 16px;"></i> Enviar Cópia Assinada ao Aluno (WhatsApp)
+        </a>
+        <a id="btn-abrir-pdf-assinado" href="#" target="_blank" class="wa-btn-primary" style="width: 100%; padding: 9px 12px; background: #ffffff; color: var(--shanti-forest); text-decoration: none; border: 1px solid var(--shanti-sand-border); border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-weight: 600; font-size: 14px;" title="Visualizar / Baixar Contrato Assinado">
+          <i class="fa-solid fa-file-pdf" style="color: var(--shanti-terracotta);"></i> Visualizar / Baixar PDF Assinado
+        </a>
+      </div>
+    </div>
+
+    <!-- Ações de Sincronização e Reenvio -->
+    <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+      <button type="button" class="wa-btn-primary" id="btn-sincronizar-autentique" style="flex: 1; padding: 10px; font-size: 14px; background: var(--shanti-forest); color: #fff; border: none; border-radius: 20px; font-weight: 600;">
+        <i class="fa-solid fa-rotate"></i> Sincronizar Status
+      </button>
+      <button type="button" class="wa-btn-primary" id="btn-reenviar-autentique" style="flex: 1; padding: 10px; font-size: 14px; background: #ffffff; color: var(--shanti-forest); border: 1px solid var(--shanti-sand-border); border-radius: 20px; font-weight: 600;" title="Gerar novo disparo deste contrato">
+        <i class="fa-solid fa-arrows-rotate"></i> Gerar Novo Envio
+      </button>
+    </div>
+    <button type="button" class="wa-btn-primary" data-close-modal="modal-links-autentique" style="width: 100%; padding: 8px; font-size: 14px; background: var(--shanti-sand-light); color: var(--shanti-charcoal); border: 1px solid var(--shanti-sand-border); border-radius: 20px; font-weight: 500; box-shadow: none;">
+      Fechar
+    </button>
+  </div>
+</div>
+
+<!-- ======================================================================
+     MODAL: PAUSAR/RETOMAR ALERTA DE AUSÊNCIA (VIAGEM / CLÁUSULA 6)
+     ====================================================================== -->
+<div class="wa-modal-overlay" id="modal-pausa-alerta">
+  <div class="wa-modal-sheet" style="max-width: 440px;">
+    <div class="wa-modal-header">
+      <h3 class="wa-modal-title" style="font-size: 16px; font-family: var(--font-brand);">
+        <i class="fa-solid fa-umbrella-beach" style="color: var(--shanti-terracotta);"></i> Pausa de Alerta de Ausência
+      </h3>
+      <button class="wa-modal-close" data-close-modal="modal-pausa-alerta">&times;</button>
+    </div>
+    <div style="padding: 12px 0;">
+      <p style="font-size: 15px; color: var(--shanti-charcoal); line-height: 1.5; margin-bottom: 12px;" id="modal-pausa-texto">
+        Defina o motivo para pausar os alertas acolhedores de ausência deste aluno (ex: viagem comunicada pela Cláusula 6 do contrato):
+      </p>
+      <input type="hidden" id="modal-pausa-aluno-id">
+      <input type="hidden" id="modal-pausa-acao">
+      <div class="wa-form-group" id="grupo-motivo-pausa" style="margin-bottom: 16px;">
+        <label class="wa-label" style="font-size: 14px; font-weight: 600; color: var(--shanti-forest);">Motivo da Pausa:</label>
+        <input type="text" id="modal-pausa-motivo" class="wa-form-control" placeholder="Ex: Viagem de 15 dias de férias">
+      </div>
+      <div style="display: flex; gap: 8px;">
+        <button type="button" class="wa-btn-primary" data-close-modal="modal-pausa-alerta" style="flex: 1; background: var(--shanti-sand-light); color: var(--shanti-charcoal); border: 1px solid var(--shanti-sand-border); box-shadow: none;">
+          Cancelar
+        </button>
+        <button type="button" class="wa-btn-primary" id="btn-confirmar-pausa-alerta" style="flex: 1; background: var(--shanti-terracotta); border: none;">
+          Confirmar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ======================================================================
+     MODAL: COMO ATIVAR O MICROFONE
+     ====================================================================== -->
+<div class="wa-modal-overlay" id="modal-mic-help">
+  <div class="wa-modal-sheet" style="text-align: center; max-height: 90%;">
+    <div class="wa-modal-header" style="justify-content: center; position: relative;">
+      <h3 class="wa-modal-title" style="font-size: 17px;">
+        <i class="fa-solid fa-microphone-lines" style="color: var(--shanti-terracotta);"></i> Ativar Microfone com a IA
+      </h3>
+      <button class="wa-modal-close" data-close-modal="modal-mic-help" style="position: absolute; right: 0;">&times;</button>
+    </div>
+
+    <div style="padding: 10px 0;">
+      <div style="width: 60px; height: 60px; border-radius: 50%; background: #fef2f2; color: var(--wa-danger); display: flex; align-items: center; justify-content: center; font-size: 26px; margin: 0 auto 12px;">
+        <i class="fa-solid fa-microphone-slash"></i>
+      </div>
+      
+      <p style="font-size: 14px; color: var(--wa-text-primary); font-weight: 600; margin-bottom: 8px;">
+        O navegador bloqueou o microfone no endereço de IP atual.
+      </p>
+      
+      <p style="font-size: 15px; color: var(--wa-text-secondary); line-height: 1.5; margin-bottom: 16px;">
+        Por segurança padrão do Chrome/Edge, o microfone só é liberado em <b>localhost</b> ou em conexão segura <b>HTTPS</b>.
+      </p>
+
+      <div style="background: #fbf9f5; border: 1px solid var(--wa-border); border-radius: 12px; padding: 14px; text-align: left; margin-bottom: 16px; font-size: 15px;">
+        <div style="font-weight: 700; color: var(--shanti-primary); margin-bottom: 4px;">
+          💻 Se você está no Computador:
+        </div>
+        <p style="color: var(--wa-text-secondary); margin-bottom: 10px;">
+          Acesse pelo endereço oficial local. O navegador libera o microfone na hora!
+        </p>
+        <a href="http://localhost:8000" id="btn-redirect-localhost" class="wa-btn-primary" style="text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 15px; padding: 10px;">
+          <i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir via http://localhost:8000
+        </a>
+      </div>
+
+      <div style="background: #fbf9f5; border: 1px solid var(--wa-border); border-radius: 12px; padding: 14px; text-align: left; font-size: 15px;">
+        <div style="font-weight: 700; color: var(--shanti-primary); margin-bottom: 4px;">
+          📱 Se você está no Celular:
+        </div>
+        <p style="color: var(--wa-text-secondary);">
+          Toque no ícone de <b>ajustes/permissões</b> na barra de endereço do navegador do celular e selecione <b>Microfone: Permitir</b>.
+        </p>
+      </div>
+
+      <button class="wa-btn-primary" data-close-modal="modal-mic-help" style="margin-top: 16px; background: #e5e7eb; color: #374151; border: none; box-shadow: none;">
+        Entendido
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ======================================================================
+     MODAL: ALTERAR SENHA DE ACESSO
+     ====================================================================== -->
+<div class="wa-modal-overlay" id="modal-alterar-senha">
+  <div class="wa-modal-sheet" style="max-width: 380px;">
+    <div class="wa-modal-header">
+      <h3 class="wa-modal-title" style="font-size: 16px;">
+        <i class="fa-solid fa-key" style="color: var(--shanti-terracotta);"></i> Alterar Senha de Acesso
+      </h3>
+      <button class="wa-modal-close" data-close-modal="modal-alterar-senha">&times;</button>
+    </div>
+
+    <form id="form-alterar-senha" style="padding: 10px 0;">
+      <p style="font-size: 14px; color: var(--shanti-stone); margin-bottom: 14px; line-height: 1.4;">
+        Alterando a senha do usuário <b id="modal-senha-username" style="color: var(--shanti-forest);">natalia</b>. A nova senha será sincronizada com segurança no banco de dados.
+      </p>
+
+      <div class="wa-form-group" style="margin-bottom: 12px;">
+        <label style="font-size: 14px; font-weight: 600; color: var(--shanti-forest);">Senha Atual *</label>
+        <input type="password" id="input-senha-atual" class="wa-form-control" required placeholder="Digite sua senha atual...">
+      </div>
+
+      <div class="wa-form-group" style="margin-bottom: 12px;">
+        <label style="font-size: 14px; font-weight: 600; color: var(--shanti-forest);">Nova Senha * (mínimo 4 dígitos)</label>
+        <input type="password" id="input-nova-senha" class="wa-form-control" required minlength="4" placeholder="Digite a nova senha...">
+      </div>
+
+      <div class="wa-form-group" style="margin-bottom: 14px;">
+        <label style="font-size: 14px; font-weight: 600; color: var(--shanti-forest);">Confirmar Nova Senha *</label>
+        <input type="password" id="input-confirma-nova-senha" class="wa-form-control" required minlength="4" placeholder="Repita a nova senha...">
+      </div>
+
+      <div id="modal-senha-erro" style="display:none; color: var(--wa-danger); font-size: 14px; margin-bottom: 12px; padding: 8px 12px; background: #fef2f2; border-radius: 8px; border: 1px solid #fca5a5;"></div>
+
+      <div style="display: flex; gap: 8px; margin-top: 14px;">
+        <button type="button" class="wa-btn-primary" data-close-modal="modal-alterar-senha" style="flex: 1; background: var(--shanti-sand-light); color: var(--shanti-charcoal); border: 1px solid var(--shanti-sand-border); box-shadow: none;">
+          Cancelar
+        </button>
+        <button type="submit" class="wa-btn-primary" id="btn-salvar-nova-senha" style="flex: 1; background: var(--shanti-terracotta); border: none;">
+          <i class="fa-solid fa-check"></i> Salvar Senha
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ======================================================================
+     MODAL: REDEFINIR SENHA DO APP DE GESTÃO (COM CHAVE DE SEGURANÇA)
+     ====================================================================== -->
+<div class="wa-modal-overlay" id="modal-redefinir-senha-gestao">
+  <div class="wa-modal-sheet" style="max-width: 400px; border-radius: 24px; padding: 22px;">
+    <div class="wa-modal-header">
+      <h3 class="wa-modal-title" style="font-size: 18px; font-weight: 700;">
+        <i class="fa-solid fa-key" style="color: var(--shanti-terracotta);"></i> Redefinir Senha
+      </h3>
+      <button class="wa-modal-close" data-close-modal="modal-redefinir-senha-gestao">&times;</button>
+    </div>
+
+    <form id="form-redefinir-senha-gestao" style="padding: 6px 0;">
+      <p style="font-size: 14px; color: var(--shanti-stone); margin-bottom: 16px; line-height: 1.45;">
+        Selecione seu usuário e digite o <strong>PIN mestre do Studio (2026)</strong> ou chave de segurança para redefinir sua senha.
+      </p>
+
+      <!-- Seletor de Perfil no Modal -->
+      <div class="wa-form-group" style="margin-bottom: 14px;">
+        <label style="font-size: 14.5px; font-weight: 700; color: var(--shanti-forest);">Usuário de Acesso *</label>
+        <select id="redefinir-gestao-username" class="wa-form-control" style="font-size: 15px; font-weight: 600;">
+          <option value="natalia">Natalia Garufe (admin)</option>
+          <option value="bruno">Bruno Dev (dev)</option>
+        </select>
+      </div>
+
+      <div class="wa-form-group" style="margin-bottom: 14px;">
+        <label style="font-size: 14.5px; font-weight: 700; color: var(--shanti-forest);">PIN Mestre ou Chave de Segurança *</label>
+        <input type="password" id="redefinir-gestao-chave" class="wa-form-control" required placeholder="Digite o PIN (ex: 2026)...">
+        <small style="font-size: 12.5px; color: var(--shanti-stone); display: block; margin-top: 4px;">
+          PIN mestre padrão: <strong>2026</strong> (ou chave do Studio)
+        </small>
+      </div>
+
+      <div class="wa-form-group" style="margin-bottom: 14px;">
+        <label style="font-size: 14.5px; font-weight: 700; color: var(--shanti-forest);">Nova Senha * (mínimo 4 dígitos)</label>
+        <input type="password" id="redefinir-gestao-nova-senha" class="wa-form-control" required minlength="4" placeholder="Digite sua nova senha...">
+      </div>
+
+      <div class="wa-form-group" style="margin-bottom: 16px;">
+        <label style="font-size: 14.5px; font-weight: 700; color: var(--shanti-forest);">Confirmar Nova Senha *</label>
+        <input type="password" id="redefinir-gestao-confirma-senha" class="wa-form-control" required minlength="4" placeholder="Repita a nova senha...">
+      </div>
+
+      <div id="redefinir-gestao-erro" style="display:none; color: #b91c1c; font-size: 13.5px; font-weight: 600; margin-bottom: 14px; padding: 10px 14px; background: #fef2f2; border-radius: 10px; border: 1px solid #fca5a5;"></div>
+      <div id="redefinir-gestao-sucesso" style="display:none; color: #15803d; font-size: 13.5px; font-weight: 700; margin-bottom: 14px; padding: 10px 14px; background: #dcfce7; border-radius: 10px; border: 1px solid #bbf7d0;"></div>
+
+      <div style="display: flex; gap: 10px; margin-top: 14px;">
+        <button type="button" class="wa-btn-primary" data-close-modal="modal-redefinir-senha-gestao" style="flex: 1; background: var(--shanti-sand-light); color: var(--shanti-charcoal); border: 1.5px solid var(--shanti-sand-border); box-shadow: none;">
+          Cancelar
+        </button>
+        <button type="submit" class="wa-btn-primary" id="btn-submit-redefinir-gestao" style="flex: 1.3; background: var(--shanti-terracotta); border: none;">
+          <i class="fa-solid fa-check"></i> Redefinir Senha
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ======================================================================
+     MODAL: CRIAR / EDITAR CONTEÚDO DA BIBLIOTECA (V2.0 MULTIMÍDIA)
+     ====================================================================== -->
+<div class="wa-modal-overlay" id="modal-conteudo-biblioteca">
+  <div class="wa-modal-sheet">
+    <div class="wa-modal-header">
+      <h3 class="wa-modal-title" id="modal-biblioteca-title"><i class="fa-solid fa-photo-film" style="color:var(--shanti-terracotta);"></i> Novo Conteúdo da Biblioteca</h3>
+      <button class="wa-modal-close" data-close-modal="modal-conteudo-biblioteca">&times;</button>
+    </div>
+
+    <form id="form-conteudo-biblioteca" onsubmit="salvarConteudoBibliotecaForm(event)">
+      <input type="hidden" id="bib-conteudo-id" value="">
+
+      <div class="wa-form-group">
+        <label>Título do Conteúdo *</label>
+        <input type="text" class="wa-form-control" id="bib-titulo" required placeholder="Ex: Yoga Express: Energia Matinal">
+      </div>
+
+      <div class="wa-form-group">
+        <label>Subtítulo ou Categoria</label>
+        <input type="text" class="wa-form-control" id="bib-subtitulo" placeholder="Ex: Hatha Yoga, Meditação, Respiração...">
+      </div>
+
+      <div class="wa-form-group">
+        <label>Tipo de Conteúdo *</label>
+        <select class="wa-form-control" id="bib-tipo" onchange="alternarTipoConteudoBiblioteca()">
+          <option value="video" selected>🎬 Aula em Vídeo (YouTube ou MP4)</option>
+          <option value="audio">🎵 Meditação / Prática em Áudio</option>
+          <option value="texto">📄 Artigo em Texto</option>
+          <option value="pdf">📎 Material em PDF / Apostila</option>
+        </select>
+      </div>
+
+      <!-- Campo de URL de Mídia (Vídeo / Áudio) -->
+      <div class="wa-form-group" id="group-bib-midia">
+        <label>URL da Mídia (YouTube ou Link de Vídeo/Áudio) *</label>
+        <input type="url" class="wa-form-control" id="bib-url-midia" placeholder="Ex: https://www.youtube.com/watch?v=... ou link direto">
+        <small style="color: var(--shanti-stone); font-size: 13px;">Cole o link de um vídeo do YouTube ou arquivo de áudio.</small>
+      </div>
+
+      <!-- Duração em Minutos -->
+      <div class="wa-form-group" id="group-bib-duracao">
+        <label>Duração em Minutos</label>
+        <input type="number" class="wa-form-control" id="bib-duracao" min="1" max="180" placeholder="Ex: 15 (minutos)">
+      </div>
+
+      <!-- Imagem de Capa / Thumbnail -->
+      <div class="wa-form-group" id="group-bib-capa">
+        <label>URL da Imagem de Capa (Thumbnail)</label>
+        <input type="url" class="wa-form-control" id="bib-url-capa" placeholder="Ex: https://images.unsplash.com/... (link da imagem)">
+        <small style="color: var(--shanti-stone); font-size: 13px;">Deixe em branco para usar uma capa automática padrão.</small>
+      </div>
+
+      <div class="wa-form-group" id="group-bib-texto" style="display: none;">
+        <label>Texto Completo / Artigo</label>
+        <textarea class="wa-form-control" id="bib-conteudo" rows="5" placeholder="Escreva aqui a mensagem ou reflexão para os alunos..."></textarea>
+      </div>
+
+      <div class="wa-form-group" id="group-bib-arquivo" style="display: none;">
+        <label>Upload de Arquivo (PDF ou Imagem)</label>
+        <input type="file" class="wa-form-control" id="bib-arquivo-file" accept=".pdf,image/*">
+        <small style="color: var(--shanti-stone); font-size: 13.5px;">PDFs, manuais de prática ou textos complementares.</small>
+      </div>
+
+      <div class="wa-form-group">
+        <label>Status de Publicação</label>
+        <select class="wa-form-control" id="bib-status">
+          <option value="publicado" selected>Publicado (visível no App do Aluno)</option>
+          <option value="rascunho">Rascunho (apenas visível para Natália)</option>
+        </select>
+      </div>
+
+      <div style="display: flex; gap: 8px; margin-top: 14px;">
+        <button type="button" class="wa-btn-primary" data-close-modal="modal-conteudo-biblioteca" style="flex: 1; background: var(--shanti-sand-light); color: var(--shanti-charcoal); border: 1px solid var(--shanti-sand-border); box-shadow: none;">
+          Cancelar
+        </button>
+        <button type="submit" class="wa-btn-primary" id="btn-salvar-conteudo-bib" style="flex: 1.2; background: var(--shanti-terracotta); border: none;">
+          <i class="fa-solid fa-check"></i> Salvar Conteúdo
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ======================================================================
+     MODAL: NOVO / EDITAR COMUNICADO (CENTRAL DE COMUNICAÇÃO)
+     ====================================================================== -->
+<div class="wa-modal-overlay" id="modal-novo-comunicado">
+  <div class="wa-modal-sheet" style="max-width: 520px;">
+    <div class="wa-modal-header">
+      <h3 class="wa-modal-title" id="modal-comunicado-title">
+        <i class="fa-solid fa-bullhorn" style="color:var(--shanti-terracotta);"></i> Novo Comunicado
+      </h3>
+      <button class="wa-modal-close" data-close-modal="modal-novo-comunicado">&times;</button>
+    </div>
+
+    <form id="form-novo-comunicado" onsubmit="salvarComunicadoForm(event)">
+      <input type="hidden" id="com-id" value="">
+
+      <div class="wa-form-group">
+        <label>Título do Comunicado *</label>
+        <input type="text" class="wa-form-control" id="com-titulo" required placeholder="Ex: Aviso de Feriado: Studio Aberto!">
+      </div>
+
+      <div class="wa-form-group">
+        <label>Mensagem Completa *</label>
+        <textarea class="wa-form-control" id="com-mensagem" rows="4" required placeholder="Escreva a mensagem que os alunos receberão..."></textarea>
+      </div>
+
+      <div class="wa-form-group">
+        <label>URL da Imagem Banner (Opcional)</label>
+        <input type="url" class="wa-form-control" id="com-banner" placeholder="Ex: https://... link de foto para o pop-up">
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+        <div class="wa-form-group">
+          <label>Tipo</label>
+          <select class="wa-form-control" id="com-tipo">
+            <option value="aviso" selected>📢 Aviso Geral</option>
+            <option value="campanha">🎉 Campanha / Evento</option>
+            <option value="promocao">🏷️ Promoção</option>
+          </select>
+        </div>
+
+        <div class="wa-form-group">
+          <label>Público-Alvo</label>
+          <select class="wa-form-control" id="com-publico">
+            <option value="todos" selected>Todos os Alunos</option>
+            <option value="ativos">Apenas Ativos (Em dia)</option>
+            <option value="inadimplentes">Apenas Inadimplentes</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Opções de Disparo -->
+      <div style="background: var(--shanti-sand-light); border: 1px solid var(--shanti-sand-border); border-radius: 14px; padding: 14px; margin: 10px 0;">
+        <div style="font-weight: 700; font-size: 13.5px; color: var(--shanti-forest); margin-bottom: 8px;">
+          <i class="fa-solid fa-paper-plane"></i> Onde Disparar:
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px; font-size: 13.5px;">
+          <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+            <input type="checkbox" id="com-check-popup" checked>
+            <span><strong>Pop-up no App</strong> (Exibido ao abrir o App do Aluno)</span>
+          </label>
+          <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+            <input type="checkbox" id="com-check-push" checked>
+            <span><strong>Push Notification</strong> (Notificação na tela do celular)</span>
+          </label>
+          <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+            <input type="checkbox" id="com-check-wa" checked>
+            <span><strong>Disparo WhatsApp</strong> (Gera links wa.me prontos para envio)</span>
+          </label>
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 8px; margin-top: 14px;">
+        <button type="button" class="wa-btn-primary" data-close-modal="modal-novo-comunicado" style="flex: 1; background: var(--shanti-sand-light); color: var(--shanti-charcoal); border: 1px solid var(--shanti-sand-border); box-shadow: none;">
+          Cancelar
+        </button>
+        <button type="button" onclick="salvarComoRascunhoComunicado()" class="wa-btn-primary" style="flex: 1; background: #ffffff; color: var(--shanti-forest); border: 1px solid var(--shanti-sand-border);">
+          Salvar Rascunho
+        </button>
+        <button type="submit" class="wa-btn-primary" id="btn-publicar-comunicado" style="flex: 1.4; background: var(--shanti-terracotta); border: none;">
+          <i class="fa-solid fa-bullhorn"></i> Publicar e Avisar
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ======================================================================
+     MODAL: DISPARO WHATSAPP DO COMUNICADO (LINKS WA.ME PRONTOS)
+     ====================================================================== -->
+<div class="wa-modal-overlay" id="modal-comunicado-wa-links">
+  <div class="wa-modal-sheet" style="max-width: 520px;">
+    <div class="wa-modal-header">
+      <h3 class="wa-modal-title">
+        <i class="fa-brands fa-whatsapp" style="color: #25D366;"></i> Disparar Comunicado via WhatsApp
+      </h3>
+      <button class="wa-modal-close" data-close-modal="modal-comunicado-wa-links">&times;</button>
+    </div>
+
+    <div style="padding: 6px 0;">
+      <p style="font-size: 14px; color: var(--shanti-stone); margin-bottom: 12px; line-height: 1.4;">
+        Toque no botão de cada aluno abaixo para abrir o WhatsApp com a mensagem personalizada pronta para envio:
+      </p>
+
+      <!-- Filtro por Turma -->
+      <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 12px; background: var(--shanti-sand-light); padding: 8px 12px; border-radius: 10px; border: 1px solid var(--shanti-sand-border);">
+        <label for="filtro-wa-turma" style="font-size: 13px; font-weight: 700; color: var(--shanti-charcoal); white-space: nowrap;">
+          <i class="fa-solid fa-users"></i> Turma:
+        </label>
+        <select id="filtro-wa-turma" class="wa-form-control" style="flex: 1; font-size: 13.5px; font-weight: 600; border-radius: 8px; border: 1px solid var(--shanti-sand-border); padding: 6px 10px; background: #fff; color: var(--shanti-charcoal);" onchange="filtrarWaLinksPorTurma()">
+          <option value="todas">👥 Todas as Turmas</option>
+        </select>
+      </div>
+
+      <div id="lista-wa-links-comunicado" style="display: flex; flex-direction: column; gap: 8px; max-height: 420px; overflow-y: auto; padding-right: 2px;">
+        <!-- Links injetados via JS -->
+      </div>
+
+      <div style="margin-top: 14px;">
+        <button type="button" class="wa-btn-primary" data-close-modal="modal-comunicado-wa-links" style="width: 100%; background: var(--shanti-sand-light); color: var(--shanti-charcoal); border: 1px solid var(--shanti-sand-border); box-shadow: none;">
+          Concluir Disparos
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ======================================================================
+     MODAL: RESPONDER SOLICITAÇÃO DE REPOSIÇÃO
+     ====================================================================== -->
+<div class="wa-modal-overlay" id="modal-responder-reposicao">
+  <div class="wa-modal-sheet">
+    <div class="wa-modal-header">
+      <h3 class="wa-modal-title"><i class="fa-solid fa-arrow-rotate-right" style="color:var(--shanti-terracotta);"></i> Responder Reposição</h3>
+      <button class="wa-modal-close" data-close-modal="modal-responder-reposicao">&times;</button>
+    </div>
+
+    <form id="form-responder-reposicao" onsubmit="processarRespostaReposicao(event)">
+      <input type="hidden" id="resp-repo-id" value="">
+      <input type="hidden" id="resp-repo-telefone" value="">
+      <input type="hidden" id="resp-repo-alunonome" value="">
+
+      <div style="background: var(--shanti-sand-light); border: 1px solid var(--shanti-sand-border); border-radius: 12px; padding: 12px; margin-bottom: 12px; font-size: 14px;">
+        <strong id="resp-repo-aluno">Aluno</strong><br>
+        <span>Falta informada: <b id="resp-repo-data-falta">--</b></span><br>
+        <span id="resp-repo-motivo" style="color: var(--shanti-stone);">Motivo</span>
+      </div>
+
+      <div class="wa-form-group">
+        <label>Decisão *</label>
+        <select class="wa-form-control" id="resp-repo-status" required>
+          <option value="aprovada" selected>Aprovar Reposição</option>
+          <option value="rejeitada">Recusar Reposição (sem vagas/fora do prazo)</option>
+        </select>
+      </div>
+
+      <div class="wa-form-group">
+        <label>Turma de Reposição Alocada (se aprovada)</label>
+        <select class="wa-form-control" id="resp-repo-turma">
+          <!-- Injetado via JS -->
+        </select>
+      </div>
+
+      <div class="wa-form-group">
+        <label>Data Combinada para Reposição</label>
+        <input type="date" class="wa-form-control" id="resp-repo-data-sugerida">
+      </div>
+
+      <div class="wa-form-group">
+        <label>Mensagem / Justificativa para o Aluno</label>
+        <textarea class="wa-form-control" id="resp-repo-msg" rows="2" placeholder="Ex: Reposição confirmada para terça às 18:30! Te esperamos."></textarea>
+      </div>
+
+      <div style="display: flex; gap: 8px; margin-top: 14px;">
+        <button type="button" class="wa-btn-primary" data-close-modal="modal-responder-reposicao" style="flex: 1; background: var(--shanti-sand-light); color: var(--shanti-charcoal); border: 1px solid var(--shanti-sand-border); box-shadow: none;">
+          Cancelar
+        </button>
+        <button type="submit" class="wa-btn-primary" style="flex: 1; background: var(--shanti-forest); border: none;">
+          <i class="fa-solid fa-check"></i> Concluir Resposta
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ======================================================================
+     MODAL: SENHA TEMPORÁRIA GERADA & LINK WHATSAPP
+     ====================================================================== -->
+<div class="wa-modal-overlay" id="modal-senha-temp-gerada">
+  <div class="wa-modal-sheet" style="text-align: center;">
+    <div class="wa-modal-header">
+      <h3 class="wa-modal-title" style="margin: 0 auto;"><i class="fa-solid fa-key" style="color:var(--shanti-forest);"></i> Acesso Criado!</h3>
+      <button class="wa-modal-close" data-close-modal="modal-senha-temp-gerada">&times;</button>
+    </div>
+
+    <div style="margin: 14px 0;">
+      <p style="font-size: 15px; color: var(--shanti-charcoal); margin-bottom: 8px;">
+        Senha temporária para <b id="st-aluno-nome">Aluno</b>:
+      </p>
+      <div style="display: inline-block; font-size: 26px; font-weight: 800; letter-spacing: 0.12em; color: var(--shanti-forest); background: #FAF7F2; border: 2px dashed var(--shanti-forest); padding: 8px 24px; border-radius: 12px;" id="st-senha-temp">
+        SH0000
+      </div>
+    </div>
+
+    <p style="font-size: 14px; color: var(--shanti-stone); line-height: 1.4; margin-bottom: 16px;">
+      Envie a mensagem de convite no WhatsApp do aluno com um toque. No primeiro acesso, o sistema pedirá para ele definir uma senha pessoal definitiva.
+    </p>
+
+    <a id="st-btn-whatsapp" href="#" target="_blank" class="wa-btn-primary" style="background: var(--shanti-whatsapp-green); color: #ffffff; text-decoration: none; padding: 12px; border-radius: 24px; font-weight: 700; font-size: 15px; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 14px rgba(37,211,102,0.3);">
+      <i class="fa-brands fa-whatsapp" style="font-size: 18px;"></i> Enviar Acesso pelo WhatsApp
+    </a>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="wa-toast" id="toast-msg">Notificação</div>
+
+<!-- JavaScript Principal -->
+<script src="/js/app.js?v=34"></script>
+
+<script>
+  // Normaliza URL para garantir o escopo /gestao/ com barra final
+  if (window.location.pathname === '/' || window.location.pathname === '' || window.location.pathname === '/gestao') {
+    window.history.replaceState({}, '', '/gestao/' + window.location.search);
+  }
+
+  let deferredPromptGestao = null;
+
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPromptGestao = e;
+    const btn = document.getElementById('btn-instalar-gestao');
+    if (btn) btn.classList.add('anim-pulse');
+  });
+
+  window.addEventListener('appinstalled', () => {
+    if (typeof showToast === 'function') {
+      showToast('✨ App de Gestão instalado com sucesso! Abra pelo ícone na tela inicial.');
+    }
+  });
+
+  function isPwaGestaoStandalone() {
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
+    const isFullscreen = window.matchMedia('(display-mode: fullscreen)').matches;
+    const isMinimalUi = window.matchMedia('(display-mode: minimal-ui)').matches;
+    const isNavStandalone = window.navigator.standalone === true;
+    return isStandalone || isFullscreen || isMinimalUi || isNavStandalone;
+  }
+
+  function ajustarGatekeeperGestao() {
+    const ua = navigator.userAgent || "";
+    const isIos = /iPad|iPhone|iPod/.test(ua) && !window.MSStream;
+    const isAndroid = /android/i.test(ua);
+
+    const boxIos = document.getElementById("gestao-instrucoes-ios");
+    const boxAndroid = document.getElementById("gestao-instrucoes-android");
+    const boxDesktop = document.getElementById("gestao-instrucoes-desktop");
+
+    if (boxIos) boxIos.style.display = isIos ? "block" : "none";
+    if (boxAndroid) boxAndroid.style.display = isAndroid ? "block" : "none";
+    if (boxDesktop) boxDesktop.style.display = (!isIos && !isAndroid) ? "block" : "none";
+
+    const installScreen = document.getElementById('pwa-install-screen-gestao');
+    const appContainer = document.getElementById('app-container');
+    const loginScreen = document.getElementById('pwa-login-screen');
+
+    if (isPwaGestaoStandalone()) {
+      if (installScreen) installScreen.style.display = 'none';
+      return true;
+    } else {
+      if (installScreen) installScreen.style.display = 'flex';
+      if (loginScreen) loginScreen.style.display = 'none';
+      if (appContainer) {
+        appContainer.style.filter = 'blur(6px)';
+        appContainer.style.pointerEvents = 'none';
+      }
+      return false;
+    }
+  }
+
+  async function clicarInstalarAppGestao() {
+    if (deferredPromptGestao) {
+      deferredPromptGestao.prompt();
+      const { outcome } = await deferredPromptGestao.userChoice;
+      if (outcome === 'accepted') {
+        if (typeof showToast === 'function') {
+          showToast('Instalação iniciada! Abra o app "Shanti Gestão" na tela inicial.');
+        }
+      }
+      deferredPromptGestao = null;
+    } else {
+      const ua = navigator.userAgent || "";
+      const isIos = /iPad|iPhone|iPod/.test(ua);
+      if (isIos) {
+        alert("No iPhone: toque no ícone de Compartilhar ⎋ na barra inferior do Safari e em 'Adicionar à Tela de Início'!");
+      } else {
+        alert("No Android: toque no menu ⋮ (três pontinhos) no topo do Chrome e selecione 'Instalar aplicativo'!");
+      }
+    }
+  }
+
+  // Executa o gatekeeper assim que o DOM estiver pronto
+  window.addEventListener('DOMContentLoaded', ajustarGatekeeperGestao);
+
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      // Limpa registros antigos com escopo genérico raiz '/' se existirem
+      navigator.serviceWorker.getRegistrations().then(regs => {
+        for (let r of regs) {
+          if (r.scope.endsWith('/') && !r.scope.includes('/gestao') && !r.scope.includes('/aluno')) {
+            r.unregister();
+          }
+        }
+      });
+
+      // Registra o Service Worker exclusivo de Gestão com escopo /gestao/
+      navigator.serviceWorker.register('/service-worker-gestao.js', { scope: '/gestao/' }).then(reg => {
+        reg.update();
+      }).catch(err => {
+        console.log('SW Gestão reg:', err);
+      });
+    });
+  }
+</script>
+
+</body>
+</html>
